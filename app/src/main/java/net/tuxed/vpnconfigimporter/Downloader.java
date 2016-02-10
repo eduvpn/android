@@ -11,28 +11,10 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.Random;
 
 public class Downloader {
 
-    public String rnd() {
-        char[] chars = "abcdefghijklmnopqrstuvwxyz".toCharArray();
-        StringBuilder sb = new StringBuilder();
-        Random random = new Random();
-        for (
-                int i = 0;
-                i < 5; i++)
-
-        {
-            char c = chars[random.nextInt(chars.length)];
-            sb.append(c);
-        }
-
-        String output = sb.toString();
-        return output;
-    }
-
-    public String downloadFile(String vpnUrl, String userName, String userPass) {
+    public String downloadFile(String vpnUrl, String userName, String userPass, String configName) {
         try {
             URL url = new URL(vpnUrl);
             HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
@@ -43,7 +25,7 @@ public class Downloader {
             urlConnection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
 
             try {
-                String body = "name=Android_" + this.rnd();
+                String body = "name=" + configName;
                 urlConnection.setDoInput(true);
                 urlConnection.setDoOutput(true);
                 urlConnection.setChunkedStreamingMode(body.length());

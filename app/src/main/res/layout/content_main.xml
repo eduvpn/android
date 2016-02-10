@@ -58,6 +58,12 @@
             android:hint="Password"
             android:inputType="textPassword" />
 
+        <EditText
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/configName"
+            android:hint="Name" />
+
         <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

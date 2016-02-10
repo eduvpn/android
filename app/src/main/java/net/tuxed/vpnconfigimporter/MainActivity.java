@@ -17,6 +17,7 @@ import android.widget.EditText;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Random;
 
 public class MainActivity extends AppCompatActivity implements OnClickListener {
 
@@ -42,9 +43,9 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
                 EditText vpnUrl = (EditText) findViewById(R.id.vpnUrl);
                 EditText userName = (EditText) findViewById(R.id.userName);
                 EditText userPass = (EditText) findViewById(R.id.userPass);
+                EditText configName = (EditText) findViewById(R.id.configName);
 
-                String[] s = {vpnUrl.getText().toString(), userName.getText().toString(), userPass.getText().toString()};
-
+                String[] s = {vpnUrl.getText().toString(), userName.getText().toString(), userPass.getText().toString(), configName.getText().toString()};
 
                 d.execute(s);//new URL("https://vpn.tuxed.net/vpn-user-portal/api/config"));
             } catch (Exception e) {
@@ -83,6 +84,13 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
                 userName.setText(u.getQueryParameter("userName"));
                 EditText userPass = (EditText) findViewById(R.id.userPass);
                 userPass.setText(u.getQueryParameter("userPass"));
+                EditText configName = (EditText) findViewById(R.id.configName);
+                String strConfigName = u.getQueryParameter("configName");
+                if (null == strConfigName) {
+                    // generate random name
+                    strConfigName = "android_" + this.rnd();
+                }
+                configName.setText(strConfigName);
             }
             if (resultCode == RESULT_CANCELED) {
                 //handle cancel
@@ -109,7 +117,7 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
     private class DownloadFilesTask extends AsyncTask<String, Void, String> {
         protected String doInBackground(String... s) {
             Downloader d = new Downloader();
-            return d.downloadFile(s[0], s[1], s[2]);
+            return d.downloadFile(s[0], s[1], s[2], s[3]);
         }
 
         public boolean isExternalStorageWritable() {
@@ -157,5 +165,22 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
                 Log.e("MainActivity", "unable to write file " + e.getMessage());
             }
         }
+    }
+
+    public String rnd() {
+        char[] chars = "abcdefghijklmnopqrstuvwxyz".toCharArray();
+        StringBuilder sb = new StringBuilder();
+        Random random = new Random();
+        for (
+                int i = 0;
+                i < 5; i++)
+
+        {
+            char c = chars[random.nextInt(chars.length)];
+            sb.append(c);
+        }
+
+        String output = sb.toString();
+        return output;
     }
 }
