@@ -17,7 +17,6 @@ import android.widget.EditText;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.net.URL;
 
 public class MainActivity extends AppCompatActivity implements OnClickListener {
 
@@ -142,12 +141,18 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
                 Log.i("MainActivity", "file " + f.getAbsolutePath() + " written");
 
                 Uri foo = Uri.parse(f.getAbsolutePath());
-
-                Intent intent = new Intent();
-                intent.setAction(android.content.Intent.ACTION_VIEW);
-                intent.setDataAndType(Uri.fromFile(f), "application/x-openvpn-profile");
-                startActivity(intent);
-
+                try {
+                    Intent intent = new Intent();
+                    intent.setAction(android.content.Intent.ACTION_VIEW);
+                    intent.setDataAndType(Uri.fromFile(f), "application/x-openvpn-profile");
+                    startActivity(intent);
+                } catch (Exception e) {
+                    // failed to open file, possibly user does not have OpenVPN app installed,
+                    // could it also be user cancel?!
+                    Uri marketUri = Uri.parse("market://details?id=net.openvpn.openvpn");
+                    Intent marketIntent = new Intent(Intent.ACTION_VIEW, marketUri);
+                    startActivity(marketIntent);
+                }
             } catch (IOException e) {
                 Log.e("MainActivity", "unable to write file " + e.getMessage());
             }
