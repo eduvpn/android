@@ -21,3 +21,5 @@ Simple App to import OpenVPN configurations in OpenVPN Connect or OpenVPN for An
 - higher resolution icon
 - branding
 - add to play store | F-Droid
+- currently the OVPN file needs to remain stored on the SD card, that is 
+  really not good!
