@@ -17,6 +17,7 @@ Simple App to import OpenVPN configurations in OpenVPN Connect or OpenVPN for An
 - maybe only support QR code and not manual entering data, or at least not on main screen
 - cleanup a lot of code
   - error handling!
+- do not overwrite existing config in OpenVPN connect
 - higher resolution icon
 - branding
 - add to play store | F-Droid
