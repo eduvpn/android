@@ -39,13 +39,14 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
     public void onClick(View v) {
         if (R.id.importButton == v.getId()) {
             try {
-                DownloadFilesTask d = new DownloadFilesTask();
                 EditText vpnUrl = (EditText) findViewById(R.id.vpnUrl);
                 EditText userName = (EditText) findViewById(R.id.userName);
                 EditText userPass = (EditText) findViewById(R.id.userPass);
                 EditText configName = (EditText) findViewById(R.id.configName);
 
                 String[] s = {vpnUrl.getText().toString(), userName.getText().toString(), userPass.getText().toString(), configName.getText().toString()};
+
+                DownloadFilesTask d = new DownloadFilesTask(configName.getText().toString());
 
                 d.execute(s);//new URL("https://vpn.tuxed.net/vpn-user-portal/api/config"));
             } catch (Exception e) {
@@ -115,6 +116,12 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
 
 
     private class DownloadFilesTask extends AsyncTask<String, Void, String> {
+        private String configName;
+
+        public DownloadFilesTask(String configName) {
+            this.configName = configName;
+        }
+
         protected String doInBackground(String... s) {
             Downloader d = new Downloader();
             return d.downloadFile(s[0], s[1], s[2], s[3]);
@@ -139,7 +146,7 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
         }
 
         protected void onPostExecute(String s) {
-            File f = new File(this.getConfigStorageDir("VPN"), "Android.ovpn");
+            File f = new File(this.getConfigStorageDir("VPN"), this.configName + ".ovpn");
             try {
 
                 FileWriter fw = new FileWriter(f);
