@@ -20,58 +20,31 @@
         android:layout_height="match_parent"
         android:layout_alignParentTop="true"
         android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true">
+        android:layout_alignParentStart="true"
+        android:id="@+id/linearLayout">
 
-        <Button
+        <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Scan QR"
-            android:id="@+id/scanButton"
-            android:layout_alignParentBottom="true"
-            android:layout_alignParentRight="true"
-            android:layout_alignParentEnd="true"
-            android:layout_marginRight="160dp"
-            android:layout_marginEnd="160dp" />
+            android:text="Specify the hostname of the VPN instance you want to connect to. No need to specify https://"
+            android:id="@+id/textView2" />
 
         <EditText
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/vpnUrl"
-            android:layout_gravity="center_horizontal"
             android:inputType="textUri"
             android:enabled="true"
             android:editable="true"
-            android:hint="API URL" />
-
-        <EditText
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:id="@+id/userName"
-            android:layout_gravity="center_horizontal"
-            android:hint="Username" />
-
-        <EditText
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:id="@+id/userPass"
-            android:layout_gravity="center_horizontal"
-            android:hint="Password"
-            android:inputType="textPassword" />
-
-        <EditText
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:id="@+id/configName"
-            android:hint="Name" />
+            android:hint="https://vpn.example"
+            android:text="eduvpn.surfcloud.nl"
+            android:gravity="left" />
 
         <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Import"
-            android:id="@+id/importButton"
-            android:layout_alignParentTop="true"
-            android:layout_alignParentRight="true"
-            android:layout_alignParentEnd="true" />
+            android:text="Setup"
+            android:id="@+id/setupButton" />
 
     </LinearLayout>
 
