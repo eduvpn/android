@@ -1,30 +1,18 @@
 package net.tuxed.vpnconfigimporter;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Bundle;
 import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.util.Log;
-import android.widget.EditText;
 import android.widget.TextView;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.StringBufferInputStream;
-import java.io.StringReader;
-import java.security.Certificate;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.cert.CertificateFactory;
-import java.security.cert.X509Certificate;
 
 public class RegisterActivity extends AppCompatActivity {
 
@@ -42,43 +30,53 @@ public class RegisterActivity extends AppCompatActivity {
         String[] f = fragment.split("&");
 
         String accessToken = null;
+        String state = null;
 
-        for(String x : f) {
+        for (String x : f) {
             String[] kv = x.split("=");
-            if(kv[0].equals("access_token")) {
+            if (kv[0].equals("access_token")) {
                 // found access token
                 accessToken = kv[1];
             }
+            if (kv[0].equals("state")) {
+                // found access token
+                state = kv[1];
+            }
+
+        }
+        boolean error = false;
+
+        TextView t = (TextView) findViewById(R.id.textView);
+
+        if (null == accessToken) {
+            t.setText("accessToken not found in callback URL");
+            error = true;
+
+        }
+        if (null == state) {
+            t.setText("state not found in callback URL");
+            error = true;
+
+        }
+        SharedPreferences settings = getSharedPreferences("vpn-state", 0);
+
+        String settingsState = settings.getString("state", "x");    // FIXME, die when no state stored
+
+        if (!state.equals(settingsState)) {
+            t.setText("state does not match state we sent");
+            error = true;
         }
 
-        if(null == accessToken) {
-            // accessToken not found, FIXME handle this
+        //FIXME delete state / URL from settings
+
+        if (!error) {
+            String configName = "Android_" + System.currentTimeMillis() / 1000L;
+            String vpnHost = settings.getString("host", null);
+            String newU = "https://" + vpnHost + "/portal/api/config";
+            String[] s = {newU, accessToken, configName};
+            DownloadFilesTask d = new DownloadFilesTask(configName);
+            d.execute(s);
         }
-
-        TextView t = (TextView) findViewById(R.id.callbackUri);
-        t.setText(accessToken);
-
-
-//        EditText intentUri = (EditText) findViewById(R.id.intentUri);
-//        intentUri.setText(fragment.toString());
-
-        //String code = u.getQueryParameter("code");
-        //String state = u.getQueryParameter("state");
-
-        // FIXME: first exchange code for access token!
-        // FIXME: come up with a good way to determine a configuration name...
-
-        //String accessToken = "DEFINITELY_NOT_VALID";
-        String configName = "Android_" + System.currentTimeMillis() / 1000L;
-
-        // get the URL from the persistent storage, we do not want it hard coded here
-        String newU = "https://vpn.tuxed.net/portal/api/config";
-
-        String[] s = {newU, accessToken, configName};
-
-        DownloadFilesTask d = new DownloadFilesTask(configName);
-//
-        d.execute(s);//new URL("https://vpn.tuxed.net/vpn-user-portal/api/config"));
     }
 
     private class DownloadFilesTask extends AsyncTask<String, Void, String> {
@@ -176,7 +174,7 @@ public class RegisterActivity extends AppCompatActivity {
 //                Log.e("RegisterActivity", e.getMessage());
             } catch (IOException e) {
                 Log.e("MainActivity", "unable to write file " + e.getMessage());
-            }catch(Exception e){
+            } catch (Exception e) {
                 Log.e("RegisterActivity", e.getMessage());
             }
         }

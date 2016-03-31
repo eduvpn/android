@@ -26,17 +26,17 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Specify the hostname of the VPN instance you want to connect to. No need to specify https://"
+            android:text="Specify the hostname of the VPN instance you want to connect to."
             android:id="@+id/textView2" />
 
         <EditText
-            android:layout_width="wrap_content"
+            android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:id="@+id/vpnUrl"
             android:inputType="textUri"
             android:enabled="true"
             android:editable="true"
-            android:hint="https://vpn.example"
+            android:hint="vpn.example"
             android:text="eduvpn.surfcloud.nl"
             android:gravity="left" />
 

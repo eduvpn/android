@@ -18,10 +18,8 @@
         <TextView
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
-            android:text="New Text"
-            android:id="@+id/callbackUri"
-            android:layout_gravity="center_horizontal"
-            android:layout_weight="0.45" />
+            android:id="@+id/textView"
+            android:layout_gravity="center_horizontal" />
     </LinearLayout>
 
 </RelativeLayout>

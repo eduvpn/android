@@ -1,23 +1,16 @@
 package net.tuxed.vpnconfigimporter;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
-import android.util.Log;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.EditText;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.util.Random;
+import java.util.UUID;
 
 public class MainActivity extends AppCompatActivity implements OnClickListener {
 
@@ -73,16 +66,26 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
         // think about using webview instead? is that still possible in newer Android without
         // Google Apps?
 //        https://developer.android.com/guide/components/intents-common.html#Browser
-        if(R.id.setupButton == v.getId()) {
+        if (R.id.setupButton == v.getId()) {
 
             // store url in persistent storage, because we need it when talking to the API when we get the
             // credentials
             //https://developer.android.com/guide/topics/data/data-storage.html#pref
+            //String state = "FIXMERANDOMVALUE";
 
-            String state = "FIXMERANDOMVALUE";
+            String state = UUID.randomUUID().toString();
+
+            SharedPreferences settings = getSharedPreferences("vpn-state", 0);
+            SharedPreferences.Editor editor = settings.edit();
+            editor.putString("state", state);
 
             EditText vpnUrl = (EditText) findViewById(R.id.vpnUrl);
-            String openUrl = "https://" + vpnUrl.getText().toString() + "/portal/_oauth/authorize?client_id=vpn-companion&redirect_uri=vpn://import/callback&response_type=token&scope=create_config&state="+state;
+
+            String vpnHost = vpnUrl.getText().toString();
+            editor.putString("host", vpnHost);
+            editor.commit();
+
+            String openUrl = "https://" + vpnHost + "/portal/_oauth/authorize?client_id=vpn-companion&redirect_uri=vpn://import/callback&response_type=token&scope=create_config&state=" + state;
             Intent i = new Intent(Intent.ACTION_VIEW);
             i.setData(Uri.parse(openUrl));
             startActivity(i);
