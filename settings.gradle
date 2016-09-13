@@ -1,1 +1,3 @@
 include ':app'
+include ':ics-openvpn'
+project(':ics-openvpn').projectDir = new File(settingsDir, '../ics-openvpn/main')
