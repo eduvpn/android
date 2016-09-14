@@ -1,50 +1,86 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:gravity="center_vertical|center_horizontal"
+    android:paddingBottom="@dimen/activity_vertical_margin"
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
-    android:paddingBottom="@dimen/activity_vertical_margin"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
-    tools:showIn="@layout/activity_main"
     tools:context="net.tuxed.vpnconfigimporter.MainActivity"
-    android:gravity="center_vertical|center_horizontal">
+    tools:showIn="@layout/activity_main">
 
     <LinearLayout
-        android:orientation="vertical"
+        android:id="@+id/linearLayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_alignParentTop="true"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
-        android:id="@+id/linearLayout">
+        android:layout_alignParentTop="true"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/currentStatus"
+            android:layout_width="match_parent"
+            android:padding="4dp"
+            android:gravity="center"
+            android:layout_height="wrap_content"
+            tools:text="Current status: DISCONNECTED"
+            android:layout_marginBottom="16dp"
+            android:textSize="18sp"/>
+
+        <TextView
+            android:id="@+id/savedConfigAvailable"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/saved_configuration_available"
+            android:visibility="gone"
+            tools:visibility="visible"/>
+
+        <Button
+            android:id="@+id/connectButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="24dp"
+            android:text="@string/button_start_connection"
+            android:visibility="gone"
+            tools:visibility="visible"/>
+
+        <TextView
+            android:id="@+id/requestNewConfigText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:text="@string/request_new_config_option"
+            android:visibility="gone"
+            tools:visibility="visible"
+            />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Specify the hostname of the VPN instance you want to connect to."
-            android:id="@+id/textView2" />
+            android:text="@string/custom_host_label"/>
 
         <EditText
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
             android:id="@+id/vpnUrl"
-            android:inputType="textUri"
-            android:enabled="true"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:editable="true"
-            android:hint="vpn.example"
-            android:text="eduvpn.surfcloud.nl"
-            android:gravity="left" />
+            android:enabled="true"
+            android:gravity="left"
+            android:hint="@string/custom_host_hint"
+            android:inputType="textUri"
+            android:text="@string/default_custom_host"/>
 
         <Button
+            android:id="@+id/setupButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Setup"
-            android:id="@+id/setupButton" />
+            android:text="@string/button_setup"/>
 
     </LinearLayout>
 

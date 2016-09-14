@@ -1,217 +1,183 @@
 package net.tuxed.vpnconfigimporter;
 
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.IBinder;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 
+import net.tuxed.vpnconfigimporter.utils.VpnUtils;
+
+import java.util.Iterator;
 import java.util.UUID;
 
-public class MainActivity extends AppCompatActivity implements OnClickListener {
+import de.blinkt.openvpn.VpnProfile;
+import de.blinkt.openvpn.core.OpenVPNService;
+import de.blinkt.openvpn.core.ProfileManager;
+import de.blinkt.openvpn.core.VpnStatus;
+
+public class MainActivity extends AppCompatActivity implements VpnStatus.StateListener {
+
+    private static final String TAG = MainActivity.class.getName();
+
+    private enum AppStatus {
+        DISCONNECTED_SAVED_CONFIG,
+        DISCONNECTED_NO_CONFIG,
+        CONNECTED
+    }
+
+    private Handler _uiHandler = new Handler();
+    private VpnStatus.ConnectionStatus _connectionStatus;
+    private OpenVPNService _openVPNService;
+    private ServiceConnection _serviceConnection = new ServiceConnection() {
+
+        @Override
+        public void onServiceConnected(ComponentName className, IBinder service) {
+            // We've bound to LocalService, cast the IBinder and get LocalService instance
+            OpenVPNService.LocalBinder binder = (OpenVPNService.LocalBinder)service;
+            _openVPNService = binder.getService();
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName arg0) {
+            _openVPNService = null;
+        }
+    };
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        VpnStatus.addStateListener(this);
+        Intent intent = new Intent(this, OpenVPNService.class);
+        intent.setAction(OpenVPNService.START_SERVICE);
+        bindService(intent, _serviceConnection, Context.BIND_AUTO_CREATE);
+
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        unbindService(_serviceConnection);
+        VpnStatus.removeStateListener(this);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-//
-//        Button startDownload = (Button) findViewById(R.id.importButton);
-//        startDownload.setOnClickListener(this);
+        Toolbar toolbar = (Toolbar)findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        Button startSetup = (Button)findViewById(R.id.setupButton);
+        startSetup.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                _startSetup();
+            }
+        });
+    }
 
-        Button startSetup = (Button) findViewById(R.id.setupButton);
-        startSetup.setOnClickListener(this);
+    private void _connectWithProfile(VpnProfile vpnProfile) {
+        Log.i(TAG, String.format("Initiating connection with profile '%s'", vpnProfile.getUUIDString()));
+        VpnUtils.startConnectionWithProfile(MainActivity.this, vpnProfile);
+    }
 
-//        Toolbar t = (Toolbar) findViewById(R.id.toolbar);
-//        t.setTitle("eduvpn");
-//        Button scanCode = (Button) findViewById(R.id.scanButton);
-//        scanCode.setOnClickListener(this);
+    private void _startSetup() {
+        // Remove all saved profiles first
+        final ProfileManager profileManager = ProfileManager.getInstance(MainActivity.this);
+        if (profileManager.getProfiles() != null && profileManager.getProfiles().size() > 0) {
+            Iterator<VpnProfile> profileIterator = profileManager.getProfiles().iterator();
+            while (profileIterator.hasNext()) {
+                profileIterator.remove();
+            }
+        }
+        // Generate the auth URL
+        String state = UUID.randomUUID().toString();
+        SharedPreferences sharedPreferences = getSharedPreferences(Constants.APPLICATION_PREFERENCES, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putString(Constants.KEY_STATE, state);
+
+        EditText vpnUrl = (EditText)findViewById(R.id.vpnUrl);
+
+        String vpnHost = vpnUrl.getText().toString();
+        editor.putString(Constants.KEY_HOST, vpnHost);
+        editor.apply();
+
+        String openUrl = "https://" + vpnHost + "/portal/_oauth/authorize?client_id=vpn-companion&redirect_uri=vpn://import/callback&response_type=token&scope=create_config&state=" + state;
+        Intent intent = new Intent(Intent.ACTION_VIEW);
+        intent.setData(Uri.parse(openUrl));
+        startActivity(intent);
+    }
+
+    @Override
+    public void updateState(final String state, String logmessage, int localizedResId, VpnStatus.ConnectionStatus level) {
+        _connectionStatus = level;
+        _uiHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                TextView statusView = (TextView)findViewById(R.id.currentStatus);
+                if (statusView != null) {
+                    statusView.setText(getString(R.string.current_status, state));
+                }
+                if (_connectionStatus == VpnStatus.ConnectionStatus.LEVEL_CONNECTED) {
+                    onAppStatusChanged(AppStatus.CONNECTED);
+                } else {
+                    boolean hasSavedProfile = false;
+                    final ProfileManager profileManager = ProfileManager.getInstance(MainActivity.this);
+                    if (profileManager.getProfiles() != null && profileManager.getProfiles().size() > 0) {
+                        hasSavedProfile = true;
+                    }
+                    onAppStatusChanged(hasSavedProfile ? AppStatus.DISCONNECTED_SAVED_CONFIG : AppStatus.DISCONNECTED_NO_CONFIG);
+                }
+            }
+        });
 
     }
 
-    public void onClick(View v) {
-//        if (R.id.importButton == v.getId()) {
-//            try {
-//                EditText vpnUrl = (EditText) findViewById(R.id.vpnUrl);
-//                EditText userName = (EditText) findViewById(R.id.userName);
-//                EditText userPass = (EditText) findViewById(R.id.userPass);
-//                EditText configName = (EditText) findViewById(R.id.configName);
-//
-//                String[] s = {vpnUrl.getText().toString(), userName.getText().toString(), userPass.getText().toString(), configName.getText().toString()};
-//
-//                DownloadFilesTask d = new DownloadFilesTask(configName.getText().toString());
-//
-//                d.execute(s);//new URL("https://vpn.tuxed.net/vpn-user-portal/api/config"));
-//            } catch (Exception e) {
-//                Log.e("MainActivity", e.getMessage());
-//            }
-//        }
-//
-//        if (R.id.scanButton == v.getId()) {
-//            try {
-//                Intent intent = new Intent("com.google.zxing.client.android.SCAN");
-//                intent.putExtra("SCAN_MODE", "QR_CODE_MODE"); // "PRODUCT_MODE for bar codes
-//                startActivityForResult(intent, 0);
-//            } catch (Exception e) {
-//
-//                Uri marketUri = Uri.parse("market://details?id=com.google.zxing.client.android");
-//                Intent marketIntent = new Intent(Intent.ACTION_VIEW, marketUri);
-//                startActivity(marketIntent);
-//            }
-//        }
-
-        // think about using webview instead? is that still possible in newer Android without
-        // Google Apps?
-//        https://developer.android.com/guide/components/intents-common.html#Browser
-        if (R.id.setupButton == v.getId()) {
-
-            // store url in persistent storage, because we need it when talking to the API when we get the
-            // credentials
-            //https://developer.android.com/guide/topics/data/data-storage.html#pref
-            //String state = "FIXMERANDOMVALUE";
-
-            String state = UUID.randomUUID().toString();
-
-            SharedPreferences settings = getSharedPreferences("vpn-state", 0);
-            SharedPreferences.Editor editor = settings.edit();
-            editor.putString("state", state);
-
-            EditText vpnUrl = (EditText) findViewById(R.id.vpnUrl);
-
-            String vpnHost = vpnUrl.getText().toString();
-            editor.putString("host", vpnHost);
-            editor.commit();
-
-            String openUrl = "https://" + vpnHost + "/portal/_oauth/authorize?client_id=vpn-companion&redirect_uri=vpn://import/callback&response_type=token&scope=create_config&state=" + state;
-            Intent i = new Intent(Intent.ACTION_VIEW);
-            i.setData(Uri.parse(openUrl));
-            startActivity(i);
+    public void onAppStatusChanged(AppStatus appStatus) {
+        if (appStatus == AppStatus.DISCONNECTED_NO_CONFIG) {
+            findViewById(R.id.savedConfigAvailable).setVisibility(View.GONE);
+            findViewById(R.id.requestNewConfigText).setVisibility(View.GONE);
+            Button connectButton = (Button)findViewById(R.id.connectButton);
+            connectButton.setText(R.string.button_start_connection);
+            connectButton.setVisibility(View.GONE);
+        } else if (appStatus == AppStatus.DISCONNECTED_SAVED_CONFIG) {
+            findViewById(R.id.savedConfigAvailable).setVisibility(View.VISIBLE);
+            findViewById(R.id.requestNewConfigText).setVisibility(View.VISIBLE);
+            Button connectButton = (Button)findViewById(R.id.connectButton);
+            connectButton.setVisibility(View.VISIBLE);
+            connectButton.setText(R.string.button_start_connection);
+            final ProfileManager profileManager = ProfileManager.getInstance(MainActivity.this);
+            connectButton.setOnClickListener(new OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    _connectWithProfile(profileManager.getProfiles().iterator().next());
+                }
+            });
+        } else if (appStatus == AppStatus.CONNECTED) {
+            Button disconnectButton = (Button)findViewById(R.id.connectButton);
+            disconnectButton.setText(R.string.button_disconnect);
+            disconnectButton.setVisibility(View.VISIBLE);
+            findViewById(R.id.requestNewConfigText).setVisibility(View.VISIBLE);
+            disconnectButton.setOnClickListener(new OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    _openVPNService.getManagement().stopVPN(false);
+                }
+            });
+            TextView savedConfigAvailable = (TextView)findViewById(R.id.savedConfigAvailable);
+            savedConfigAvailable.setVisibility(View.GONE);
         }
     }
-
-//    @Override
-//    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-//        super.onActivityResult(requestCode, resultCode, data);
-//        if (requestCode == 0) {
-//
-//            if (resultCode == RESULT_OK) {
-//                String contents = data.getStringExtra("SCAN_RESULT");
-//                Log.i("MainActivity", contents);
-//
-//                Uri u = Uri.parse(contents);
-//
-//                EditText vpnUrl = (EditText) findViewById(R.id.vpnUrl);
-//                vpnUrl.setText(u.getScheme() + "://" + u.getAuthority() + u.getPath());
-////                EditText user5Name = (EditText) findViewById(R.id.userName);
-////                userName.setText(u.getQueryParameter("userName"));
-////                EditText userPass = (EditText) findViewById(R.id.userPass);
-////                userPass.setText(u.getQueryParameter("userPass"));
-////                EditText configName = (EditText) findViewById(R.id.configName);
-//                String strConfigName = u.getQueryParameter("configName");
-//                if (null == strConfigName) {
-//                    // generate random name
-//                    strConfigName = "android_" + this.rnd();
-//                }
-////                configName.setText(strConfigName);
-//            }
-//            if (resultCode == RESULT_CANCELED) {
-//                //handle cancel
-//            }
-//        }
-//    }
-//
-////    @Override
-////    public boolean onOptionsItemSelected(MenuItem item) {
-////        // Handle action bar item clicks here. The action bar will
-////        // automatically handle clicks on the Home/Up button, so long
-////        // as you specify a parent activity in AndroidManifest.xml.
-////        int id = item.getItemId();
-////
-////        //noinspection SimplifiableIfStatement
-////        if (id == R.id.action_settings) {
-////            return true;
-////        }
-////
-////        return super.onOptionsItemSelected(item);
-////    }
-//
-//
-//    private class DownloadFilesTask extends AsyncTask<String, Void, String> {
-//        private String configName;
-//
-//        public DownloadFilesTask(String configName) {
-//            this.configName = configName;
-//        }
-//
-//        protected String doInBackground(String... s) {
-//            Downloader d = new Downloader();
-//            return d.downloadFile(s[0], s[1], s[2], s[3]);
-//        }
-//
-//        public boolean isExternalStorageWritable() {
-//            String state = Environment.getExternalStorageState();
-//            if (Environment.MEDIA_MOUNTED.equals(state)) {
-//                return true;
-//            }
-//            return false;
-//        }
-//
-//        public File getConfigStorageDir(String vpnName) {
-//            // Get the directory for the user's public downloads directory.
-//            File file = new File(Environment.getExternalStoragePublicDirectory(
-//                    Environment.DIRECTORY_DOWNLOADS), vpnName);
-//            if (!file.mkdirs()) {
-//                Log.e("MainActivity", "Directory not created");
-//            }
-//            return file;
-//        }
-//
-//        protected void onPostExecute(String s) {
-//            File f = new File(this.getConfigStorageDir("VPN"), this.configName + ".ovpn");
-//            try {
-//
-//                FileWriter fw = new FileWriter(f);
-//
-//                fw.write(s);
-//                fw.close();
-//                Log.i("MainActivity", "file " + f.getAbsolutePath() + " written");
-//
-//                Uri foo = Uri.parse(f.getAbsolutePath());
-//                try {
-//                    Intent intent = new Intent();
-//                    intent.setAction(android.content.Intent.ACTION_VIEW);
-//                    intent.setDataAndType(Uri.fromFile(f), "application/x-openvpn-profile");
-//                    startActivity(intent);
-//                } catch (Exception e) {
-//                    // failed to open file, possibly user does not have OpenVPN app installed,
-//                    // could it also be user cancel?!
-//                    Uri marketUri = Uri.parse("market://details?id=net.openvpn.openvpn");
-//                    Intent marketIntent = new Intent(Intent.ACTION_VIEW, marketUri);
-//                    startActivity(marketIntent);
-//                }
-//            } catch (IOException e) {
-//                Log.e("MainActivity", "unable to write file " + e.getMessage());
-//            }
-//        }
-//    }
-//
-//    public String rnd() {
-//        char[] chars = "abcdefghijklmnopqrstuvwxyz".toCharArray();
-//        StringBuilder sb = new StringBuilder();
-//        Random random = new Random();
-//        for (
-//                int i = 0;
-//                i < 5; i++)
-//
-//        {
-//            char c = chars[random.nextInt(chars.length)];
-//            sb.append(c);
-//        }
-//
-//        String output = sb.toString();
-//        return output;
-//    }
 }

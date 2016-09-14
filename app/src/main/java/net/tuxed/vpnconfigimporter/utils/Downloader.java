@@ -1,6 +1,5 @@
-package net.tuxed.vpnconfigimporter;
+package net.tuxed.vpnconfigimporter.utils;
 
-import android.util.Base64;
 import android.util.Log;
 
 import java.io.BufferedInputStream;
@@ -26,9 +25,6 @@ public class Downloader {
             Log.i("Downloader", configName);
 
             urlConnection = (HttpURLConnection) url.openConnection();
-//            String authToken = userName + ":" + userPass;
-//            String encodedAuthToken = Base64.encodeToString(authToken.getBytes(), Base64.DEFAULT);
-//            Log.i("Downloader", encodedAuthToken);
             urlConnection.setRequestProperty("Authorization", "Bearer " + bearerToken);
             urlConnection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
             urlConnection.setRequestMethod("POST");
@@ -40,7 +36,6 @@ public class Downloader {
             urlConnection.setDoOutput(true);
             urlConnection.setFixedLengthStreamingMode(body.length());
 
-//            urlConnection.setChunkedStreamingMode(body.length());
             OutputStream out = new BufferedOutputStream(urlConnection.getOutputStream());
             out.write(body.getBytes());
             out.flush();
@@ -53,7 +48,6 @@ public class Downloader {
             while ((line = r.readLine()) != null) {
                 total.append(line + "\n");
             }
-            //Log.e("Downloader", total.toString());
 
             return total.toString();
         } catch (MalformedURLException e) {
@@ -68,7 +62,6 @@ public class Downloader {
                 urlConnection.disconnect();
             }
         }
-
         return null;
     }
 }
