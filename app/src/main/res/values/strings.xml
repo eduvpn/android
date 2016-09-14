@@ -1,4 +1,11 @@
 <resources>
-    <string name="app_name">VpnConfigImporter</string>
+    <string name="app_name">EduVPN</string>
     <string name="action_settings">Settings</string>
+    <string name="custom_host_label">Specify the hostname of the VPN instance you want to connect to.</string>
+    <string name="default_custom_host">labrat.eduvpn.nl</string>
+    <string name="custom_host_hint">vpn.example.com</string>
+    <string name="button_setup">Setup</string>
+    <string name="saved_configuration_available">Do you wish to use your previously used configuration?</string>
+    <string name="button_start_connection">Connect</string>
+    <string name="request_new_config_option">Alternatively, you can also request a new configuration, which will replace the currently saved one. For this you need to log in again.</string>
 </resources>
