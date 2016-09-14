@@ -24,6 +24,16 @@
         android:orientation="vertical">
 
         <TextView
+            android:id="@+id/currentStatus"
+            android:layout_width="match_parent"
+            android:padding="4dp"
+            android:gravity="center"
+            android:layout_height="wrap_content"
+            tools:text="Current status: DISCONNECTED"
+            android:layout_marginBottom="16dp"
+            android:textSize="18sp"/>
+
+        <TextView
             android:id="@+id/savedConfigAvailable"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

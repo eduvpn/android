@@ -92,6 +92,7 @@ public class ConfigDownloadActivity extends AppCompatActivity {
             profileManager.addProfile(profile);
             profileManager.saveProfile(ConfigDownloadActivity.this, profile);
             Log.i(TAG, "Added and saved profile with UUID: " + profile.getUUIDString());
+            finish();
             VpnUtils.startConnectionWithProfile(ConfigDownloadActivity.this, profile);
         } catch (IOException | ConfigParser.ConfigParseError e) {
             Log.e(TAG, "Error converting profile!", e);

@@ -13,4 +13,6 @@
     <string name="error_state_missing">Error: \'state\' parameter not found in callback URL</string>
     <string name="error_access_token_missing">Error: \'accessToken\' parameter not found in callback URL.</string>
     <string name="error_state_mismatch">Error: state mismatch!</string>
+    <string name="current_status">Connection status: %s</string>
+    <string name="button_disconnect">Disconnect</string>
 </resources>
