@@ -1,6 +1,5 @@
 package net.tuxed.vpnconfigimporter;
 
-import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -8,6 +7,7 @@ import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -38,6 +38,7 @@ public class MainActivity extends AppCompatActivity implements VpnStatus.StateLi
         CONNECTED
     }
 
+    private Handler _uiHandler = new Handler();
     private VpnStatus.ConnectionStatus _connectionStatus;
     private OpenVPNService _openVPNService;
     private ServiceConnection _serviceConnection = new ServiceConnection() {
@@ -122,7 +123,7 @@ public class MainActivity extends AppCompatActivity implements VpnStatus.StateLi
     @Override
     public void updateState(final String state, String logmessage, int localizedResId, VpnStatus.ConnectionStatus level) {
         _connectionStatus = level;
-        runOnUiThread(new Runnable() {
+        _uiHandler.post(new Runnable() {
             @Override
             public void run() {
                 TextView statusView = (TextView)findViewById(R.id.currentStatus);
@@ -156,6 +157,7 @@ public class MainActivity extends AppCompatActivity implements VpnStatus.StateLi
             findViewById(R.id.requestNewConfigText).setVisibility(View.VISIBLE);
             Button connectButton = (Button)findViewById(R.id.connectButton);
             connectButton.setVisibility(View.VISIBLE);
+            connectButton.setText(R.string.button_start_connection);
             final ProfileManager profileManager = ProfileManager.getInstance(MainActivity.this);
             connectButton.setOnClickListener(new OnClickListener() {
                 @Override

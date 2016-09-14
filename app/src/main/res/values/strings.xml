@@ -15,4 +15,7 @@
     <string name="error_state_mismatch">Error: state mismatch!</string>
     <string name="current_status">Connection status: %s</string>
     <string name="button_disconnect">Disconnect</string>
+
+    <!-- Overrides resource from OpenVPN lib. Reason: bad casing-->
+    <string name="clear_log">Clear log</string>
 </resources>

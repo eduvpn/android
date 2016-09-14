@@ -83,14 +83,18 @@ public class ConfigDownloadActivity extends AppCompatActivity {
         task.execute(taskParameters);
     }
 
-    private void _importConfig(String vpnConfig) {
+    private void _importConfig(String vpnConfig, String preferredName) {
         ConfigParser configParser = new ConfigParser();
         try {
             configParser.parseConfig(new StringReader(vpnConfig));
             VpnProfile profile = configParser.convertProfile();
+            if (preferredName != null) {
+                profile.mName = preferredName;
+            }
             ProfileManager profileManager = ProfileManager.getInstance(ConfigDownloadActivity.this);
             profileManager.addProfile(profile);
             profileManager.saveProfile(ConfigDownloadActivity.this, profile);
+            profileManager.saveProfileList(ConfigDownloadActivity.this);
             Log.i(TAG, "Added and saved profile with UUID: " + profile.getUUIDString());
             finish();
             VpnUtils.startConnectionWithProfile(ConfigDownloadActivity.this, profile);
@@ -101,13 +105,16 @@ public class ConfigDownloadActivity extends AppCompatActivity {
 
     private class DownloadFilesTask extends AsyncTask<String, Void, String> {
 
+        private String _preferredName;
+
         protected String doInBackground(String... s) {
             Downloader downloader = new Downloader();
+            _preferredName = s[2];
             return downloader.downloadFile(s[0], s[1], s[2]);
         }
 
         protected void onPostExecute(String vpnConfig) {
-            _importConfig(vpnConfig);
+            _importConfig(vpnConfig, _preferredName);
         }
 
     }

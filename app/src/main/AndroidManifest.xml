@@ -39,14 +39,6 @@
         </activity>
 
         <!-- Activities and services inherited from the OpenVPN library. -->
-
-        <activity
-            android:name="de.blinkt.openvpn.activities.MainActivity"
-            android:theme="@style/StyledVpn"
-            tools:ignore="ExportedActivity">
-        </activity>
-
-
         <service
             android:name="de.blinkt.openvpn.core.OpenVPNService"
             android:permission="android.permission.BIND_VPN_SERVICE">
@@ -62,6 +54,14 @@
                 <action android:name="de.blinkt.openvpn.api.IOpenVPNAPIService"/>
             </intent-filter>
         </service>
+
+        <activity
+            android:name="de.blinkt.openvpn.activities.DisconnectVPN"
+            android:autoRemoveFromRecents="true"
+            android:excludeFromRecents="true"
+            android:noHistory="true"
+            android:taskAffinity=".DisconnectVPN"
+            android:theme="@style/StyledVpn.Dialog"/>
 
 
         <service
@@ -80,13 +80,17 @@
         </service>
 
 
-        <activity android:name="de.blinkt.openvpn.api.GrantPermissionsActivity">
+        <activity
+            android:name="de.blinkt.openvpn.api.GrantPermissionsActivity"
+            android:theme="@style/StyledVpn">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
             </intent-filter>
-
         </activity>
-        <activity android:name="de.blinkt.openvpn.api.ConfirmDialog">
+
+        <activity
+            android:name="de.blinkt.openvpn.api.ConfirmDialog"
+            android:theme="@style/StyledVpn">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
             </intent-filter>
@@ -97,7 +101,7 @@
             android:excludeFromRecents="true"
             android:label="@string/vpn_launch_title"
             android:taskAffinity=".LaunchVPN"
-            android:theme="@style/blinkt.dialog"
+            android:theme="@style/StyledVpn.Dialog"
             tools:ignore="ExportedActivity"
             tools:targetApi="lollipop">
             <intent-filter>
@@ -108,8 +112,8 @@
 
         <activity
             android:name="de.blinkt.openvpn.activities.LogWindow"
-            android:label="@string/openvpn_log"
             android:allowTaskReparenting="true"
+            android:label="@string/openvpn_log"
             android:launchMode="singleTask"
             android:parentActivityName=".MainActivity"
             android:theme="@style/StyledVpn"
