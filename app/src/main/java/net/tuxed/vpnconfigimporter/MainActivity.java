@@ -1,5 +1,6 @@
 package net.tuxed.vpnconfigimporter;
 
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
@@ -11,6 +12,8 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.EditText;
+
+import net.tuxed.vpnconfigimporter.utils.VpnUtils;
 
 import java.util.Iterator;
 import java.util.UUID;
@@ -70,19 +73,19 @@ public class MainActivity extends AppCompatActivity {
         }
         // Generate the auth URL
         String state = UUID.randomUUID().toString();
-        SharedPreferences settings = getSharedPreferences("vpn-state", 0);
-        SharedPreferences.Editor editor = settings.edit();
-        editor.putString("state", state);
+        SharedPreferences sharedPreferences = getSharedPreferences(Constants.APPLICATION_PREFERENCES, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putString(Constants.KEY_STATE, state);
 
         EditText vpnUrl = (EditText)findViewById(R.id.vpnUrl);
 
         String vpnHost = vpnUrl.getText().toString();
-        editor.putString("host", vpnHost);
+        editor.putString(Constants.KEY_HOST, vpnHost);
         editor.apply();
 
         String openUrl = "https://" + vpnHost + "/portal/_oauth/authorize?client_id=vpn-companion&redirect_uri=vpn://import/callback&response_type=token&scope=create_config&state=" + state;
-        Intent i = new Intent(Intent.ACTION_VIEW);
-        i.setData(Uri.parse(openUrl));
-        startActivity(i);
+        Intent intent = new Intent(Intent.ACTION_VIEW);
+        intent.setData(Uri.parse(openUrl));
+        startActivity(intent);
     }
 }

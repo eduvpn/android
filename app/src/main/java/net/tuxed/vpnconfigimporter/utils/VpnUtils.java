@@ -1,4 +1,4 @@
-package net.tuxed.vpnconfigimporter;
+package net.tuxed.vpnconfigimporter.utils;
 
 import android.content.Context;
 import android.content.Intent;

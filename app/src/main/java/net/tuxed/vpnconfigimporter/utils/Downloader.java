@@ -1,6 +1,5 @@
-package net.tuxed.vpnconfigimporter;
+package net.tuxed.vpnconfigimporter.utils;
 
-import android.util.Base64;
 import android.util.Log;
 
 import java.io.BufferedInputStream;
