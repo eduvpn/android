@@ -21,7 +21,8 @@
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
         android:layout_alignParentTop="true"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        tools:ignore="UselessParent">
 
         <TextView
             android:id="@+id/currentStatus"
@@ -69,9 +70,8 @@
             android:id="@+id/vpnUrl"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:editable="true"
             android:enabled="true"
-            android:gravity="left"
+            android:gravity="start"
             android:hint="@string/custom_host_hint"
             android:inputType="textUri"
             android:text="@string/default_custom_host"/>

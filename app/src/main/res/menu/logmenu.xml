@@ -4,7 +4,8 @@
   ~ Distributed under the GNU GPL v2 with additional terms. For full terms see the file doc/LICENSE.txt
   -->
 
-<menu xmlns:android="http://schemas.android.com/apk/res/android"
+<menu xmlns:tools="http://schemas.android.com/tools"
+      xmlns:android="http://schemas.android.com/apk/res/android"
       xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
@@ -12,7 +13,8 @@
         android:alphabeticShortcut="t"
         android:icon="@drawable/ic_menu_view"
         android:showAsAction="ifRoom"
-        android:title="@string/logview_options" />
+        android:title="@string/logview_options"
+        tools:ignore="AppCompatResource"/>
 
     <item
         android:id="@+id/clearlog"
@@ -25,14 +27,16 @@
         android:icon="@drawable/ic_menu_share"
         android:showAsAction="ifRoom"
         android:title="@string/send_logfile"
-        android:titleCondensed="@string/send"/>
+        android:titleCondensed="@string/send"
+        tools:ignore="AppCompatResource"/>
 
     <item
         android:id="@+id/cancel"
         android:icon="@drawable/ic_menu_close_clear_cancel"
         android:showAsAction="ifRoom"
         android:title="@string/cancel_connection_long"
-        android:titleCondensed="@string/cancel_connection"/>
+        android:titleCondensed="@string/cancel_connection"
+        tools:ignore="AppCompatResource"/>
 
     <!-- This one is disabled because we don't want to expose this to our users-->
     <item
@@ -41,5 +45,6 @@
         android:icon="@drawable/ic_menu_edit"
         android:showAsAction="never"
         android:visible="false"
-        android:title="@string/edit_vpn"/>
+        android:title="@string/edit_vpn"
+        tools:ignore="AppCompatResource"/>
 </menu>
