@@ -1,4 +1,4 @@
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
 
     <!-- Base application theme. -->
     <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
@@ -19,18 +19,18 @@
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
-        <item name="android:colorPrimary">@color/colorPrimary</item>
-        <item name="android:colorPrimaryDark">@color/colorPrimaryDark</item>
-        <item name="android:colorAccent">@color/colorAccent</item>
+        <item name="android:colorPrimary" tools:targetApi="lollipop">@color/colorPrimary</item>
+        <item name="android:colorPrimaryDark" tools:targetApi="lollipop">@color/colorPrimaryDark</item>
+        <item name="android:colorAccent" tools:targetApi="lollipop">@color/colorAccent</item>
     </style>
 
     <style name="StyledVpn.Dialog" parent="blinkt.dialog">
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
-        <item name="android:colorPrimary">@color/colorPrimary</item>
-        <item name="android:colorPrimaryDark">@color/colorPrimaryDark</item>
-        <item name="android:colorAccent">@color/colorAccent</item>
+        <item name="android:colorPrimary" tools:targetApi="lollipop">@color/colorPrimary</item>
+        <item name="android:colorPrimaryDark" tools:targetApi="lollipop">@color/colorPrimaryDark</item>
+        <item name="android:colorAccent" tools:targetApi="lollipop">@color/colorAccent</item>
         <item name="alertDialogTheme">@style/StyledVpn.AlertDialog</item>
         <item name="android:alertDialogTheme">@style/StyledVpn.AlertDialog</item>
     </style>
