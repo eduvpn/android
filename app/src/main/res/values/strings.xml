@@ -17,4 +17,5 @@
 
     <!-- Overrides resource from OpenVPN lib. Reason: bad casing-->
     <string name="clear_log">Clear log</string>
+    <string name="actionbar_title">eduVPN</string>
 </resources>

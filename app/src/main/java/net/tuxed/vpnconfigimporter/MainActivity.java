@@ -27,6 +27,7 @@ import de.blinkt.openvpn.VpnProfile;
 import de.blinkt.openvpn.core.OpenVPNService;
 import de.blinkt.openvpn.core.ProfileManager;
 import de.blinkt.openvpn.core.VpnStatus;
+import uk.co.chrisjenx.calligraphy.CalligraphyContextWrapper;
 
 public class MainActivity extends AppCompatActivity implements VpnStatus.StateListener {
 
@@ -86,6 +87,11 @@ public class MainActivity extends AppCompatActivity implements VpnStatus.StateLi
                 _startSetup();
             }
         });
+    }
+
+    @Override
+    protected void attachBaseContext(Context newBase) {
+        super.attachBaseContext(CalligraphyContextWrapper.wrap(newBase));
     }
 
     private void _connectWithProfile(VpnProfile vpnProfile) {

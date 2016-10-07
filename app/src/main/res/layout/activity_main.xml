@@ -17,10 +17,47 @@
         <android.support.v7.widget.Toolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
+            android:layout_height="@dimen/actionbar_size"
             android:background="?attr/colorPrimary"
             app:popupTheme="@style/AppTheme.PopupOverlay"
-            />
+            >
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+            <ImageView
+                android:id="@+id/actionbar_logo"
+                android:layout_width="@dimen/actionbar_icon_size"
+                android:layout_height="@dimen/actionbar_icon_size"
+                android:layout_centerVertical="true"
+                android:src="@mipmap/ic_launcher"/>
+            
+            <TextView
+                android:id="@+id/actionbar_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/actionbar_title"
+                android:textColor="@android:color/black"
+                android:paddingLeft="8dp"
+                android:layout_centerVertical="true"
+                android:layout_toRightOf="@+id/actionbar_logo"
+                fontPath="fonts/Roboto-Medium.ttf"
+                android:textSize="24sp"/>
+
+            <ImageView
+                android:id="@+id/settings_button"
+                android:layout_width="@dimen/actionbar_icon_size"
+                android:layout_height="@dimen/actionbar_icon_size"
+                android:padding="8dp"
+                android:layout_centerVertical="true"
+                android:layout_marginRight="16dp"
+                android:layout_alignParentRight="true"
+                android:src="@drawable/settings"/>
+
+            </RelativeLayout>
+
+        </android.support.v7.widget.Toolbar>
 
     </android.support.design.widget.AppBarLayout>
 
