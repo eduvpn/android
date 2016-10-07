@@ -1,29 +1,78 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.design.widget.CoordinatorLayout
+<RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
-    tools:context="net.tuxed.vpnconfigimporter.MainActivity"
-    >
+    tools:context="net.tuxed.vpnconfigimporter.MainActivity">
 
-    <android.support.design.widget.AppBarLayout
+    <FrameLayout
         android:layout_width="match_parent"
+        android:layout_height="@dimen/footer_height"
+        android:layout_alignParentBottom="true"
+        android:layout_gravity="bottom"
+        android:background="@color/mainColor">
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="@dimen/footer_icon_size"
+            android:layout_gravity="center_vertical|right"
+            android:layout_marginRight="16dp"
+            android:adjustViewBounds="true"
+            android:src="@drawable/surfnet_logo"/>
+    </FrameLayout>
+
+    <FrameLayout
+        android:id="@+id/contentFrame"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginBottom="@dimen/footer_height"
+        android:layout_marginTop="@dimen/actionbar_size"
+        tools:background="#F0F0F0"/>
+
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:minHeight="@dimen/actionbar_size"
         android:layout_height="wrap_content"
-        android:theme="@style/AppTheme.AppBarOverlay">
+        android:background="?attr/colorPrimary"
+        app:popupTheme="@style/AppTheme.PopupOverlay">
 
-        <android.support.v7.widget.Toolbar
-            android:id="@+id/toolbar"
+        <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            android:background="?attr/colorPrimary"
-            app:popupTheme="@style/AppTheme.PopupOverlay"
-            />
+            android:layout_height="match_parent">
 
-    </android.support.design.widget.AppBarLayout>
+            <ImageView
+                android:id="@+id/actionbar_logo"
+                android:layout_width="@dimen/actionbar_icon_size"
+                android:layout_height="@dimen/actionbar_icon_size"
+                android:layout_centerVertical="true"
+                android:src="@mipmap/ic_launcher"/>
 
-    <include layout="@layout/content_main"/>
+            <TextView
+                android:id="@+id/actionbar_title"
+                fontPath="fonts/Roboto-Medium.ttf"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerVertical="true"
+                android:layout_toRightOf="@+id/actionbar_logo"
+                android:paddingLeft="8dp"
+                android:text="@string/actionbar_title"
+                android:textColor="@android:color/black"
+                android:textSize="24sp"/>
 
-</android.support.design.widget.CoordinatorLayout>
+            <ImageView
+                android:id="@+id/settings_button"
+                android:layout_width="@dimen/actionbar_icon_size"
+                android:layout_height="@dimen/actionbar_icon_size"
+                android:layout_alignParentRight="true"
+                android:layout_centerVertical="true"
+                android:layout_marginRight="16dp"
+                android:padding="8dp"
+                android:src="@drawable/settings"/>
+
+        </RelativeLayout>
+    </android.support.v7.widget.Toolbar>
+</RelativeLayout>

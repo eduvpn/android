@@ -18,6 +18,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import net.tuxed.vpnconfigimporter.fragment.ProviderSelectionFragment;
 import net.tuxed.vpnconfigimporter.utils.VpnUtils;
 
 import java.util.Iterator;
@@ -27,6 +28,7 @@ import de.blinkt.openvpn.VpnProfile;
 import de.blinkt.openvpn.core.OpenVPNService;
 import de.blinkt.openvpn.core.ProfileManager;
 import de.blinkt.openvpn.core.VpnStatus;
+import uk.co.chrisjenx.calligraphy.CalligraphyContextWrapper;
 
 public class MainActivity extends AppCompatActivity implements VpnStatus.StateListener {
 
@@ -79,13 +81,14 @@ public class MainActivity extends AppCompatActivity implements VpnStatus.StateLi
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar)findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        Button startSetup = (Button)findViewById(R.id.setupButton);
-        startSetup.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                _startSetup();
-            }
-        });
+        getSupportFragmentManager().beginTransaction()
+                .add(R.id.contentFrame, new ProviderSelectionFragment())
+                .commit();
+    }
+
+    @Override
+    protected void attachBaseContext(Context newBase) {
+        super.attachBaseContext(CalligraphyContextWrapper.wrap(newBase));
     }
 
     private void _connectWithProfile(VpnProfile vpnProfile) {
@@ -122,27 +125,27 @@ public class MainActivity extends AppCompatActivity implements VpnStatus.StateLi
 
     @Override
     public void updateState(final String state, String logmessage, int localizedResId, VpnStatus.ConnectionStatus level) {
-        _connectionStatus = level;
-        _uiHandler.post(new Runnable() {
-            @Override
-            public void run() {
-                TextView statusView = (TextView)findViewById(R.id.currentStatus);
-                if (statusView != null) {
-                    statusView.setText(getString(R.string.current_status, state));
-                }
-                if (_connectionStatus == VpnStatus.ConnectionStatus.LEVEL_CONNECTED) {
-                    onAppStatusChanged(AppStatus.CONNECTED);
-                } else {
-                    boolean hasSavedProfile = false;
-                    final ProfileManager profileManager = ProfileManager.getInstance(MainActivity.this);
-                    if (profileManager.getProfiles() != null && profileManager.getProfiles().size() > 0) {
-                        hasSavedProfile = true;
-                    }
-                    onAppStatusChanged(hasSavedProfile ? AppStatus.DISCONNECTED_SAVED_CONFIG : AppStatus.DISCONNECTED_NO_CONFIG);
-                }
-            }
+        /**
+         _connectionStatus = level;
+         _uiHandler.post(new Runnable() {
+        @Override public void run() {
+        TextView statusView = (TextView)findViewById(R.id.currentStatus);
+        if (statusView != null) {
+        statusView.setText(getString(R.string.current_status, state));
+        }
+        if (_connectionStatus == VpnStatus.ConnectionStatus.LEVEL_CONNECTED) {
+        onAppStatusChanged(AppStatus.CONNECTED);
+        } else {
+        boolean hasSavedProfile = false;
+        final ProfileManager profileManager = ProfileManager.getInstance(MainActivity.this);
+        if (profileManager.getProfiles() != null && profileManager.getProfiles().size() > 0) {
+        hasSavedProfile = true;
+        }
+        onAppStatusChanged(hasSavedProfile ? AppStatus.DISCONNECTED_SAVED_CONFIG : AppStatus.DISCONNECTED_NO_CONFIG);
+        }
+        }
         });
-
+         **/
     }
 
     public void onAppStatusChanged(AppStatus appStatus) {
