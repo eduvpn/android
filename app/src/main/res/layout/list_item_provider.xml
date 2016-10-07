@@ -1,21 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-                xmlns:tools="http://schemas.android.com/tools"
-                android:layout_width="match_parent"
-                android:layout_height="@dimen/list_item_provider_height"
-                android:orientation="vertical">
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="@dimen/list_item_provider_height"
+    android:background="?attr/selectableItemBackground"
+    android:orientation="vertical">
 
     <ImageView
         android:id="@+id/provider_icon"
         android:layout_width="wrap_content"
-        android:adjustViewBounds="true"
         android:layout_height="@dimen/list_item_provider_icon_size"
-        android:layout_marginLeft="8dp"
-        android:src="@drawable/vpn_icon"
         android:layout_centerVertical="true"
-        android:alpha="0.5"/>
+        android:layout_marginLeft="8dp"
+        android:adjustViewBounds="true"
+        android:src="@drawable/vpn_icon"/>
 
     <TextView
+        android:id="@+id/provider_display_name"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentRight="true"

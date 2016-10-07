@@ -30,7 +30,7 @@ public class EduVPNApplication extends Application {
                 .setFontAttrId(R.attr.fontPath)
                 .build());
         // Set up the injector
-        _component = EduVPNComponent.Initializer.init();
+        _component = EduVPNComponent.Initializer.init(this);
     }
 
     public EduVPNComponent component() {

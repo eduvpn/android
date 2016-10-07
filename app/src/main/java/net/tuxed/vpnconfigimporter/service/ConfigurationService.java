@@ -2,6 +2,7 @@ package net.tuxed.vpnconfigimporter.service;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.os.AsyncTask;
 
 import net.tuxed.vpnconfigimporter.BuildConfig;
 import net.tuxed.vpnconfigimporter.entity.Instance;
@@ -145,28 +146,42 @@ public class ConfigurationService extends Observable {
      * Downloads, parses, and saves the latest configuration retrieved from the URL defined in the build configuration.
      */
     private void _fetchLatestConfiguration() {
-        try {
-            URL url = new URL(BuildConfig.INSTANCE_LIST_URL);
-            HttpURLConnection urlConnection = (HttpURLConnection)url.openConnection();
-            urlConnection.setRequestMethod("GET");
-            urlConnection.setConnectTimeout(10000);
-            urlConnection.setReadTimeout(10000);
-            urlConnection.connect();
-            InputStream inputStream = urlConnection.getInputStream();
-            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
-            StringBuilder stringBuilder = new StringBuilder();
-            String line;
-            while ((line = bufferedReader.readLine()) != null) {
-                stringBuilder.append(line).append('\n');
+        AsyncTask<Void, Void, InstanceList> downloadTask = new AsyncTask<Void, Void, InstanceList>() {
+            @Override
+            protected InstanceList doInBackground(Void... params) {
+                try {
+                    URL url = new URL(BuildConfig.INSTANCE_LIST_URL);
+                    HttpURLConnection urlConnection = (HttpURLConnection)url.openConnection();
+                    urlConnection.setRequestMethod("GET");
+                    urlConnection.setConnectTimeout(10000);
+                    urlConnection.setReadTimeout(10000);
+                    urlConnection.connect();
+                    InputStream inputStream = urlConnection.getInputStream();
+                    BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
+                    StringBuilder stringBuilder = new StringBuilder();
+                    String line;
+                    while ((line = bufferedReader.readLine()) != null) {
+                        stringBuilder.append(line).append('\n');
+                    }
+                    String instanceList = stringBuilder.toString();
+                    return  _parseInstanceList(instanceList);
+                } catch (IOException | JSONException ex) {
+                    Log.w(TAG, "Error reading latest configuration from the URL!", ex);
+                    return null;
+                }
             }
-            String instanceList = stringBuilder.toString();
-            _parseInstanceList(instanceList);
-            _saveInstanceList();
-            setChanged();
-            notifyObservers();
-        } catch (IOException | JSONException ex) {
-            Log.w(TAG, "Error reading latest configuration from the URL!", ex);
-        }
+
+            @Override
+            protected void onPostExecute(InstanceList instanceList) {
+                if (instanceList != null) {
+                    _instanceList = instanceList;
+                    _saveInstanceList();
+                    setChanged();
+                    notifyObservers();
+                }
+            }
+        };
+        downloadTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }
 
 

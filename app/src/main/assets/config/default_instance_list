@@ -4,12 +4,12 @@
         {
             "base_uri": "https://eduvpn.surfcloud.nl/",
             "display_name": "SURFnet Public VPN service",
-            "logo_uri": "http://placehold.it/150x100"
+            "logo_uri": "https://unsplash.it/150/100"
         },
         {
             "base_uri": "https://labrat.eduvpn.nl/",
             "display_name": "SURFnet VPN service (Development)",
-            "logo_uri": "http://placehold.it/100x80"
+            "logo_uri": "https://unsplash.it/100/80"
         }
     ]
 }
