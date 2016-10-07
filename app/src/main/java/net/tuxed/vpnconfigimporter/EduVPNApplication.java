@@ -1,8 +1,10 @@
 package net.tuxed.vpnconfigimporter;
 
 import android.app.Application;
+import android.content.Context;
 
-import de.blinkt.openvpn.*;
+import net.tuxed.vpnconfigimporter.inject.EduVPNComponent;
+
 import de.blinkt.openvpn.core.PRNGFixes;
 import de.blinkt.openvpn.core.VpnStatus;
 import uk.co.chrisjenx.calligraphy.CalligraphyConfig;
@@ -12,6 +14,8 @@ import uk.co.chrisjenx.calligraphy.CalligraphyConfig;
  * Created by Daniel Zolnai on 2016-09-14.
  */
 public class EduVPNApplication extends Application {
+
+    private EduVPNComponent _component;
 
     @Override
     public void onCreate() {
@@ -25,5 +29,15 @@ public class EduVPNApplication extends Application {
                 .setDefaultFontPath("fonts/Roboto-Regular.ttf")
                 .setFontAttrId(R.attr.fontPath)
                 .build());
+        // Set up the injector
+        _component = EduVPNComponent.Initializer.init();
+    }
+
+    public EduVPNComponent component() {
+        return _component;
+    }
+
+    public static EduVPNApplication get(Context context) {
+        return (EduVPNApplication)context.getApplicationContext();
     }
 }

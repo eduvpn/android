@@ -1,0 +1,15 @@
+{
+    "list_version": 1,
+    "instances": [
+        {
+            "base_uri": "https://eduvpn.surfcloud.nl/",
+            "display_name": "SURFnet Public VPN service",
+            "logo_uri": "http://placehold.it/150x100"
+        },
+        {
+            "base_uri": "https://labrat.eduvpn.nl/",
+            "display_name": "SURFnet VPN service (Development)",
+            "logo_uri": "http://placehold.it/100x80"
+        }
+    ]
+}
