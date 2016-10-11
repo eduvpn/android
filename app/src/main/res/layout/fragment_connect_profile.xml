@@ -15,11 +15,11 @@
         android:layout_gravity="center_horizontal"
         android:layout_marginBottom="24dp"
         android:padding="16dp"
-        android:text="@string/choose_your_provider_title"
+        android:text="@string/connect_to_vpn_title"
         />
 
     <android.support.v7.widget.RecyclerView
-        android:id="@+id/providersList"
+        android:id="@+id/profilesList"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_marginBottom="16dp"

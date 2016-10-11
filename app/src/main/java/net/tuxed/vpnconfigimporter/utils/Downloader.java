@@ -20,25 +20,24 @@ public class Downloader {
 
         try {
             URL url = new URL(vpnUrl);
-            Log.i("Downloader", url.toString());
-            Log.i("Downloader", bearerToken);
-            Log.i("Downloader", configName);
-
-            urlConnection = (HttpURLConnection) url.openConnection();
+            urlConnection = (HttpURLConnection)url.openConnection();
             urlConnection.setRequestProperty("Authorization", "Bearer " + bearerToken);
             urlConnection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
             urlConnection.setRequestMethod("POST");
 
             String body = "name=" + configName;
-                Log.i("body", body);
+
+            Log.i("body", body);
 
             urlConnection.setDoInput(true);
             urlConnection.setDoOutput(true);
             urlConnection.setFixedLengthStreamingMode(body.length());
 
             OutputStream out = new BufferedOutputStream(urlConnection.getOutputStream());
-            out.write(body.getBytes());
+            out.write(body.getBytes("UTF-8"));
             out.flush();
+
+            urlConnection.connect();
 
             InputStream in = new BufferedInputStream(urlConnection.getInputStream());
             BufferedReader r = new BufferedReader(new InputStreamReader(in));
@@ -46,7 +45,7 @@ public class Downloader {
             StringBuilder total = new StringBuilder();
             String line;
             while ((line = r.readLine()) != null) {
-                total.append(line + "\n");
+                total.append(line).append("\n");
             }
 
             return total.toString();
@@ -58,7 +57,7 @@ public class Downloader {
         } catch (Exception e) {
             Log.e("Exception", e.getMessage());
         } finally {
-            if(null != urlConnection) {
+            if (null != urlConnection) {
                 urlConnection.disconnect();
             }
         }

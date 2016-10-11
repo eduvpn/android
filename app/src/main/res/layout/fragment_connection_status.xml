@@ -59,16 +59,6 @@
             android:layout_height="wrap_content"
             android:text="@string/custom_host_label"/>
 
-        <EditText
-            android:id="@+id/vpnUrl"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:enabled="true"
-            android:gravity="start"
-            android:hint="@string/custom_host_hint"
-            android:inputType="textUri"
-            android:text="@string/default_custom_host"/>
-
         <Button
             android:id="@+id/setupButton"
             android:layout_width="wrap_content"

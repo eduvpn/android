@@ -4,25 +4,24 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.content.SharedPreferences;
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
+import android.support.v4.app.Fragment;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.TextView;
 
+import net.tuxed.vpnconfigimporter.fragment.ConnectProfileFragment;
 import net.tuxed.vpnconfigimporter.fragment.ProviderSelectionFragment;
+import net.tuxed.vpnconfigimporter.service.ConnectionService;
 import net.tuxed.vpnconfigimporter.utils.VpnUtils;
 
-import java.util.Iterator;
-import java.util.UUID;
+import javax.inject.Inject;
 
 import de.blinkt.openvpn.VpnProfile;
 import de.blinkt.openvpn.core.OpenVPNService;
@@ -39,6 +38,9 @@ public class MainActivity extends AppCompatActivity implements VpnStatus.StateLi
         DISCONNECTED_NO_CONFIG,
         CONNECTED
     }
+
+    @Inject
+    protected ConnectionService _connectionService;
 
     private Handler _uiHandler = new Handler();
     private VpnStatus.ConnectionStatus _connectionStatus;
@@ -76,13 +78,32 @@ public class MainActivity extends AppCompatActivity implements VpnStatus.StateLi
     }
 
     @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        try {
+            // TODO show loading dialog here.
+            _connectionService.parseCallbackIntent(intent);
+            openFragment(new ConnectProfileFragment());
+        } catch (ConnectionService.InvalidConnectionAttemptException ex) {
+            ex.printStackTrace();
+            // TODO show error dialog.
+        }
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        EduVPNApplication.get(this).component().inject(this);
         Toolbar toolbar = (Toolbar)findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        openFragment(new ProviderSelectionFragment());
+    }
+
+    public void openFragment(Fragment fragment) {
         getSupportFragmentManager().beginTransaction()
-                .add(R.id.contentFrame, new ProviderSelectionFragment())
+                .addToBackStack(null)
+                .add(R.id.contentFrame, fragment)
                 .commit();
     }
 
@@ -96,30 +117,13 @@ public class MainActivity extends AppCompatActivity implements VpnStatus.StateLi
         VpnUtils.startConnectionWithProfile(MainActivity.this, vpnProfile);
     }
 
-    private void _startSetup() {
-        // Remove all saved profiles first
-        final ProfileManager profileManager = ProfileManager.getInstance(MainActivity.this);
-        if (profileManager.getProfiles() != null && profileManager.getProfiles().size() > 0) {
-            Iterator<VpnProfile> profileIterator = profileManager.getProfiles().iterator();
-            while (profileIterator.hasNext()) {
-                profileIterator.remove();
-            }
-        }
-        // Generate the auth URL
-        String state = UUID.randomUUID().toString();
-        SharedPreferences sharedPreferences = getSharedPreferences(Constants.APPLICATION_PREFERENCES, Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putString(Constants.KEY_STATE, state);
-
-        EditText vpnUrl = (EditText)findViewById(R.id.vpnUrl);
-
-        String vpnHost = vpnUrl.getText().toString();
-        editor.putString(Constants.KEY_HOST, vpnHost);
-        editor.apply();
-
-        String openUrl = "https://" + vpnHost + "/portal/_oauth/authorize?client_id=vpn-companion&redirect_uri=vpn://import/callback&response_type=token&scope=create_config&state=" + state;
-        Intent intent = new Intent(Intent.ACTION_VIEW);
-        intent.setData(Uri.parse(openUrl));
+    /**
+     * Starts a new connection with the service inside a browser.
+     *
+     * @param baseUrl The base URL of the VPN service.
+     */
+    public void initiateConnection(String baseUrl) {
+        Intent intent = _connectionService.getAuthorizationIntent(baseUrl);
         startActivity(intent);
     }
 
