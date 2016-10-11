@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.net.Uri;
 
 import net.tuxed.vpnconfigimporter.R;
+import net.tuxed.vpnconfigimporter.entity.Instance;
 import net.tuxed.vpnconfigimporter.utils.Log;
 
 import java.util.UUID;
@@ -87,6 +88,18 @@ public class ConnectionService {
         Intent intent = new Intent(Intent.ACTION_VIEW);
         intent.setData(Uri.parse(connectionUrl));
         return intent;
+    }
+
+    /**
+     * Initiates a connection to the VPN provider instance.
+     *
+     * @param context  The activity context.
+     * @param instance The instance to connect to.
+     */
+    public void initiateConnection(Context context, Instance instance) {
+        _preferencesService.saveConnectionInstance(instance);
+        Intent intent = getAuthorizationIntent(instance.getBaseUri());
+        context.startActivity(intent);
     }
 
     /**

@@ -10,10 +10,9 @@ import android.view.ViewGroup;
 import android.widget.EditText;
 
 import net.tuxed.vpnconfigimporter.EduVPNApplication;
-import net.tuxed.vpnconfigimporter.MainActivity;
 import net.tuxed.vpnconfigimporter.R;
 import net.tuxed.vpnconfigimporter.entity.Instance;
-import net.tuxed.vpnconfigimporter.service.PreferencesService;
+import net.tuxed.vpnconfigimporter.service.ConnectionService;
 
 import javax.inject.Inject;
 
@@ -34,7 +33,7 @@ public class CustomProviderFragment extends Fragment {
     protected EditText _customProviderUrl;
 
     @Inject
-    protected PreferencesService _preferencesService;
+    protected ConnectionService _connectionService;
 
     @Nullable
     @Override
@@ -51,9 +50,8 @@ public class CustomProviderFragment extends Fragment {
         String postfix = _customProviderUrl.getText().toString();
         String url = prefix + postfix;
         if (getActivity() != null) {
-            MainActivity mainActivity = (MainActivity)getActivity();
-            _preferencesService.saveConnectionInstance(_createCustomProviderInstance(mainActivity, url));
-            mainActivity.initiateConnection(url);
+            Instance customProviderinstance = _createCustomProviderInstance(getActivity(), url);
+            _connectionService.initiateConnection(getActivity(), customProviderinstance);
         }
     }
 

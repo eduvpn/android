@@ -15,6 +15,7 @@ import net.tuxed.vpnconfigimporter.R;
 import net.tuxed.vpnconfigimporter.adapter.ProviderAdapter;
 import net.tuxed.vpnconfigimporter.entity.Instance;
 import net.tuxed.vpnconfigimporter.service.ConfigurationService;
+import net.tuxed.vpnconfigimporter.service.ConnectionService;
 import net.tuxed.vpnconfigimporter.service.PreferencesService;
 import net.tuxed.vpnconfigimporter.utils.ItemClickSupport;
 
@@ -37,7 +38,7 @@ public class ProviderSelectionFragment extends Fragment {
     protected ConfigurationService _configurationService;
 
     @Inject
-    protected PreferencesService _preferencesService;
+    protected ConnectionService _connectionService;
 
     private Unbinder _unbinder;
 
@@ -60,9 +61,7 @@ public class ProviderSelectionFragment extends Fragment {
                     }
                 } else {
                     if (getActivity() != null) {
-                        _preferencesService.saveConnectionInstance(instance);
-                        MainActivity activity = (MainActivity)getActivity();
-                        activity.initiateConnection(instance.getBaseUri());
+                        _connectionService.initiateConnection(getActivity(), instance);
                     }
                 }
             }

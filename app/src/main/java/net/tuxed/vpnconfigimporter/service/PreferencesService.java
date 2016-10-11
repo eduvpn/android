@@ -23,7 +23,7 @@ public class PreferencesService {
     private static final String KEY_INSTANCE_LOGO_URI = "instance_logo_uri";
 
     private Context _context;
-    
+
     /**
      * Constructor.
      *
@@ -124,7 +124,6 @@ public class PreferencesService {
      * @param accessToken The access token to use for the VPN provider API.
      */
     public void saveAccessToken(String accessToken) {
-        _accessToken = accessToken;
         _getSharedPreferences().edit().putString(KEY_ACCESS_TOKEN, accessToken).apply();
     }
 

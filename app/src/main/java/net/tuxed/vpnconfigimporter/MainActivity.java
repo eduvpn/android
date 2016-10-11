@@ -117,16 +117,6 @@ public class MainActivity extends AppCompatActivity implements VpnStatus.StateLi
         VpnUtils.startConnectionWithProfile(MainActivity.this, vpnProfile);
     }
 
-    /**
-     * Starts a new connection with the service inside a browser.
-     *
-     * @param baseUrl The base URL of the VPN service.
-     */
-    public void initiateConnection(String baseUrl) {
-        Intent intent = _connectionService.getAuthorizationIntent(baseUrl);
-        startActivity(intent);
-    }
-
     @Override
     public void updateState(final String state, String logmessage, int localizedResId, VpnStatus.ConnectionStatus level) {
         /**
