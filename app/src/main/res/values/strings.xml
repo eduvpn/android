@@ -1,6 +1,5 @@
 <resources>
     <string name="app_name">EduVPN</string>
-    <string name="default_custom_host">labrat.eduvpn.nl</string>
 
     <string name="custom_host_label">Specify the hostname of the VPN instance you want to connect to.</string>
     <string name="custom_host_hint">vpn.example.com</string>
@@ -20,4 +19,9 @@
     <string name="actionbar_title">eduVPN</string>
     <string name="choose_your_provider_title">Choose your provider</string>
     <string name="provider_other_display_name">Other</string>
+    <string name="custom_provider_title">Provide the URL to your provider</string>
+    <string name="custom_provider_prefix">https://</string>
+    <string name="custom_provider_connect">Connect</string>
+    <string name="connect_to_vpn_title">Connect to VPN</string>
+    <string name="custom_provider_display_name">Custom provider</string>
 </resources>

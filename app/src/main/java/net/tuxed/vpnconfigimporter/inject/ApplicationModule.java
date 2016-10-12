@@ -4,6 +4,8 @@ import android.content.Context;
 
 import net.tuxed.vpnconfigimporter.EduVPNApplication;
 import net.tuxed.vpnconfigimporter.service.ConfigurationService;
+import net.tuxed.vpnconfigimporter.service.ConnectionService;
+import net.tuxed.vpnconfigimporter.service.PreferencesService;
 
 import javax.inject.Singleton;
 
@@ -33,5 +35,17 @@ public class ApplicationModule {
     @Singleton
     protected ConfigurationService provideConfigurationService(Context context) {
         return new ConfigurationService(context);
+    }
+
+    @Provides
+    @Singleton
+    protected PreferencesService providePreferencesService(Context context) {
+        return new PreferencesService(context);
+    }
+
+    @Provides
+    @Singleton
+    protected ConnectionService provideConnectionService(Context context, PreferencesService preferencesService) {
+        return new ConnectionService(context, preferencesService);
     }
 }

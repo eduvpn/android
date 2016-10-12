@@ -21,12 +21,12 @@ import java.util.Observer;
  * Adapter for the providers list.
  * Created by Daniel Zolnai on 2016-10-07.
  */
-public class ProvidersAdapter extends RecyclerView.Adapter<ProviderViewHolder> {
+public class ProviderAdapter extends RecyclerView.Adapter<ProviderViewHolder> {
 
     private List<Instance> _instanceList;
     private LayoutInflater _layoutInflater;
 
-    public ProvidersAdapter(final ConfigurationService configurationService) {
+    public ProviderAdapter(final ConfigurationService configurationService) {
         _instanceList = configurationService.getInstanceList().getInstanceList();
         configurationService.addObserver(new Observer() {
             @Override

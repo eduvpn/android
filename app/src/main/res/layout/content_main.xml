@@ -73,8 +73,7 @@
             android:enabled="true"
             android:gravity="start"
             android:hint="@string/custom_host_hint"
-            android:inputType="textUri"
-            android:text="@string/default_custom_host"/>
+            android:inputType="textUri"/>
 
         <Button
             android:id="@+id/setupButton"
