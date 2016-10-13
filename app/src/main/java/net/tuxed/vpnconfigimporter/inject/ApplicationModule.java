@@ -3,14 +3,17 @@ package net.tuxed.vpnconfigimporter.inject;
 import android.content.Context;
 
 import net.tuxed.vpnconfigimporter.EduVPNApplication;
+import net.tuxed.vpnconfigimporter.service.APIService;
 import net.tuxed.vpnconfigimporter.service.ConfigurationService;
 import net.tuxed.vpnconfigimporter.service.ConnectionService;
 import net.tuxed.vpnconfigimporter.service.PreferencesService;
+import net.tuxed.vpnconfigimporter.service.SerializerService;
 
 import javax.inject.Singleton;
 
 import dagger.Module;
 import dagger.Provides;
+import de.blinkt.openvpn.core.Connection;
 
 /**
  * Application module providing the different dependencies
@@ -33,8 +36,8 @@ public class ApplicationModule {
 
     @Provides
     @Singleton
-    protected ConfigurationService provideConfigurationService(Context context) {
-        return new ConfigurationService(context);
+    protected ConfigurationService provideConfigurationService(Context context, SerializerService serializerService) {
+        return new ConfigurationService(context, serializerService);
     }
 
     @Provides
@@ -47,5 +50,17 @@ public class ApplicationModule {
     @Singleton
     protected ConnectionService provideConnectionService(Context context, PreferencesService preferencesService) {
         return new ConnectionService(context, preferencesService);
+    }
+
+    @Provides
+    @Singleton
+    protected APIService provideAPIService(ConnectionService connectionService) {
+        return new APIService(connectionService);
+    }
+
+    @Provides
+    @Singleton
+    protected SerializerService provideSerializerService() {
+        return new SerializerService();
     }
 }

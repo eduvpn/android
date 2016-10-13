@@ -80,8 +80,11 @@ public class MainActivity extends AppCompatActivity implements VpnStatus.StateLi
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
+        if (intent.getData() == null) {
+            // Not a callback intent.
+            return;
+        }
         try {
-            // TODO show loading dialog here.
             _connectionService.parseCallbackIntent(intent);
             openFragment(new ConnectProfileFragment());
         } catch (ConnectionService.InvalidConnectionAttemptException ex) {
@@ -98,6 +101,8 @@ public class MainActivity extends AppCompatActivity implements VpnStatus.StateLi
         Toolbar toolbar = (Toolbar)findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         openFragment(new ProviderSelectionFragment());
+        // The app might have been reopened from a URL.
+        onNewIntent(getIntent());
     }
 
     public void openFragment(Fragment fragment) {

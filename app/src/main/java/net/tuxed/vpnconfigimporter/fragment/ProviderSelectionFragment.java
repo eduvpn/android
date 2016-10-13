@@ -16,7 +16,6 @@ import net.tuxed.vpnconfigimporter.adapter.ProviderAdapter;
 import net.tuxed.vpnconfigimporter.entity.Instance;
 import net.tuxed.vpnconfigimporter.service.ConfigurationService;
 import net.tuxed.vpnconfigimporter.service.ConnectionService;
-import net.tuxed.vpnconfigimporter.service.PreferencesService;
 import net.tuxed.vpnconfigimporter.utils.ItemClickSupport;
 
 import javax.inject.Inject;

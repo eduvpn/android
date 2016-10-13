@@ -5,22 +5,17 @@ import android.content.SharedPreferences;
 import android.os.AsyncTask;
 
 import net.tuxed.vpnconfigimporter.BuildConfig;
-import net.tuxed.vpnconfigimporter.entity.Instance;
 import net.tuxed.vpnconfigimporter.entity.InstanceList;
 import net.tuxed.vpnconfigimporter.utils.Log;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Observable;
 
 /**
@@ -36,10 +31,13 @@ public class ConfigurationService extends Observable {
     private static final String INSTANCE_LIST_ASSET = "config/default_instance_list";
 
     private Context _context;
+    private SerializerService _serializerService;
+
     private InstanceList _instanceList;
 
-    public ConfigurationService(Context context) {
+    public ConfigurationService(Context context, SerializerService serializerService) {
         _context = context;
+        _serializerService = serializerService;
         _loadSavedInstanceList();
         _fetchLatestConfiguration();
     }
@@ -66,7 +64,7 @@ public class ConfigurationService extends Observable {
                 _instanceList = _parseInstanceList(savedInstanceList);
                 return;
             }
-        } catch (JSONException ex) {
+        } catch (Exception ex) {
             Log.e(TAG, "Unable to parse saved instance list JSON. Loading app static instance list.", ex);
         }
         // No saved instance list, or error while parsing.
@@ -83,7 +81,7 @@ public class ConfigurationService extends Observable {
             hardcodedInstanceList = stringBuilder.toString();
             _instanceList = _parseInstanceList(hardcodedInstanceList);
             _saveInstanceList();
-        } catch (IOException | JSONException ex) {
+        } catch (Exception ex) {
             throw new RuntimeException("Error reading default asset file!", ex);
         }
     }
@@ -96,19 +94,9 @@ public class ConfigurationService extends Observable {
             if (_instanceList == null) {
                 throw new RuntimeException("No instance list set!");
             }
-            JSONObject serialized = new JSONObject();
-            serialized.put("list_version", _instanceList.getVersion());
-            JSONArray serializedInstances = new JSONArray();
-            for (Instance instance : _instanceList.getInstanceList()) {
-                JSONObject serializedInstance = new JSONObject();
-                serializedInstance.put("base_uri", instance.getBaseUri());
-                serializedInstance.put("display_name", instance.getDisplayName());
-                serializedInstance.put("logo_uri", instance.getLogoUri());
-                serializedInstances.put(serializedInstance);
-            }
-            serialized.put("instances", serializedInstances);
+            JSONObject serialized = _serializerService.serializeInstanceList(_instanceList);
             _getPreferences().edit().putString(INSTANCE_LIST_KEY, serialized.toString()).apply();
-        } catch (JSONException ex) {
+        } catch (SerializerService.UnknownFormatException ex) {
             Log.e(TAG, "Unable to save the instance list!", ex);
         }
 
@@ -121,25 +109,9 @@ public class ConfigurationService extends Observable {
      * @return An InstanceList object containing the same information.
      * @throws JSONException Thrown if the JSON was malformed or had an unknown list version.
      */
-    private InstanceList _parseInstanceList(String instanceListString) throws JSONException {
+    private InstanceList _parseInstanceList(String instanceListString) throws Exception {
         JSONObject instanceListJson = new JSONObject(instanceListString);
-        Integer listVersion = instanceListJson.getInt("list_version");
-        if (listVersion != 1) {
-            throw new JSONException("Unknown list_version property: " + listVersion);
-        }
-        JSONArray instanceArray = instanceListJson.getJSONArray("instances");
-        List<Instance> instances = new ArrayList<>();
-        for (int i = 0; i < instanceArray.length(); ++i) {
-            JSONObject instanceObject = instanceArray.getJSONObject(i);
-            String baseUri = instanceObject.getString("base_uri");
-            String displayName = instanceObject.getString("display_name");
-            String logoUri = null;
-            if (instanceObject.has("logo_uri")) {
-                logoUri = instanceObject.getString("logo_uri");
-            }
-            instances.add(new Instance(baseUri, displayName, logoUri));
-        }
-        return new InstanceList(listVersion, instances);
+        return _serializerService.deserializeInstanceList(instanceListJson);
     }
 
     /**
@@ -165,7 +137,7 @@ public class ConfigurationService extends Observable {
                     }
                     String instanceList = stringBuilder.toString();
                     return  _parseInstanceList(instanceList);
-                } catch (IOException | JSONException ex) {
+                } catch (Exception ex) {
                     Log.w(TAG, "Error reading latest configuration from the URL!", ex);
                     return null;
                 }

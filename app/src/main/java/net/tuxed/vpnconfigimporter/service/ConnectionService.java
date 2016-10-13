@@ -121,30 +121,21 @@ public class ConnectionService {
      */
     public void parseCallbackIntent(Intent intent) throws InvalidConnectionAttemptException {
         Uri callbackUri = intent.getData();
-        Log.i(TAG, "Got callback URL: " + callbackUri.toString());
-
-        String fragment = callbackUri.getFragment();
-        String[] fragments = fragment.split("&");
-
-        String accessToken = null;
-        String state = null;
-
-        for (String element : fragments) {
-            String[] keyValuePair = element.split("=");
-            if (keyValuePair[0].equals("access_token")) {
-                // Found access token
-                accessToken = keyValuePair[1];
-            }
-            if (keyValuePair[0].equals("state")) {
-                // Found state
-                state = keyValuePair[1];
-            }
+        if (callbackUri == null) {
+            // Not a callback intent. Check before calling this method.
+            throw new RuntimeException("Intent is not a callback intent!");
         }
+        Log.i(TAG, "Got callback URL: " + callbackUri.toString());
+        // Modify it so the URI parser can parse the params.
+        callbackUri = Uri.parse(callbackUri.toString().replace("callback#", "callback?"));
 
-        if (accessToken == null) {
+        String accessToken = callbackUri.getQueryParameter("access_token");
+        String state = callbackUri.getQueryParameter("state");
+
+        if (accessToken == null || accessToken.isEmpty()) {
             throw new InvalidConnectionAttemptException(_context.getString(R.string.error_access_token_missing));
         }
-        if (state == null) {
+        if (state == null || state.isEmpty()) {
             throw new InvalidConnectionAttemptException(_context.getString(R.string.error_state_missing));
         }
         // Make sure the state is valid
