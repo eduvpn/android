@@ -8,12 +8,12 @@ import net.tuxed.vpnconfigimporter.service.ConfigurationService;
 import net.tuxed.vpnconfigimporter.service.ConnectionService;
 import net.tuxed.vpnconfigimporter.service.PreferencesService;
 import net.tuxed.vpnconfigimporter.service.SerializerService;
+import net.tuxed.vpnconfigimporter.service.VPNService;
 
 import javax.inject.Singleton;
 
 import dagger.Module;
 import dagger.Provides;
-import de.blinkt.openvpn.core.Connection;
 
 /**
  * Application module providing the different dependencies
@@ -62,5 +62,11 @@ public class ApplicationModule {
     @Singleton
     protected SerializerService provideSerializerService() {
         return new SerializerService();
+    }
+
+    @Provides
+    @Singleton
+    protected VPNService provideVPNService(Context context) {
+        return new VPNService(context);
     }
 }

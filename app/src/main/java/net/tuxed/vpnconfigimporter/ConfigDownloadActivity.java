@@ -39,7 +39,6 @@ public class ConfigDownloadActivity extends AppCompatActivity {
         setContentView(R.layout.activity_config_downloader);
         TextView messageTextView = (TextView)findViewById(R.id.message);
         // Start downloading the OpenVPN configuration
-        String configName = "Android_" + System.currentTimeMillis() / 1000L;
         String baseUrl = _preferencesService.getConnectionBaseUrl();
         String downloadURL = baseUrl + "/portal/api/config";
         //String[] taskParameters = {downloadURL, accessToken, configName};
@@ -48,23 +47,7 @@ public class ConfigDownloadActivity extends AppCompatActivity {
     }
 
     private void _importConfig(String vpnConfig, String preferredName) {
-        ConfigParser configParser = new ConfigParser();
-        try {
-            configParser.parseConfig(new StringReader(vpnConfig));
-            VpnProfile profile = configParser.convertProfile();
-            if (preferredName != null) {
-                profile.mName = preferredName;
-            }
-            ProfileManager profileManager = ProfileManager.getInstance(ConfigDownloadActivity.this);
-            profileManager.addProfile(profile);
-            profileManager.saveProfile(ConfigDownloadActivity.this, profile);
-            profileManager.saveProfileList(ConfigDownloadActivity.this);
-            Log.i(TAG, "Added and saved profile with UUID: " + profile.getUUIDString());
-            finish();
-            VpnUtils.startConnectionWithProfile(ConfigDownloadActivity.this, profile);
-        } catch (IOException | ConfigParser.ConfigParseError e) {
-            Log.e(TAG, "Error converting profile!", e);
-        }
+
     }
 
     private class DownloadFilesTask extends AsyncTask<String, Void, String> {

@@ -9,7 +9,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import net.tuxed.vpnconfigimporter.EduVPNApplication;
 import net.tuxed.vpnconfigimporter.R;
@@ -18,6 +17,7 @@ import net.tuxed.vpnconfigimporter.entity.Profile;
 import net.tuxed.vpnconfigimporter.service.APIService;
 import net.tuxed.vpnconfigimporter.service.PreferencesService;
 import net.tuxed.vpnconfigimporter.service.SerializerService;
+import net.tuxed.vpnconfigimporter.service.VPNService;
 import net.tuxed.vpnconfigimporter.utils.ItemClickSupport;
 import net.tuxed.vpnconfigimporter.utils.Log;
 
@@ -47,6 +47,9 @@ public class ConnectProfileFragment extends Fragment {
     protected PreferencesService _preferencesService;
 
     @Inject
+    protected VPNService _vpnService;
+
+    @Inject
     protected APIService _apiService;
 
     @Inject
@@ -66,11 +69,42 @@ public class ConnectProfileFragment extends Fragment {
             @Override
             public void onItemClicked(RecyclerView recyclerView, int position, View v) {
                 Profile profile = ((ProfileAdapter)recyclerView.getAdapter()).getItem(position);
-                // TODO
-                Toast.makeText(recyclerView.getContext(), "Download profile now", Toast.LENGTH_SHORT).show();
+                _selectProfile(profile);
             }
         });
         return view;
+    }
+
+    /**
+     * Generates a new config name.
+     */
+    private String _generateConfigName() {
+        return "Android_" + System.currentTimeMillis() / 1000L;
+    }
+
+    /**
+     * Downloads, imports, and opens the selected VPN profile.
+     *
+     * @param profile The profile to download.
+     */
+    private void _selectProfile(Profile profile) {
+        final String configName = _generateConfigName();
+        String requestData = "configName=" + configName + "&poolId=" + profile.getPoolId();
+        String url = _preferencesService.getConnectionBaseUrl() + "/portal/api/create_config";
+        _apiService.postResource(url, requestData, new APIService.Callback<byte[]>() {
+            @Override
+            public void onSuccess(byte[] result) {
+                String vpnConfig = new String(result);
+                boolean successfulImport = _vpnService.importConfig(vpnConfig, configName);
+                // TODO continue to next screen.
+            }
+
+            @Override
+            public void onError(String errorMessage) {
+                // TODO display error
+                Log.e("ERROR", errorMessage);
+            }
+        });
     }
 
     @Override
@@ -84,7 +118,7 @@ public class ConnectProfileFragment extends Fragment {
      */
     private void _fetchAvailableProfiles() {
         String url = _preferencesService.getConnectionBaseUrl() + "/portal/api/pool_list";
-        _apiService.getJSON(url, new APIService.Callback() {
+        _apiService.getJSON(url, new APIService.Callback<JSONObject>() {
             @Override
             public void onSuccess(JSONObject result) {
                 try {

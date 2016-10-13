@@ -151,6 +151,10 @@ public class ConnectionService {
         _preferencesService.removeSavedConnectionState();
     }
 
+    /**
+     * Returns the access token which authenticates against the current API.
+     * @return The access token used to authenticate.
+     */
     public String getAccessToken() {
         return _accessToken;
     }
