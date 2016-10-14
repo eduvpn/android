@@ -9,4 +9,5 @@
     <color name="disabledColor">#E0E0E0</color>
     <color name="pressedColor">#00A2C8</color>
     <color name="backgroundColor">#FFFFFF</color>
+    <color name="loading_hint">#B0B0B0</color>
 </resources>
