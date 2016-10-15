@@ -61,7 +61,8 @@
                 android:paddingLeft="8dp"
                 android:text="@string/actionbar_title"
                 android:textColor="@android:color/black"
-                android:textSize="24sp"/>
+                android:textSize="24sp"
+                tools:ignore="MissingPrefix"/>
 
             <ImageView
                 android:id="@+id/settings_button"

@@ -32,7 +32,8 @@
             android:layout_marginLeft="16dp"
             android:text="@string/custom_provider_prefix"
             android:textColor="@color/textColor"
-            android:textSize="@dimen/custom_provider_text_size"/>
+            android:textSize="@dimen/custom_provider_text_size"
+            tools:ignore="MissingPrefix"/>
 
         <EditText
             android:id="@+id/custom_provider_url"
