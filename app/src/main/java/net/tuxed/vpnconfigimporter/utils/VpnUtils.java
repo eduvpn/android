@@ -17,9 +17,5 @@ public class VpnUtils {
 
     public static void startConnectionWithProfile(Context context, VpnProfile vpnProfile) {
         Log.i(TAG, String.format("Initiating connection with profile '%s'", vpnProfile.getUUIDString()));
-        Intent intent = new Intent(context, LaunchVPN.class);
-        intent.putExtra(LaunchVPN.EXTRA_KEY, vpnProfile.getUUIDString());
-        intent.setAction(Intent.ACTION_MAIN);
-        context.startActivity(intent);
     }
 }

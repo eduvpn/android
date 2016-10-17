@@ -16,4 +16,9 @@
     <dimen name="list_item_profile_icon_size">32dp</dimen>
 
     <dimen name="custom_provider_text_size">18sp</dimen>
+    <dimen name="vpn_connection_fragment_padding">16dp</dimen>
+    <dimen name="connection_status_details_row_height">32dp</dimen>
+    <dimen name="connection_info_notifications_switcher_height">32dp</dimen>
+    <dimen name="connection_info_top_container_width">120dp</dimen>
+    <dimen name="connection_info_bottom_container_width">80dp</dimen>
 </resources>

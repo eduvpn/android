@@ -35,10 +35,6 @@
                     android:scheme="vpn"/>
             </intent-filter>
         </activity>
-        <activity
-            android:name=".ConfigDownloadActivity"
-            android:launchMode="singleInstance">
-        </activity>
 
         <!-- Activities and services inherited from the OpenVPN library. -->
         <service

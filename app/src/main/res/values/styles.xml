@@ -49,11 +49,54 @@
         <item name="android:textColor">@color/textColor</item>
     </style>
 
+    <style name="Label">
+        <item name="android:textSize">18sp</item>
+        <item name="fontPath">fonts/Roboto-Regular.ttf</item>
+        <item name="android:textColor">@color/textColor</item>
+        <item name="android:layout_marginBottom">10dp</item>
+    </style>
+
+    <style name="SmallButton">
+        <item name="android:layout_height">32dp</item>
+        <item name="android:background">@drawable/button_bg</item>
+        <item name="android:paddingTop">2dp</item>
+        <item name="android:paddingBottom">2dp</item>
+        <item name="android:paddingLeft">24dp</item>
+        <item name="android:paddingRight">24dp</item>
+        <item name="android:textSize">14sp</item>
+        <item name="fontPath">fonts/Roboto-Medium.ttf</item>
+        <item name="android:textColor">@color/buttonTextColor</item>
+        <item name="android:textAllCaps">false</item>
+    </style>
+
     <style name="BigButton">
-        <item name="android:background">@drawable/big_button</item>
-        <item name="android:padding">12dp</item>
+        <item name="android:background">@drawable/button_bg</item>
+        <item name="android:paddingTop">12dp</item>
+        <item name="android:paddingBottom">12dp</item>
+        <item name="android:paddingLeft">48dp</item>
+        <item name="android:paddingRight">48dp</item>
         <item name="android:textSize">22sp</item>
         <item name="fontPath">fonts/Roboto-Medium.ttf</item>
         <item name="android:textColor">@color/buttonTextColor</item>
+        <item name="android:textAllCaps">false</item>
+    </style>
+
+    <style name="SwitcherButton">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_weight">0.5</item>
+        <item name="android:layout_height">match_parent</item>
+        <item name="android:background">@drawable/switcher_button_bg</item>
+        <item name="fontPath">fonts/Roboto-Regular.ttf</item>
+        <item name="android:textSize">15sp</item>
+        <item name="android:textColor">@color/buttonTextColor</item>
+        <item name="android:textAllCaps">false</item>
+    </style>
+
+    <style name="ConnectionInfoLabel">
+        <item name="android:textSize">14sp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="fontPath">fonts/Roboto-Regular.ttf</item>
+        <item name="android:textColor">@color/textColor</item>
+        <item name="android:layout_marginBottom">2dp</item>
     </style>
 </resources>

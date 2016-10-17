@@ -52,7 +52,7 @@
                 android:src="@mipmap/ic_launcher"/>
 
             <TextView
-                android:id="@+id/actionbar_title"
+                android:id="@+id/actionbarTitle"
                 fontPath="fonts/Roboto-Medium.ttf"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -65,7 +65,7 @@
                 tools:ignore="MissingPrefix"/>
 
             <ImageView
-                android:id="@+id/settings_button"
+                android:id="@+id/settingsButton"
                 android:layout_width="@dimen/actionbar_icon_size"
                 android:layout_height="@dimen/actionbar_icon_size"
                 android:layout_alignParentRight="true"
