@@ -25,6 +25,12 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+
+    lintOptions {
+        disable 'GradleDependency', // Gradle dependencies can be a bit outdated, since we prefer to use the same versions as in the VPN library
+                'UnsafeNativeCodeLocation', // The OpenVPN so files are put to a different place, as per the documentation
+                'RtlSymmetry', 'RtlHardcoded' // No support for RTL as of now
+    }
 }
 
 dependencies {
