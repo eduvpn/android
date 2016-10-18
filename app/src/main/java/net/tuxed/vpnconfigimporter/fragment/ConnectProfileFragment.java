@@ -11,6 +11,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import net.tuxed.vpnconfigimporter.EduVPNApplication;
+import net.tuxed.vpnconfigimporter.MainActivity;
 import net.tuxed.vpnconfigimporter.R;
 import net.tuxed.vpnconfigimporter.adapter.ProfileAdapter;
 import net.tuxed.vpnconfigimporter.entity.Profile;
@@ -30,6 +31,7 @@ import javax.inject.Inject;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.Unbinder;
+import de.blinkt.openvpn.VpnProfile;
 
 /**
  * The fragment showing the provider list.
@@ -88,6 +90,10 @@ public class ConnectProfileFragment extends Fragment {
      * @param profile The profile to download.
      */
     private void _selectProfile(Profile profile) {
+        // Display loading message to the user
+        _hintText.setText(R.string.downloading_profile);
+        _hintText.setVisibility(View.VISIBLE);
+        _profileList.setVisibility(View.GONE);
         final String configName = _generateConfigName();
         String requestData = "configName=" + configName + "&poolId=" + profile.getPoolId();
         String url = _preferencesService.getConnectionBaseUrl() + "/portal/api/create_config";
@@ -95,13 +101,20 @@ public class ConnectProfileFragment extends Fragment {
             @Override
             public void onSuccess(byte[] result) {
                 String vpnConfig = new String(result);
-                boolean successfulImport = _vpnService.importConfig(vpnConfig, configName);
-                // TODO continue to next screen.
+                VpnProfile vpnProfile = _vpnService.importConfig(vpnConfig, configName);
+                if (vpnProfile != null) {
+                    if (getActivity() != null) {
+                        _vpnService.connect(getActivity(), vpnProfile);
+                        ((MainActivity)getActivity()).openFragment(new ConnectionStatusFragment());
+                    }
+                } else {
+                    _displayError(getString(R.string.error_importing_profile));
+                }
             }
 
             @Override
             public void onError(String errorMessage) {
-                // TODO display error
+                _displayError(errorMessage);
                 Log.e("ERROR", errorMessage);
             }
         });

@@ -1,5 +1,7 @@
 <resources>
     <string name="app_name">EduVPN</string>
+    <!-- Overrides resource from OpenVPN lib. Reason: bad casing-->
+    <string name="clear_log">Clear log</string>
 
     <string name="custom_host_label">Specify the hostname of the VPN instance you want to connect to.</string>
     <string name="custom_host_hint">vpn.example.com</string>
@@ -13,9 +15,6 @@
     <string name="error_state_mismatch">Error: state mismatch!</string>
     <string name="current_status">Connection status: %s</string>
     <string name="button_disconnect">Disconnect</string>
-
-    <!-- Overrides resource from OpenVPN lib. Reason: bad casing-->
-    <string name="clear_log">Clear log</string>
     <string name="actionbar_title">eduVPN</string>
     <string name="choose_your_provider_title">Choose your provider</string>
     <string name="provider_other_display_name">Other</string>
@@ -26,4 +25,23 @@
     <string name="custom_provider_display_name">Custom provider</string>
     <string name="loading_profiles">Loading profiles...</string>
     <string name="error_loading_profiles">Error loading profiles.</string>
+    <string name="downloading_profile">Downloading profile...</string>
+    <string name="error_importing_profile">Error importing profile.</string>
+    <string name="vpn_connection_status_title">VPN connection</string>
+    <string name="connection_label_status">Status</string>
+    <string name="connection_label_provider">Provider</string>
+    <string name="connection_label_profile">Profile</string>
+    <string name="notifications_switcher_default_title">Notifications</string>
+    <string name="connection_switcher_title">Connection info</string>
+    <string name="view_log_button">View log</string>
+
+    <string name="connection_info_duration">Duration</string>
+    <string name="connection_info_bytes_in">Bytes in</string>
+    <string name="connection_info_bytes_out">Bytes out</string>
+    <string name="connection_info_ipv4">IPv4</string>
+    <string name="connection_info_ipv6">IPv6</string>
+    <string name="connection_info_server">Server</string>
+    <string name="connection_info_server_ip">Server IP</string>
+    <string name="connection_info_port">Port</string>
+    <string name="not_available">N/A</string>
 </resources>
