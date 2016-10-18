@@ -1,6 +1,5 @@
 package net.tuxed.vpnconfigimporter;
 
-import net.tuxed.vpnconfigimporter.service.PreferencesService;
 import net.tuxed.vpnconfigimporter.service.PreferencesServiceTest;
 import net.tuxed.vpnconfigimporter.service.SerializerServiceTest;
 
