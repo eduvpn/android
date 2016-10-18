@@ -96,7 +96,7 @@ public class ConnectProfileFragment extends Fragment {
         _profileList.setVisibility(View.GONE);
         final String configName = _generateConfigName();
         String requestData = "config_name=" + configName + "&pool_id=" + profile.getPoolId();
-        String url = _preferencesService.getDiscoveredAPI().getCreateConfigAPI();
+        String url = _preferencesService.getSavedDiscoveredAPI().getCreateConfigAPI();
         _apiService.postResource(url, requestData, true, new APIService.Callback<byte[]>() {
             @Override
             public void onSuccess(byte[] result) {
@@ -131,7 +131,7 @@ public class ConnectProfileFragment extends Fragment {
      * Fetches the available profiles from the API, and puts them inside the list.
      */
     private void _fetchAvailableProfiles() {
-        String url = _preferencesService.getDiscoveredAPI().getProfileListAPI();
+        String url = _preferencesService.getSavedDiscoveredAPI().getProfileListAPI();
         _apiService.getJSON(url, true, new APIService.Callback<JSONObject>() {
             @Override
             public void onSuccess(JSONObject result) {

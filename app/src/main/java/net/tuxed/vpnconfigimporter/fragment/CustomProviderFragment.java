@@ -28,6 +28,8 @@ import butterknife.ButterKnife;
 import butterknife.OnClick;
 import butterknife.Unbinder;
 
+import static net.tuxed.vpnconfigimporter.Constants.API_DISCOVERY_POSTFIX;
+
 /**
  * Fragment where you can give the URL to a custom provider.
  * Created by Daniel Zolnai on 2016-10-11.
@@ -66,7 +68,7 @@ public class CustomProviderFragment extends Fragment {
             final Instance customProviderinstance = _createCustomProviderInstance(getActivity(), url);
             final ProgressDialog dialog = ProgressDialog.show(getContext(), getString(R.string.api_discovery_title), getString(R.string.api_discovery_message), true);
             // Discover the API
-            _apiService.getJSON(customProviderinstance.getSanitizedBaseUri() + "/info.json", false, new APIService.Callback<JSONObject>() {
+            _apiService.getJSON(customProviderinstance.getSanitizedBaseUri() + API_DISCOVERY_POSTFIX, false, new APIService.Callback<JSONObject>() {
                 @Override
                 public void onSuccess(JSONObject result) {
                     try {

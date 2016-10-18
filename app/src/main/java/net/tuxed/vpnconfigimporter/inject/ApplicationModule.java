@@ -42,8 +42,8 @@ public class ApplicationModule {
 
     @Provides
     @Singleton
-    protected PreferencesService providePreferencesService(Context context) {
-        return new PreferencesService(context);
+    protected PreferencesService providePreferencesService(Context context, SerializerService serializerService) {
+        return new PreferencesService(context, serializerService);
     }
 
     @Provides

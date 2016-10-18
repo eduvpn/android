@@ -6,6 +6,10 @@ import android.content.SharedPreferences;
 import net.tuxed.vpnconfigimporter.entity.DiscoveredAPI;
 import net.tuxed.vpnconfigimporter.entity.Instance;
 import net.tuxed.vpnconfigimporter.entity.Profile;
+import net.tuxed.vpnconfigimporter.utils.Log;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 /**
  * This service is used to save temporary data
@@ -13,6 +17,7 @@ import net.tuxed.vpnconfigimporter.entity.Profile;
  */
 
 public class PreferencesService {
+    private static final String TAG = PreferencesService.class.getName();
 
     private static final String PREFERENCES_NAME = "preferences_service";
 
@@ -20,30 +25,22 @@ public class PreferencesService {
     private static final String KEY_ACCESS_TOKEN = "access_token";
     private static final String KEY_CUSTOM_TABS_OPT_OUT = "custom_tabs_opt_out";
 
-    private static final String KEY_INSTANCE_DISPLAY_NAME = "instance_display_name";
-    private static final String KEY_INSTANCE_BASE_URI = "instance_base_uri";
-    private static final String KEY_INSTANCE_LOGO_URI = "instance_logo_uri";
-
-    private static final String KEY_PROFILE_POOL_ID = "profile_pool_id";
-    private static final String KEY_PROFILE_DISPLAY_NAME = "profile_display_name";
-    private static final String KEY_PROFILE_TWO_FACTOR = "profile_two_factor";
-
-    private static final String KEY_DISCOVERED_API_VERSION = "discovered_api_version";
-    private static final String KEY_DISCOVERED_API_CREATE_CONFIG_API = "discovered_api_create_config_api";
-    private static final String KEY_DISCOVERED_API_PROFILE_LIST_API = "discovered_api_profile_list_api";
-    private static final String KEY_DISCOVERED_API_SYSTEM_MESSAGES_API = "discovered_api_system_messages_api";
-    private static final String KEY_DISCOVERED_API_USER_MESSAGES_API = "discovered_api_user_messages_api";
-    private static final String KEY_DISCOVERED_API_AUTHORIZATION_ENDPOINT = "discovered_api_authorization_endpoint";
+    private static final String KEY_INSTANCE = "instance";
+    private static final String KEY_PROFILE = "profile";
+    private static final String KEY_DISCOVERED_API = "discovered_api";
 
     private Context _context;
+    private SerializerService _serializerService;
 
     /**
      * Constructor.
      *
-     * @param context The application or activity context.
+     * @param context           The application or activity context.
+     * @param serializerService The serializer service used to serialize and deserialize objects.
      */
-    public PreferencesService(Context context) {
+    public PreferencesService(Context context, SerializerService serializerService) {
         _context = context;
+        _serializerService = serializerService;
     }
 
     /**
@@ -88,11 +85,13 @@ public class PreferencesService {
      * @param instance The instance to save.
      */
     public void saveConnectionInstance(Instance instance) {
-        _getSharedPreferences().edit()
-                .putString(KEY_INSTANCE_BASE_URI, instance.getBaseUri())
-                .putString(KEY_INSTANCE_DISPLAY_NAME, instance.getDisplayName())
-                .putString(KEY_INSTANCE_LOGO_URI, instance.getLogoUri())
-                .apply();
+        try {
+            _getSharedPreferences().edit()
+                    .putString(KEY_INSTANCE, _serializerService.serializeInstance(instance).toString())
+                    .apply();
+        } catch (SerializerService.UnknownFormatException ex) {
+            Log.e(TAG, "Can not save connection instance!", ex);
+        }
     }
 
     /**
@@ -101,12 +100,14 @@ public class PreferencesService {
      * @return The instance to connect to. Null if none found.
      */
     public Instance getSavedInstance() {
-        String baseUri = _getSharedPreferences().getString(KEY_INSTANCE_BASE_URI, null);
-        String displayName = _getSharedPreferences().getString(KEY_INSTANCE_DISPLAY_NAME, null);
-        String logoUri = _getSharedPreferences().getString(KEY_INSTANCE_LOGO_URI, null);
-        if (baseUri != null && displayName != null) {
-            return new Instance(baseUri, displayName, logoUri);
-        } else {
+        String serializedInstance = _getSharedPreferences().getString(KEY_INSTANCE, null);
+        if (serializedInstance == null) {
+            return null;
+        }
+        try {
+            return _serializerService.deserializeInstance(new JSONObject(serializedInstance));
+        } catch (SerializerService.UnknownFormatException | JSONException ex) {
+            Log.e(TAG, "Unable to deserialize instance!", ex);
             return null;
         }
     }
@@ -117,11 +118,13 @@ public class PreferencesService {
      * @param profile The profile to save.
      */
     public void saveProfile(Profile profile) {
-        _getSharedPreferences().edit()
-                .putString(KEY_PROFILE_POOL_ID, profile.getPoolId())
-                .putString(KEY_PROFILE_DISPLAY_NAME, profile.getDisplayName())
-                .putString(KEY_PROFILE_TWO_FACTOR, profile.getTwoFactor() == null ? null : profile.getTwoFactor().toString())
-                .apply();
+        try {
+            _getSharedPreferences().edit()
+                    .putString(KEY_PROFILE, _serializerService.serializeProfile(profile).toString())
+                    .apply();
+        } catch (SerializerService.UnknownFormatException ex) {
+            Log.e(TAG, "Unable to serialize profile!", ex);
+        }
     }
 
     /**
@@ -130,13 +133,14 @@ public class PreferencesService {
      * @return The lastly saved profile with {@link #saveProfile(Profile)}.
      */
     public Profile getSavedProfile() {
-        String poolId = _getSharedPreferences().getString(KEY_PROFILE_POOL_ID, null);
-        String displayName = _getSharedPreferences().getString(KEY_PROFILE_DISPLAY_NAME, null);
-        String twoFactorString = _getSharedPreferences().getString(KEY_PROFILE_TWO_FACTOR, null);
-        Boolean twoFactor = twoFactorString == null ? null : Boolean.valueOf(twoFactorString);
-        if (poolId != null && displayName != null) {
-            return new Profile(displayName, poolId, twoFactor);
-        } else {
+        String serializedProfile = _getSharedPreferences().getString(KEY_PROFILE, null);
+        if (serializedProfile == null) {
+            return null;
+        }
+        try {
+            return _serializerService.deserializeProfile(new JSONObject(serializedProfile));
+        } catch (SerializerService.UnknownFormatException | JSONException ex) {
+            Log.e(TAG, "Unable to deserialize saved profile!", ex);
             return null;
         }
     }
@@ -174,14 +178,13 @@ public class PreferencesService {
      * @param discoveredAPI The discovered API.
      */
     public void saveDiscoveredAPI(DiscoveredAPI discoveredAPI) {
-        _getSharedPreferences().edit()
-                .putInt(KEY_DISCOVERED_API_VERSION, discoveredAPI.getApiVersion())
-                .putString(KEY_DISCOVERED_API_AUTHORIZATION_ENDPOINT, discoveredAPI.getAuthorizationEndpoint())
-                .putString(KEY_DISCOVERED_API_CREATE_CONFIG_API, discoveredAPI.getCreateConfigAPI())
-                .putString(KEY_DISCOVERED_API_PROFILE_LIST_API, discoveredAPI.getProfileListAPI())
-                .putString(KEY_DISCOVERED_API_SYSTEM_MESSAGES_API, discoveredAPI.getSystemMessagesAPI())
-                .putString(KEY_DISCOVERED_API_USER_MESSAGES_API, discoveredAPI.getUserMessagesAPI())
-                .apply();
+        try {
+            _getSharedPreferences().edit()
+                    .putString(KEY_DISCOVERED_API, _serializerService.serializeDiscoveredAPI(discoveredAPI).toString())
+                    .apply();
+        } catch (SerializerService.UnknownFormatException ex) {
+            Log.e(TAG, "Can not save discovered API!", ex);
+        }
     }
 
     /**
@@ -189,17 +192,15 @@ public class PreferencesService {
      *
      * @return A discovered API if saved, otherwise null.
      */
-    public DiscoveredAPI getDiscoveredAPI() {
-        Integer apiVersion = _getSharedPreferences().getInt(KEY_DISCOVERED_API_VERSION, -1);
-        String authorizationEndpoint = _getSharedPreferences().getString(KEY_DISCOVERED_API_AUTHORIZATION_ENDPOINT, null);
-        String createConfigAPI = _getSharedPreferences().getString(KEY_DISCOVERED_API_CREATE_CONFIG_API, null);
-        String profileListAPI = _getSharedPreferences().getString(KEY_DISCOVERED_API_PROFILE_LIST_API, null);
-        String userMessagesAPI = _getSharedPreferences().getString(KEY_DISCOVERED_API_USER_MESSAGES_API, null);
-        String systemMessagesAPI = _getSharedPreferences().getString(KEY_DISCOVERED_API_SYSTEM_MESSAGES_API, null);
-        if (authorizationEndpoint != null && createConfigAPI != null && profileListAPI !=null) {
-            return new DiscoveredAPI(apiVersion, authorizationEndpoint, createConfigAPI,
-                    profileListAPI, systemMessagesAPI, userMessagesAPI);
-        } else {
+    public DiscoveredAPI getSavedDiscoveredAPI() {
+        String serializedDiscoveredAPI = _getSharedPreferences().getString(KEY_DISCOVERED_API, null);
+        if (serializedDiscoveredAPI == null) {
+            return null;
+        }
+        try {
+            return _serializerService.deserializeDiscoveredAPI(new JSONObject(serializedDiscoveredAPI));
+        } catch (SerializerService.UnknownFormatException | JSONException ex) {
+            Log.e(TAG, "Unable to deserialize saved discovered API", ex);
             return null;
         }
     }
