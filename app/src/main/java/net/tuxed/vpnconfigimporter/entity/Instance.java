@@ -25,6 +25,14 @@ public class Instance {
     }
 
     @NonNull
+    public String getSanitizedBaseUri() {
+        if (_baseUri.endsWith("/")) {
+            return _baseUri.substring(0, _baseUri.length() - 1);
+        }
+        return _baseUri;
+    }
+
+    @NonNull
     public String getDisplayName() {
         return _displayName;
     }

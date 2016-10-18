@@ -44,4 +44,14 @@
     <string name="connection_info_server_ip">Server IP</string>
     <string name="connection_info_port">Port</string>
     <string name="not_available">N/A</string>
+    <string name="already_connected_please_disconnect">You are already connected. Please disconnect first.</string>
+
+    <string name="duration_more_than_one_hour">%1$02d:%2$02d:%3$02d</string>
+    <string name="duration_less_than_one_hour">%1$02d:%2$02d</string>
+
+    <string name="traffic_kilobytes">%s KB</string>
+    <string name="traffic_megabytes">%s MB</string>
+    <string name="traffic_gigabytes">%s GB</string>
+    <string name="api_discovery_message">Discovering API...</string>
+    <string name="api_discovery_title">Just a sec</string>
 </resources>

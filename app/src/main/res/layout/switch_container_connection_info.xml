@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="16dp"
+    android:padding="12dp"
     tools:background="@android:color/white"
     tools:layout_width="250dp">
 
@@ -57,7 +57,7 @@
         style="@style/ConnectionInfoLabel"
         android:layout_width="@dimen/connection_info_bottom_container_width"
         android:layout_below="@id/bytesOutValue"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="10dp"
         android:text="@string/connection_info_ipv4"/>
 
     <TextView
@@ -134,7 +134,7 @@
         android:layout_width="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
-        android:layout_marginBottom="8dp"
+        android:layout_marginBottom="4dp"
         android:text="@string/view_log_button"/>
 
 </RelativeLayout>

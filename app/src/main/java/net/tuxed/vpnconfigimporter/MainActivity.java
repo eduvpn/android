@@ -10,6 +10,7 @@ import android.view.animation.AccelerateDecelerateInterpolator;
 import android.widget.Toast;
 
 import net.tuxed.vpnconfigimporter.fragment.ConnectProfileFragment;
+import net.tuxed.vpnconfigimporter.fragment.ConnectionStatusFragment;
 import net.tuxed.vpnconfigimporter.fragment.ProviderSelectionFragment;
 import net.tuxed.vpnconfigimporter.service.ConnectionService;
 import net.tuxed.vpnconfigimporter.service.VPNService;
@@ -41,7 +42,21 @@ public class MainActivity extends AppCompatActivity {
         ButterKnife.bind(this);
         EduVPNApplication.get(this).component().inject(this);
         setSupportActionBar(_toolbar);
-        openFragment(new ProviderSelectionFragment());
+        // If there's an ongoing VPN connection, open the status screen.
+        _vpnService.onCreate(this);
+        if (_vpnService.getStatus() != VPNService.VPNStatus.DISCONNECTED) {
+            getSupportFragmentManager()
+                    .beginTransaction()
+                    .replace(R.id.contentFrame, new ConnectionStatusFragment())
+                    .commit();
+
+        } else {
+            // Else we just show the provider selection fragment.
+            getSupportFragmentManager()
+                    .beginTransaction()
+                    .replace(R.id.contentFrame, new ProviderSelectionFragment())
+                    .commit();
+        }
         // The app might have been reopened from a URL.
         onNewIntent(getIntent());
     }
@@ -51,6 +66,12 @@ public class MainActivity extends AppCompatActivity {
         super.onNewIntent(intent);
         if (intent.getData() == null) {
             // Not a callback intent.
+            return;
+        }
+        if (_vpnService.getStatus() != VPNService.VPNStatus.DISCONNECTED) {
+            // The user clicked on an authorization link while the VPN is connected.
+            // Maybe just a mistake?
+            Toast.makeText(this, R.string.already_connected_please_disconnect, Toast.LENGTH_LONG).show();
             return;
         }
         try {
@@ -63,15 +84,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onStart() {
-        super.onStart();
-        _vpnService.onStart(this);
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-        _vpnService.onStop(this);
+    protected void onDestroy() {
+        super.onDestroy();
+        _vpnService.onDestroy(this);
     }
 
     @Override

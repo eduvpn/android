@@ -1,10 +1,15 @@
 package net.tuxed.vpnconfigimporter.service;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
+import android.support.customtabs.CustomTabsClient;
+import android.support.customtabs.CustomTabsIntent;
+import android.support.v4.content.ContextCompat;
 
 import net.tuxed.vpnconfigimporter.R;
+import net.tuxed.vpnconfigimporter.entity.DiscoveredAPI;
 import net.tuxed.vpnconfigimporter.entity.Instance;
 import net.tuxed.vpnconfigimporter.utils.Log;
 
@@ -28,10 +33,13 @@ public class ConnectionService {
     private static final String RESPONSE_TYPE = "token";
     private static final String REDIRECT_URI = "vpn://import/callback";
     private static final String CLIENT_ID = "vpn-companion";
+    private static final String CUSTOM_TAB_PACKAGE_NAME = "com.android.chrome"; // This might change later,
+    // as of now, this is the only browser which has Custom Tabs support.
 
     private PreferencesService _preferencesService;
     private Context _context;
     private String _accessToken;
+    private boolean _optedOutOfCustomTabs = false;
 
     /**
      * Constructor.
@@ -43,6 +51,7 @@ public class ConnectionService {
         _context = context;
         _preferencesService = preferencesService;
         _accessToken = preferencesService.getAccessToken();
+        _optedOutOfCustomTabs = preferencesService.getCustomTabsOptOut();
     }
 
     /**
@@ -70,36 +79,39 @@ public class ConnectionService {
     }
 
     /**
-     * Creates an intent which will open the site where the authorization can be initiated.
-     *
-     * @param baseUrl The base URL of the VPN provider.
-     * @return An intent which can be started.
+     * Warms up the Custom Tabs service, allowing it to load even more faster.
      */
-    public Intent getAuthorizationIntent(String baseUrl) {
-        // Remove the '/' character from the end.
-        if (baseUrl.endsWith("/")) {
-            baseUrl = baseUrl.substring(0, baseUrl.length() - 1);
+    public void warmup() {
+        if (!_optedOutOfCustomTabs) {
+            CustomTabsClient.connectAndInitialize(_context, CUSTOM_TAB_PACKAGE_NAME);
         }
-        String state = _generateState();
-        _preferencesService.saveConnectionBaseUrl(baseUrl);
-        _preferencesService.saveConnectionState(state);
-        String connectionUrl = _buildConnectionUrl(baseUrl, state);
-        // Create an intent which opens the URL in the default browser
-        Intent intent = new Intent(Intent.ACTION_VIEW);
-        intent.setData(Uri.parse(connectionUrl));
-        return intent;
     }
 
     /**
      * Initiates a connection to the VPN provider instance.
      *
-     * @param context  The activity context.
+     * @param activity The current activity.
      * @param instance The instance to connect to.
      */
-    public void initiateConnection(Context context, Instance instance) {
+    public void initiateConnection(Activity activity, Instance instance, DiscoveredAPI discoveredAPI) {
+        String baseUrl = instance.getSanitizedBaseUri();
+        String state = _generateState();
+        String connectionUrl = _buildConnectionUrl(baseUrl, state);
+
+        _preferencesService.saveConnectionState(state);
         _preferencesService.saveConnectionInstance(instance);
-        Intent intent = getAuthorizationIntent(instance.getBaseUri());
-        context.startActivity(intent);
+        _preferencesService.saveDiscoveredAPI(discoveredAPI);
+        if (_optedOutOfCustomTabs) {
+            Intent viewUrlIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(connectionUrl));
+            activity.startActivity(viewUrlIntent);
+        } else {
+            CustomTabsIntent.Builder builder = new CustomTabsIntent.Builder();
+            builder.setToolbarColor(ContextCompat.getColor(_context, R.color.mainColor));
+            builder.setInstantAppsEnabled(false);
+            builder.setShowTitle(true);
+            CustomTabsIntent customTabsIntent = builder.build();
+            customTabsIntent.launchUrl(activity, Uri.parse(connectionUrl));
+        }
     }
 
     /**
@@ -153,6 +165,7 @@ public class ConnectionService {
 
     /**
      * Returns the access token which authenticates against the current API.
+     *
      * @return The access token used to authenticate.
      */
     public String getAccessToken() {

@@ -4,6 +4,8 @@ import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
+import net.tuxed.vpnconfigimporter.utils.Log;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -21,6 +23,8 @@ import java.net.URL;
  * Created by Daniel Zolnai on 2016-10-12.
  */
 public class APIService {
+
+    private static final String TAG = APIService.class.getName();
 
     private static final int CONNECT_TIMEOUT_MS = 10000;
     private static final int READ_TIMEOUT_MS = 20000;
@@ -63,12 +67,12 @@ public class APIService {
      * @param url      The URL to fetch the JSON from.
      * @param callback The callback for returning the result or notifying about an error.
      */
-    public void getJSON(final String url, final Callback<JSONObject> callback) {
+    public void getJSON(final String url, final boolean useToken, final Callback<JSONObject> callback) {
         AsyncTask<Void, Void, Object> asyncTask = new AsyncTask<Void, Void, Object>() {
             @Override
             protected Object doInBackground(Void... params) {
                 try {
-                    return _fetchJSON(url);
+                    return _fetchJSON(url, useToken);
                 } catch (IOException e) {
                     return e.getMessage();
                 } catch (JSONException e) {
@@ -92,15 +96,18 @@ public class APIService {
 
     /**
      * Downloads a byte array resource.
-     * @param url The URL as a string.
+     *
+     * @param url      The URL as a string.
+     * @param useToken If the authentication should be included.
+     * @param data     The request data.
      * @param callback The callback for notifying about the result.
      */
-    public void postResource(@NonNull final String url, @Nullable final String data, final Callback<byte[]> callback) {
+    public void postResource(@NonNull final String url, @Nullable final String data, final boolean useToken, final Callback<byte[]> callback) {
         AsyncTask<Void, Void, Object> asyncTask = new AsyncTask<Void, Void, Object>() {
             @Override
             protected Object doInBackground(Void... params) {
                 try {
-                    return _fetchByteResource(url, data);
+                    return _fetchByteResource(url, data, useToken);
                 } catch (IOException e) {
                     return e.getMessage();
                 }
@@ -123,12 +130,14 @@ public class APIService {
     /**
      * Downloads a byte resource from a URL.
      *
-     * @param url The URL as a string.
+     * @param url         The URL as a string.
+     * @param requestData The request data, if any.
+     * @param useToken    If the authentication token should be included in the request.
      * @return The result as a byte array.
      * @throws IOException Thrown if there was a problem creating the connection.
      */
-    private byte[] _fetchByteResource(String url, String requestData) throws IOException {
-        HttpURLConnection urlConnection = _createConnection(url);
+    private byte[] _fetchByteResource(@NonNull String url, @Nullable String requestData, boolean useToken) throws IOException {
+        HttpURLConnection urlConnection = _createConnection(url, useToken);
         urlConnection.setRequestMethod("POST");
         if (requestData != null) {
             OutputStream out = new BufferedOutputStream(urlConnection.getOutputStream());
@@ -145,6 +154,7 @@ public class APIService {
         }
         byte[] result = buffer.toByteArray();
         int statusCode = urlConnection.getResponseCode();
+        Log.d(TAG, "POST " + url + " data: '" + requestData + "': " + new String(result));
         if (statusCode >= 200 && statusCode <= 299) {
             return result;
         } else {
@@ -156,16 +166,17 @@ public class APIService {
      * Creates a new URL connection based on the URL.
      *
      * @param urlString The URl as a string.
+     * @param useToken  If the authentication token should be included.
      * @return The URL connection which can be used to connect to the URL.
      * @throws IOException Thrown if there was a problem while creating the connection.
      */
-    private HttpURLConnection _createConnection(String urlString) throws IOException {
+    private HttpURLConnection _createConnection(String urlString, boolean useToken) throws IOException {
         URL url = new URL(urlString);
         HttpURLConnection urlConnection = (HttpURLConnection)url.openConnection();
         urlConnection.setConnectTimeout(CONNECT_TIMEOUT_MS);
         urlConnection.setReadTimeout(READ_TIMEOUT_MS);
         urlConnection.setRequestMethod("GET");
-        if (_getAccessToken() != null) {
+        if (_getAccessToken() != null && useToken) {
             urlConnection.setRequestProperty(HEADER_AUTHORIZATION, "Bearer " + _getAccessToken());
         }
         return urlConnection;
@@ -179,8 +190,8 @@ public class APIService {
      * @throws IOException   Thrown if there was a problem while connecting.
      * @throws JSONException Thrown if the returned JSON was invalid or not a JSON at all.
      */
-    private JSONObject _fetchJSON(String url) throws IOException, JSONException {
-        HttpURLConnection urlConnection = _createConnection(url);
+    private JSONObject _fetchJSON(String url, boolean useToken) throws IOException, JSONException {
+        HttpURLConnection urlConnection = _createConnection(url, useToken);
         urlConnection.connect();
         // Get the body of the response
         BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));
@@ -192,6 +203,7 @@ public class APIService {
         bufferedReader.close();
         String responseString = stringBuilder.toString();
         int statusCode = urlConnection.getResponseCode();
+        Log.d(TAG, "GET " + url + ": " + responseString);
         if (statusCode >= 200 && statusCode <= 299) {
             return new JSONObject(responseString);
         } else {

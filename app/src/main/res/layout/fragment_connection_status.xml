@@ -64,7 +64,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="@dimen/connection_status_details_row_height"
                 android:adjustViewBounds="true"
-                android:src="@drawable/surfnet_logo"/>
+                android:src="@drawable/other_vpn_icon"/>
         </LinearLayout>
 
         <LinearLayout
