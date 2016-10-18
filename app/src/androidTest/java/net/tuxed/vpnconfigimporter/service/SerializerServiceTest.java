@@ -58,7 +58,7 @@ public class SerializerServiceTest {
                 "systemMessages", "userMessages");
         JSONObject serializedDiscoveredAPI = _serializerService.serializeDiscoveredAPI(discoveredAPI);
         DiscoveredAPI deserializedDiscoveredAPI = _serializerService.deserializeDiscoveredAPI(serializedDiscoveredAPI);
-        assertEquals(discoveredAPI.getApiVersion(), deserializedDiscoveredAPI.getApiVersion());
+        assertEquals(discoveredAPI.getVersion(), deserializedDiscoveredAPI.getVersion());
         assertEquals(discoveredAPI.getAuthorizationEndpoint(), deserializedDiscoveredAPI.getAuthorizationEndpoint());
         assertEquals(discoveredAPI.getCreateConfigAPI(), deserializedDiscoveredAPI.getCreateConfigAPI());
         assertEquals(discoveredAPI.getProfileListAPI(), deserializedDiscoveredAPI.getProfileListAPI());

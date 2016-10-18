@@ -54,7 +54,7 @@ public class PreferencesServiceTest {
                 "http://example.com/profile_list", "http://example.com/system_messages", "http://example.com/user_messages");
         _preferencesService.saveDiscoveredAPI(discoveredAPI);
         DiscoveredAPI retrievedDiscoveredAPI = _preferencesService.getSavedDiscoveredAPI();
-        assertEquals(discoveredAPI.getApiVersion(), retrievedDiscoveredAPI.getApiVersion());
+        assertEquals(discoveredAPI.getVersion(), retrievedDiscoveredAPI.getVersion());
         assertEquals(discoveredAPI.getAuthorizationEndpoint(), retrievedDiscoveredAPI.getAuthorizationEndpoint());
         assertEquals(discoveredAPI.getCreateConfigAPI(), retrievedDiscoveredAPI.getCreateConfigAPI());
         assertEquals(discoveredAPI.getProfileListAPI(), retrievedDiscoveredAPI.getProfileListAPI());

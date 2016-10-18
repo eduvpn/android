@@ -104,9 +104,9 @@ public class SerializerService {
      */
     public InstanceList deserializeInstanceList(JSONObject json) throws UnknownFormatException {
         try {
-            Integer listVersion = json.getInt("list_version");
-            if (listVersion != 1) {
-                throw new UnknownFormatException("Unknown list_version property: " + listVersion);
+            Integer version = json.getInt("version");
+            if (version != 1) {
+                throw new UnknownFormatException("Unknown version property: " + version);
             }
             JSONArray instanceArray = json.getJSONArray("instances");
             List<Instance> instances = new ArrayList<>();
@@ -114,7 +114,7 @@ public class SerializerService {
                 JSONObject instanceObject = instanceArray.getJSONObject(i);
                 instances.add(deserializeInstance(instanceObject));
             }
-            return new InstanceList(listVersion, instances);
+            return new InstanceList(version, instances);
         } catch (JSONException ex) {
             throw new UnknownFormatException(ex);
         }
@@ -171,7 +171,7 @@ public class SerializerService {
     public JSONObject serializeInstanceList(InstanceList instanceList) throws UnknownFormatException {
         try {
             JSONObject serialized = new JSONObject();
-            serialized.put("list_version", instanceList.getVersion());
+            serialized.put("version", instanceList.getVersion());
             JSONArray serializedInstances = new JSONArray();
             for (Instance instance : instanceList.getInstanceList()) {
                 JSONObject serializedInstance = new JSONObject();
@@ -196,9 +196,9 @@ public class SerializerService {
      */
     public DiscoveredAPI deserializeDiscoveredAPI(JSONObject result) throws UnknownFormatException {
         try {
-            Integer apiVersion = result.getInt("api_version");
-            if (apiVersion != 1) {
-                throw new UnknownFormatException("Unknown API version: " + apiVersion);
+            Integer version = result.getInt("version");
+            if (version != 1) {
+                throw new UnknownFormatException("Unknown version: " + version);
             }
             String authorizationEndpoint = result.getString("authorization_endpoint");
             if (authorizationEndpoint == null) {
@@ -221,7 +221,7 @@ public class SerializerService {
             if (apiObject.has("user_messages")) {
                 userMessagesAPI = apiObject.getString("user_messages");
             }
-            return new DiscoveredAPI(apiVersion, authorizationEndpoint, createConfigAPI,
+            return new DiscoveredAPI(version, authorizationEndpoint, createConfigAPI,
                     profileListAPI, systemMessagesAPI, userMessagesAPI);
         } catch (JSONException ex) {
             throw new UnknownFormatException(ex);
@@ -238,7 +238,7 @@ public class SerializerService {
     public JSONObject serializeDiscoveredAPI(DiscoveredAPI discoveredAPI) throws UnknownFormatException {
         JSONObject result = new JSONObject();
         try {
-            result.put("api_version", discoveredAPI.getApiVersion());
+            result.put("version", discoveredAPI.getVersion());
             result.put("authorization_endpoint", discoveredAPI.getAuthorizationEndpoint());
             JSONObject apiObject = new JSONObject();
             apiObject.put("create_config", discoveredAPI.getCreateConfigAPI());
