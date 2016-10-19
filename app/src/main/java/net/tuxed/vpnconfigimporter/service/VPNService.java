@@ -40,7 +40,7 @@ public class VPNService extends Observable implements VpnStatus.StateListener {
     private Context _context;
 
     // Stores the current VPN status.
-    private VpnStatus.ConnectionStatus _connectionStatus;
+    private VpnStatus.ConnectionStatus _connectionStatus = VpnStatus.ConnectionStatus.LEVEL_NOTCONNECTED;
     // These are used to provide connection info updates
     private ConnectionInfoCallback _connectionInfoCallback;
     private Handler _updatesHandler = new Handler();
@@ -78,14 +78,14 @@ public class VPNService extends Observable implements VpnStatus.StateListener {
     };
 
 
-    public void onStart(Activity activity) {
+    public void onCreate(Activity activity) {
         VpnStatus.addStateListener(this);
         Intent intent = new Intent(activity, OpenVPNService.class);
         intent.setAction(OpenVPNService.START_SERVICE);
         activity.bindService(intent, _serviceConnection, Context.BIND_AUTO_CREATE);
     }
 
-    public void onStop(Activity activity) {
+    public void onDestroy(Activity activity) {
         activity.unbindService(_serviceConnection);
         VpnStatus.removeStateListener(this);
     }

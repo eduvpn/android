@@ -48,3 +48,30 @@ In this case you can do two things:
 * Build the native sources yourself, by following [this guide](https://github.com/schwabe/ics-openvpn/blob/master/doc/README.txt). This will surely have the latest sources, but it requires the Android NDK and currently does not work on Windows.
 
 * Revert the upstream code to the same tag as the apk version. This means that you will be on an older code, but at least it is the same version as in Google Play, so less prone to bugs.
+
+### Tests
+
+This app contains instrumented unit tests and also automated UI tests.
+
+##### Instrumented unit tests
+
+The tests can be found at `app\src\androidTest\java\<packagename>\UnitTestSuite.java`.
+To run the tests from Android Studio, right click on the class name and select "Run 'UnitTestSuite'".
+Since the tests are instrumented, they require an attached device or simulator to run on.
+To run the same tests from the console, use the command `gradlew cAT`.
+When the command has finished, you can view the report at `app\build\reports\androidTests\connected\index.html`.
+
+##### Automated UI tests
+
+These tests also run on the device, but they actually run the app and check for elements of the UI.
+They have some prerequisites though.
+
+1. You need to install the Appium server using `npm`: `npm install -g appium`
+2. You also need to install the Ruby dependencies: `bundle install` (if you don't have the bundle command, first install it: `gem install bundler`).
+3. You need an Android emulator to run the automated tests on. We recommend an Android 5.1 emulator (smaller resolutions run a bit faster, so a Nexus 4 might be better than a Nexus 9).
+4. Start the Appium server by executing: `appium &`
+5. The tests are ran using a built apk of the project. Make sure you have the latest built code by executing `gradlew assembleDebug`.
+
+To run the tests, execute the command `cucumber` in the root of this project. If everything is set up correctly, you should see a lot of activity from the Appium server, and a couple seconds later the emulator should launch the app for the first tests.
+
+As of now there are just a few simple tests, but we plan to increase their number.

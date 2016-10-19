@@ -89,21 +89,22 @@ public class ConnectProfileFragment extends Fragment {
      *
      * @param profile The profile to download.
      */
-    private void _selectProfile(Profile profile) {
+    private void _selectProfile(final Profile profile) {
         // Display loading message to the user
         _hintText.setText(R.string.downloading_profile);
         _hintText.setVisibility(View.VISIBLE);
         _profileList.setVisibility(View.GONE);
         final String configName = _generateConfigName();
-        String requestData = "configName=" + configName + "&poolId=" + profile.getPoolId();
-        String url = _preferencesService.getConnectionBaseUrl() + "/portal/api/create_config";
-        _apiService.postResource(url, requestData, new APIService.Callback<byte[]>() {
+        String requestData = "config_name=" + configName + "&pool_id=" + profile.getPoolId();
+        String url = _preferencesService.getSavedDiscoveredAPI().getCreateConfigAPI();
+        _apiService.postResource(url, requestData, true, new APIService.Callback<byte[]>() {
             @Override
             public void onSuccess(byte[] result) {
                 String vpnConfig = new String(result);
                 VpnProfile vpnProfile = _vpnService.importConfig(vpnConfig, configName);
                 if (vpnProfile != null) {
                     if (getActivity() != null) {
+                        _preferencesService.saveProfile(profile);
                         _vpnService.connect(getActivity(), vpnProfile);
                         ((MainActivity)getActivity()).openFragment(new ConnectionStatusFragment());
                     }
@@ -130,8 +131,8 @@ public class ConnectProfileFragment extends Fragment {
      * Fetches the available profiles from the API, and puts them inside the list.
      */
     private void _fetchAvailableProfiles() {
-        String url = _preferencesService.getConnectionBaseUrl() + "/portal/api/pool_list";
-        _apiService.getJSON(url, new APIService.Callback<JSONObject>() {
+        String url = _preferencesService.getSavedDiscoveredAPI().getProfileListAPI();
+        _apiService.getJSON(url, true, new APIService.Callback<JSONObject>() {
             @Override
             public void onSuccess(JSONObject result) {
                 try {

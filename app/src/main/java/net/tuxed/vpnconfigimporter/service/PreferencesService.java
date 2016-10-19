@@ -3,7 +3,13 @@ package net.tuxed.vpnconfigimporter.service;
 import android.content.Context;
 import android.content.SharedPreferences;
 
+import net.tuxed.vpnconfigimporter.entity.DiscoveredAPI;
 import net.tuxed.vpnconfigimporter.entity.Instance;
+import net.tuxed.vpnconfigimporter.entity.Profile;
+import net.tuxed.vpnconfigimporter.utils.Log;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 /**
  * This service is used to save temporary data
@@ -11,26 +17,30 @@ import net.tuxed.vpnconfigimporter.entity.Instance;
  */
 
 public class PreferencesService {
+    private static final String TAG = PreferencesService.class.getName();
 
     private static final String PREFERENCES_NAME = "preferences_service";
 
-    private static final String KEY_BASE_URL = "base_url";
     private static final String KEY_STATE = "state";
     private static final String KEY_ACCESS_TOKEN = "access_token";
+    private static final String KEY_CUSTOM_TABS_OPT_OUT = "custom_tabs_opt_out";
 
-    private static final String KEY_INSTANCE_DISPLAY_NAME = "instance_display_name";
-    private static final String KEY_INSTANCE_BASE_URI = "instance_base_uri";
-    private static final String KEY_INSTANCE_LOGO_URI = "instance_logo_uri";
+    private static final String KEY_INSTANCE = "instance";
+    private static final String KEY_PROFILE = "profile";
+    private static final String KEY_DISCOVERED_API = "discovered_api";
 
     private Context _context;
+    private SerializerService _serializerService;
 
     /**
      * Constructor.
      *
-     * @param context The application or activity context.
+     * @param context           The application or activity context.
+     * @param serializerService The serializer service used to serialize and deserialize objects.
      */
-    public PreferencesService(Context context) {
+    public PreferencesService(Context context, SerializerService serializerService) {
         _context = context;
+        _serializerService = serializerService;
     }
 
     /**
@@ -40,26 +50,6 @@ public class PreferencesService {
      */
     private SharedPreferences _getSharedPreferences() {
         return _context.getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE);
-    }
-
-    /**
-     * Saves the connection base URL.
-     *
-     * @param baseUrl The base URL to save.
-     */
-    public void saveConnectionBaseUrl(String baseUrl) {
-        _getSharedPreferences().edit()
-                .putString(KEY_BASE_URL, baseUrl)
-                .apply();
-    }
-
-    /**
-     * Returns the lastly saved base URL.
-     *
-     * @return The saved base URL. Null if none.
-     */
-    public String getConnectionBaseUrl() {
-        return _getSharedPreferences().getString(KEY_BASE_URL, null);
     }
 
     /**
@@ -95,11 +85,13 @@ public class PreferencesService {
      * @param instance The instance to save.
      */
     public void saveConnectionInstance(Instance instance) {
-        _getSharedPreferences().edit()
-                .putString(KEY_INSTANCE_BASE_URI, instance.getBaseUri())
-                .putString(KEY_INSTANCE_DISPLAY_NAME, instance.getDisplayName())
-                .putString(KEY_INSTANCE_LOGO_URI, instance.getLogoUri())
-                .apply();
+        try {
+            _getSharedPreferences().edit()
+                    .putString(KEY_INSTANCE, _serializerService.serializeInstance(instance).toString())
+                    .apply();
+        } catch (SerializerService.UnknownFormatException ex) {
+            Log.e(TAG, "Can not save connection instance!", ex);
+        }
     }
 
     /**
@@ -108,12 +100,47 @@ public class PreferencesService {
      * @return The instance to connect to. Null if none found.
      */
     public Instance getSavedInstance() {
-        String baseUri = _getSharedPreferences().getString(KEY_INSTANCE_BASE_URI, null);
-        String displayName = _getSharedPreferences().getString(KEY_INSTANCE_DISPLAY_NAME, null);
-        String logoUri = _getSharedPreferences().getString(KEY_INSTANCE_LOGO_URI, null);
-        if (baseUri != null && displayName != null) {
-            return new Instance(baseUri, displayName, logoUri);
-        } else {
+        String serializedInstance = _getSharedPreferences().getString(KEY_INSTANCE, null);
+        if (serializedInstance == null) {
+            return null;
+        }
+        try {
+            return _serializerService.deserializeInstance(new JSONObject(serializedInstance));
+        } catch (SerializerService.UnknownFormatException | JSONException ex) {
+            Log.e(TAG, "Unable to deserialize instance!", ex);
+            return null;
+        }
+    }
+
+    /**
+     * Saves the current profile as the selected one.
+     *
+     * @param profile The profile to save.
+     */
+    public void saveProfile(Profile profile) {
+        try {
+            _getSharedPreferences().edit()
+                    .putString(KEY_PROFILE, _serializerService.serializeProfile(profile).toString())
+                    .apply();
+        } catch (SerializerService.UnknownFormatException ex) {
+            Log.e(TAG, "Unable to serialize profile!", ex);
+        }
+    }
+
+    /**
+     * Returns the previously saved profile.
+     *
+     * @return The lastly saved profile with {@link #saveProfile(Profile)}.
+     */
+    public Profile getSavedProfile() {
+        String serializedProfile = _getSharedPreferences().getString(KEY_PROFILE, null);
+        if (serializedProfile == null) {
+            return null;
+        }
+        try {
+            return _serializerService.deserializeProfile(new JSONObject(serializedProfile));
+        } catch (SerializerService.UnknownFormatException | JSONException ex) {
+            Log.e(TAG, "Unable to deserialize saved profile!", ex);
             return null;
         }
     }
@@ -134,5 +161,47 @@ public class PreferencesService {
      */
     public String getAccessToken() {
         return _getSharedPreferences().getString(KEY_ACCESS_TOKEN, null);
+    }
+
+    /**
+     * Returns if the user has opted out of custom tabs usage.
+     *
+     * @return True if the user does not want to use Custom Tabs. Otherwise false.
+     */
+    public boolean getCustomTabsOptOut() {
+        return _getSharedPreferences().getBoolean(KEY_CUSTOM_TABS_OPT_OUT, false);
+    }
+
+    /**
+     * Saves a discovered API object for future usage.
+     *
+     * @param discoveredAPI The discovered API.
+     */
+    public void saveDiscoveredAPI(DiscoveredAPI discoveredAPI) {
+        try {
+            _getSharedPreferences().edit()
+                    .putString(KEY_DISCOVERED_API, _serializerService.serializeDiscoveredAPI(discoveredAPI).toString())
+                    .apply();
+        } catch (SerializerService.UnknownFormatException ex) {
+            Log.e(TAG, "Can not save discovered API!", ex);
+        }
+    }
+
+    /**
+     * Returns a previously saved discovered API.
+     *
+     * @return A discovered API if saved, otherwise null.
+     */
+    public DiscoveredAPI getSavedDiscoveredAPI() {
+        String serializedDiscoveredAPI = _getSharedPreferences().getString(KEY_DISCOVERED_API, null);
+        if (serializedDiscoveredAPI == null) {
+            return null;
+        }
+        try {
+            return _serializerService.deserializeDiscoveredAPI(new JSONObject(serializedDiscoveredAPI));
+        } catch (SerializerService.UnknownFormatException | JSONException ex) {
+            Log.e(TAG, "Unable to deserialize saved discovered API", ex);
+            return null;
+        }
     }
 }

@@ -93,10 +93,10 @@
     </style>
 
     <style name="ConnectionInfoLabel">
-        <item name="android:textSize">14sp</item>
+        <item name="android:textSize">13sp</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="fontPath">fonts/Roboto-Regular.ttf</item>
         <item name="android:textColor">@color/textColor</item>
-        <item name="android:layout_marginBottom">2dp</item>
+        <item name="android:layout_marginBottom">1dp</item>
     </style>
 </resources>

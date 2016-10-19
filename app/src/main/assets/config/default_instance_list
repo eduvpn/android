@@ -1,15 +1,20 @@
 {
-    "list_version": 1,
     "instances": [
         {
-            "base_uri": "https://eduvpn.surfcloud.nl/",
-            "display_name": "SURFnet Public VPN service",
-            "logo_uri": "https://unsplash.it/150/100"
+            "display_name": "Fran\u00e7ois (vpN.tuxed.net)",
+            "base_uri": "https://vpn.tuxed.net/",
+            "logo_uri": "https://eduvpn.surfcloud.nl/img/placeholder.png"
         },
         {
+            "display_name": "SURFnet (labrat.eduvpn.nl)",
             "base_uri": "https://labrat.eduvpn.nl/",
-            "display_name": "SURFnet VPN service (Development)",
-            "logo_uri": "https://unsplash.it/100/80"
+            "logo_uri": "https://eduvpn.surfcloud.nl/img/placeholder.png"
+        },
+        {
+            "display_name": "Fran\u00e7ois (vpX.tuxed.net)",
+            "base_uri": "https://vpx.tuxed.net/",
+            "logo_uri": "https://eduvpn.surfcloud.nl/img/placeholder.png"
         }
-    ]
+    ],
+    "version": 1
 }
