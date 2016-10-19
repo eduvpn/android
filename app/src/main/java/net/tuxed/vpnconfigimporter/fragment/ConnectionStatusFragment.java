@@ -4,11 +4,14 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 import android.widget.ToggleButton;
 import android.widget.ViewSwitcher;
 
@@ -16,11 +19,20 @@ import com.squareup.picasso.Picasso;
 
 import net.tuxed.vpnconfigimporter.EduVPNApplication;
 import net.tuxed.vpnconfigimporter.R;
+import net.tuxed.vpnconfigimporter.adapter.MessagesAdapter;
+import net.tuxed.vpnconfigimporter.entity.DiscoveredAPI;
 import net.tuxed.vpnconfigimporter.entity.Instance;
 import net.tuxed.vpnconfigimporter.entity.Profile;
+import net.tuxed.vpnconfigimporter.entity.message.Message;
+import net.tuxed.vpnconfigimporter.service.APIService;
 import net.tuxed.vpnconfigimporter.service.PreferencesService;
+import net.tuxed.vpnconfigimporter.service.SerializerService;
 import net.tuxed.vpnconfigimporter.service.VPNService;
 import net.tuxed.vpnconfigimporter.utils.FormattingUtils;
+
+import org.json.JSONObject;
+
+import java.util.List;
 
 import javax.inject.Inject;
 
@@ -43,6 +55,15 @@ public class ConnectionStatusFragment extends Fragment implements VPNService.Con
 
     @Inject
     protected PreferencesService _preferencesService;
+
+    @Inject
+    protected APIService _apiService;
+
+    @Inject
+    protected SerializerService _serializerService;
+
+    @BindView(R.id.messagesList)
+    protected RecyclerView _messagesList;
 
     @BindView(R.id.profileName)
     protected TextView _profileName;
@@ -77,10 +98,8 @@ public class ConnectionStatusFragment extends Fragment implements VPNService.Con
     @BindView(R.id.bytesOutValue)
     protected TextView _bytesOutText;
 
-
     private Screen _currentScreen = Screen.NOTIFICATIONS;
     private Unbinder _unbinder;
-
 
     @Nullable
     @Override
@@ -92,9 +111,57 @@ public class ConnectionStatusFragment extends Fragment implements VPNService.Con
         Instance provider = _preferencesService.getSavedInstance();
         _profileName.setText(savedProfile.getDisplayName());
         if (provider.getLogoUri() != null) {
-            Picasso.with(view.getContext()).load(provider.getLogoUri()).into(_providerIcon);
+            Picasso.with(view.getContext()).load(provider.getLogoUri()).fit().into(_providerIcon);
         }
+        _messagesList.setLayoutManager(new LinearLayoutManager(view.getContext(), LinearLayoutManager.VERTICAL, false));
+        _messagesList.setAdapter(new MessagesAdapter());
         return view;
+    }
+
+    @Override
+    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        // Load the user and system messages asynchronously.
+        DiscoveredAPI discoveredAPI = _preferencesService.getSavedDiscoveredAPI();
+        final MessagesAdapter messagesAdapter= (MessagesAdapter)_messagesList.getAdapter();
+        _apiService.getJSON(discoveredAPI.getSystemMessagesAPI(), true, new APIService.Callback<JSONObject>() {
+            @Override
+            public void onSuccess(JSONObject result) {
+                try {
+                    List<Message> systemMessagesList = _serializerService.deserializeMessageList(result);
+                    messagesAdapter.setSystemMessages(systemMessagesList);
+                } catch (SerializerService.UnknownFormatException ex) {
+                    // TODO show error
+                    ex.printStackTrace();
+                }
+            }
+
+            @Override
+            public void onError(String errorMessage) {
+                Toast.makeText(getContext(),
+                        getString(R.string.error_loading_system_messages, errorMessage),
+                        Toast.LENGTH_SHORT).show();
+            }
+        });
+        _apiService.getJSON(discoveredAPI.getUserMessagesAPI(), true, new APIService.Callback<JSONObject>() {
+            @Override
+            public void onSuccess(JSONObject result) {
+                try {
+                    List<Message> userMessagesList = _serializerService.deserializeMessageList(result);
+                    messagesAdapter.setUserMessages(userMessagesList);
+                } catch (SerializerService.UnknownFormatException ex) {
+                    // TODO show error
+                    ex.printStackTrace();
+                }
+            }
+
+            @Override
+            public void onError(String errorMessage) {
+                Toast.makeText(getContext(),
+                        getString(R.string.error_loading_user_messages, errorMessage),
+                        Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     @Override

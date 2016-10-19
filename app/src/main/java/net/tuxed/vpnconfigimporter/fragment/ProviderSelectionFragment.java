@@ -82,7 +82,8 @@ public class ProviderSelectionFragment extends Fragment {
             @Override
             public boolean onItemLongClicked(RecyclerView recyclerView, int position, View v) {
                 Instance instance = ((ProviderAdapter)recyclerView.getAdapter()).getItem(position);
-                Toast.makeText(recyclerView.getContext(), instance.getDisplayName(), Toast.LENGTH_LONG).show();
+                String name = instance == null ? getString(R.string.display_other_name) : instance.getDisplayName();
+                Toast.makeText(recyclerView.getContext(), name, Toast.LENGTH_LONG).show();
                 return true;
             }
         });

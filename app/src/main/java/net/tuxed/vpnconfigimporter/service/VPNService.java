@@ -8,7 +8,6 @@ import android.content.ServiceConnection;
 import android.os.Handler;
 import android.os.IBinder;
 
-import net.tuxed.vpnconfigimporter.entity.Profile;
 import net.tuxed.vpnconfigimporter.utils.Log;
 
 import java.io.IOException;

@@ -54,4 +54,8 @@
     <string name="traffic_gigabytes">%s GB</string>
     <string name="api_discovery_message">Discovering API...</string>
     <string name="api_discovery_title">Just a sec</string>
+    <string name="display_other_name">Add a custom provider</string>
+    <string name="maintenance_message">The VPN service will be under starting from %1$s until %2$s.</string>
+    <string name="error_loading_system_messages">Unable to load system messages: %s</string>
+    <string name="error_loading_user_messages">Unable to load user messages: %s</string>
 </resources>

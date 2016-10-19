@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    tools:background="@android:color/white">
+
+    <ImageView
+        android:id="@+id/messageIcon"
+        android:layout_width="wrap_content"
+        android:layout_height="@dimen/list_item_provider_icon_size"
+        android:layout_alignParentTop="true"
+        android:layout_marginLeft="8dp"
+        android:layout_marginTop="12dp"
+        android:adjustViewBounds="true"
+        android:src="@drawable/maintenance_icon"/>
+
+    <TextView
+        android:id="@+id/messageText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignWithParentIfMissing="true"
+        android:layout_marginLeft="12dp"
+        android:layout_marginRight="8dp"
+        android:layout_marginTop="8dp"
+        android:layout_toRightOf="@+id/messageIcon"
+        android:gravity="left"
+        android:textColor="@android:color/black"
+        android:textSize="15sp"
+        tools:text="The VPN service will be under maintanence beginning from 2016.10.21 12:00 until 2016.10.30 16:00. Connecting to the VPN may still be possible, but the service will not be guaranteed."/>
+
+    <View
+        android:layout_width="wrap_content"
+        android:layout_height="1dp"
+        android:layout_below="@+id/messageText"
+        android:layout_marginLeft="8dp"
+        android:layout_marginRight="8dp"
+        android:layout_marginTop="8dp"
+        android:background="@color/mainColor"
+        />
+</RelativeLayout>

@@ -7,13 +7,21 @@ import net.tuxed.vpnconfigimporter.entity.DiscoveredAPI;
 import net.tuxed.vpnconfigimporter.entity.Instance;
 import net.tuxed.vpnconfigimporter.entity.InstanceList;
 import net.tuxed.vpnconfigimporter.entity.Profile;
+import net.tuxed.vpnconfigimporter.entity.message.Maintenance;
+import net.tuxed.vpnconfigimporter.entity.message.Message;
+import net.tuxed.vpnconfigimporter.entity.message.Notification;
 
 import org.json.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
+import java.util.TimeZone;
 
 import static org.junit.Assert.assertEquals;
 
@@ -65,7 +73,7 @@ public class SerializerServiceTest {
         assertEquals(discoveredAPI.getSystemMessagesAPI(), deserializedDiscoveredAPI.getSystemMessagesAPI());
         assertEquals(discoveredAPI.getUserMessagesAPI(), deserializedDiscoveredAPI.getUserMessagesAPI());
     }
-    
+
     @Test
     public void testInstanceListSerialization() throws SerializerService.UnknownFormatException {
         Instance instance1 = new Instance("baseUri", "displayName", "logoUri");
@@ -81,6 +89,36 @@ public class SerializerServiceTest {
         assertEquals(instanceList.getInstanceList().get(1).getDisplayName(), deserializedInstanceList.getInstanceList().get(1).getDisplayName());
         assertEquals(instanceList.getInstanceList().get(1).getBaseUri(), deserializedInstanceList.getInstanceList().get(1).getBaseUri());
         assertEquals(instanceList.getInstanceList().get(1).getLogoUri(), deserializedInstanceList.getInstanceList().get(1).getLogoUri());
+    }
+
+    @Test
+    public void testMessageListSerialization() throws SerializerService.UnknownFormatException {
+        Calendar utcCalendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+        Maintenance maintenance = new Maintenance(utcCalendar.getTime(), utcCalendar.getTime(), utcCalendar.getTime());
+        Notification notification = new Notification(utcCalendar.getTime(), "Example notification");
+        List<Message> messageList = Arrays.asList(maintenance, notification);
+        JSONObject serializedList = _serializerService.serializeMessageList(messageList);
+        List<Message> deserializedList = _serializerService.deserializeMessageList(serializedList);
+        assertEquals(messageList.size(), deserializedList.size());
+        assertEquals(_norm(messageList.get(0).getDate()), _norm(deserializedList.get(0).getDate()));
+        assertEquals(_norm(((Maintenance)messageList.get(0)).getStart()), _norm(((Maintenance)deserializedList.get(0)).getStart()));
+        assertEquals(_norm(((Maintenance)messageList.get(0)).getEnd()), _norm(((Maintenance)deserializedList.get(0)).getEnd()));
+        assertEquals(_norm(messageList.get(1).getDate()), _norm(deserializedList.get(1).getDate()));
+        assertEquals(((Notification)messageList.get(1)).getContent(), ((Notification)deserializedList.get(1)).getContent());
+    }
+
+    /**
+     * Removes the milliseconds from a date. Required because the parser does not care about milliseconds.
+     *
+     * @param input The date to remove the milliseconds from.
+     * @return The date without the milliseconds.
+     */
+    public static Date _norm(Date input) {
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTimeZone(TimeZone.getTimeZone("UTC"));
+        calendar.setTime(input);
+        calendar.set(Calendar.MILLISECOND, 0);
+        return calendar.getTime();
     }
 
 }

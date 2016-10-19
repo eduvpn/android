@@ -3,9 +3,13 @@ package net.tuxed.vpnconfigimporter.utils;
 import android.content.Context;
 
 import net.tuxed.vpnconfigimporter.R;
+import net.tuxed.vpnconfigimporter.entity.message.Maintenance;
 
+import java.text.DateFormat;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
+import java.text.SimpleDateFormat;
+import java.util.Locale;
 
 /**
  * Utility methods for different formatting cases.
@@ -14,6 +18,8 @@ import java.text.NumberFormat;
 public class FormattingUtils {
 
     private static final DecimalFormat DECIMAL_FORMAT = new DecimalFormat("0.00");
+
+    private static final DateFormat MAINTENANCE_DATE_FORMAT = new SimpleDateFormat("EEE M/dd HH:mm", Locale.getDefault());
 
     private static final long BYTES_IN_A_KB = 1024;
     private static final long BYTES_IN_A_MB = BYTES_IN_A_KB * 1024;
@@ -58,11 +64,24 @@ public class FormattingUtils {
         } else if (bytes < BYTES_IN_A_GB) {
             double megaBytes = bytes.doubleValue() / BYTES_IN_A_MB;
             String megaByteString = DECIMAL_FORMAT.format(megaBytes);
-            return context.getString(R.string.traffic_kilobytes, megaByteString);
+            return context.getString(R.string.traffic_megabytes, megaByteString);
         } else {
             double gigaBytes = bytes.doubleValue() / BYTES_IN_A_GB;
             String gigaByteString = DECIMAL_FORMAT.format(gigaBytes);
             return context.getString(R.string.traffic_gigabytes, gigaByteString);
         }
+    }
+
+    /**
+     * Return the default text for maintenance messages.
+     *
+     * @param context     The application or activity context.
+     * @param maintenance The maintenance instance describing the conditions.
+     * @return The string to display in the message contents.
+     */
+    public static String getMaintenanceText(Context context, Maintenance maintenance) {
+        String beginDateString = MAINTENANCE_DATE_FORMAT.format(maintenance.getStart());
+        String endDateString = MAINTENANCE_DATE_FORMAT.format(maintenance.getEnd());
+        return context.getString(R.string.maintenance_message, beginDateString, endDateString);
     }
 }

@@ -4,20 +4,29 @@ import net.tuxed.vpnconfigimporter.entity.DiscoveredAPI;
 import net.tuxed.vpnconfigimporter.entity.Instance;
 import net.tuxed.vpnconfigimporter.entity.InstanceList;
 import net.tuxed.vpnconfigimporter.entity.Profile;
+import net.tuxed.vpnconfigimporter.entity.message.Maintenance;
+import net.tuxed.vpnconfigimporter.entity.message.Message;
+import net.tuxed.vpnconfigimporter.entity.message.Notification;
+import net.tuxed.vpnconfigimporter.utils.Log;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
+import java.util.TimeZone;
 
 /**
  * This service is responsible for (de)serializing objects used in the app.
  * Created by Daniel Zolnai on 2016-10-12.
  */
 public class SerializerService {
-
     public class UnknownFormatException extends Exception {
         public UnknownFormatException(String message) {
             super(message);
@@ -26,6 +35,13 @@ public class SerializerService {
         public UnknownFormatException(Throwable throwable) {
             super(throwable);
         }
+    }
+
+    private static final String TAG = SerializerService.class.getName();
+    private static final DateFormat API_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US);
+
+    static {
+        API_DATE_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
     }
 
 
@@ -246,6 +262,77 @@ public class SerializerService {
             apiObject.put("user_messages", discoveredAPI.getUserMessagesAPI());
             apiObject.put("system_messages", discoveredAPI.getSystemMessagesAPI());
             result.put("api", apiObject);
+            return result;
+        } catch (JSONException ex) {
+            throw new UnknownFormatException(ex);
+        }
+    }
+
+    /**
+     * Deserializes a JSON with a list of messages into an ArrayList of message object.
+     *
+     * @param jsonObject The JSON to deserialize.
+     * @return The message instances in a list.
+     * @throws UnknownFormatException Thrown if there was a problem while parsing.
+     */
+    public List<Message> deserializeMessageList(JSONObject jsonObject) throws UnknownFormatException {
+        try {
+            JSONObject dataObject = jsonObject.getJSONObject("data");
+            JSONArray messagesArray = dataObject.getJSONArray("messages");
+            List<Message> result = new ArrayList<>();
+            for (int i = 0; i < messagesArray.length(); ++i) {
+                JSONObject messageObject = messagesArray.getJSONObject(i);
+                String dateString = messageObject.getString("date");
+                Date date = API_DATE_FORMAT.parse(dateString);
+                String messageType = messageObject.getString("type");
+                if ("maintenance".equals(messageType)) {
+                    String startString = messageObject.getString("start");
+                    Date startDate = API_DATE_FORMAT.parse(startString);
+                    String endString = messageObject.getString("end");
+                    Date endDate = API_DATE_FORMAT.parse(endString);
+                    result.add(new Maintenance(date, startDate, endDate));
+                } else if ("notification".equals(messageType)) {
+                    String content = messageObject.getString("content");
+                    result.add(new Notification(date, content));
+                } else {
+                    Log.w(TAG, "Unknown message type: " + messageType);
+                }
+            }
+            return result;
+        } catch (JSONException | ParseException ex) {
+            throw new UnknownFormatException(ex);
+        }
+    }
+
+    /**
+     * Serializes a list of messages into a JSON format.
+     *
+     * @param messageList The list of messages to serialize.
+     * @return The messages as a JSON object.
+     * @throws UnknownFormatException Thrown if there was an error constructing the JSON.
+     */
+    public JSONObject serializeMessageList(List<Message> messageList) throws UnknownFormatException {
+        try {
+            JSONObject result = new JSONObject();
+            JSONObject dataObject = new JSONObject();
+            result.put("data", dataObject);
+            JSONArray messagesArray = new JSONArray();
+            dataObject.put("messages", messagesArray);
+            for (Message message : messageList) {
+                JSONObject messageObject = new JSONObject();
+                messageObject.put("date", API_DATE_FORMAT.format(message.getDate()));
+                if (message instanceof Maintenance) {
+                    messageObject.put("start", API_DATE_FORMAT.format(((Maintenance)message).getStart()));
+                    messageObject.put("end", API_DATE_FORMAT.format(((Maintenance)message).getEnd()));
+                    messageObject.put("type", "maintenance");
+                } else if (message instanceof Notification) {
+                    messageObject.put("content", ((Notification)message).getContent());
+                    messageObject.put("type", "notification");
+                } else {
+                    throw new RuntimeException("Unexpected message format!");
+                }
+                messagesArray.put(messageObject);
+            }
             return result;
         } catch (JSONException ex) {
             throw new UnknownFormatException(ex);
