@@ -62,20 +62,11 @@ public class ConnectionStatusFragment extends Fragment implements VPNService.Con
     @BindView(R.id.connectionInfoSwitchButton)
     protected ToggleButton _connectionInfoSwitchButton;
 
-    @BindView(R.id.serverIpValue)
-    protected TextView _serverIpText;
-
     @BindView(R.id.ipV4Value)
     protected TextView _ipV4Text;
 
     @BindView(R.id.ipV6Value)
     protected TextView _ipV6Text;
-
-    @BindView(R.id.portValue)
-    protected TextView _portText;
-
-    @BindView(R.id.serverValue)
-    protected TextView _serverUrlText;
 
     @BindView(R.id.durationValue)
     protected TextView _durationText;
@@ -165,12 +156,11 @@ public class ConnectionStatusFragment extends Fragment implements VPNService.Con
     }
 
     @Override
-    public void metadataAvailable(String serverUrl, String serverIp, String localIpV4, String localIpV6, String port) {
-        _serverUrlText.setText(serverUrl);
-        _serverIpText.setText(serverIp);
-        _ipV4Text.setText(localIpV4);
-        _ipV6Text.setText(localIpV6);
-        _portText.setText(port);
+    public void metadataAvailable(String localIpV4, String localIpV6) {
+        String ipV4DisplayText = localIpV4 == null ? getString(R.string.not_available) : localIpV4;
+        _ipV4Text.setText(ipV4DisplayText);
+        String ipV6DisplayText = localIpV6 == null ? getString(R.string.not_available) : localIpV6;
+        _ipV6Text.setText(ipV6DisplayText);
     }
 
 }

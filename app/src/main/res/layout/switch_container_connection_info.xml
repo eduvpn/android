@@ -57,7 +57,7 @@
         style="@style/ConnectionInfoLabel"
         android:layout_width="@dimen/connection_info_bottom_container_width"
         android:layout_below="@id/bytesOutValue"
-        android:layout_marginTop="10dp"
+        android:layout_marginTop="16dp"
         android:text="@string/connection_info_ipv4"/>
 
     <TextView
@@ -66,6 +66,7 @@
         android:layout_width="wrap_content"
         android:layout_alignBaseline="@id/ipV4Label"
         android:layout_toRightOf="@+id/ipV4Label"
+        android:text="@string/not_available"
         tools:text="195.168.1.122"/>
 
     <TextView
@@ -81,52 +82,8 @@
         android:layout_width="wrap_content"
         android:layout_alignBaseline="@id/ipV6Label"
         android:layout_toRightOf="@+id/ipV6Label"
+        android:text="@string/not_available"
         tools:text="2011:610:450::2::1032"/>
-
-    <TextView
-        android:id="@+id/serverLabel"
-        style="@style/ConnectionInfoLabel"
-        android:layout_width="@dimen/connection_info_bottom_container_width"
-        android:layout_below="@+id/ipV6Value"
-        android:text="@string/connection_info_server"/>
-
-    <TextView
-        android:id="@+id/serverValue"
-        style="@style/ConnectionInfoLabel"
-        android:layout_width="wrap_content"
-        android:layout_alignBaseline="@id/serverLabel"
-        android:layout_toRightOf="@+id/serverLabel"
-        tools:text="usa.surfnet.eduvpn.nl"/>
-
-    <TextView
-        android:id="@+id/serverIpLabel"
-        style="@style/ConnectionInfoLabel"
-        android:layout_width="@dimen/connection_info_bottom_container_width"
-        android:layout_below="@+id/serverValue"
-        android:text="@string/connection_info_server_ip"/>
-
-    <TextView
-        android:id="@+id/serverIpValue"
-        style="@style/ConnectionInfoLabel"
-        android:layout_width="wrap_content"
-        android:layout_alignBaseline="@id/serverIpLabel"
-        android:layout_toRightOf="@+id/serverIpLabel"
-        tools:text="172.134.34.12"/>
-
-    <TextView
-        android:id="@+id/portLabel"
-        style="@style/ConnectionInfoLabel"
-        android:layout_width="@dimen/connection_info_bottom_container_width"
-        android:layout_below="@+id/serverIpValue"
-        android:text="@string/connection_info_port"/>
-
-    <TextView
-        android:id="@+id/portValue"
-        style="@style/ConnectionInfoLabel"
-        android:layout_width="wrap_content"
-        android:layout_alignBaseline="@id/portLabel"
-        android:layout_toRightOf="@+id/portLabel"
-        tools:text="8800"/>
 
     <Button
         android:id="@+id/viewLogButton"
@@ -134,7 +91,7 @@
         android:layout_width="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
-        android:layout_marginBottom="4dp"
+        android:layout_marginBottom="8dp"
         android:text="@string/view_log_button"/>
 
 </RelativeLayout>
