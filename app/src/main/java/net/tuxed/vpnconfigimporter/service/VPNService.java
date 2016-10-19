@@ -77,6 +77,7 @@ public class VPNService extends Observable implements VpnStatus.StateListener {
 
 
     public void onCreate(Activity activity) {
+        OpenVPNService.setNotificationActivityClass(activity.getClass());
         VpnStatus.addStateListener(this);
         Intent intent = new Intent(activity, OpenVPNService.class);
         intent.setAction(OpenVPNService.START_SERVICE);
