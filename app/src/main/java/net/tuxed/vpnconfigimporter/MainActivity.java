@@ -45,17 +45,10 @@ public class MainActivity extends AppCompatActivity {
         // If there's an ongoing VPN connection, open the status screen.
         _vpnService.onCreate(this);
         if (_vpnService.getStatus() != VPNService.VPNStatus.DISCONNECTED) {
-            getSupportFragmentManager()
-                    .beginTransaction()
-                    .replace(R.id.contentFrame, new ConnectionStatusFragment())
-                    .commit();
-
+            openFragment(new ConnectionStatusFragment(), false);
         } else {
             // Else we just show the provider selection fragment.
-            getSupportFragmentManager()
-                    .beginTransaction()
-                    .replace(R.id.contentFrame, new ProviderSelectionFragment())
-                    .commit();
+            openFragment(new ProviderSelectionFragment(), false);
         }
         // The app might have been reopened from a URL.
         onNewIntent(getIntent());
@@ -76,7 +69,7 @@ public class MainActivity extends AppCompatActivity {
         }
         try {
             _connectionService.parseCallbackIntent(intent);
-            openFragment(new ConnectProfileFragment());
+            openFragment(new ConnectProfileFragment(), true);
         } catch (ConnectionService.InvalidConnectionAttemptException ex) {
             ex.printStackTrace();
             // TODO show error dialog.
@@ -94,11 +87,17 @@ public class MainActivity extends AppCompatActivity {
         super.attachBaseContext(CalligraphyContextWrapper.wrap(newBase));
     }
 
-    public void openFragment(Fragment fragment) {
-        getSupportFragmentManager().beginTransaction()
-                .addToBackStack(null)
-                .add(R.id.contentFrame, fragment)
-                .commit();
+    public void openFragment(Fragment fragment, boolean openOnTop) {
+        if (openOnTop) {
+            getSupportFragmentManager().beginTransaction()
+                    .addToBackStack(null)
+                    .add(R.id.contentFrame, fragment)
+                    .commit();
+        } else {
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.contentFrame, fragment)
+                    .commit();
+        }
     }
 
     @OnClick(R.id.settingsButton)

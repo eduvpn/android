@@ -18,6 +18,7 @@ import android.widget.ViewSwitcher;
 import com.squareup.picasso.Picasso;
 
 import net.tuxed.vpnconfigimporter.EduVPNApplication;
+import net.tuxed.vpnconfigimporter.MainActivity;
 import net.tuxed.vpnconfigimporter.R;
 import net.tuxed.vpnconfigimporter.adapter.MessagesAdapter;
 import net.tuxed.vpnconfigimporter.entity.DiscoveredAPI;
@@ -33,6 +34,8 @@ import net.tuxed.vpnconfigimporter.utils.FormattingUtils;
 import org.json.JSONObject;
 
 import java.util.List;
+import java.util.Observable;
+import java.util.Observer;
 
 import javax.inject.Inject;
 
@@ -98,7 +101,8 @@ public class ConnectionStatusFragment extends Fragment implements VPNService.Con
     @BindView(R.id.bytesOutValue)
     protected TextView _bytesOutText;
 
-    private Screen _currentScreen = Screen.NOTIFICATIONS;
+    private Observer _vpnStatusObserver;
+        private Screen _currentScreen = Screen.NOTIFICATIONS;
     private Unbinder _unbinder;
 
     @Nullable
@@ -167,12 +171,42 @@ public class ConnectionStatusFragment extends Fragment implements VPNService.Con
     @Override
     public void onResume() {
         super.onResume();
+        _vpnStatusObserver = new Observer() {
+            @Override
+            public void update(Observable o, Object arg) {
+                VPNService.VPNStatus status = (VPNService.VPNStatus)arg;
+                if (_currentStatusIcon != null) {
+                    switch (status) {
+                        case CONNECTED:
+                            _currentStatusIcon.setImageResource(R.drawable.connection_status_connected);
+                            break;
+                        case CONNECTING:
+                            _currentStatusIcon.setImageResource(R.drawable.connection_status_connecting);
+                            break;
+                        case PAUSED:
+                            _currentStatusIcon.setImageResource(R.drawable.connection_status_paused);
+                            break;
+                        case DISCONNECTED:
+                            _currentStatusIcon.setImageResource(R.drawable.connection_status_disconnected);
+                            break;
+                        default:
+                            throw new RuntimeException("Unhandled VPN status!");
+                    }
+                }
+            }
+        };
+        // Update the icon immediately
+        _vpnStatusObserver.update(_vpnService, _vpnService.getStatus());
+        _vpnService.addObserver(_vpnStatusObserver);
         _vpnService.attachConnectionInfoListener(this);
     }
 
     @Override
     public void onPause() {
         super.onPause();
+        if (_vpnStatusObserver != null) {
+            _vpnService.deleteObserver(_vpnStatusObserver);
+        }
         _vpnService.detachConnectionInfoListener();
     }
 
@@ -207,6 +241,8 @@ public class ConnectionStatusFragment extends Fragment implements VPNService.Con
     @OnClick(R.id.disconnectButton)
     protected void onDisconnectButtonClicked() {
         _vpnService.disconnect();
+        // Go back to the home screen.
+        ((MainActivity)getActivity()).openFragment(new ProviderSelectionFragment(), false);
     }
 
     @OnClick(R.id.viewLogButton)

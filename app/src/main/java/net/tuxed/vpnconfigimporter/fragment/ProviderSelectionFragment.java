@@ -70,7 +70,7 @@ public class ProviderSelectionFragment extends Fragment {
                 if (instance == null) {
                     if (getActivity() != null) {
                         MainActivity activity = (MainActivity)getActivity();
-                        activity.openFragment(new CustomProviderFragment());
+                        activity.openFragment(new CustomProviderFragment(), true);
                     }
                 } else {
                     _connectToApi(instance);

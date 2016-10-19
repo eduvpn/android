@@ -199,8 +199,14 @@ public class VPNService extends Observable implements VpnStatus.StateListener {
                 });
             }
         }
-        setChanged();
-        notifyObservers(getStatus());
+        // Notify the observers.
+        _updatesHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                setChanged();
+                notifyObservers(getStatus());
+            }
+        });
     }
 
 

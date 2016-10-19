@@ -106,7 +106,7 @@ public class ConnectProfileFragment extends Fragment {
                     if (getActivity() != null) {
                         _preferencesService.saveProfile(profile);
                         _vpnService.connect(getActivity(), vpnProfile);
-                        ((MainActivity)getActivity()).openFragment(new ConnectionStatusFragment());
+                        ((MainActivity)getActivity()).openFragment(new ConnectionStatusFragment(), false);
                     }
                 } else {
                     _displayError(getString(R.string.error_importing_profile));
