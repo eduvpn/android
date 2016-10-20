@@ -34,16 +34,16 @@ public class PreferencesServiceTest {
     @Test
     public void testConnectionStateSave() {
         String state = "abc2141awksld";
-        _preferencesService.saveConnectionState(state);
-        String retrievedState = _preferencesService.getConnectionState();
+        _preferencesService.currentConnectionState(state);
+        String retrievedState = _preferencesService.getCurrentConnectionState();
         assertEquals(state, retrievedState);
     }
 
     @Test
     public void testInstanceSave() {
         Instance instance = new Instance("http://example.com", "Example", "http://example.com/image.jpg");
-        _preferencesService.saveConnectionInstance(instance);
-        Instance retrievedInstance = _preferencesService.getSavedInstance();
+        _preferencesService.currentInstance(instance);
+        Instance retrievedInstance = _preferencesService.getCurrentInstance();
         assertEquals(instance.getDisplayName(), retrievedInstance.getDisplayName());
         assertEquals(instance.getLogoUri(), retrievedInstance.getLogoUri());
         assertEquals(instance.getBaseUri(), retrievedInstance.getBaseUri());
@@ -52,8 +52,8 @@ public class PreferencesServiceTest {
     public void testDiscoveredAPISave() {
         DiscoveredAPI discoveredAPI = new DiscoveredAPI(1, "http://example.com/", "http://example.com/create_config",
                 "http://example.com/profile_list", "http://example.com/system_messages", "http://example.com/user_messages");
-        _preferencesService.saveDiscoveredAPI(discoveredAPI);
-        DiscoveredAPI retrievedDiscoveredAPI = _preferencesService.getSavedDiscoveredAPI();
+        _preferencesService.currentDiscoveredAPI(discoveredAPI);
+        DiscoveredAPI retrievedDiscoveredAPI = _preferencesService.getCurrentDiscoveredAPI();
         assertEquals(discoveredAPI.getVersion(), retrievedDiscoveredAPI.getVersion());
         assertEquals(discoveredAPI.getAuthorizationEndpoint(), retrievedDiscoveredAPI.getAuthorizationEndpoint());
         assertEquals(discoveredAPI.getCreateConfigAPI(), retrievedDiscoveredAPI.getCreateConfigAPI());

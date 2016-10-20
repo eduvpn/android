@@ -3,6 +3,7 @@ package net.tuxed.vpnconfigimporter.utils;
 import android.content.Context;
 
 import net.tuxed.vpnconfigimporter.R;
+import net.tuxed.vpnconfigimporter.entity.SavedProfile;
 import net.tuxed.vpnconfigimporter.entity.message.Maintenance;
 
 import java.text.DateFormat;
@@ -83,5 +84,10 @@ public class FormattingUtils {
         String beginDateString = MAINTENANCE_DATE_FORMAT.format(maintenance.getStart());
         String endDateString = MAINTENANCE_DATE_FORMAT.format(maintenance.getEnd());
         return context.getString(R.string.maintenance_message, beginDateString, endDateString);
+    }
+
+    public static String formatSavedProfileName(Context context, SavedProfile savedProfile) {
+        return context.getString(R.string.saved_profile_display_name, savedProfile.getInstance().getDisplayName(),
+                savedProfile.getProfile().getDisplayName());
     }
 }

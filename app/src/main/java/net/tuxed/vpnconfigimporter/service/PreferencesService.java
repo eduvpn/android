@@ -6,10 +6,15 @@ import android.content.SharedPreferences;
 import net.tuxed.vpnconfigimporter.entity.DiscoveredAPI;
 import net.tuxed.vpnconfigimporter.entity.Instance;
 import net.tuxed.vpnconfigimporter.entity.Profile;
+import net.tuxed.vpnconfigimporter.entity.SavedProfile;
+import net.tuxed.vpnconfigimporter.entity.SavedToken;
 import net.tuxed.vpnconfigimporter.utils.Log;
+import net.tuxed.vpnconfigimporter.utils.TTLCache;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.util.List;
 
 /**
  * This service is used to save temporary data
@@ -28,6 +33,10 @@ public class PreferencesService {
     private static final String KEY_INSTANCE = "instance";
     private static final String KEY_PROFILE = "profile";
     private static final String KEY_DISCOVERED_API = "discovered_api";
+
+    private static final String KEY_SAVED_PROFILES = "saved_profiles";
+    private static final String KEY_SAVED_TOKENS = "saved_tokens";
+    private static final String KEY_DISCOVERED_API_CACHE = "discovered_api_cache";
 
     private Context _context;
     private SerializerService _serializerService;
@@ -57,7 +66,7 @@ public class PreferencesService {
      *
      * @param state The state to save.
      */
-    public void saveConnectionState(String state) {
+    public void currentConnectionState(String state) {
         _getSharedPreferences().edit()
                 .putString(KEY_STATE, state)
                 .apply();
@@ -68,14 +77,14 @@ public class PreferencesService {
      *
      * @return The saved connection state. Null if none.
      */
-    public String getConnectionState() {
+    public String getCurrentConnectionState() {
         return _getSharedPreferences().getString(KEY_STATE, null);
     }
 
     /**
      * Removed the saved state, if any.
      */
-    public void removeSavedConnectionState() {
+    public void removeCurrentConnectionState() {
         _getSharedPreferences().edit().remove(KEY_STATE).apply();
     }
 
@@ -84,7 +93,7 @@ public class PreferencesService {
      *
      * @param instance The instance to save.
      */
-    public void saveConnectionInstance(Instance instance) {
+    public void currentInstance(Instance instance) {
         try {
             _getSharedPreferences().edit()
                     .putString(KEY_INSTANCE, _serializerService.serializeInstance(instance).toString())
@@ -99,7 +108,7 @@ public class PreferencesService {
      *
      * @return The instance to connect to. Null if none found.
      */
-    public Instance getSavedInstance() {
+    public Instance getCurrentInstance() {
         String serializedInstance = _getSharedPreferences().getString(KEY_INSTANCE, null);
         if (serializedInstance == null) {
             return null;
@@ -117,7 +126,7 @@ public class PreferencesService {
      *
      * @param profile The profile to save.
      */
-    public void saveProfile(Profile profile) {
+    public void currentProfile(Profile profile) {
         try {
             _getSharedPreferences().edit()
                     .putString(KEY_PROFILE, _serializerService.serializeProfile(profile).toString())
@@ -130,9 +139,9 @@ public class PreferencesService {
     /**
      * Returns the previously saved profile.
      *
-     * @return The lastly saved profile with {@link #saveProfile(Profile)}.
+     * @return The lastly saved profile with {@link #currentProfile(Profile)}.
      */
-    public Profile getSavedProfile() {
+    public Profile getCurrentProfile() {
         String serializedProfile = _getSharedPreferences().getString(KEY_PROFILE, null);
         if (serializedProfile == null) {
             return null;
@@ -150,7 +159,7 @@ public class PreferencesService {
      *
      * @param accessToken The access token to use for the VPN provider API.
      */
-    public void saveAccessToken(String accessToken) {
+    public void currentAccessToken(String accessToken) {
         _getSharedPreferences().edit().putString(KEY_ACCESS_TOKEN, accessToken).apply();
     }
 
@@ -159,7 +168,7 @@ public class PreferencesService {
      *
      * @return The lastly saved access token.
      */
-    public String getAccessToken() {
+    public String getCurrentAccessToken() {
         return _getSharedPreferences().getString(KEY_ACCESS_TOKEN, null);
     }
 
@@ -177,7 +186,7 @@ public class PreferencesService {
      *
      * @param discoveredAPI The discovered API.
      */
-    public void saveDiscoveredAPI(DiscoveredAPI discoveredAPI) {
+    public void currentDiscoveredAPI(DiscoveredAPI discoveredAPI) {
         try {
             _getSharedPreferences().edit()
                     .putString(KEY_DISCOVERED_API, _serializerService.serializeDiscoveredAPI(discoveredAPI).toString())
@@ -192,7 +201,7 @@ public class PreferencesService {
      *
      * @return A discovered API if saved, otherwise null.
      */
-    public DiscoveredAPI getSavedDiscoveredAPI() {
+    public DiscoveredAPI getCurrentDiscoveredAPI() {
         String serializedDiscoveredAPI = _getSharedPreferences().getString(KEY_DISCOVERED_API, null);
         if (serializedDiscoveredAPI == null) {
             return null;
@@ -202,6 +211,103 @@ public class PreferencesService {
         } catch (SerializerService.UnknownFormatException | JSONException ex) {
             Log.e(TAG, "Unable to deserialize saved discovered API", ex);
             return null;
+        }
+    }
+
+    /**
+     * Returns a previously saved list of saved profiles.
+     *
+     * @return The saved list, or null if not exists.
+     */
+    public List<SavedProfile> getSavedProfileList() {
+        String serializedSavedProfileList = _getSharedPreferences().getString(KEY_SAVED_PROFILES, null);
+        if (serializedSavedProfileList == null) {
+            return null;
+        }
+        try {
+            return _serializerService.deserializeSavedProfileList(new JSONObject(serializedSavedProfileList));
+        } catch (SerializerService.UnknownFormatException | JSONException ex) {
+            Log.e(TAG, "Unable to deserialize saved profile list", ex);
+            return null;
+        }
+    }
+
+    /**
+     * Stores a saved profile list.
+     *
+     * @param savedProfileList The list to save.
+     */
+    public void storeSavedProfileList(List<SavedProfile> savedProfileList) {
+        try {
+            String serializedSavedProfileList = _serializerService.serializeSavedProfileList(savedProfileList).toString();
+            _getSharedPreferences().edit().putString(KEY_SAVED_PROFILES, serializedSavedProfileList).apply();
+        } catch (SerializerService.UnknownFormatException ex) {
+            Log.e(TAG, "Can not save saved profile list.", ex);
+        }
+    }
+
+
+    /**
+     * Returns a previously saved list of saved tokens.
+     *
+     * @return The saved list, or null if not exists.
+     */
+    public List<SavedToken> getSavedTokenList() {
+        String serializedSavedTokenList = _getSharedPreferences().getString(KEY_SAVED_TOKENS, null);
+        if (serializedSavedTokenList == null) {
+            return null;
+        }
+        try {
+            return _serializerService.deserializeSavedTokenList(new JSONObject(serializedSavedTokenList));
+        } catch (SerializerService.UnknownFormatException | JSONException ex) {
+            Log.e(TAG, "Unable to deserialize saved token list", ex);
+            return null;
+        }
+    }
+
+    /**
+     * Stores a saved token list.
+     *
+     * @param savedTokenList The list to save.
+     */
+    public void storeSavedTokenList(List<SavedToken> savedTokenList) {
+        try {
+            String serializedSavedTokenList = _serializerService.serializeSavedTokenList(savedTokenList).toString();
+            _getSharedPreferences().edit().putString(KEY_SAVED_TOKENS, serializedSavedTokenList).apply();
+        } catch (SerializerService.UnknownFormatException ex) {
+            Log.e(TAG, "Can not save saved token list.", ex);
+        }
+    }
+
+    /**
+     * Retrieves a saved TTL cache of discovered APIs.
+     * @return The discovered API cache. Null if no saved one.
+     */
+    public TTLCache<DiscoveredAPI> getDiscoveredAPICache() {
+        String serializedCache = _getSharedPreferences().getString(KEY_DISCOVERED_API_CACHE, null);
+        if (serializedCache == null) {
+            return null;
+        }
+        try {
+            return _serializerService.deserializeDiscoveredAPITTLCache(new JSONObject(serializedCache));
+        } catch (SerializerService.UnknownFormatException | JSONException ex) {
+            Log.e(TAG, "Unable to deserialize saved discovered API cache.");
+            return null;
+        }
+
+    }
+
+    /**
+     * Stores the discovered API cache.
+     *
+     * @param ttlCache The cache to save.
+     */
+    public void storeDiscoveredAPICache(TTLCache<DiscoveredAPI> ttlCache) {
+        try {
+            String serializedCache = _serializerService.serializeDiscoveredAPITTLCache(ttlCache).toString();
+            _getSharedPreferences().edit().putString(KEY_DISCOVERED_API_CACHE, serializedCache).apply();
+        } catch (SerializerService.UnknownFormatException ex) {
+            Log.e(TAG, "Can not save discovered API cache.", ex);
         }
     }
 }

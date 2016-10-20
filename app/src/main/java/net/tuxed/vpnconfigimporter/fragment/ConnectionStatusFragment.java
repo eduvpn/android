@@ -111,8 +111,8 @@ public class ConnectionStatusFragment extends Fragment implements VPNService.Con
         View view = inflater.inflate(R.layout.fragment_connection_status, container, false);
         _unbinder = ButterKnife.bind(this, view);
         EduVPNApplication.get(view.getContext()).component().inject(this);
-        Profile savedProfile = _preferencesService.getSavedProfile();
-        Instance provider = _preferencesService.getSavedInstance();
+        Profile savedProfile = _preferencesService.getCurrentProfile();
+        Instance provider = _preferencesService.getCurrentInstance();
         _profileName.setText(savedProfile.getDisplayName());
         if (provider.getLogoUri() != null) {
             Picasso.with(view.getContext()).load(provider.getLogoUri()).fit().into(_providerIcon);
@@ -126,7 +126,7 @@ public class ConnectionStatusFragment extends Fragment implements VPNService.Con
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         // Load the user and system messages asynchronously.
-        DiscoveredAPI discoveredAPI = _preferencesService.getSavedDiscoveredAPI();
+        DiscoveredAPI discoveredAPI = _preferencesService.getCurrentDiscoveredAPI();
         final MessagesAdapter messagesAdapter= (MessagesAdapter)_messagesList.getAdapter();
         _apiService.getJSON(discoveredAPI.getSystemMessagesAPI(), true, new APIService.Callback<JSONObject>() {
             @Override
@@ -242,7 +242,7 @@ public class ConnectionStatusFragment extends Fragment implements VPNService.Con
     protected void onDisconnectButtonClicked() {
         _vpnService.disconnect();
         // Go back to the home screen.
-        ((MainActivity)getActivity()).openFragment(new ProviderSelectionFragment(), false);
+        ((MainActivity)getActivity()).openFragment(new HomeFragment(), false);
     }
 
     @OnClick(R.id.viewLogButton)

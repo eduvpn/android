@@ -9,13 +9,17 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import net.tuxed.vpnconfigimporter.EduVPNApplication;
 import net.tuxed.vpnconfigimporter.MainActivity;
 import net.tuxed.vpnconfigimporter.R;
 import net.tuxed.vpnconfigimporter.adapter.ProfileAdapter;
+import net.tuxed.vpnconfigimporter.entity.Instance;
 import net.tuxed.vpnconfigimporter.entity.Profile;
+import net.tuxed.vpnconfigimporter.entity.SavedProfile;
 import net.tuxed.vpnconfigimporter.service.APIService;
+import net.tuxed.vpnconfigimporter.service.HistoryService;
 import net.tuxed.vpnconfigimporter.service.PreferencesService;
 import net.tuxed.vpnconfigimporter.service.SerializerService;
 import net.tuxed.vpnconfigimporter.service.VPNService;
@@ -55,6 +59,9 @@ public class ConnectProfileFragment extends Fragment {
     protected APIService _apiService;
 
     @Inject
+    protected HistoryService _historyService;
+
+    @Inject
     protected SerializerService _serializerService;
 
     private Unbinder _unbinder;
@@ -66,7 +73,7 @@ public class ConnectProfileFragment extends Fragment {
         _unbinder = ButterKnife.bind(this, view);
         EduVPNApplication.get(view.getContext()).component().inject(this);
         _profileList.setLayoutManager(new LinearLayoutManager(view.getContext(), LinearLayoutManager.VERTICAL, false));
-        _profileList.setAdapter(new ProfileAdapter(_preferencesService.getSavedInstance()));
+        _profileList.setAdapter(new ProfileAdapter(_preferencesService.getCurrentInstance()));
         ItemClickSupport.addTo(_profileList).setOnItemClickListener(new ItemClickSupport.OnItemClickListener() {
             @Override
             public void onItemClicked(RecyclerView recyclerView, int position, View v) {
@@ -90,13 +97,22 @@ public class ConnectProfileFragment extends Fragment {
      * @param profile The profile to download.
      */
     private void _selectProfile(final Profile profile) {
+        // Maybe we already have a downloaded profile for these criteria
+        final Instance instance = _preferencesService.getCurrentInstance();
+        SavedProfile savedProfile = _historyService.getCachedSavedProfile(instance.getBaseUri(), profile.getProfileId());
+        if (savedProfile != null) {
+            // No need to download, continue immediately
+            Toast.makeText(getContext(), R.string.profile_already_downloaded_select, Toast.LENGTH_LONG).show();
+            return;
+            // TODO goto home
+        }
         // Display loading message to the user
         _hintText.setText(R.string.downloading_profile);
         _hintText.setVisibility(View.VISIBLE);
         _profileList.setVisibility(View.GONE);
         final String configName = _generateConfigName();
-        String requestData = "config_name=" + configName + "&pool_id=" + profile.getPoolId();
-        String url = _preferencesService.getSavedDiscoveredAPI().getCreateConfigAPI();
+        String requestData = "config_name=" + configName + "&profile_id=" + profile.getProfileId();
+        String url = _preferencesService.getCurrentDiscoveredAPI().getCreateConfigAPI();
         _apiService.postResource(url, requestData, true, new APIService.Callback<byte[]>() {
             @Override
             public void onSuccess(byte[] result) {
@@ -104,7 +120,10 @@ public class ConnectProfileFragment extends Fragment {
                 VpnProfile vpnProfile = _vpnService.importConfig(vpnConfig, configName);
                 if (vpnProfile != null) {
                     if (getActivity() != null) {
-                        _preferencesService.saveProfile(profile);
+                        // Cache the profile
+                        SavedProfile savedProfile = new SavedProfile(instance, profile, vpnProfile.getUUIDString());
+                        _historyService.cacheSavedProfile(savedProfile);
+                        _preferencesService.currentProfile(profile);
                         _vpnService.connect(getActivity(), vpnProfile);
                         ((MainActivity)getActivity()).openFragment(new ConnectionStatusFragment(), false);
                     }
@@ -131,7 +150,7 @@ public class ConnectProfileFragment extends Fragment {
      * Fetches the available profiles from the API, and puts them inside the list.
      */
     private void _fetchAvailableProfiles() {
-        String url = _preferencesService.getSavedDiscoveredAPI().getProfileListAPI();
+        String url = _preferencesService.getCurrentDiscoveredAPI().getProfileListAPI();
         _apiService.getJSON(url, true, new APIService.Callback<JSONObject>() {
             @Override
             public void onSuccess(JSONObject result) {

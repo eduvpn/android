@@ -11,6 +11,7 @@ import android.widget.Toast;
 
 import net.tuxed.vpnconfigimporter.fragment.ConnectProfileFragment;
 import net.tuxed.vpnconfigimporter.fragment.ConnectionStatusFragment;
+import net.tuxed.vpnconfigimporter.fragment.HomeFragment;
 import net.tuxed.vpnconfigimporter.fragment.ProviderSelectionFragment;
 import net.tuxed.vpnconfigimporter.service.ConnectionService;
 import net.tuxed.vpnconfigimporter.service.VPNService;
@@ -49,7 +50,7 @@ public class MainActivity extends AppCompatActivity {
                 openFragment(new ConnectionStatusFragment(), false);
             } else {
                 // Else we just show the provider selection fragment.
-                openFragment(new ProviderSelectionFragment(), false);
+                openFragment(new HomeFragment(), false);
             }
         } // else the activity will automatically restore everything.
         // The app might have been reopened from a URL.
