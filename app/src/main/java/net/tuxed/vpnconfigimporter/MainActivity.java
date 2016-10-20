@@ -44,12 +44,14 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(_toolbar);
         // If there's an ongoing VPN connection, open the status screen.
         _vpnService.onCreate(this);
-        if (_vpnService.getStatus() != VPNService.VPNStatus.DISCONNECTED) {
-            openFragment(new ConnectionStatusFragment(), false);
-        } else {
-            // Else we just show the provider selection fragment.
-            openFragment(new ProviderSelectionFragment(), false);
-        }
+        if (savedInstanceState == null) {
+            if (_vpnService.getStatus() != VPNService.VPNStatus.DISCONNECTED) {
+                openFragment(new ConnectionStatusFragment(), false);
+            } else {
+                // Else we just show the provider selection fragment.
+                openFragment(new ProviderSelectionFragment(), false);
+            }
+        } // else the activity will automatically restore everything.
         // The app might have been reopened from a URL.
         onNewIntent(getIntent());
     }
@@ -69,6 +71,8 @@ public class MainActivity extends AppCompatActivity {
         }
         try {
             _connectionService.parseCallbackIntent(intent);
+            // Remove it so we dont parse it again.
+            intent.setData(null);
             openFragment(new ConnectProfileFragment(), true);
         } catch (ConnectionService.InvalidConnectionAttemptException ex) {
             ex.printStackTrace();
