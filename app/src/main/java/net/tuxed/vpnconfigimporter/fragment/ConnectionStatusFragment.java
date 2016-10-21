@@ -29,6 +29,7 @@ import net.tuxed.vpnconfigimporter.service.APIService;
 import net.tuxed.vpnconfigimporter.service.PreferencesService;
 import net.tuxed.vpnconfigimporter.service.SerializerService;
 import net.tuxed.vpnconfigimporter.service.VPNService;
+import net.tuxed.vpnconfigimporter.utils.ErrorDialog;
 import net.tuxed.vpnconfigimporter.utils.FormattingUtils;
 
 import org.json.JSONObject;
@@ -112,11 +113,7 @@ public class ConnectionStatusFragment extends Fragment implements VPNService.Con
         _unbinder = ButterKnife.bind(this, view);
         EduVPNApplication.get(view.getContext()).component().inject(this);
         Profile savedProfile = _preferencesService.getCurrentProfile();
-        Instance provider = _preferencesService.getCurrentInstance();
         _profileName.setText(savedProfile.getDisplayName());
-        if (provider.getLogoUri() != null) {
-            Picasso.with(view.getContext()).load(provider.getLogoUri()).fit().into(_providerIcon);
-        }
         _messagesList.setLayoutManager(new LinearLayoutManager(view.getContext(), LinearLayoutManager.VERTICAL, false));
         _messagesList.setAdapter(new MessagesAdapter());
         return view;
@@ -125,6 +122,10 @@ public class ConnectionStatusFragment extends Fragment implements VPNService.Con
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        Instance provider = _preferencesService.getCurrentInstance();
+        if (provider.getLogoUri() != null) {
+            Picasso.with(view.getContext()).load(provider.getLogoUri()).fit().into(_providerIcon);
+        }
         // Load the user and system messages asynchronously.
         DiscoveredAPI discoveredAPI = _preferencesService.getCurrentDiscoveredAPI();
         final MessagesAdapter messagesAdapter= (MessagesAdapter)_messagesList.getAdapter();
@@ -135,8 +136,7 @@ public class ConnectionStatusFragment extends Fragment implements VPNService.Con
                     List<Message> systemMessagesList = _serializerService.deserializeMessageList(result);
                     messagesAdapter.setSystemMessages(systemMessagesList);
                 } catch (SerializerService.UnknownFormatException ex) {
-                    // TODO show error
-                    ex.printStackTrace();
+                    ErrorDialog.show(getContext(), R.string.error_dialog_title, ex.getMessage());
                 }
             }
 
@@ -154,8 +154,7 @@ public class ConnectionStatusFragment extends Fragment implements VPNService.Con
                     List<Message> userMessagesList = _serializerService.deserializeMessageList(result);
                     messagesAdapter.setUserMessages(userMessagesList);
                 } catch (SerializerService.UnknownFormatException ex) {
-                    // TODO show error
-                    ex.printStackTrace();
+                    ErrorDialog.show(getContext(), R.string.error_dialog_title, ex.getMessage());
                 }
             }
 

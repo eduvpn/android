@@ -97,4 +97,14 @@ public class HistoryService {
         }
         return null;
     }
+
+    /**
+     * Saves a previously removed profile from the list.
+     *
+     * @param savedProfile The profile to remove.
+     */
+    public void removeSavedProfile(SavedProfile savedProfile) {
+        _savedProfileList.remove(savedProfile);
+        _save();
+    }
 }

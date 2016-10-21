@@ -23,6 +23,7 @@ import net.tuxed.vpnconfigimporter.service.HistoryService;
 import net.tuxed.vpnconfigimporter.service.PreferencesService;
 import net.tuxed.vpnconfigimporter.service.SerializerService;
 import net.tuxed.vpnconfigimporter.service.VPNService;
+import net.tuxed.vpnconfigimporter.utils.ErrorDialog;
 import net.tuxed.vpnconfigimporter.utils.ItemClickSupport;
 import net.tuxed.vpnconfigimporter.utils.Log;
 
@@ -42,6 +43,8 @@ import de.blinkt.openvpn.VpnProfile;
  * Created by Daniel Zolnai on 2016-10-07.
  */
 public class ConnectProfileFragment extends Fragment {
+
+    private static final String TAG = ConnectProfileFragment.class.getName();
 
     @BindView(R.id.profilesList)
     protected RecyclerView _profileList;
@@ -103,8 +106,7 @@ public class ConnectProfileFragment extends Fragment {
         if (savedProfile != null) {
             // No need to download, continue immediately
             Toast.makeText(getContext(), R.string.profile_already_downloaded_select, Toast.LENGTH_LONG).show();
-            return;
-            // TODO goto home
+            ((MainActivity)getActivity()).openFragment(new HomeFragment(), false);
         }
         // Display loading message to the user
         _hintText.setText(R.string.downloading_profile);
@@ -117,6 +119,7 @@ public class ConnectProfileFragment extends Fragment {
             @Override
             public void onSuccess(byte[] result) {
                 String vpnConfig = new String(result);
+                // TODO construct fancy config name
                 VpnProfile vpnProfile = _vpnService.importConfig(vpnConfig, configName);
                 if (vpnProfile != null) {
                     if (getActivity() != null) {
@@ -135,7 +138,7 @@ public class ConnectProfileFragment extends Fragment {
             @Override
             public void onError(String errorMessage) {
                 _displayError(errorMessage);
-                Log.e("ERROR", errorMessage);
+                Log.e(TAG, "Error fetching profile: " +  errorMessage);
             }
         });
     }
@@ -159,12 +162,14 @@ public class ConnectProfileFragment extends Fragment {
                     ((ProfileAdapter)_profileList.getAdapter()).setItems(profileList);
                     _hintText.setVisibility(View.GONE);
                 } catch (SerializerService.UnknownFormatException ex) {
+                    Log.e(TAG, "Error while serializing profile list!", ex);
                     _displayError(ex.getMessage());
                 }
             }
 
             @Override
             public void onError(String errorMessage) {
+                Log.e(TAG, "Error while fetching profile list: "  + errorMessage);
                 _displayError(errorMessage);
             }
         });
@@ -174,8 +179,7 @@ public class ConnectProfileFragment extends Fragment {
     private void _displayError(String errorMessage) {
         _hintText.setText(R.string.error_loading_profiles);
         _hintText.setVisibility(View.VISIBLE);
-        Log.e("ERROR", errorMessage);
-        // TODO display error dialog with longer text.
+        ErrorDialog.show(getContext(), R.string.error_dialog_title, errorMessage);
     }
 
     @Override

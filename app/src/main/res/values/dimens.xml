@@ -21,4 +21,6 @@
     <dimen name="connection_info_notifications_switcher_height">32dp</dimen>
     <dimen name="connection_info_top_container_width">120dp</dimen>
     <dimen name="connection_info_bottom_container_width">80dp</dimen>
+    <dimen name="error_dialog_radius">4dp</dimen>
+    <dimen name="button_margin_bottom">12dp</dimen>
 </resources>
