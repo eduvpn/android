@@ -54,4 +54,12 @@
     <string name="traffic_gigabytes">%s GB</string>
     <string name="api_discovery_message">Discovering API...</string>
     <string name="api_discovery_title">Just a sec</string>
+    <string name="display_other_name">Use a custom provider</string>
+    <string name="maintenance_message">The VPN service will be under maintenance starting from %1$s until %2$s.</string>
+    <string name="error_loading_system_messages">Unable to load system messages: %s</string>
+    <string name="error_loading_user_messages">Unable to load user messages: %s</string>
+    <string name="profile_already_downloaded_select">This profile is already downloaded. Please select it from the home screen.</string>
+    <string name="home_title">Connect</string>
+    <string name="home_add_provider">Add Provider</string>
+    <string name="saved_profile_display_name">%1$s - %2$s</string>
 </resources>

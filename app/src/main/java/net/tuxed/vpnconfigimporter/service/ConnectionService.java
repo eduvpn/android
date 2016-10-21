@@ -37,6 +37,7 @@ public class ConnectionService {
     // as of now, this is the only browser which has Custom Tabs support.
 
     private PreferencesService _preferencesService;
+    private HistoryService _historyService;
     private Context _context;
     private String _accessToken;
     private boolean _optedOutOfCustomTabs = false;
@@ -47,10 +48,11 @@ public class ConnectionService {
      * @param context            The application or activity context.
      * @param preferencesService The preferences service used to store temporary data.
      */
-    public ConnectionService(Context context, PreferencesService preferencesService) {
+    public ConnectionService(Context context, PreferencesService preferencesService, HistoryService historyService) {
         _context = context;
         _preferencesService = preferencesService;
-        _accessToken = preferencesService.getAccessToken();
+        _historyService = historyService;
+        _accessToken = preferencesService.getCurrentAccessToken();
         _optedOutOfCustomTabs = preferencesService.getCustomTabsOptOut();
     }
 
@@ -98,9 +100,9 @@ public class ConnectionService {
         String state = _generateState();
         String connectionUrl = _buildConnectionUrl(baseUrl, state);
 
-        _preferencesService.saveConnectionState(state);
-        _preferencesService.saveConnectionInstance(instance);
-        _preferencesService.saveDiscoveredAPI(discoveredAPI);
+        _preferencesService.currentConnectionState(state);
+        _preferencesService.currentInstance(instance);
+        _preferencesService.currentDiscoveredAPI(discoveredAPI);
         if (_optedOutOfCustomTabs) {
             Intent viewUrlIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(connectionUrl));
             activity.startActivity(viewUrlIntent);
@@ -121,7 +123,7 @@ public class ConnectionService {
      * @return True if the state is valid and matches the saved state. Else false.
      */
     private boolean _validateState(String state) {
-        String savedState = _preferencesService.getConnectionState();
+        String savedState = _preferencesService.getCurrentConnectionState();
         return state != null && savedState != null && savedState.equals(state);
     }
 
@@ -158,9 +160,11 @@ public class ConnectionService {
         }
         // Save the access token
         _accessToken = accessToken;
-        _preferencesService.saveAccessToken(accessToken);
+        _preferencesService.currentAccessToken(accessToken);
         // Now we can delete the saved state
-        _preferencesService.removeSavedConnectionState();
+        _preferencesService.removeCurrentConnectionState();
+        // Save the access token for later use.
+        _historyService.cacheToken(_preferencesService.getCurrentInstance().getSanitizedBaseUri(), _accessToken);
     }
 
     /**
@@ -170,5 +174,10 @@ public class ConnectionService {
      */
     public String getAccessToken() {
         return _accessToken;
+    }
+
+    public void setAccessToken(String accessToken) {
+        _accessToken = accessToken;
+        _preferencesService.currentAccessToken(accessToken);
     }
 }

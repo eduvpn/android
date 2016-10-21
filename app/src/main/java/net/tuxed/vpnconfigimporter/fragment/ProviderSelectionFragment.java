@@ -17,9 +17,11 @@ import net.tuxed.vpnconfigimporter.R;
 import net.tuxed.vpnconfigimporter.adapter.ProviderAdapter;
 import net.tuxed.vpnconfigimporter.entity.DiscoveredAPI;
 import net.tuxed.vpnconfigimporter.entity.Instance;
+import net.tuxed.vpnconfigimporter.entity.SavedToken;
 import net.tuxed.vpnconfigimporter.service.APIService;
 import net.tuxed.vpnconfigimporter.service.ConfigurationService;
 import net.tuxed.vpnconfigimporter.service.ConnectionService;
+import net.tuxed.vpnconfigimporter.service.HistoryService;
 import net.tuxed.vpnconfigimporter.service.SerializerService;
 import net.tuxed.vpnconfigimporter.utils.ItemClickSupport;
 import net.tuxed.vpnconfigimporter.utils.Log;
@@ -38,6 +40,8 @@ import butterknife.Unbinder;
  */
 public class ProviderSelectionFragment extends Fragment {
 
+    private static final String TAG = ProviderSelectionFragment.class.getName();
+
     @BindView(R.id.providersList)
     protected RecyclerView _providersList;
 
@@ -52,6 +56,9 @@ public class ProviderSelectionFragment extends Fragment {
 
     @Inject
     protected ConnectionService _connectionService;
+
+    @Inject
+    protected HistoryService _historyService;
 
     private Unbinder _unbinder;
 
@@ -70,7 +77,7 @@ public class ProviderSelectionFragment extends Fragment {
                 if (instance == null) {
                     if (getActivity() != null) {
                         MainActivity activity = (MainActivity)getActivity();
-                        activity.openFragment(new CustomProviderFragment());
+                        activity.openFragment(new CustomProviderFragment(), true);
                     }
                 } else {
                     _connectToApi(instance);
@@ -82,14 +89,35 @@ public class ProviderSelectionFragment extends Fragment {
             @Override
             public boolean onItemLongClicked(RecyclerView recyclerView, int position, View v) {
                 Instance instance = ((ProviderAdapter)recyclerView.getAdapter()).getItem(position);
-                Toast.makeText(recyclerView.getContext(), instance.getDisplayName(), Toast.LENGTH_LONG).show();
+                String name = instance == null ? getString(R.string.display_other_name) : instance.getDisplayName();
+                Toast.makeText(recyclerView.getContext(), name, Toast.LENGTH_LONG).show();
                 return true;
             }
         });
         return view;
     }
 
+    /**
+     * Starts connecting to an API provider.
+     * @param instance The instance to connect to.
+     */
     private void _connectToApi(final Instance instance) {
+        // If there's a saved access token, continue immediately to the config selector.
+        String savedToken = _historyService.getCachedAccessToken(instance.getSanitizedBaseUri());
+        if (savedToken != null) {
+            _connectionService.setAccessToken(savedToken);
+            // Open the config selector immediately. If it would throw a 401, then we will trigger a login afterwards.
+            ((MainActivity)getActivity()).openFragment(new ConnectProfileFragment(), true);
+            return;
+        }
+        // Check if there's a cached discovered API
+        DiscoveredAPI discoveredAPI = _historyService.getCachedDiscoveredAPI(instance.getSanitizedBaseUri());
+        if (discoveredAPI != null) {
+            Log.d(TAG, "Cached discovered API found.");
+            _connectionService.initiateConnection(getActivity(), instance, discoveredAPI);
+            return;
+        }
+        Log.d(TAG, "No cached discovered API found, continuing with discovery.");
         final ProgressDialog dialog = ProgressDialog.show(getContext(), getString(R.string.api_discovery_title), getString(R.string.api_discovery_message), true);
         // Discover the API
         _apiService.getJSON(instance.getSanitizedBaseUri() + "/info.json", false, new APIService.Callback<JSONObject>() {
@@ -98,6 +126,8 @@ public class ProviderSelectionFragment extends Fragment {
                 try {
                     DiscoveredAPI discoveredAPI = _serializerService.deserializeDiscoveredAPI(result);
                     dialog.dismiss();
+                    // Cache the result
+                    _historyService.cacheDiscoveredAPI(instance.getSanitizedBaseUri(), discoveredAPI);
                     _connectionService.initiateConnection(getActivity(), instance, discoveredAPI);
                 } catch (SerializerService.UnknownFormatException ex) {
                     Log.e("ERROR", ex.getMessage());

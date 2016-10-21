@@ -11,6 +11,7 @@ import android.widget.Toast;
 
 import net.tuxed.vpnconfigimporter.fragment.ConnectProfileFragment;
 import net.tuxed.vpnconfigimporter.fragment.ConnectionStatusFragment;
+import net.tuxed.vpnconfigimporter.fragment.HomeFragment;
 import net.tuxed.vpnconfigimporter.fragment.ProviderSelectionFragment;
 import net.tuxed.vpnconfigimporter.service.ConnectionService;
 import net.tuxed.vpnconfigimporter.service.VPNService;
@@ -44,19 +45,14 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(_toolbar);
         // If there's an ongoing VPN connection, open the status screen.
         _vpnService.onCreate(this);
-        if (_vpnService.getStatus() != VPNService.VPNStatus.DISCONNECTED) {
-            getSupportFragmentManager()
-                    .beginTransaction()
-                    .replace(R.id.contentFrame, new ConnectionStatusFragment())
-                    .commit();
-
-        } else {
-            // Else we just show the provider selection fragment.
-            getSupportFragmentManager()
-                    .beginTransaction()
-                    .replace(R.id.contentFrame, new ProviderSelectionFragment())
-                    .commit();
-        }
+        if (savedInstanceState == null) {
+            if (_vpnService.getStatus() != VPNService.VPNStatus.DISCONNECTED) {
+                openFragment(new ConnectionStatusFragment(), false);
+            } else {
+                // Else we just show the provider selection fragment.
+                openFragment(new HomeFragment(), false);
+            }
+        } // else the activity will automatically restore everything.
         // The app might have been reopened from a URL.
         onNewIntent(getIntent());
     }
@@ -76,7 +72,9 @@ public class MainActivity extends AppCompatActivity {
         }
         try {
             _connectionService.parseCallbackIntent(intent);
-            openFragment(new ConnectProfileFragment());
+            // Remove it so we dont parse it again.
+            intent.setData(null);
+            openFragment(new ConnectProfileFragment(), true);
         } catch (ConnectionService.InvalidConnectionAttemptException ex) {
             ex.printStackTrace();
             // TODO show error dialog.
@@ -94,11 +92,17 @@ public class MainActivity extends AppCompatActivity {
         super.attachBaseContext(CalligraphyContextWrapper.wrap(newBase));
     }
 
-    public void openFragment(Fragment fragment) {
-        getSupportFragmentManager().beginTransaction()
-                .addToBackStack(null)
-                .add(R.id.contentFrame, fragment)
-                .commit();
+    public void openFragment(Fragment fragment, boolean openOnTop) {
+        if (openOnTop) {
+            getSupportFragmentManager().beginTransaction()
+                    .addToBackStack(null)
+                    .add(R.id.contentFrame, fragment)
+                    .commit();
+        } else {
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.contentFrame, fragment)
+                    .commit();
+        }
     }
 
     @OnClick(R.id.settingsButton)

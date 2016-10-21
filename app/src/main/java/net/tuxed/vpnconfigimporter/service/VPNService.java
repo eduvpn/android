@@ -48,10 +48,8 @@ public class VPNService extends Observable implements VpnStatus.StateListener {
     private Date _connectionTime;
     private Long _bytesIn;
     private Long _bytesOut;
-    private String _serverUrl;
     private String _serverIpV4;
     private String _serverIpV6;
-    private String _serverPort;
 
     private OpenVPNService _openVPNService;
     private ServiceConnection _serviceConnection = new ServiceConnection() {
@@ -79,6 +77,7 @@ public class VPNService extends Observable implements VpnStatus.StateListener {
 
 
     public void onCreate(Activity activity) {
+        OpenVPNService.setNotificationActivityClass(activity.getClass());
         VpnStatus.addStateListener(this);
         Intent intent = new Intent(activity, OpenVPNService.class);
         intent.setAction(OpenVPNService.START_SERVICE);
@@ -149,7 +148,6 @@ public class VPNService extends Observable implements VpnStatus.StateListener {
         _connectionTime = null;
         _bytesIn = null;
         _bytesOut = null;
-        _serverUrl = null;
         _serverIpV4 = null;
         _serverIpV6 = null;
     }
@@ -191,10 +189,25 @@ public class VPNService extends Observable implements VpnStatus.StateListener {
         if (getStatus() == VPNStatus.CONNECTED) {
             _connectionTime = new Date();
             // Set the other variables for the metadata
-            // TODO
+            _serverIpV4 = _openVPNService.getLastLocalIpV4Address();
+            _serverIpV6 = _openVPNService.getLastLocalIpV6Address();
+            if (_connectionInfoCallback != null) {
+                _updatesHandler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        _connectionInfoCallback.metadataAvailable(_serverIpV4, _serverIpV6);
+                    }
+                });
+            }
         }
-        setChanged();
-        notifyObservers(getStatus());
+        // Notify the observers.
+        _updatesHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                setChanged();
+                notifyObservers(getStatus());
+            }
+        });
     }
 
 
@@ -205,6 +218,9 @@ public class VPNService extends Observable implements VpnStatus.StateListener {
      */
     public void attachConnectionInfoListener(ConnectionInfoCallback callback) {
         _connectionInfoCallback = callback;
+        if (_serverIpV4 != null && _serverIpV6 != null) {
+            _connectionInfoCallback.metadataAvailable(_serverIpV4, _serverIpV6);
+        }
         VpnStatus.addByteCountListener(_byteCountListener);
         _updatesHandler.post(new Runnable() {
             @Override
@@ -232,7 +248,7 @@ public class VPNService extends Observable implements VpnStatus.StateListener {
     public interface ConnectionInfoCallback {
         void updateStatus(Long secondsConnected, Long bytesIn, Long bytesOut);
 
-        void metadataAvailable(String serverUrl, String serverIp, String localIpV4, String localIpV6, String port);
+        void metadataAvailable(String localIpV4, String localIpV6);
     }
 
 

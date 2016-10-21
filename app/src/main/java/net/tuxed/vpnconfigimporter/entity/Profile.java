@@ -1,7 +1,5 @@
 package net.tuxed.vpnconfigimporter.entity;
 
-import java.io.StringReader;
-
 /**
  * Represents a VPN connection profile.
  * Created by Daniel Zolnai on 2016-10-11.
@@ -9,12 +7,12 @@ import java.io.StringReader;
 public class Profile {
 
     private String _displayName;
-    private String _poolId;
+    private String _profileId;
     private Boolean _twoFactor;
 
-    public Profile(String displayName, String poolId, Boolean twoFactor) {
+    public Profile(String displayName, String profileId, Boolean twoFactor) {
         _displayName = displayName;
-        _poolId = poolId;
+        _profileId = profileId;
         _twoFactor = twoFactor;
     }
 
@@ -39,7 +37,7 @@ public class Profile {
     /**
      * Returns the pool ID of this VPN profile.
      */
-    public String getPoolId() {
-        return _poolId;
+    public String getProfileId() {
+        return _profileId;
     }
 }

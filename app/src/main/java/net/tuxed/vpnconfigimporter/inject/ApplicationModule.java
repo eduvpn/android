@@ -6,6 +6,7 @@ import net.tuxed.vpnconfigimporter.EduVPNApplication;
 import net.tuxed.vpnconfigimporter.service.APIService;
 import net.tuxed.vpnconfigimporter.service.ConfigurationService;
 import net.tuxed.vpnconfigimporter.service.ConnectionService;
+import net.tuxed.vpnconfigimporter.service.HistoryService;
 import net.tuxed.vpnconfigimporter.service.PreferencesService;
 import net.tuxed.vpnconfigimporter.service.SerializerService;
 import net.tuxed.vpnconfigimporter.service.VPNService;
@@ -48,8 +49,8 @@ public class ApplicationModule {
 
     @Provides
     @Singleton
-    protected ConnectionService provideConnectionService(Context context, PreferencesService preferencesService) {
-        return new ConnectionService(context, preferencesService);
+    protected ConnectionService provideConnectionService(Context context, PreferencesService preferencesService, HistoryService historyService) {
+        return new ConnectionService(context, preferencesService, historyService);
     }
 
     @Provides
@@ -68,5 +69,11 @@ public class ApplicationModule {
     @Singleton
     protected VPNService provideVPNService(Context context) {
         return new VPNService(context);
+    }
+
+    @Provides
+    @Singleton
+    protected HistoryService provideHistoryService(PreferencesService preferencesService) {
+        return new HistoryService(preferencesService);
     }
 }
