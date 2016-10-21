@@ -88,9 +88,9 @@ public class HistoryService {
         _save();
     }
 
-    public SavedProfile getCachedSavedProfile(String baseUri, String profileId) {
+    public SavedProfile getCachedSavedProfile(String sanitizedBaseUri, String profileId) {
         for (SavedProfile savedProfile : _savedProfileList) {
-            if (savedProfile.getInstance().getSanitizedBaseUri().equals(baseUri) &&
+            if (savedProfile.getInstance().getSanitizedBaseUri().equals(sanitizedBaseUri) &&
                     savedProfile.getProfile().getProfileId().equals(profileId)) {
                 return savedProfile;
             }

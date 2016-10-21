@@ -24,6 +24,7 @@ import net.tuxed.vpnconfigimporter.service.PreferencesService;
 import net.tuxed.vpnconfigimporter.service.SerializerService;
 import net.tuxed.vpnconfigimporter.service.VPNService;
 import net.tuxed.vpnconfigimporter.utils.ErrorDialog;
+import net.tuxed.vpnconfigimporter.utils.FormattingUtils;
 import net.tuxed.vpnconfigimporter.utils.ItemClickSupport;
 import net.tuxed.vpnconfigimporter.utils.Log;
 
@@ -102,33 +103,35 @@ public class ConnectProfileFragment extends Fragment {
     private void _selectProfile(final Profile profile) {
         // Maybe we already have a downloaded profile for these criteria
         final Instance instance = _preferencesService.getCurrentInstance();
-        SavedProfile savedProfile = _historyService.getCachedSavedProfile(instance.getBaseUri(), profile.getProfileId());
+        SavedProfile savedProfile = _historyService.getCachedSavedProfile(instance.getSanitizedBaseUri(), profile.getProfileId());
         if (savedProfile != null) {
-            // No need to download, continue immediately
+            // No need to download, continue immediately to the home screen.
             Toast.makeText(getContext(), R.string.profile_already_downloaded_select, Toast.LENGTH_LONG).show();
             ((MainActivity)getActivity()).openFragment(new HomeFragment(), false);
+            return;
         }
         // Display loading message to the user
         _hintText.setText(R.string.downloading_profile);
         _hintText.setVisibility(View.VISIBLE);
         _profileList.setVisibility(View.GONE);
-        final String configName = _generateConfigName();
-        String requestData = "config_name=" + configName + "&profile_id=" + profile.getProfileId();
+        final String uniqueName = _generateConfigName();
+        String requestData = "config_name=" + uniqueName + "&profile_id=" + profile.getProfileId();
         String url = _preferencesService.getCurrentDiscoveredAPI().getCreateConfigAPI();
         _apiService.postResource(url, requestData, true, new APIService.Callback<byte[]>() {
             @Override
             public void onSuccess(byte[] result) {
                 String vpnConfig = new String(result);
-                // TODO construct fancy config name
+                String configName = FormattingUtils.formatVPNProfileName(getContext(), instance, profile);
                 VpnProfile vpnProfile = _vpnService.importConfig(vpnConfig, configName);
                 if (vpnProfile != null) {
                     if (getActivity() != null) {
                         // Cache the profile
                         SavedProfile savedProfile = new SavedProfile(instance, profile, vpnProfile.getUUIDString());
                         _historyService.cacheSavedProfile(savedProfile);
-                        _preferencesService.currentProfile(profile);
-                        _vpnService.connect(getActivity(), vpnProfile);
-                        ((MainActivity)getActivity()).openFragment(new ConnectionStatusFragment(), false);
+                        // Go back to the home screen and display a toast
+                        Toast.makeText(getContext(), R.string.select_downloaded_profile, Toast.LENGTH_LONG).show();
+                        ((MainActivity)getActivity()).openFragment(new HomeFragment(), false);
+
                     }
                 } else {
                     _displayError(getString(R.string.error_importing_profile));
@@ -138,7 +141,7 @@ public class ConnectProfileFragment extends Fragment {
             @Override
             public void onError(String errorMessage) {
                 _displayError(errorMessage);
-                Log.e(TAG, "Error fetching profile: " +  errorMessage);
+                Log.e(TAG, "Error fetching profile: " + errorMessage);
             }
         });
     }
@@ -169,7 +172,7 @@ public class ConnectProfileFragment extends Fragment {
 
             @Override
             public void onError(String errorMessage) {
-                Log.e(TAG, "Error while fetching profile list: "  + errorMessage);
+                Log.e(TAG, "Error while fetching profile list: " + errorMessage);
                 _displayError(errorMessage);
             }
         });
