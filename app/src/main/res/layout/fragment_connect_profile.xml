@@ -28,13 +28,13 @@
 
         <TextView
             android:id="@+id/hintText"
-            fontPath="fonts/Roboto-Regular.ttf"
+            fontPath="@string/font_roboto_regular"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
             android:layout_marginTop="24dp"
             android:text="@string/loading_profiles"
-            android:textColor="@color/loading_hint"
+            android:textColor="@color/hintColor"
             android:textSize="16sp"
             tools:ignore="MissingPrefix"/>
 

@@ -8,6 +8,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import net.tuxed.vpnconfigimporter.EduVPNApplication;
@@ -54,19 +55,25 @@ public class HomeFragment extends Fragment {
     @BindView(R.id.savedProfileList)
     protected RecyclerView _savedProfileList;
 
+    @BindView(R.id.hintText)
+    protected TextView _hintText;
+
     private Unbinder _unbinder;
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable final Bundle savedInstanceState) {
-        View view= inflater.inflate(R.layout.fragment_home, container, false);
+        View view = inflater.inflate(R.layout.fragment_home, container, false);
         _unbinder = ButterKnife.bind(this, view);
         EduVPNApplication.get(view.getContext()).component().inject(this);
         _savedProfileList.setLayoutManager(new LinearLayoutManager(view.getContext(), LinearLayoutManager.VERTICAL, false));
         List<SavedProfile> savedProfileList = _historyService.getSavedProfileList();
         if (savedProfileList == null) {
-            // TODO show text to add profile.
+            _hintText.setVisibility(View.VISIBLE);
+            _savedProfileList.setVisibility(View.GONE);
         } else {
+            _hintText.setVisibility(View.GONE);
+            _savedProfileList.setVisibility(View.VISIBLE);
             _savedProfileList.setAdapter(new SavedProfileAdapter(savedProfileList));
         }
         ItemClickSupport.addTo(_savedProfileList).setOnItemClickListener(new ItemClickSupport.OnItemClickListener() {

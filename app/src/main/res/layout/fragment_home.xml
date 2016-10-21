@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -13,32 +12,47 @@
     <TextView
         android:id="@+id/header"
         style="@style/Header"
+        fontPath="@string/font_roboto_regular"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
         android:layout_marginBottom="24dp"
         android:padding="16dp"
         android:text="@string/home_title"
-        />
+        tools:ignore="MissingPrefix"/>
+
+    <TextView
+        android:id="@+id/noProfilesYet"
+        fontPath="@string/font_roboto_regular"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/header"
+        android:layout_margin="12dp"
+        android:gravity="center"
+        android:text="@string/no_profiles_yet_click_on_add_provider"
+        android:textColor="@color/hintColor"
+        android:textSize="15sp"
+        tools:ignore="MissingPrefix"/>
 
     <android.support.v7.widget.RecyclerView
         android:id="@+id/savedProfileList"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@+id/header"
         android:layout_above="@+id/addProvider"
+        android:layout_below="@+id/header"
         android:layout_marginBottom="16dp"
         android:layout_marginLeft="16dp"
-        tools:background="#F0F0F0"
-        android:layout_marginRight="16dp"/>
+        android:layout_marginRight="16dp"
+        tools:alpha="0.3"
+        tools:background="#F0F0F0"/>
 
     <Button
         android:id="@+id/addProvider"
-        android:layout_centerHorizontal="true"
+        style="@style/BigButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
         android:layout_marginBottom="@dimen/button_margin_bottom"
-        style="@style/BigButton"
         android:text="@string/home_add_provider"/>
 </RelativeLayout>
