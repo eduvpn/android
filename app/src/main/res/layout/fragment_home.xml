@@ -7,7 +7,8 @@
     android:layout_height="match_parent"
     android:background="@color/backgroundColor"
     android:clickable="true"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:paddingBottom="16dp">
 
     <TextView
         android:id="@+id/header"
@@ -37,7 +38,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:layout_marginBottom="16dp"
+        android:layout_marginBottom="@dimen/button_margin_bottom"
         style="@style/BigButton"
         android:text="@string/home_add_provider"/>
 </RelativeLayout>

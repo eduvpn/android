@@ -28,6 +28,11 @@
         <item name="android:colorAccent" tools:targetApi="lollipop">@color/colorAccent</item>
     </style>
 
+    <style name="ErrorDialog" parent="@android:style/Theme.Translucent.NoTitleBar">
+        <item name="android:windowIsFloating">true</item>
+        <item name="android:windowNoTitle">true</item>
+    </style>
+
     <style name="StyledVpn.Dialog" parent="blinkt.dialog">
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>

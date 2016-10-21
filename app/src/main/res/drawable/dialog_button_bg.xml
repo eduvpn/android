@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_pressed="true" >
+        <shape>
+            <solid
+                android:color="#D0D0D0"/>
+            <corners
+                android:bottomLeftRadius="@dimen/error_dialog_radius"
+                android:bottomRightRadius="@dimen/error_dialog_radius" />
+        </shape>
+    </item>
+    <item>
+        <shape>
+            <solid
+                android:color="#FFFFFF"/>
+            <corners
+                android:bottomLeftRadius="@dimen/error_dialog_radius"
+                android:bottomRightRadius="@dimen/error_dialog_radius" />
+        </shape>
+    </item>
+</selector>

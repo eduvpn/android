@@ -8,6 +8,7 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 
 import net.tuxed.vpnconfigimporter.EduVPNApplication;
@@ -17,6 +18,7 @@ import net.tuxed.vpnconfigimporter.entity.Instance;
 import net.tuxed.vpnconfigimporter.service.APIService;
 import net.tuxed.vpnconfigimporter.service.ConnectionService;
 import net.tuxed.vpnconfigimporter.service.SerializerService;
+import net.tuxed.vpnconfigimporter.utils.ErrorDialog;
 import net.tuxed.vpnconfigimporter.utils.Log;
 
 import org.json.JSONObject;
@@ -35,6 +37,8 @@ import static net.tuxed.vpnconfigimporter.Constants.API_DISCOVERY_POSTFIX;
  * Created by Daniel Zolnai on 2016-10-11.
  */
 public class CustomProviderFragment extends Fragment {
+
+    private static final String TAG = CustomProviderFragment.class.getName();
 
     private Unbinder _unbinder;
 
@@ -59,6 +63,15 @@ public class CustomProviderFragment extends Fragment {
         return view;
     }
 
+    @Override
+    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        // Put the cursor in the field and show the keyboard automatically.
+        _customProviderUrl.requestFocus();
+        InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+        imm.showSoftInput(_customProviderUrl, InputMethodManager.SHOW_IMPLICIT);
+    }
+
     @OnClick(R.id.custom_provider_connect)
     protected void onConnectClicked() {
         String prefix = getContext().getString(R.string.custom_provider_prefix);
@@ -76,8 +89,8 @@ public class CustomProviderFragment extends Fragment {
                         dialog.dismiss();
                         _connectionService.initiateConnection(getActivity(), customProviderinstance, discoveredAPI);
                     } catch (SerializerService.UnknownFormatException ex) {
-                        Log.e("ERROR", ex.getMessage());
-                        // TODO show error.
+                        ErrorDialog.show(getContext(), R.string.error_dialog_title, ex.getMessage());
+                        Log.e(TAG, "Error while parsing discovered API", ex);
                         dialog.dismiss();
                     }
                 }
@@ -85,8 +98,8 @@ public class CustomProviderFragment extends Fragment {
                 @Override
                 public void onError(String errorMessage) {
                     dialog.dismiss();
-                    // TODO show error message
-                    Log.e("ERROR", errorMessage);
+                    Log.e(TAG, "Error fetching discovered API: " + errorMessage);
+                    ErrorDialog.show(getContext(), R.string.error_dialog_title, errorMessage);
                 }
             });
         }

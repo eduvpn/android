@@ -20,6 +20,7 @@ import net.tuxed.vpnconfigimporter.entity.SavedProfile;
 import net.tuxed.vpnconfigimporter.service.HistoryService;
 import net.tuxed.vpnconfigimporter.service.PreferencesService;
 import net.tuxed.vpnconfigimporter.service.VPNService;
+import net.tuxed.vpnconfigimporter.utils.ErrorDialog;
 import net.tuxed.vpnconfigimporter.utils.FormattingUtils;
 import net.tuxed.vpnconfigimporter.utils.ItemClickSupport;
 
@@ -98,7 +99,10 @@ public class HomeFragment extends Fragment {
                     _vpnService.connect(getActivity(), selectedProfile);
                     ((MainActivity)getActivity()).openFragment(new ConnectionStatusFragment(), false);
                 } else {
-                    // TODO, show error
+                    // This should not happen though.
+                    ErrorDialog.show(getContext(), R.string.error_dialog_title, R.string.selected_profile_does_not_exist);
+                    // Remove it
+                    _historyService.removeSavedProfile(savedProfile);
                 }
             }
         });

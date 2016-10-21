@@ -62,4 +62,7 @@
     <string name="home_title">Connect</string>
     <string name="home_add_provider">Add Provider</string>
     <string name="saved_profile_display_name">%1$s - %2$s</string>
+    <string name="error_confirm_button">OK</string>
+    <string name="error_dialog_title">Error</string>
+    <string name="selected_profile_does_not_exist">Selected profile does not exist anymore.</string>
 </resources>

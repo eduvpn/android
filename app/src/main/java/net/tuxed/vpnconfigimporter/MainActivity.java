@@ -15,6 +15,7 @@ import net.tuxed.vpnconfigimporter.fragment.HomeFragment;
 import net.tuxed.vpnconfigimporter.fragment.ProviderSelectionFragment;
 import net.tuxed.vpnconfigimporter.service.ConnectionService;
 import net.tuxed.vpnconfigimporter.service.VPNService;
+import net.tuxed.vpnconfigimporter.utils.ErrorDialog;
 
 import javax.inject.Inject;
 
@@ -72,12 +73,11 @@ public class MainActivity extends AppCompatActivity {
         }
         try {
             _connectionService.parseCallbackIntent(intent);
-            // Remove it so we dont parse it again.
+            // Remove it so we don't parse it again.
             intent.setData(null);
             openFragment(new ConnectProfileFragment(), true);
         } catch (ConnectionService.InvalidConnectionAttemptException ex) {
-            ex.printStackTrace();
-            // TODO show error dialog.
+            ErrorDialog.show(this, R.string.error_dialog_title, ex.getLocalizedMessage());
         }
     }
 
