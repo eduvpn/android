@@ -4,6 +4,9 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
+import android.support.annotation.CheckResult;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.customtabs.CustomTabsClient;
 import android.support.customtabs.CustomTabsIntent;
 import android.support.v4.content.ContextCompat;
@@ -92,10 +95,12 @@ public class ConnectionService {
     /**
      * Initiates a connection to the VPN provider instance.
      *
-     * @param activity The current activity.
-     * @param instance The instance to connect to.
+     * @param activity      The current activity.
+     * @param instance      The instance to connect to.
+     * @param discoveredAPI The discovered API which has the URL.
+     * @param profileUUID   Optional profile UUID. If set, the app will auto-connect to it when finished.
      */
-    public void initiateConnection(Activity activity, Instance instance, DiscoveredAPI discoveredAPI) {
+    public void initiateConnection(Activity activity, Instance instance, DiscoveredAPI discoveredAPI, @Nullable String profileUUID) {
         String baseUrl = instance.getSanitizedBaseUri();
         String state = _generateState();
         String connectionUrl = _buildConnectionUrl(baseUrl, state);
@@ -103,6 +108,12 @@ public class ConnectionService {
         _preferencesService.currentConnectionState(state);
         _preferencesService.currentInstance(instance);
         _preferencesService.currentDiscoveredAPI(discoveredAPI);
+        if (profileUUID != null) {
+            _preferencesService.storeAutoConnectUUID(profileUUID);
+        } else {
+            // Remove any previous auto-connect UUID.
+            _preferencesService.removeAutoConnectUUID();
+        }
         if (_optedOutOfCustomTabs) {
             Intent viewUrlIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(connectionUrl));
             activity.startActivity(viewUrlIntent);
@@ -131,9 +142,11 @@ public class ConnectionService {
      * Parses the callback intent and retrieves the access token.
      *
      * @param intent The intent to parse.
+     * @return The UUID of the profile to auto-connect to. Null if no auto-connect.
      * @throws InvalidConnectionAttemptException Thrown if there's a problem with the callback.
      */
-    public void parseCallbackIntent(Intent intent) throws InvalidConnectionAttemptException {
+    @CheckResult
+    public String parseCallbackIntent(@NonNull Intent intent) throws InvalidConnectionAttemptException {
         Uri callbackUri = intent.getData();
         if (callbackUri == null) {
             // Not a callback intent. Check before calling this method.
@@ -165,6 +178,10 @@ public class ConnectionService {
         _preferencesService.removeCurrentConnectionState();
         // Save the access token for later use.
         _historyService.cacheToken(_preferencesService.getCurrentInstance().getSanitizedBaseUri(), _accessToken);
+        // Check if the app has to auto-connect.
+        String autoconnectProfileUUID = _preferencesService.getAutoConnectUUID();
+        _preferencesService.removeAutoConnectUUID();
+        return autoconnectProfileUUID;
     }
 
     /**

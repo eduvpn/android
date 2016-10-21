@@ -11,13 +11,13 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
+import net.tuxed.vpnconfigimporter.Constants;
 import net.tuxed.vpnconfigimporter.EduVPNApplication;
 import net.tuxed.vpnconfigimporter.MainActivity;
 import net.tuxed.vpnconfigimporter.R;
 import net.tuxed.vpnconfigimporter.adapter.ProviderAdapter;
 import net.tuxed.vpnconfigimporter.entity.DiscoveredAPI;
 import net.tuxed.vpnconfigimporter.entity.Instance;
-import net.tuxed.vpnconfigimporter.entity.SavedToken;
 import net.tuxed.vpnconfigimporter.service.APIService;
 import net.tuxed.vpnconfigimporter.service.ConfigurationService;
 import net.tuxed.vpnconfigimporter.service.ConnectionService;
@@ -121,14 +121,14 @@ public class ProviderSelectionFragment extends Fragment {
         // If there's only a discovered API, initiate the connection
         if (discoveredAPI != null) {
             Log.d(TAG, "Cached discovered API found.");
-            _connectionService.initiateConnection(getActivity(), instance, discoveredAPI);
+            _connectionService.initiateConnection(getActivity(), instance, discoveredAPI, null);
             return;
         }
         // If no discovered API, fetch it first, then login
         Log.d(TAG, "No cached discovered API found, continuing with discovery.");
         final ProgressDialog dialog = ProgressDialog.show(getContext(), getString(R.string.api_discovery_title), getString(R.string.api_discovery_message), true);
         // Discover the API
-        _apiService.getJSON(instance.getSanitizedBaseUri() + "/info.json", false, new APIService.Callback<JSONObject>() {
+        _apiService.getJSON(instance.getSanitizedBaseUri() + Constants.API_DISCOVERY_POSTFIX, false, new APIService.Callback<JSONObject>() {
             @Override
             public void onSuccess(JSONObject result) {
                 try {
@@ -136,10 +136,10 @@ public class ProviderSelectionFragment extends Fragment {
                     dialog.dismiss();
                     // Cache the result
                     _historyService.cacheDiscoveredAPI(instance.getSanitizedBaseUri(), discoveredAPI);
-                    _connectionService.initiateConnection(getActivity(), instance, discoveredAPI);
+                    _connectionService.initiateConnection(getActivity(), instance, discoveredAPI, null);
                 } catch (SerializerService.UnknownFormatException ex) {
                     Log.e(TAG, "Error parsing discovered API!",  ex);
-                    ErrorDialog.show(getContext(), R.string.error_dialog_title, ex.getLocalizedMessage());
+                    ErrorDialog.show(getContext(), R.string.error_dialog_title, ex.toString());
                     dialog.dismiss();
                 }
             }

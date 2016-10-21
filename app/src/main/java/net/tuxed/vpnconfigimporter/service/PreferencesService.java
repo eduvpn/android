@@ -2,6 +2,7 @@ package net.tuxed.vpnconfigimporter.service;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.support.annotation.NonNull;
 
 import net.tuxed.vpnconfigimporter.entity.DiscoveredAPI;
 import net.tuxed.vpnconfigimporter.entity.Instance;
@@ -38,6 +39,8 @@ public class PreferencesService {
     private static final String KEY_SAVED_TOKENS = "saved_tokens";
     private static final String KEY_DISCOVERED_API_CACHE = "discovered_api_cache";
 
+    private static final String KEY_AUTOCONNECT_UUID = "autoconnect_uuid";
+
     private Context _context;
     private SerializerService _serializerService;
 
@@ -66,7 +69,7 @@ public class PreferencesService {
      *
      * @param state The state to save.
      */
-    public void currentConnectionState(String state) {
+    public void currentConnectionState(@NonNull String state) {
         _getSharedPreferences().edit()
                 .putString(KEY_STATE, state)
                 .apply();
@@ -93,7 +96,7 @@ public class PreferencesService {
      *
      * @param instance The instance to save.
      */
-    public void currentInstance(Instance instance) {
+    public void currentInstance(@NonNull Instance instance) {
         try {
             _getSharedPreferences().edit()
                     .putString(KEY_INSTANCE, _serializerService.serializeInstance(instance).toString())
@@ -126,7 +129,7 @@ public class PreferencesService {
      *
      * @param profile The profile to save.
      */
-    public void currentProfile(Profile profile) {
+    public void currentProfile(@NonNull Profile profile) {
         try {
             _getSharedPreferences().edit()
                     .putString(KEY_PROFILE, _serializerService.serializeProfile(profile).toString())
@@ -159,7 +162,7 @@ public class PreferencesService {
      *
      * @param accessToken The access token to use for the VPN provider API.
      */
-    public void currentAccessToken(String accessToken) {
+    public void currentAccessToken(@NonNull String accessToken) {
         _getSharedPreferences().edit().putString(KEY_ACCESS_TOKEN, accessToken).apply();
     }
 
@@ -186,7 +189,7 @@ public class PreferencesService {
      *
      * @param discoveredAPI The discovered API.
      */
-    public void currentDiscoveredAPI(DiscoveredAPI discoveredAPI) {
+    public void currentDiscoveredAPI(@NonNull DiscoveredAPI discoveredAPI) {
         try {
             _getSharedPreferences().edit()
                     .putString(KEY_DISCOVERED_API, _serializerService.serializeDiscoveredAPI(discoveredAPI).toString())
@@ -237,7 +240,7 @@ public class PreferencesService {
      *
      * @param savedProfileList The list to save.
      */
-    public void storeSavedProfileList(List<SavedProfile> savedProfileList) {
+    public void storeSavedProfileList(@NonNull List<SavedProfile> savedProfileList) {
         try {
             String serializedSavedProfileList = _serializerService.serializeSavedProfileList(savedProfileList).toString();
             _getSharedPreferences().edit().putString(KEY_SAVED_PROFILES, serializedSavedProfileList).apply();
@@ -270,7 +273,7 @@ public class PreferencesService {
      *
      * @param savedTokenList The list to save.
      */
-    public void storeSavedTokenList(List<SavedToken> savedTokenList) {
+    public void storeSavedTokenList(@NonNull List<SavedToken> savedTokenList) {
         try {
             String serializedSavedTokenList = _serializerService.serializeSavedTokenList(savedTokenList).toString();
             _getSharedPreferences().edit().putString(KEY_SAVED_TOKENS, serializedSavedTokenList).apply();
@@ -281,6 +284,7 @@ public class PreferencesService {
 
     /**
      * Retrieves a saved TTL cache of discovered APIs.
+     *
      * @return The discovered API cache. Null if no saved one.
      */
     public TTLCache<DiscoveredAPI> getDiscoveredAPICache() {
@@ -302,12 +306,40 @@ public class PreferencesService {
      *
      * @param ttlCache The cache to save.
      */
-    public void storeDiscoveredAPICache(TTLCache<DiscoveredAPI> ttlCache) {
+    public void storeDiscoveredAPICache(@NonNull TTLCache<DiscoveredAPI> ttlCache) {
         try {
             String serializedCache = _serializerService.serializeDiscoveredAPITTLCache(ttlCache).toString();
             _getSharedPreferences().edit().putString(KEY_DISCOVERED_API_CACHE, serializedCache).apply();
         } catch (SerializerService.UnknownFormatException ex) {
             Log.e(TAG, "Can not save discovered API cache.", ex);
         }
+    }
+
+    /**
+     * Stores the VPN profile UUID the app should connect to when the login has happened.
+     * Only set this when the user has clicked on a profile to connect, and has to login.
+     * So after the login he gets to the connection screen immediately.
+     *
+     * @param uuid The UUID of the saved profile.
+     */
+    public void storeAutoConnectUUID(@NonNull String uuid) {
+        _getSharedPreferences().edit().putString(KEY_AUTOCONNECT_UUID, uuid).apply();
+    }
+
+    /**
+     * Removes the auto connect profile UUID.
+     */
+    public void removeAutoConnectUUID() {
+        _getSharedPreferences().edit().remove(KEY_AUTOCONNECT_UUID).apply();
+    }
+
+    /**
+     * Returns the auto connect profile UUID key.
+     *
+     * @return The UUID of the profile the app should connect to after the login immediately.
+     * Do not forget to remove this, otherwise there will be some unexpected connections :)
+     */
+    public String getAutoConnectUUID() {
+        return _getSharedPreferences().getString(KEY_AUTOCONNECT_UUID, null);
     }
 }

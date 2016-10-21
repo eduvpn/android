@@ -72,12 +72,19 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
         try {
-            _connectionService.parseCallbackIntent(intent);
+            String autoConnectProfile = _connectionService.parseCallbackIntent(intent);
             // Remove it so we don't parse it again.
             intent.setData(null);
-            openFragment(new ConnectProfileFragment(), true);
+            if (autoConnectProfile != null ){
+                // User tried to connect, but had to log in.
+                // Continue with connecting to the profile.
+                _vpnService.getProfileWithUUID(autoConnectProfile);
+            } else {
+                // Show a list of possible profiles to download.
+                openFragment(new ConnectProfileFragment(), true);
+            }
         } catch (ConnectionService.InvalidConnectionAttemptException ex) {
-            ErrorDialog.show(this, R.string.error_dialog_title, ex.getLocalizedMessage());
+            ErrorDialog.show(this, R.string.error_dialog_title, ex.toString());
         }
     }
 

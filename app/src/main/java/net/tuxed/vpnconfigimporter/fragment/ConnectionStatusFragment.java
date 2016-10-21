@@ -124,7 +124,7 @@ public class ConnectionStatusFragment extends Fragment implements VPNService.Con
         super.onViewCreated(view, savedInstanceState);
         Instance provider = _preferencesService.getCurrentInstance();
         if (provider.getLogoUri() != null) {
-            Picasso.with(view.getContext()).load(provider.getLogoUri()).fit().into(_providerIcon);
+            Picasso.with(view.getContext()).load(provider.getLogoUri()).into(_providerIcon);
         }
         // Load the user and system messages asynchronously.
         DiscoveredAPI discoveredAPI = _preferencesService.getCurrentDiscoveredAPI();

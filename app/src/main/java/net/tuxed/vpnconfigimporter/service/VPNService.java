@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Handler;
 import android.os.IBinder;
+import android.support.annotation.NonNull;
 
 import net.tuxed.vpnconfigimporter.utils.Log;
 
@@ -131,7 +132,7 @@ public class VPNService extends Observable implements VpnStatus.StateListener {
      * @param activity   The current activity, required for providing a context.
      * @param vpnProfile The profile to connect to.
      */
-    public void connect(Activity activity, VpnProfile vpnProfile) {
+    public void connect(@NonNull Activity activity, @NonNull VpnProfile vpnProfile) {
         Log.i(TAG, String.format("Initiating connection with profile '%s'", vpnProfile.getUUIDString()));
         Intent intent = new Intent(activity, LaunchVPN.class);
         intent.putExtra(LaunchVPN.EXTRA_KEY, vpnProfile.getUUIDString());
@@ -235,6 +236,22 @@ public class VPNService extends Observable implements VpnStatus.StateListener {
                 }
             }
         });
+    }
+
+    /**
+     * Returns the profile with the given UUID.
+     *
+     * @param profileUUID The UUID of the profile.
+     * @return The profile if found, otherwise null.
+     */
+    public VpnProfile getProfileWithUUID(@NonNull String profileUUID) {
+        ProfileManager profileManager = ProfileManager.getInstance(_context);
+        for (VpnProfile vpnProfile : profileManager.getProfiles()) {
+            if (vpnProfile.getUUIDString().equals(profileUUID)) {
+                return vpnProfile;
+            }
+        }
+        return null;
     }
 
     /**
