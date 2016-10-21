@@ -16,7 +16,6 @@ import net.tuxed.vpnconfigimporter.MainActivity;
 import net.tuxed.vpnconfigimporter.R;
 import net.tuxed.vpnconfigimporter.adapter.SavedProfileAdapter;
 import net.tuxed.vpnconfigimporter.entity.DiscoveredAPI;
-import net.tuxed.vpnconfigimporter.entity.Profile;
 import net.tuxed.vpnconfigimporter.entity.SavedProfile;
 import net.tuxed.vpnconfigimporter.service.HistoryService;
 import net.tuxed.vpnconfigimporter.service.PreferencesService;
@@ -55,8 +54,8 @@ public class HomeFragment extends Fragment {
     @BindView(R.id.savedProfileList)
     protected RecyclerView _savedProfileList;
 
-    @BindView(R.id.hintText)
-    protected TextView _hintText;
+    @BindView(R.id.noProfilesYet)
+    protected TextView _noProfilesYet;
 
     private Unbinder _unbinder;
 
@@ -68,11 +67,11 @@ public class HomeFragment extends Fragment {
         EduVPNApplication.get(view.getContext()).component().inject(this);
         _savedProfileList.setLayoutManager(new LinearLayoutManager(view.getContext(), LinearLayoutManager.VERTICAL, false));
         List<SavedProfile> savedProfileList = _historyService.getSavedProfileList();
-        if (savedProfileList == null) {
-            _hintText.setVisibility(View.VISIBLE);
+        if (savedProfileList == null || savedProfileList.size() == 0) {
+            _noProfilesYet.setVisibility(View.VISIBLE);
             _savedProfileList.setVisibility(View.GONE);
         } else {
-            _hintText.setVisibility(View.GONE);
+            _noProfilesYet.setVisibility(View.GONE);
             _savedProfileList.setVisibility(View.VISIBLE);
             _savedProfileList.setAdapter(new SavedProfileAdapter(savedProfileList));
         }

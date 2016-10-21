@@ -166,7 +166,7 @@ public class ConnectProfileFragment extends Fragment {
                     _hintText.setVisibility(View.GONE);
                 } catch (SerializerService.UnknownFormatException ex) {
                     Log.e(TAG, "Error while serializing profile list!", ex);
-                    _displayError(ex.getMessage());
+                    _displayError(ex.toString());
                 }
             }
 

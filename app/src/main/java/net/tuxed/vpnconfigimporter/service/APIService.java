@@ -74,9 +74,9 @@ public class APIService {
                 try {
                     return _fetchJSON(url, useToken);
                 } catch (IOException e) {
-                    return e.getMessage();
+                    return e.toString();
                 } catch (JSONException e) {
-                    return e.getMessage();
+                    return e.toString();
                 }
             }
 
@@ -108,8 +108,8 @@ public class APIService {
             protected Object doInBackground(Void... params) {
                 try {
                     return _fetchByteResource(url, data, useToken);
-                } catch (IOException e) {
-                    return e.getMessage();
+                } catch (IOException ex) {
+                    return ex.toString();
                 }
             }
 

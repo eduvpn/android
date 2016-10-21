@@ -89,7 +89,7 @@ public class CustomProviderFragment extends Fragment {
                         dialog.dismiss();
                         _connectionService.initiateConnection(getActivity(), customProviderinstance, discoveredAPI);
                     } catch (SerializerService.UnknownFormatException ex) {
-                        ErrorDialog.show(getContext(), R.string.error_dialog_title, ex.getMessage());
+                        ErrorDialog.show(getContext(), R.string.error_dialog_title, getString(R.string.custom_api_discovery_error, ex.toString()));
                         Log.e(TAG, "Error while parsing discovered API", ex);
                         dialog.dismiss();
                     }
@@ -99,7 +99,7 @@ public class CustomProviderFragment extends Fragment {
                 public void onError(String errorMessage) {
                     dialog.dismiss();
                     Log.e(TAG, "Error fetching discovered API: " + errorMessage);
-                    ErrorDialog.show(getContext(), R.string.error_dialog_title, errorMessage);
+                    ErrorDialog.show(getContext(), R.string.error_dialog_title, getString(R.string.custom_api_discovery_error, errorMessage));
                 }
             });
         }

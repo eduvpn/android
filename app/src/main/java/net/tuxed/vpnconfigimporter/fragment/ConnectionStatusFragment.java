@@ -136,7 +136,7 @@ public class ConnectionStatusFragment extends Fragment implements VPNService.Con
                     List<Message> systemMessagesList = _serializerService.deserializeMessageList(result);
                     messagesAdapter.setSystemMessages(systemMessagesList);
                 } catch (SerializerService.UnknownFormatException ex) {
-                    ErrorDialog.show(getContext(), R.string.error_dialog_title, ex.getMessage());
+                    ErrorDialog.show(getContext(), R.string.error_dialog_title, ex.toString());
                 }
             }
 
@@ -154,7 +154,7 @@ public class ConnectionStatusFragment extends Fragment implements VPNService.Con
                     List<Message> userMessagesList = _serializerService.deserializeMessageList(result);
                     messagesAdapter.setUserMessages(userMessagesList);
                 } catch (SerializerService.UnknownFormatException ex) {
-                    ErrorDialog.show(getContext(), R.string.error_dialog_title, ex.getMessage());
+                    ErrorDialog.show(getContext(), R.string.error_dialog_title, ex.toString());
                 }
             }
 
