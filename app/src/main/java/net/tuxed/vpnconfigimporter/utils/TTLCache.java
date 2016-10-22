@@ -1,5 +1,7 @@
 package net.tuxed.vpnconfigimporter.utils;
 
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.util.Pair;
 
 import java.util.Collections;
@@ -48,7 +50,7 @@ public class TTLCache<T> {
      * @param key   The key to register the object by.
      * @param entry The value to store.
      */
-    public void put(String key, T entry) {
+    public void put(@NonNull String key, @NonNull T entry) {
         synchronized (_lock) {
             _entries.put(key, new Pair<>(new Date(), entry));
         }
@@ -59,6 +61,7 @@ public class TTLCache<T> {
      *
      * @return The entries stored in the cache. Only reading these values is allowed.
      */
+    @NonNull
     public Map<String, Pair<Date, T>> getEntries() {
         synchronized (_lock) {
             return Collections.unmodifiableMap(_entries);
@@ -71,7 +74,8 @@ public class TTLCache<T> {
      * @param key The key the value is inserted by.
      * @return The value if found, otherwise null.
      */
-    public T get(String key) {
+    @Nullable
+    public T get(@NonNull String key) {
         Pair<Date, T> result;
         synchronized (_lock) {
             result = _entries.get(key);
@@ -107,5 +111,16 @@ public class TTLCache<T> {
      */
     public long getPurgeAfterSeconds() {
         return _purgeAfterSeconds;
+    }
+
+    /**
+     * Removes the value for the key.
+     *
+     * @param sanitizedBaseURI The sanitized base URI of the provider.
+     */
+    public void remove(@NonNull String sanitizedBaseURI) {
+        synchronized (_lock) {
+            _entries.remove(sanitizedBaseURI);
+        }
     }
 }

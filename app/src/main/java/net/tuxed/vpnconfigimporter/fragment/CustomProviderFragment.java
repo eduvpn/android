@@ -79,7 +79,7 @@ public class CustomProviderFragment extends Fragment {
         String url = prefix + postfix;
         if (getActivity() != null) {
             final Instance customProviderInstance = _createCustomProviderInstance(getActivity(), url);
-            final ProgressDialog dialog = ProgressDialog.show(getContext(), getString(R.string.api_discovery_title), getString(R.string.api_discovery_message), true);
+            final ProgressDialog dialog = ProgressDialog.show(getContext(), getString(R.string.progress_dialog_title), getString(R.string.api_discovery_message), true);
             // Discover the API
             _apiService.getJSON(customProviderInstance.getSanitizedBaseURI() + API_DISCOVERY_POSTFIX, false, new APIService.Callback<JSONObject>() {
                 @Override
@@ -87,7 +87,7 @@ public class CustomProviderFragment extends Fragment {
                     try {
                         DiscoveredAPI discoveredAPI = _serializerService.deserializeDiscoveredAPI(result);
                         dialog.dismiss();
-                        _connectionService.initiateConnection(getActivity(), customProviderInstance, discoveredAPI, null);
+                        _connectionService.initiateConnection(getActivity(), customProviderInstance, discoveredAPI);
                     } catch (SerializerService.UnknownFormatException ex) {
                         ErrorDialog.show(getContext(), R.string.error_dialog_title, getString(R.string.custom_api_discovery_error, ex.toString()));
                         Log.e(TAG, "Error while parsing discovered API", ex);

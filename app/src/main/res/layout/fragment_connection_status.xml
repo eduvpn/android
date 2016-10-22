@@ -42,7 +42,7 @@
 
             <ImageView
                 android:id="@+id/connectionStatusIcon"
-                android:layout_width="wrap_content"
+                android:layout_width="64dp"
                 android:layout_height="@dimen/connection_status_details_row_height"
                 android:adjustViewBounds="true"
                 android:contentDescription="@string/content_description_connection_status_icon"
@@ -64,7 +64,7 @@
 
             <ImageView
                 android:id="@+id/providerIcon"
-                android:layout_width="wrap_content"
+                android:layout_width="64dp"
                 android:layout_height="@dimen/connection_status_details_row_height"
                 android:adjustViewBounds="true"
                 android:contentDescription="@string/content_description_provider_icon"
@@ -151,5 +151,6 @@
         android:layout_centerHorizontal="true"
         android:layout_marginBottom="@dimen/button_margin_bottom"
         android:layout_marginTop="12dp"
+        android:enabled="false"
         android:text="@string/button_disconnect"/>
 </RelativeLayout>

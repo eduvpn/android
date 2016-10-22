@@ -9,8 +9,8 @@
 
     <ImageView
         android:id="@+id/messageIcon"
-        android:layout_width="wrap_content"
-        android:layout_height="@dimen/list_item_provider_icon_size"
+        android:layout_width="@dimen/list_item_icon_width"
+        android:layout_height="@dimen/list_item_icon_height"
         android:layout_alignParentTop="true"
         android:layout_marginLeft="8dp"
         android:layout_marginTop="12dp"

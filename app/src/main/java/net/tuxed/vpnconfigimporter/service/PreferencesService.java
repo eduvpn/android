@@ -39,8 +39,6 @@ public class PreferencesService {
     private static final String KEY_SAVED_TOKENS = "saved_tokens";
     private static final String KEY_DISCOVERED_API_CACHE = "discovered_api_cache";
 
-    private static final String KEY_AUTOCONNECT_UUID = "autoconnect_uuid";
-
     private Context _context;
     private SerializerService _serializerService;
 
@@ -313,33 +311,5 @@ public class PreferencesService {
         } catch (SerializerService.UnknownFormatException ex) {
             Log.e(TAG, "Can not save discovered API cache.", ex);
         }
-    }
-
-    /**
-     * Stores the VPN profile UUID the app should connect to when the login has happened.
-     * Only set this when the user has clicked on a profile to connect, and has to login.
-     * So after the login he gets to the connection screen immediately.
-     *
-     * @param uuid The UUID of the saved profile.
-     */
-    public void storeAutoConnectUUID(@NonNull String uuid) {
-        _getSharedPreferences().edit().putString(KEY_AUTOCONNECT_UUID, uuid).apply();
-    }
-
-    /**
-     * Removes the auto connect profile UUID.
-     */
-    public void removeAutoConnectUUID() {
-        _getSharedPreferences().edit().remove(KEY_AUTOCONNECT_UUID).apply();
-    }
-
-    /**
-     * Returns the auto connect profile UUID key.
-     *
-     * @return The UUID of the profile the app should connect to after the login immediately.
-     * Do not forget to remove this, otherwise there will be some unexpected connections :)
-     */
-    public String getAutoConnectUUID() {
-        return _getSharedPreferences().getString(KEY_AUTOCONNECT_UUID, null);
     }
 }

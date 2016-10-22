@@ -11,6 +11,7 @@ import net.tuxed.vpnconfigimporter.utils.TTLCache;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -167,6 +168,32 @@ public class HistoryService {
      */
     public void removeSavedProfile(@NonNull SavedProfile savedProfile) {
         _savedProfileList.remove(savedProfile);
+        _save();
+    }
+
+    /**
+     * Removes the access token(s) which have the given base URI.
+     *
+     * @param sanitizedBaseURI The sanitizied base URI of the provider.
+     */
+    public void removeAccessTokens(@NonNull String sanitizedBaseURI) {
+        Iterator<SavedToken> savedTokenIterator = _savedTokenList.iterator();
+        while (savedTokenIterator.hasNext()) {
+            SavedToken savedToken = savedTokenIterator.next();
+            if (savedToken.getBaseURI().equals(sanitizedBaseURI)) {
+                savedTokenIterator.remove();
+            }
+        }
+        _save();
+    }
+
+    /**
+     * Removes a discovered API based on the provider.
+     *
+     * @param sanitizedBaseURI The sanitized base URI of the provider.
+     */
+    public void removeDiscoveredAPI(@NonNull String sanitizedBaseURI) {
+        _discoveredAPICache.remove(sanitizedBaseURI);
         _save();
     }
 }

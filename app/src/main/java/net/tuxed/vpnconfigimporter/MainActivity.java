@@ -70,21 +70,16 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
         try {
-            String autoConnectProfile = _connectionService.parseCallbackIntent(intent);
+            _connectionService.parseCallbackIntent(intent);
             // Remove it so we don't parse it again.
             intent.setData(null);
-            if (autoConnectProfile != null ){
-                // User tried to connect, but had to log in.
-                // Continue with connecting to the profile.
-                _vpnService.getProfileWithUUID(autoConnectProfile);
-            } else {
-                // Show the home fragment, so the user can select his new config(s)
-                openFragment(new HomeFragment(), false);
-                Toast.makeText(this, R.string.provider_added_new_configs_available, Toast.LENGTH_LONG).show();
-            }
+            // Show the home fragment, so the user can select his new config(s)
+            openFragment(new HomeFragment(), false);
+            Toast.makeText(this, R.string.provider_added_new_configs_available, Toast.LENGTH_LONG).show();
         } catch (ConnectionService.InvalidConnectionAttemptException ex) {
-            ErrorDialog.show(this, R.string.error_dialog_title, ex.toString());
+            ErrorDialog.show(this, R.string.error_dialog_title, ex.getMessage());
         }
+
     }
 
     @Override

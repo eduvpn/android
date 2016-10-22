@@ -12,6 +12,7 @@ import org.json.JSONObject;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
@@ -27,13 +28,20 @@ import java.util.concurrent.TimeUnit;
  */
 public class APIService {
 
+    public class UserNotAuthorizedException extends Exception {
+    }
+
     private static final String TAG = APIService.class.getName();
+
+    public static final String USER_NOT_AUTHORIZED_ERROR = "User not authorized.";
 
     private static final int CONNECT_TIMEOUT_MS = 10000;
     private static final int READ_TIMEOUT_MS = 20000;
     private static final int READ_BLOCK_SIZE = 16 * 1024;
 
     private static final String HEADER_AUTHORIZATION = "Authorization";
+
+    private static final int STATUS_CODE_UNAUTHORIZED = 401;
 
     private static final int CONFIG_MAX_THREAD_POOL_SIZE = 16;
     private static final ThreadPoolExecutor EXECUTOR =
@@ -87,11 +95,23 @@ public class APIService {
                     if (params != null && params.length == 1) {
                         accessTokenParam = params[0];
                     }
-                    return _fetchJSON(url, accessTokenParam);
-                } catch (IOException e) {
-                    return e.toString();
-                } catch (JSONException e) {
-                    return e.toString();
+                    // We do a retry once.
+                    try {
+                        return _fetchJSON(url, accessTokenParam);
+                    } catch (Exception ex) {
+                        if (ex instanceof UserNotAuthorizedException) {
+                            throw ex;
+                        }
+                        return _fetchJSON(url, accessTokenParam);
+                    }
+                } catch (FileNotFoundException ex) {
+                    return "URL not found: " + url;
+                } catch (IOException ex) {
+                    return ex.toString();
+                } catch (JSONException ex) {
+                    return ex.toString();
+                } catch (UserNotAuthorizedException ex) {
+                    return USER_NOT_AUTHORIZED_ERROR;
                 }
             }
 
@@ -130,9 +150,19 @@ public class APIService {
                     if (params != null && params.length == 1) {
                         accessTokenParam = params[0];
                     }
-                    return _fetchByteResource(url, data, accessTokenParam);
+                    // We do a retry once.
+                    try {
+                        return _fetchByteResource(url, data, accessTokenParam);
+                    } catch (Exception ex) {
+                        if (ex instanceof UserNotAuthorizedException) {
+                            throw ex;
+                        }
+                        return _fetchByteResource(url, data, accessTokenParam);
+                    }
                 } catch (IOException ex) {
                     return ex.toString();
+                } catch (UserNotAuthorizedException ex) {
+                    return USER_NOT_AUTHORIZED_ERROR;
                 }
             }
 
@@ -159,7 +189,7 @@ public class APIService {
      * @return The result as a byte array.
      * @throws IOException Thrown if there was a problem creating the connection.
      */
-    private byte[] _fetchByteResource(@NonNull String url, @Nullable String requestData, @Nullable String accessToken) throws IOException {
+    private byte[] _fetchByteResource(@NonNull String url, @Nullable String requestData, @Nullable String accessToken) throws IOException, UserNotAuthorizedException {
         HttpURLConnection urlConnection = _createConnection(url, accessToken);
         urlConnection.setRequestMethod("POST");
         if (requestData != null) {
@@ -168,6 +198,10 @@ public class APIService {
             out.flush();
         }
         urlConnection.connect();
+        int statusCode = urlConnection.getResponseCode();
+        if (statusCode == STATUS_CODE_UNAUTHORIZED) {
+            throw new UserNotAuthorizedException();
+        }
         // Get the body of the response
         ByteArrayOutputStream buffer = new ByteArrayOutputStream();
         int bytesRead;
@@ -176,7 +210,6 @@ public class APIService {
             buffer.write(data, 0, bytesRead);
         }
         byte[] result = buffer.toByteArray();
-        int statusCode = urlConnection.getResponseCode();
         Log.d(TAG, "POST " + url + " data: '" + requestData + "': " + new String(result));
         if (statusCode >= 200 && statusCode <= 299) {
             return result;
@@ -213,11 +246,16 @@ public class APIService {
      * @throws IOException   Thrown if there was a problem while connecting.
      * @throws JSONException Thrown if the returned JSON was invalid or not a JSON at all.
      */
-    private JSONObject _fetchJSON(@NonNull String url, @Nullable String accessToken) throws IOException, JSONException {
+    private JSONObject _fetchJSON(@NonNull String url, @Nullable String accessToken) throws IOException, JSONException, UserNotAuthorizedException {
         HttpURLConnection urlConnection = _createConnection(url, accessToken);
         urlConnection.connect();
+        int statusCode = urlConnection.getResponseCode();
+        if (statusCode == STATUS_CODE_UNAUTHORIZED) {
+            throw new UserNotAuthorizedException();
+        }
         // Get the body of the response
-        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));
+        BufferedReader bufferedReader;
+        bufferedReader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));
         StringBuilder stringBuilder = new StringBuilder();
         String line;
         while ((line = bufferedReader.readLine()) != null) {
@@ -225,7 +263,6 @@ public class APIService {
         }
         bufferedReader.close();
         String responseString = stringBuilder.toString();
-        int statusCode = urlConnection.getResponseCode();
         Log.d(TAG, "GET " + url + ": " + responseString);
         if (statusCode >= 200 && statusCode <= 299) {
             return new JSONObject(responseString);

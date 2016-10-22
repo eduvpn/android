@@ -107,25 +107,16 @@ public class ProviderSelectionFragment extends Fragment {
      * @param instance The instance to connect to.
      */
     private void _connectToApi(final Instance instance) {
-        // If there's a saved access token and a discovered API, continue immediately to the config selector.
-        String savedToken = _historyService.getCachedAccessToken(instance.getSanitizedBaseURI());
         DiscoveredAPI discoveredAPI = _historyService.getCachedDiscoveredAPI(instance.getSanitizedBaseURI());
-        if (savedToken != null && discoveredAPI != null) {
-            _preferencesService.currentInstance(instance);
-            _preferencesService.currentDiscoveredAPI(discoveredAPI);
-            _connectionService.setAccessToken(savedToken);
-            // TODO test the access token
-            return;
-        }
         // If there's only a discovered API, initiate the connection
         if (discoveredAPI != null) {
             Log.d(TAG, "Cached discovered API found.");
-            _connectionService.initiateConnection(getActivity(), instance, discoveredAPI, null);
+            _connectionService.initiateConnection(getActivity(), instance, discoveredAPI);
             return;
         }
         // If no discovered API, fetch it first, then initiate the connection for the login
         Log.d(TAG, "No cached discovered API found, continuing with discovery.");
-        final ProgressDialog dialog = ProgressDialog.show(getContext(), getString(R.string.api_discovery_title), getString(R.string.api_discovery_message), true);
+        final ProgressDialog dialog = ProgressDialog.show(getContext(), getString(R.string.progress_dialog_title), getString(R.string.api_discovery_message), true);
         // Discover the API
         _apiService.getJSON(instance.getSanitizedBaseURI() + Constants.API_DISCOVERY_POSTFIX, false, new APIService.Callback<JSONObject>() {
             @Override
@@ -135,7 +126,7 @@ public class ProviderSelectionFragment extends Fragment {
                     dialog.dismiss();
                     // Cache the result
                     _historyService.cacheDiscoveredAPI(instance.getSanitizedBaseURI(), discoveredAPI);
-                    _connectionService.initiateConnection(getActivity(), instance, discoveredAPI, null);
+                    _connectionService.initiateConnection(getActivity(), instance, discoveredAPI);
                 } catch (SerializerService.UnknownFormatException ex) {
                     Log.e(TAG, "Error parsing discovered API!",  ex);
                     ErrorDialog.show(getContext(), R.string.error_dialog_title, ex.toString());

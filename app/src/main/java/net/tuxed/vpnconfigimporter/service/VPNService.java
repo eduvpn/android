@@ -77,20 +77,6 @@ public class VPNService extends Observable implements VpnStatus.StateListener {
         }
     };
 
-
-    public void onCreate(Activity activity) {
-        OpenVPNService.setNotificationActivityClass(activity.getClass());
-        VpnStatus.addStateListener(this);
-        Intent intent = new Intent(activity, OpenVPNService.class);
-        intent.setAction(OpenVPNService.START_SERVICE);
-        activity.bindService(intent, _serviceConnection, Context.BIND_AUTO_CREATE);
-    }
-
-    public void onDestroy(Activity activity) {
-        activity.unbindService(_serviceConnection);
-        VpnStatus.removeStateListener(this);
-    }
-
     /**
      * Constructor.
      *
@@ -100,6 +86,20 @@ public class VPNService extends Observable implements VpnStatus.StateListener {
         _context = context;
     }
 
+
+    public void onCreate(@NonNull Activity activity) {
+        OpenVPNService.setNotificationActivityClass(activity.getClass());
+        VpnStatus.addStateListener(this);
+        Intent intent = new Intent(activity, OpenVPNService.class);
+        intent.setAction(OpenVPNService.START_SERVICE);
+        activity.bindService(intent, _serviceConnection, Context.BIND_AUTO_CREATE);
+    }
+
+    public void onDestroy(@NonNull Activity activity) {
+        activity.unbindService(_serviceConnection);
+        VpnStatus.removeStateListener(this);
+    }
+
     /**
      * Imports a config which is represented by a string.
      *
@@ -107,6 +107,7 @@ public class VPNService extends Observable implements VpnStatus.StateListener {
      * @param preferredName The preferred name for the config.
      * @return True if the import was successful, false if it failed.
      */
+    @Nullable
     public VpnProfile importConfig(String configString, String preferredName) {
         ConfigParser configParser = new ConfigParser();
         try {
@@ -142,6 +143,9 @@ public class VPNService extends Observable implements VpnStatus.StateListener {
         activity.startActivity(intent);
     }
 
+    /**
+     * Disconnects the current VPN connection.
+     */
     public void disconnect() {
         _openVPNService.getManagement().stopVPN(false);
         // Reset all statistics

@@ -24,6 +24,7 @@ import net.tuxed.vpnconfigimporter.adapter.ProfileAdapter;
 import net.tuxed.vpnconfigimporter.entity.DiscoveredAPI;
 import net.tuxed.vpnconfigimporter.entity.Instance;
 import net.tuxed.vpnconfigimporter.entity.Profile;
+import net.tuxed.vpnconfigimporter.entity.SavedProfile;
 import net.tuxed.vpnconfigimporter.service.APIService;
 import net.tuxed.vpnconfigimporter.service.ConfigurationService;
 import net.tuxed.vpnconfigimporter.service.ConnectionService;
@@ -98,7 +99,6 @@ public class HomeFragment extends Fragment {
 
     private Unbinder _unbinder;
 
-
     private int _pendingInstanceCount;
     private List<String> _warnings;
 
@@ -110,11 +110,13 @@ public class HomeFragment extends Fragment {
         EduVPNApplication.get(view.getContext()).component().inject(this);
         _profileList.setLayoutManager(new LinearLayoutManager(view.getContext(), LinearLayoutManager.VERTICAL, false));
         List<Instance> availableInstances = _configurationService.getInstanceList().getInstanceList();
-        List<Pair<Instance, String>> instanceAccessTokenPairs = _pairTokensWithInstances(availableInstances);
+        final List<Pair<Instance, String>> instanceAccessTokenPairs = _pairTokensWithInstances(availableInstances);
         if (instanceAccessTokenPairs.size() == 0) {
+            _loadingBar.setVisibility(View.GONE);
             _noProvidersYet.setVisibility(View.VISIBLE);
             _profileList.setVisibility(View.GONE);
         } else {
+            _loadingBar.setVisibility(View.VISIBLE);
             _noProvidersYet.setVisibility(View.GONE);
             _profileList.setVisibility(View.VISIBLE);
             ProfileAdapter adapter = new ProfileAdapter(null);
@@ -125,44 +127,46 @@ public class HomeFragment extends Fragment {
         ItemClickSupport.addTo(_profileList).setOnItemClickListener(new ItemClickSupport.OnItemClickListener() {
             @Override
             public void onItemClicked(RecyclerView recyclerView, int position, View v) {
-                /**
-                 SavedProfileAdapter adapter = (SavedProfileAdapter)recyclerView.getAdapter();
-                 SavedProfile savedProfile = adapter.getItem(position);
-                 String profileUUID = savedProfile.getProfileUUID();
-                 VpnProfile selectedProfile= _vpnService.getProfileWithUUID(profileUUID);
-                 if (selectedProfile != null) {
-                 _preferencesService.currentInstance(savedProfile.getInstance());
-                 _preferencesService.currentProfile(savedProfile.getProfile());
-                 // In the optimal case, we have an access token and a discovered API
-                 String accessToken = _historyService.getCachedAccessToken(savedProfile.getInstance().getSanitizedBaseURI());
-                 DiscoveredAPI discoveredAPI = _historyService.getCachedDiscoveredAPI(savedProfile.getInstance().getSanitizedBaseURI());
-                 if (accessToken != null && discoveredAPI != null) {
-                 _preferencesService.currentAccessToken(accessToken);
-                 _preferencesService.currentDiscoveredAPI(discoveredAPI);
-                 _vpnService.connect(getActivity(), selectedProfile);
-                 ((MainActivity)getActivity()).openFragment(new ConnectionStatusFragment(), false);
-                 return;
-                 }
-                 // Better case: we have a token, but no discovered API.
-                 // We just have to discover it, and then connect.
-                 if (accessToken != null) {
-                 _preferencesService.currentAccessToken(accessToken);
-                 _discoverAPIAndThenConnectOrLogin(savedProfile.getInstance(), selectedProfile, null);
-                 return;
-                 }
-                 // Worse case: no token
-                 _discoverAPIAndThenConnectOrLogin(savedProfile.getInstance(), null, savedProfile.getProfileUUID());
-                 } else {
-                 // This should not happen though.
-                 ErrorDialog.show(getContext(), R.string.error_dialog_title, R.string.selected_profile_does_not_exist);
-                 // Remove it
-                 _historyService.removeSavedProfile(savedProfile);
-                 }**/
+                ProfileAdapter adapter = (ProfileAdapter)recyclerView.getAdapter();
+                Pair<Instance, Profile> instanceProfilePair = adapter.getItem(position);
+                // We surely have a discovered API and access token, since we just loaded the list with them
+                Instance instance = instanceProfilePair.first;
+                Profile profile = instanceProfilePair.second;
+                DiscoveredAPI discoveredAPI = _historyService.getCachedDiscoveredAPI(instance.getSanitizedBaseURI());
+                String accessToken = _historyService.getCachedAccessToken(instance.getSanitizedBaseURI());
+                if (discoveredAPI == null || accessToken == null) {
+                    ErrorDialog.show(getContext(), R.string.error_dialog_title, R.string.cant_connect_application_state_missing);
+                    return;
+                }
+                _preferencesService.currentInstance(instance);
+                _preferencesService.currentDiscoveredAPI(discoveredAPI);
+                _preferencesService.currentProfile(profile);
+                _connectionService.setAccessToken(accessToken);
+                // In case we already have a downloaded profile, connect to it right away.
+                SavedProfile savedProfile = _historyService.getCachedSavedProfile(instance.getSanitizedBaseURI(), profile.getProfileId());
+                if (savedProfile != null) {
+                    String profileUUID = savedProfile.getProfileUUID();
+                    VpnProfile vpnProfile = _vpnService.getProfileWithUUID(profileUUID);
+                    if (vpnProfile != null) {
+                        // Profile found, connecting
+                        _vpnService.connect(getActivity(), vpnProfile);
+                        ((MainActivity)getActivity()).openFragment(new ConnectionStatusFragment(), false);
+                        return;
+                    } else {
+                        Log.e(TAG, "Profile is not saved even it was marked as one!");
+                        _historyService.removeSavedProfile(savedProfile);
+                        // Continue with downloading the profile
+                    }
+                }
+                // Ok so we don't have a downloaded profile, we need to download one
+                _downloadProfileAndConnect(instance, discoveredAPI, profile);
             }
         });
         ItemClickSupport.addTo(_profileList).setOnItemLongClickListener(new ItemClickSupport.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClicked(RecyclerView recyclerView, int position, View v) {
+                // On long click we show the full name in a toast
+                // Is useful when the names don't fit too well.
                 ProfileAdapter adapter = (ProfileAdapter)recyclerView.getAdapter();
                 Pair<Instance, Profile> instanceProfilePair = adapter.getItem(position);
                 Toast.makeText(
@@ -181,6 +185,12 @@ public class HomeFragment extends Fragment {
         _unbinder.unbind();
     }
 
+    /**
+     * Pairs the instances with their access tokens.
+     *
+     * @param availableInstances The instances available to the user.
+     * @return The list of instances with their tokens. If an instance does not have a token, it will not be in the list.
+     */
     private List<Pair<Instance, String>> _pairTokensWithInstances(List<Instance> availableInstances) {
         List<Pair<Instance, String>> result = new ArrayList<>();
         for (Instance instance : availableInstances) {
@@ -193,6 +203,15 @@ public class HomeFragment extends Fragment {
     }
 
 
+    /**
+     * Starts fetching the list of profiles to be displayed.
+     * This will be done from multiple APIs and loaded asynchronously.
+     * While the list is still filling, a loading indicator is shown. When all resources were downloaded,
+     * indicator will be hidden.
+     *
+     * @param adapter                  The adapter to show the profiles in.
+     * @param instanceAccessTokenPairs Each instance & access token pair.
+     */
     private void _fillList(final ProfileAdapter adapter, List<Pair<Instance, String>> instanceAccessTokenPairs) {
         _pendingInstanceCount = instanceAccessTokenPairs.size();
         _warnings = new ArrayList<>();
@@ -204,33 +223,44 @@ public class HomeFragment extends Fragment {
                 // We got everything, fetch the available profiles.
                 _fetchProfileList(adapter, instance, discoveredAPI, accessToken);
             } else {
-                _apiService.getJSON(instance.getSanitizedBaseURI() + Constants.API_DISCOVERY_POSTFIX, false, new APIService.Callback<JSONObject>() {
-                    @Override
-                    public void onSuccess(JSONObject result) {
-                        try {
-                            DiscoveredAPI discoveredAPI = _serializerService.deserializeDiscoveredAPI(result);
-                            // Cache the result
-                            _historyService.cacheDiscoveredAPI(instance.getSanitizedBaseURI(), discoveredAPI);
-                            _fetchProfileList(adapter, instance, discoveredAPI, accessToken);
-                        } catch (SerializerService.UnknownFormatException ex) {
-                            Log.e(TAG, "Error parsing discovered API!", ex);
-                            _warnings.add(getString(R.string.api_discovery_failed, instance.getDisplayName()));
-                            _checkLoadingFinished();
-                        }
-                    }
+                _apiService.getJSON(instance.getSanitizedBaseURI() + Constants.API_DISCOVERY_POSTFIX,
+                        false,
+                        new APIService.Callback<JSONObject>() {
+                            @Override
+                            public void onSuccess(JSONObject result) {
+                                try {
+                                    DiscoveredAPI discoveredAPI = _serializerService.deserializeDiscoveredAPI(result);
+                                    // Cache the result
+                                    _historyService.cacheDiscoveredAPI(instance.getSanitizedBaseURI(), discoveredAPI);
+                                    _fetchProfileList(adapter, instance, discoveredAPI, accessToken);
+                                } catch (SerializerService.UnknownFormatException ex) {
+                                    Log.e(TAG, "Error parsing discovered API!", ex);
+                                    _warnings.add(getString(R.string.api_discovery_failed, instance.getDisplayName()));
+                                    _checkLoadingFinished();
+                                }
+                            }
 
-                    @Override
-                    public void onError(String errorMessage) {
-                        Log.e(TAG, "Error while fetching discovered API: " + errorMessage);
-                        _warnings.add(getString(R.string.api_discovery_failed, instance.getDisplayName()));
-                        _checkLoadingFinished();
-                    }
-                });
+                            @Override
+                            public void onError(String errorMessage) {
+                                Log.e(TAG, "Error while fetching discovered API: " + errorMessage);
+                                _warnings.add(getString(R.string.api_discovery_failed, instance.getDisplayName()));
+                                _checkLoadingFinished();
+                            }
+                        });
             }
         }
     }
 
-    private void _fetchProfileList(final ProfileAdapter adapter, final Instance instance, DiscoveredAPI discoveredAPI, String accessToken) {
+    /**
+     * Starts downloading the list of profiles for a single VPN provider.
+     *
+     * @param adapter       The adapter to download the data into.
+     * @param instance      The VPN provider instance.
+     * @param discoveredAPI The discovered API containing the URLs.
+     * @param accessToken   The access token for the API.
+     */
+    private void _fetchProfileList(@NonNull final ProfileAdapter adapter, @NonNull final Instance instance,
+                                   @NonNull DiscoveredAPI discoveredAPI, @NonNull String accessToken) {
         _connectionService.setAccessToken(accessToken);
         _apiService.getJSON(discoveredAPI.getProfileListAPI(), true, new APIService.Callback<JSONObject>() {
             @Override
@@ -253,14 +283,29 @@ public class HomeFragment extends Fragment {
             public void onError(String errorMessage) {
                 _warnings.add(getString(R.string.unable_to_fetch_profiles, instance.getDisplayName()));
                 Log.e(TAG, "Error fetching profile list: " + errorMessage);
+                if (APIService.USER_NOT_AUTHORIZED_ERROR.equals(errorMessage)) {
+                    // Token is not valid anymore.
+                    _historyService.removeAccessTokens(instance.getSanitizedBaseURI());
+                    _historyService.removeDiscoveredAPI(instance.getSanitizedBaseURI());
+                    Log.e(TAG, "API returned unauthorized error, removed cache for provider.");
+                }
                 _checkLoadingFinished();
             }
         });
     }
 
-    private void _checkLoadingFinished() {
+    /**
+     * Checks if the loading has finished.
+     * If yes, it hides the loading animation.
+     * If there were any errors, it will display a warning bar as well.
+     */
+    private synchronized void _checkLoadingFinished() {
         _pendingInstanceCount--;
         if (_pendingInstanceCount == 0 && _warnings.size() == 0) {
+            if (_loadingBar == null) {
+                Log.w(TAG, "Layout has been destroyed already.");
+                return;
+            }
             float startHeight = _loadingBar.getHeight();
             ValueAnimator animator = ValueAnimator.ofFloat(startHeight, 0);
             animator.setDuration(600);
@@ -295,20 +340,63 @@ public class HomeFragment extends Fragment {
         }
     }
 
-
     /**
-     * Discovers the API, and then immediately connects using the VPN profile. Discovering the API is required because we
-     * need the URLs to the messages API.
+     * Downloads a VPN profile and connects to it if all went well.
      *
-     * @param instance        The provider to discover.
-     * @param selectedProfile The profile to connect to on success.
+     * @param instance      The VPN provider.
+     * @param discoveredAPI The discovered API.
+     * @param profile       The profile to download.
      */
-    private void _discoverAPIAndThenConnectOrLogin(@NonNull final Instance instance, @Nullable final VpnProfile selectedProfile, @Nullable final String profileUUID) {
-        final ProgressDialog dialog = ProgressDialog.show(getContext(), getString(R.string.api_discovery_title), getString(R.string.api_discovery_message), true);
+    private void _downloadProfileAndConnect(@NonNull final Instance instance, @NonNull DiscoveredAPI discoveredAPI, @NonNull final Profile profile) {
+        final ProgressDialog dialog = ProgressDialog.show(getContext(),
+                getString(R.string.progress_dialog_title),
+                getString(R.string.vpn_profile_download_message),
+                true,
+                false);
+        String uniqueName = "Android_" + System.currentTimeMillis() / 1000L;
+        String requestData = "config_name=" + uniqueName + "&profile_id=" + profile.getProfileId();
+        String url = discoveredAPI.getCreateConfigAPI();
+        _apiService.postResource(url, requestData, true, new APIService.Callback<byte[]>() {
+
+            @Override
+            public void onSuccess(byte[] result) {
+                String vpnConfig = new String(result);
+                String configName = FormattingUtils.formatVPNProfileName(getContext(), instance, profile);
+                VpnProfile vpnProfile = _vpnService.importConfig(vpnConfig, configName);
+                if (vpnProfile != null && getActivity() != null) {
+                    // Cache the profile
+                    SavedProfile savedProfile = new SavedProfile(instance, profile, vpnProfile.getUUIDString());
+                    _historyService.cacheSavedProfile(savedProfile);
+                    // Connect with the profile
+                    dialog.dismiss();
+                    _vpnService.connect(getActivity(), vpnProfile);
+                    ((MainActivity)getActivity()).openFragment(new ConnectionStatusFragment(), false);
+                } else {
+                    dialog.dismiss();
+                    ErrorDialog.show(getContext(), R.string.error_dialog_title, R.string.error_importing_profile);
+                }
+            }
+
+            @Override
+            public void onError(String errorMessage) {
+                dialog.dismiss();
+                ErrorDialog.show(getContext(), R.string.error_dialog_title, getString(R.string.error_fetching_profile, errorMessage));
+                Log.e(TAG, "Error fetching profile: " + errorMessage);
+                if (errorMessage.equals(APIService.USER_NOT_AUTHORIZED_ERROR)) {
+                    // Token is not valid anymore.
+                    _historyService.removeAccessTokens(instance.getSanitizedBaseURI());
+                    _historyService.removeDiscoveredAPI(instance.getSanitizedBaseURI());
+                    Log.e(TAG, "API returned unauthorized error, removed cache for provider.");
+                }
+            }
+        });
     }
 
+    /**
+     * Called when the user clicks on the 'Add Provider' button.
+     */
     @OnClick(R.id.addProvider)
-    public void onAddProviderClicked() {
+    protected void onAddProviderClicked() {
         ((MainActivity)getActivity()).openFragment(new ProviderSelectionFragment(), true);
     }
 }

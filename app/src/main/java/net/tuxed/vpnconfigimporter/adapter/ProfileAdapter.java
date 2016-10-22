@@ -81,6 +81,7 @@ public class ProfileAdapter extends RecyclerView.Adapter<ProfileViewHolder> {
                     .load(instanceProfilePair.first.getLogoUri())
                     .placeholder(R.drawable.vpn_icon)
                     .fit()
+                    .noFade()
                     .into(holder.providerIcon);
         } else {
             holder.providerIcon.setImageResource(R.drawable.vpn_icon);

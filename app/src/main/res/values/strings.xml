@@ -23,10 +23,11 @@
     <string name="custom_provider_connect">Connect</string>
     <string name="connect_to_vpn_title">Connect to VPN</string>
     <string name="custom_provider_display_name">Custom provider</string>
-    <string name="loading_profiles">Loading profiles...</string>
+    <string name="loading_profiles">Loading profiles…</string>
     <string name="error_loading_profiles">Error loading profiles.</string>
-    <string name="downloading_profile">Downloading profile...</string>
+    <string name="downloading_profile">Downloading profile…</string>
     <string name="error_importing_profile">Error importing profile.</string>
+    <string name="error_fetching_profile">Error fetching profile. Details: %s</string>
     <string name="vpn_connection_status_title">VPN connection</string>
     <string name="connection_label_status">Status</string>
     <string name="connection_label_provider">Provider</string>
@@ -52,8 +53,10 @@
     <string name="traffic_kilobytes">%s KB</string>
     <string name="traffic_megabytes">%s MB</string>
     <string name="traffic_gigabytes">%s GB</string>
-    <string name="api_discovery_message">Discovering API...</string>
-    <string name="api_discovery_title">Just a sec</string>
+
+    <string name="progress_dialog_title">Just a sec</string>
+    <string name="api_discovery_message">Discovering API…</string>
+    <string name="vpn_profile_download_message">Downloading VPN profile…</string>
     <string name="display_other_name">Use a custom provider</string>
     <string name="maintenance_message">The VPN service will be under maintenance starting from %1$s until %2$s.</string>
     <string name="error_loading_system_messages">Unable to load system messages: %s</string>
@@ -77,9 +80,12 @@
     <string name="content_description_application_logo">Application logo</string>
     <string name="content_description_surfnet_logo">SURFnet logo</string>
     <string name="content_description_settings_button">Settings button</string>
-    <string name="loading_available_profiles">Loading available profiles...</string>
+    <string name="loading_available_profiles">Loading available profiles…</string>
     <string name="api_discovery_failed">API discovery failed for the following provider: %s</string>
     <string name="unable_to_fetch_profiles">Unable to fetch profiles from provider: %s</string>
     <string name="could_not_fetch_all_profiles">Could not fetch all profiles.</string>
     <string name="warnings_list">Resources missing</string>
+    <string name="cant_connect_application_state_missing">Can\'t connect, application state is missing.</string>
+    <string name="callback_error">Callback error: %s</string>
+    <string name="rejected_permission">User rejected access for the app.</string>
 </resources>

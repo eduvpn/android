@@ -9,6 +9,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -102,8 +103,11 @@ public class ConnectionStatusFragment extends Fragment implements VPNService.Con
     @BindView(R.id.bytesOutValue)
     protected TextView _bytesOutText;
 
+    @BindView(R.id.disconnectButton)
+    protected Button _disconnectButton;
+
     private Observer _vpnStatusObserver;
-        private Screen _currentScreen = Screen.NOTIFICATIONS;
+    private Screen _currentScreen = Screen.NOTIFICATIONS;
     private Unbinder _unbinder;
 
     @Nullable
@@ -124,11 +128,14 @@ public class ConnectionStatusFragment extends Fragment implements VPNService.Con
         super.onViewCreated(view, savedInstanceState);
         Instance provider = _preferencesService.getCurrentInstance();
         if (provider.getLogoUri() != null) {
-            Picasso.with(view.getContext()).load(provider.getLogoUri()).into(_providerIcon);
+            Picasso.with(view.getContext())
+                    .load(provider.getLogoUri())
+                    .fit()
+                    .into(_providerIcon);
         }
         // Load the user and system messages asynchronously.
         DiscoveredAPI discoveredAPI = _preferencesService.getCurrentDiscoveredAPI();
-        final MessagesAdapter messagesAdapter= (MessagesAdapter)_messagesList.getAdapter();
+        final MessagesAdapter messagesAdapter = (MessagesAdapter)_messagesList.getAdapter();
         _apiService.getJSON(discoveredAPI.getSystemMessagesAPI(), true, new APIService.Callback<JSONObject>() {
             @Override
             public void onSuccess(JSONObject result) {
@@ -177,16 +184,21 @@ public class ConnectionStatusFragment extends Fragment implements VPNService.Con
                 if (_currentStatusIcon != null) {
                     switch (status) {
                         case CONNECTED:
+                            _disconnectButton.setEnabled(true);
                             _currentStatusIcon.setImageResource(R.drawable.connection_status_connected);
                             break;
                         case CONNECTING:
+                            _disconnectButton.setEnabled(false);
                             _currentStatusIcon.setImageResource(R.drawable.connection_status_connecting);
                             break;
                         case PAUSED:
+                            _disconnectButton.setEnabled(true);
                             _currentStatusIcon.setImageResource(R.drawable.connection_status_paused);
                             break;
                         case DISCONNECTED:
-                            _currentStatusIcon.setImageResource(R.drawable.connection_status_disconnected);
+                            // Go back to the home screen.
+                            _disconnectButton.setEnabled(false);
+                            ((MainActivity)getActivity()).openFragment(new HomeFragment(), false);
                             break;
                         default:
                             throw new RuntimeException("Unhandled VPN status!");
@@ -239,9 +251,9 @@ public class ConnectionStatusFragment extends Fragment implements VPNService.Con
 
     @OnClick(R.id.disconnectButton)
     protected void onDisconnectButtonClicked() {
+        _currentStatusIcon.setImageResource(R.drawable.connection_status_disconnected);
+        _disconnectButton.setEnabled(false);
         _vpnService.disconnect();
-        // Go back to the home screen.
-        ((MainActivity)getActivity()).openFragment(new HomeFragment(), false);
     }
 
     @OnClick(R.id.viewLogButton)
