@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">EduVPN</string>
+    <string name="app_name">eduVPN</string>
     <!-- Overrides resource from OpenVPN lib. Reason: bad casing-->
     <string name="clear_log">Clear log</string>
 
