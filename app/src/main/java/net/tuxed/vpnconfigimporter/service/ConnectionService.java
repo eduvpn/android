@@ -66,7 +66,7 @@ public class ConnectionService {
      * @param state   The random state.
      * @return The connection URL which should be opened in the browser.
      */
-    private String _buildConnectionUrl(String baseUrl, String state) {
+    private String _buildConnectionUrl(@NonNull String baseUrl, @NonNull String state) {
         return baseUrl + "/portal/_oauth/authorize?client_id=" + CLIENT_ID +
                 "&redirect_uri=" + REDIRECT_URI +
                 "&response_type=" + RESPONSE_TYPE +
@@ -101,7 +101,7 @@ public class ConnectionService {
      * @param profileUUID   Optional profile UUID. If set, the app will auto-connect to it when finished.
      */
     public void initiateConnection(Activity activity, Instance instance, DiscoveredAPI discoveredAPI, @Nullable String profileUUID) {
-        String baseUrl = instance.getSanitizedBaseUri();
+        String baseUrl = instance.getSanitizedBaseURI();
         String state = _generateState();
         String connectionUrl = _buildConnectionUrl(baseUrl, state);
 
@@ -177,7 +177,7 @@ public class ConnectionService {
         // Now we can delete the saved state
         _preferencesService.removeCurrentConnectionState();
         // Save the access token for later use.
-        _historyService.cacheToken(_preferencesService.getCurrentInstance().getSanitizedBaseUri(), _accessToken);
+        _historyService.cacheAccessToken(_preferencesService.getCurrentInstance().getSanitizedBaseURI(), _accessToken);
         // Check if the app has to auto-connect.
         String autoconnectProfileUUID = _preferencesService.getAutoConnectUUID();
         _preferencesService.removeAutoConnectUUID();
@@ -193,6 +193,11 @@ public class ConnectionService {
         return _accessToken;
     }
 
+    /**
+     * Sets and saved the current access token to use with the requests.
+     *
+     * @param accessToken The access token to use for getting resources.
+     */
     public void setAccessToken(String accessToken) {
         _accessToken = accessToken;
         _preferencesService.currentAccessToken(accessToken);

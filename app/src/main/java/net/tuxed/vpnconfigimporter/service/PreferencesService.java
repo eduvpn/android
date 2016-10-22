@@ -60,7 +60,7 @@ public class PreferencesService {
      *
      * @return The preferences to be used.
      */
-    private SharedPreferences _getSharedPreferences() {
+    SharedPreferences _getSharedPreferences() {
         return _context.getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE);
     }
 

@@ -103,7 +103,7 @@ public class ConnectProfileFragment extends Fragment {
     private void _selectProfile(final Profile profile) {
         // Maybe we already have a downloaded profile for these criteria
         final Instance instance = _preferencesService.getCurrentInstance();
-        SavedProfile savedProfile = _historyService.getCachedSavedProfile(instance.getSanitizedBaseUri(), profile.getProfileId());
+        SavedProfile savedProfile = _historyService.getCachedSavedProfile(instance.getSanitizedBaseURI(), profile.getProfileId());
         if (savedProfile != null) {
             // No need to download, continue immediately to the home screen.
             Toast.makeText(getContext(), R.string.profile_already_downloaded_select, Toast.LENGTH_LONG).show();

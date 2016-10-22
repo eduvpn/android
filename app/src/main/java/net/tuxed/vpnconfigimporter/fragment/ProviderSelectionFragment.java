@@ -108,8 +108,8 @@ public class ProviderSelectionFragment extends Fragment {
      */
     private void _connectToApi(final Instance instance) {
         // If there's a saved access token and a discovered API, continue immediately to the config selector.
-        String savedToken = _historyService.getCachedAccessToken(instance.getSanitizedBaseUri());
-        DiscoveredAPI discoveredAPI = _historyService.getCachedDiscoveredAPI(instance.getSanitizedBaseUri());
+        String savedToken = _historyService.getCachedAccessToken(instance.getSanitizedBaseURI());
+        DiscoveredAPI discoveredAPI = _historyService.getCachedDiscoveredAPI(instance.getSanitizedBaseURI());
         if (savedToken != null && discoveredAPI != null) {
             _preferencesService.currentInstance(instance);
             _preferencesService.currentDiscoveredAPI(discoveredAPI);
@@ -128,14 +128,14 @@ public class ProviderSelectionFragment extends Fragment {
         Log.d(TAG, "No cached discovered API found, continuing with discovery.");
         final ProgressDialog dialog = ProgressDialog.show(getContext(), getString(R.string.api_discovery_title), getString(R.string.api_discovery_message), true);
         // Discover the API
-        _apiService.getJSON(instance.getSanitizedBaseUri() + Constants.API_DISCOVERY_POSTFIX, false, new APIService.Callback<JSONObject>() {
+        _apiService.getJSON(instance.getSanitizedBaseURI() + Constants.API_DISCOVERY_POSTFIX, false, new APIService.Callback<JSONObject>() {
             @Override
             public void onSuccess(JSONObject result) {
                 try {
                     DiscoveredAPI discoveredAPI = _serializerService.deserializeDiscoveredAPI(result);
                     dialog.dismiss();
                     // Cache the result
-                    _historyService.cacheDiscoveredAPI(instance.getSanitizedBaseUri(), discoveredAPI);
+                    _historyService.cacheDiscoveredAPI(instance.getSanitizedBaseURI(), discoveredAPI);
                     _connectionService.initiateConnection(getActivity(), instance, discoveredAPI, null);
                 } catch (SerializerService.UnknownFormatException ex) {
                     Log.e(TAG, "Error parsing discovered API!",  ex);

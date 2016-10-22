@@ -8,6 +8,7 @@ import android.content.ServiceConnection;
 import android.os.Handler;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 import net.tuxed.vpnconfigimporter.utils.Log;
 
@@ -244,6 +245,7 @@ public class VPNService extends Observable implements VpnStatus.StateListener {
      * @param profileUUID The UUID of the profile.
      * @return The profile if found, otherwise null.
      */
+    @Nullable
     public VpnProfile getProfileWithUUID(@NonNull String profileUUID) {
         ProfileManager profileManager = ProfileManager.getInstance(_context);
         for (VpnProfile vpnProfile : profileManager.getProfiles()) {

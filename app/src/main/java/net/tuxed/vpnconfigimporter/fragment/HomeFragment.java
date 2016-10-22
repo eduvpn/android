@@ -43,7 +43,6 @@ import butterknife.ButterKnife;
 import butterknife.OnClick;
 import butterknife.Unbinder;
 import de.blinkt.openvpn.VpnProfile;
-import de.blinkt.openvpn.core.ProfileManager;
 
 /**
  * Fragment which is displayed when the app start.
@@ -106,8 +105,8 @@ public class HomeFragment extends Fragment {
                     _preferencesService.currentInstance(savedProfile.getInstance());
                     _preferencesService.currentProfile(savedProfile.getProfile());
                     // In the optimal case, we have an access token and a discovered API
-                    String accessToken = _historyService.getCachedAccessToken(savedProfile.getInstance().getSanitizedBaseUri());
-                    DiscoveredAPI discoveredAPI = _historyService.getCachedDiscoveredAPI(savedProfile.getInstance().getSanitizedBaseUri());
+                    String accessToken = _historyService.getCachedAccessToken(savedProfile.getInstance().getSanitizedBaseURI());
+                    DiscoveredAPI discoveredAPI = _historyService.getCachedDiscoveredAPI(savedProfile.getInstance().getSanitizedBaseURI());
                     if (accessToken != null && discoveredAPI != null) {
                         _preferencesService.currentAccessToken(accessToken);
                         _preferencesService.currentDiscoveredAPI(discoveredAPI);
@@ -153,14 +152,14 @@ public class HomeFragment extends Fragment {
      */
     private void _discoverAPIAndThenConnectOrLogin(@NonNull final Instance instance, @Nullable final VpnProfile selectedProfile, @Nullable final String profileUUID) {
         final ProgressDialog dialog = ProgressDialog.show(getContext(), getString(R.string.api_discovery_title), getString(R.string.api_discovery_message), true);
-        _apiService.getJSON(instance.getSanitizedBaseUri() + Constants.API_DISCOVERY_POSTFIX, false, new APIService.Callback<JSONObject>() {
+        _apiService.getJSON(instance.getSanitizedBaseURI() + Constants.API_DISCOVERY_POSTFIX, false, new APIService.Callback<JSONObject>() {
             @Override
             public void onSuccess(JSONObject result) {
                 try {
                     DiscoveredAPI discoveredAPI = _serializerService.deserializeDiscoveredAPI(result);
                     dialog.dismiss();
                     // Cache the result
-                    _historyService.cacheDiscoveredAPI(instance.getSanitizedBaseUri(), discoveredAPI);
+                    _historyService.cacheDiscoveredAPI(instance.getSanitizedBaseURI(), discoveredAPI);
                     if (selectedProfile != null) {
                         // We got the discovered API, the token and the saved profile. Off we go.
                         _preferencesService.currentDiscoveredAPI(discoveredAPI);

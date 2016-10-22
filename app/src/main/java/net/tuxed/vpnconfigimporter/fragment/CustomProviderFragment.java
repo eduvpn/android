@@ -81,7 +81,7 @@ public class CustomProviderFragment extends Fragment {
             final Instance customProviderInstance = _createCustomProviderInstance(getActivity(), url);
             final ProgressDialog dialog = ProgressDialog.show(getContext(), getString(R.string.api_discovery_title), getString(R.string.api_discovery_message), true);
             // Discover the API
-            _apiService.getJSON(customProviderInstance.getSanitizedBaseUri() + API_DISCOVERY_POSTFIX, false, new APIService.Callback<JSONObject>() {
+            _apiService.getJSON(customProviderInstance.getSanitizedBaseURI() + API_DISCOVERY_POSTFIX, false, new APIService.Callback<JSONObject>() {
                 @Override
                 public void onSuccess(JSONObject result) {
                     try {

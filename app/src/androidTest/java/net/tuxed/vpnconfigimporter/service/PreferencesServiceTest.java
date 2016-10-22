@@ -27,7 +27,7 @@ public class PreferencesServiceTest {
     @Before
     public void before() {
         SerializerService serializerService = new SerializerService();
-        Context context = InstrumentationRegistry.getContext();
+        Context context = InstrumentationRegistry.getTargetContext();
         _preferencesService = new PreferencesService(context, serializerService);
     }
 
@@ -44,6 +44,7 @@ public class PreferencesServiceTest {
         Instance instance = new Instance("http://example.com", "Example", "http://example.com/image.jpg");
         _preferencesService.currentInstance(instance);
         Instance retrievedInstance = _preferencesService.getCurrentInstance();
+        assertNotNull(retrievedInstance);
         assertEquals(instance.getDisplayName(), retrievedInstance.getDisplayName());
         assertEquals(instance.getLogoUri(), retrievedInstance.getLogoUri());
         assertEquals(instance.getBaseUri(), retrievedInstance.getBaseUri());
