@@ -17,6 +17,9 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * This service is responsible for fetching data from API endpoints.
@@ -31,6 +34,10 @@ public class APIService {
     private static final int READ_BLOCK_SIZE = 16 * 1024;
 
     private static final String HEADER_AUTHORIZATION = "Authorization";
+
+    private static final int CONFIG_MAX_THREAD_POOL_SIZE = 16;
+    private static final ThreadPoolExecutor EXECUTOR =
+            new ThreadPoolExecutor(8, CONFIG_MAX_THREAD_POOL_SIZE, 30000, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
 
     /**
      * Callback interface for returning results asynchronously.
@@ -68,11 +75,19 @@ public class APIService {
      * @param callback The callback for returning the result or notifying about an error.
      */
     public void getJSON(final String url, final boolean useToken, final Callback<JSONObject> callback) {
-        AsyncTask<Void, Void, Object> asyncTask = new AsyncTask<Void, Void, Object>() {
+        String accessToken = _getAccessToken();
+        if (!useToken) {
+            accessToken = null;
+        }
+        AsyncTask<String, Void, Object> asyncTask = new AsyncTask<String, Void, Object>() {
             @Override
-            protected Object doInBackground(Void... params) {
+            protected Object doInBackground(String... params) {
                 try {
-                    return _fetchJSON(url, useToken);
+                    String accessTokenParam = null;
+                    if (params != null && params.length == 1) {
+                        accessTokenParam = params[0];
+                    }
+                    return _fetchJSON(url, accessTokenParam);
                 } catch (IOException e) {
                     return e.toString();
                 } catch (JSONException e) {
@@ -91,7 +106,7 @@ public class APIService {
                 }
             }
         };
-        asyncTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+        asyncTask.executeOnExecutor(EXECUTOR, accessToken);
     }
 
     /**
@@ -103,11 +118,19 @@ public class APIService {
      * @param callback The callback for notifying about the result.
      */
     public void postResource(@NonNull final String url, @Nullable final String data, final boolean useToken, final Callback<byte[]> callback) {
-        AsyncTask<Void, Void, Object> asyncTask = new AsyncTask<Void, Void, Object>() {
+        String accessToken = _getAccessToken();
+        if (!useToken) {
+            accessToken = null;
+        }
+        AsyncTask<String, Void, Object> asyncTask = new AsyncTask<String, Void, Object>() {
             @Override
-            protected Object doInBackground(Void... params) {
+            protected Object doInBackground(String... params) {
                 try {
-                    return _fetchByteResource(url, data, useToken);
+                    String accessTokenParam = null;
+                    if (params != null && params.length == 1) {
+                        accessTokenParam = params[0];
+                    }
+                    return _fetchByteResource(url, data, accessTokenParam);
                 } catch (IOException ex) {
                     return ex.toString();
                 }
@@ -124,7 +147,7 @@ public class APIService {
                 }
             }
         };
-        asyncTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+        asyncTask.executeOnExecutor(EXECUTOR, accessToken);
     }
 
     /**
@@ -132,12 +155,12 @@ public class APIService {
      *
      * @param url         The URL as a string.
      * @param requestData The request data, if any.
-     * @param useToken    If the authentication token should be included in the request.
+     * @param accessToken The access token to fetch the resource with. Can be null.
      * @return The result as a byte array.
      * @throws IOException Thrown if there was a problem creating the connection.
      */
-    private byte[] _fetchByteResource(@NonNull String url, @Nullable String requestData, boolean useToken) throws IOException {
-        HttpURLConnection urlConnection = _createConnection(url, useToken);
+    private byte[] _fetchByteResource(@NonNull String url, @Nullable String requestData, @Nullable String accessToken) throws IOException {
+        HttpURLConnection urlConnection = _createConnection(url, accessToken);
         urlConnection.setRequestMethod("POST");
         if (requestData != null) {
             OutputStream out = new BufferedOutputStream(urlConnection.getOutputStream());
@@ -165,19 +188,19 @@ public class APIService {
     /**
      * Creates a new URL connection based on the URL.
      *
-     * @param urlString The URl as a string.
-     * @param useToken  If the authentication token should be included.
+     * @param urlString   The URL as a string.
+     * @param accessToken The access token to fetch the resource with. Can be null.
      * @return The URL connection which can be used to connect to the URL.
      * @throws IOException Thrown if there was a problem while creating the connection.
      */
-    private HttpURLConnection _createConnection(String urlString, boolean useToken) throws IOException {
+    private HttpURLConnection _createConnection(@NonNull String urlString, @Nullable String accessToken) throws IOException {
         URL url = new URL(urlString);
         HttpURLConnection urlConnection = (HttpURLConnection)url.openConnection();
         urlConnection.setConnectTimeout(CONNECT_TIMEOUT_MS);
         urlConnection.setReadTimeout(READ_TIMEOUT_MS);
         urlConnection.setRequestMethod("GET");
-        if (_getAccessToken() != null && useToken) {
-            urlConnection.setRequestProperty(HEADER_AUTHORIZATION, "Bearer " + _getAccessToken());
+        if (accessToken != null) {
+            urlConnection.setRequestProperty(HEADER_AUTHORIZATION, "Bearer " + accessToken);
         }
         return urlConnection;
     }
@@ -190,8 +213,8 @@ public class APIService {
      * @throws IOException   Thrown if there was a problem while connecting.
      * @throws JSONException Thrown if the returned JSON was invalid or not a JSON at all.
      */
-    private JSONObject _fetchJSON(String url, boolean useToken) throws IOException, JSONException {
-        HttpURLConnection urlConnection = _createConnection(url, useToken);
+    private JSONObject _fetchJSON(@NonNull String url, @Nullable String accessToken) throws IOException, JSONException {
+        HttpURLConnection urlConnection = _createConnection(url, accessToken);
         urlConnection.connect();
         // Get the body of the response
         BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));

@@ -352,7 +352,7 @@ public class SerializerService {
             JSONArray array = new JSONArray();
             for (SavedToken savedToken : savedTokenList) {
                 JSONObject tokenJson = new JSONObject();
-                tokenJson.put("base_uri", savedToken.getBaseUri());
+                tokenJson.put("base_uri", savedToken.getBaseURI());
                 tokenJson.put("access_token", savedToken.getAccessToken());
                 array.put(tokenJson);
             }

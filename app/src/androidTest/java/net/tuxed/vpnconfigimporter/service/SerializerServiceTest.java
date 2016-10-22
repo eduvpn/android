@@ -150,7 +150,7 @@ public class SerializerServiceTest {
         List<SavedToken> deserializedList = _serializerService.deserializeSavedTokenList(serializedList);
         assertEquals(list.size(), deserializedList.size());
         for (int i = 0; i < list.size(); ++i) {
-            assertEquals(list.get(i).getBaseUri(), deserializedList.get(i).getBaseUri());
+            assertEquals(list.get(i).getBaseURI(), deserializedList.get(i).getBaseURI());
             assertEquals(list.get(i).getAccessToken(), deserializedList.get(i).getAccessToken());
         }
     }

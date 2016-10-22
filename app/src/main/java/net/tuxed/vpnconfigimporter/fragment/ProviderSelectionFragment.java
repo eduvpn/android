@@ -114,8 +114,7 @@ public class ProviderSelectionFragment extends Fragment {
             _preferencesService.currentInstance(instance);
             _preferencesService.currentDiscoveredAPI(discoveredAPI);
             _connectionService.setAccessToken(savedToken);
-            // Open the config selector immediately. If it would throw a 401, then we will trigger a login afterwards.
-            ((MainActivity)getActivity()).openFragment(new ConnectProfileFragment(), true);
+            // TODO test the access token
             return;
         }
         // If there's only a discovered API, initiate the connection
@@ -124,7 +123,7 @@ public class ProviderSelectionFragment extends Fragment {
             _connectionService.initiateConnection(getActivity(), instance, discoveredAPI, null);
             return;
         }
-        // If no discovered API, fetch it first, then login
+        // If no discovered API, fetch it first, then initiate the connection for the login
         Log.d(TAG, "No cached discovered API found, continuing with discovery.");
         final ProgressDialog dialog = ProgressDialog.show(getContext(), getString(R.string.api_discovery_title), getString(R.string.api_discovery_message), true);
         // Discover the API

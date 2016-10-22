@@ -1,6 +1,7 @@
 package net.tuxed.vpnconfigimporter.adapter;
 
 import android.support.v7.widget.RecyclerView;
+import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -9,14 +10,12 @@ import com.squareup.picasso.Picasso;
 
 import net.tuxed.vpnconfigimporter.R;
 import net.tuxed.vpnconfigimporter.adapter.viewholder.ProfileViewHolder;
-import net.tuxed.vpnconfigimporter.adapter.viewholder.ProviderViewHolder;
 import net.tuxed.vpnconfigimporter.entity.Instance;
 import net.tuxed.vpnconfigimporter.entity.Profile;
-import net.tuxed.vpnconfigimporter.service.ConfigurationService;
+import net.tuxed.vpnconfigimporter.utils.FormattingUtils;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Observable;
-import java.util.Observer;
 
 /**
  * Adapter for the profile list.
@@ -24,26 +23,28 @@ import java.util.Observer;
  */
 public class ProfileAdapter extends RecyclerView.Adapter<ProfileViewHolder> {
 
-    private Instance _instance;
-    private List<Profile> _profileList;
+    private List<Pair<Instance, Profile>> _profileList;
     private LayoutInflater _layoutInflater;
 
     /**
      * Constructor.
      *
-     * @param instance The instance the profiles are for.
+     * @param profileList The list of instance and profile pairs to put in the list.
      */
-    public ProfileAdapter(Instance instance) {
-        _instance = instance;
+    public ProfileAdapter(List<Pair<Instance, Profile>> profileList) {
+        _profileList = profileList;
+        if (_profileList == null) {
+            _profileList = new ArrayList<>();
+        }
     }
 
     /**
-     * Changes the items of this adapter.
+     * Adds new items to this adapter.
      *
-     * @param profiles The list of profiles to set.
+     * @param profiles The list of profiles to add to the list of current items.
      */
-    public void setItems(List<Profile> profiles) {
-        _profileList = profiles;
+    public synchronized void addItems(List<Pair<Instance, Profile>> profiles) {
+        _profileList.addAll(profiles);
         notifyDataSetChanged();
     }
 
@@ -53,7 +54,7 @@ public class ProfileAdapter extends RecyclerView.Adapter<ProfileViewHolder> {
      * @param position The position of the item.
      * @return The item at the given position.
      */
-    public Profile getItem(int position) {
+    public Pair<Instance, Profile> getItem(int position) {
         return _profileList.get(position);
     }
 
@@ -69,17 +70,28 @@ public class ProfileAdapter extends RecyclerView.Adapter<ProfileViewHolder> {
 
     @Override
     public void onBindViewHolder(ProfileViewHolder holder, int position) {
-        Profile profile = getItem(position);
-        holder.profileName.setText(profile.getDisplayName());
-        if (_instance.getLogoUri() != null) {
+        Pair<Instance, Profile> instanceProfilePair = getItem(position);
+        holder.profileName.setText(
+                FormattingUtils.formatProfileName(
+                        holder.profileName.getContext(),
+                        instanceProfilePair.first,
+                        instanceProfilePair.second));
+        if (instanceProfilePair.first.getLogoUri() != null) {
             Picasso.with(holder.providerIcon.getContext())
-                    .load(_instance.getLogoUri())
+                    .load(instanceProfilePair.first.getLogoUri())
                     .placeholder(R.drawable.vpn_icon)
                     .fit()
                     .into(holder.providerIcon);
         } else {
             holder.providerIcon.setImageResource(R.drawable.vpn_icon);
         }
+    }
+
+    @Override
+    public long getItemId(int position) {
+        Pair<Instance, Profile> instanceProfilePair = getItem(position);
+        return instanceProfilePair.first.getBaseUri().hashCode() +
+                17 * instanceProfilePair.second.getProfileId().hashCode();
     }
 
     @Override

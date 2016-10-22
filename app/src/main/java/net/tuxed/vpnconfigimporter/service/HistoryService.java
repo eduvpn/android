@@ -76,12 +76,12 @@ public class HistoryService {
     /**
      * Returns a discovered API from the cache.
      *
-     * @param normalizedBaseUri The normalized base URI of the API.
+     * @param sanitizedBaseURI The sanitized base URI of the API.
      * @return A discovered API if a cached one was found. Null if none found.
      */
     @Nullable
-    public DiscoveredAPI getCachedDiscoveredAPI(@NonNull String normalizedBaseUri) {
-        return _discoveredAPICache.get(normalizedBaseUri);
+    public DiscoveredAPI getCachedDiscoveredAPI(@NonNull String sanitizedBaseURI) {
+        return _discoveredAPICache.get(sanitizedBaseURI);
     }
 
     /**
@@ -98,13 +98,13 @@ public class HistoryService {
     /**
      * Returns a cached access token for an API.
      *
-     * @param normalizedBaseUri The normalized base URI of the API.
+     * @param sanitizedBaseURI The sanitized base URI of the API.
      * @return The access token if found. Null if not found.
      */
     @Nullable
-    public String getCachedAccessToken(@NonNull String normalizedBaseUri) {
+    public String getCachedAccessToken(@NonNull String sanitizedBaseURI) {
         for (SavedToken savedToken : _savedTokenList) {
-            if (savedToken.getBaseUri().equals(normalizedBaseUri)) {
+            if (savedToken.getBaseURI().equals(sanitizedBaseURI)) {
                 return savedToken.getAccessToken();
             }
         }

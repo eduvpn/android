@@ -39,6 +39,7 @@ public class ConnectionService {
     private static final String CUSTOM_TAB_PACKAGE_NAME = "com.android.chrome"; // This might change later,
     // as of now, this is the only browser which has Custom Tabs support.
 
+
     private PreferencesService _preferencesService;
     private HistoryService _historyService;
     private Context _context;

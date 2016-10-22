@@ -91,13 +91,14 @@ public class FormattingUtils {
     /**
      * Creates a name to display in the list of saved profiles.
      *
-     * @param context      The application or activity context.
-     * @param savedProfile The saved profile to construct the name from.
+     * @param context  The application or activity context.
+     * @param instance The provider which gives the first part of the name
+     * @param profile  The profile which gives the second part of the name.
      * @return The name to display.
      */
-    public static String formatSavedProfileName(Context context, SavedProfile savedProfile) {
-        return context.getString(R.string.saved_profile_display_name, savedProfile.getInstance().getDisplayName(),
-                savedProfile.getProfile().getDisplayName());
+    public static String formatProfileName(Context context, Instance instance, Profile profile) {
+        return context.getString(R.string.saved_profile_display_name, instance.getDisplayName(),
+                profile.getDisplayName());
     }
 
     /**

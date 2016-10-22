@@ -9,10 +9,8 @@ import android.support.v7.widget.Toolbar;
 import android.view.animation.AccelerateDecelerateInterpolator;
 import android.widget.Toast;
 
-import net.tuxed.vpnconfigimporter.fragment.ConnectProfileFragment;
 import net.tuxed.vpnconfigimporter.fragment.ConnectionStatusFragment;
 import net.tuxed.vpnconfigimporter.fragment.HomeFragment;
-import net.tuxed.vpnconfigimporter.fragment.ProviderSelectionFragment;
 import net.tuxed.vpnconfigimporter.service.ConnectionService;
 import net.tuxed.vpnconfigimporter.service.VPNService;
 import net.tuxed.vpnconfigimporter.utils.ErrorDialog;
@@ -44,9 +42,9 @@ public class MainActivity extends AppCompatActivity {
         ButterKnife.bind(this);
         EduVPNApplication.get(this).component().inject(this);
         setSupportActionBar(_toolbar);
-        // If there's an ongoing VPN connection, open the status screen.
         _vpnService.onCreate(this);
         if (savedInstanceState == null) {
+            // If there's an ongoing VPN connection, open the status screen.
             if (_vpnService.getStatus() != VPNService.VPNStatus.DISCONNECTED) {
                 openFragment(new ConnectionStatusFragment(), false);
             } else {
@@ -80,8 +78,9 @@ public class MainActivity extends AppCompatActivity {
                 // Continue with connecting to the profile.
                 _vpnService.getProfileWithUUID(autoConnectProfile);
             } else {
-                // Show a list of possible profiles to download.
-                openFragment(new ConnectProfileFragment(), true);
+                // Show the home fragment, so the user can select his new config(s)
+                openFragment(new HomeFragment(), false);
+                Toast.makeText(this, R.string.provider_added_new_configs_available, Toast.LENGTH_LONG).show();
             }
         } catch (ConnectionService.InvalidConnectionAttemptException ex) {
             ErrorDialog.show(this, R.string.error_dialog_title, ex.toString());
