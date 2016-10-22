@@ -13,6 +13,7 @@
         android:layout_height="@dimen/list_item_icon_height"
         android:layout_centerVertical="true"
         android:layout_marginLeft="8dp"
+        android:contentDescription="@string/content_description_provider_icon"
         android:src="@drawable/vpn_icon"/>
 
     <TextView
@@ -26,7 +27,6 @@
         android:layout_toRightOf="@+id/provider_icon"
         android:ellipsize="middle"
         android:maxLines="1"
-        android:singleLine="true"
         android:textColor="@android:color/black"
         android:textSize="18sp"
         tools:text="Hogeschool van Amsterdam publieke beta / pilot"/>

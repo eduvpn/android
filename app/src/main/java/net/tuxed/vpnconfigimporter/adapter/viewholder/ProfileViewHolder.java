@@ -11,7 +11,7 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 
 /**
- * Viewholder for the provider instance list.
+ * View holder for the provider instance list.
  * Created by Daniel Zolnai on 2016-10-07.
  */
 public class ProfileViewHolder extends RecyclerView.ViewHolder {

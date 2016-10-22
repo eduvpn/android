@@ -15,6 +15,7 @@
         android:layout_marginLeft="8dp"
         android:layout_marginTop="12dp"
         android:adjustViewBounds="true"
+        android:contentDescription="@string/content_description_message_icon"
         android:src="@drawable/maintenance_icon"/>
 
     <TextView

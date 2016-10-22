@@ -6,12 +6,10 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.view.animation.AccelerateDecelerateInterpolator;
 import android.widget.Toast;
 
 import net.tuxed.vpnconfigimporter.fragment.ConnectionStatusFragment;
 import net.tuxed.vpnconfigimporter.fragment.HomeFragment;
-import net.tuxed.vpnconfigimporter.fragment.SettingsFragment;
 import net.tuxed.vpnconfigimporter.service.ConnectionService;
 import net.tuxed.vpnconfigimporter.service.VPNService;
 import net.tuxed.vpnconfigimporter.utils.ErrorDialog;

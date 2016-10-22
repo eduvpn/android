@@ -1,6 +1,5 @@
 package net.tuxed.vpnconfigimporter.utils;
 
-import android.support.test.filters.LargeTest;
 import android.support.test.filters.SmallTest;
 import android.support.test.runner.AndroidJUnit4;
 

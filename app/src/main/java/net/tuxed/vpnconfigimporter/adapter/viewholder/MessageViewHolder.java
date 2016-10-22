@@ -11,7 +11,7 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 
 /**
- * Viewholder for the notification item view.
+ * View holder for the notification item view.
  * Created by Daniel Zolnai on 2016-10-07.
  */
 public class MessageViewHolder extends RecyclerView.ViewHolder {

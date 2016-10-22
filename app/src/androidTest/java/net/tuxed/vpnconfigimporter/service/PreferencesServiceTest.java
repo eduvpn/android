@@ -33,7 +33,7 @@ public class PreferencesServiceTest {
 
     @Test
     public void testConnectionStateSave() {
-        String state = "abc2141awksld";
+        String state = "abc2141defghijkl";
         _preferencesService.currentConnectionState(state);
         String retrievedState = _preferencesService.getCurrentConnectionState();
         assertEquals(state, retrievedState);

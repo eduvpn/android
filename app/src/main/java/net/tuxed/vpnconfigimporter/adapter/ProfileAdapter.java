@@ -1,5 +1,6 @@
 package net.tuxed.vpnconfigimporter.adapter;
 
+import android.support.annotation.Nullable;
 import android.support.v7.widget.RecyclerView;
 import android.util.Pair;
 import android.view.LayoutInflater;
@@ -31,7 +32,7 @@ public class ProfileAdapter extends RecyclerView.Adapter<ProfileViewHolder> {
      *
      * @param profileList The list of instance and profile pairs to put in the list.
      */
-    public ProfileAdapter(List<Pair<Instance, Profile>> profileList) {
+    public ProfileAdapter(@Nullable List<Pair<Instance, Profile>> profileList) {
         _profileList = profileList;
         if (_profileList == null) {
             _profileList = new ArrayList<>();

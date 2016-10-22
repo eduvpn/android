@@ -347,6 +347,13 @@ public class SerializerService {
         }
     }
 
+    /**
+     * Serializes a list of saved access tokens.
+     *
+     * @param savedTokenList The list with the saved access tokens.
+     * @return The parsed list in a JSON format.
+     * @throws UnknownFormatException Thrown if there was an unexpected error.
+     */
     public JSONObject serializeSavedTokenList(List<SavedToken> savedTokenList) throws UnknownFormatException {
         try {
             JSONObject result = new JSONObject();
@@ -364,6 +371,13 @@ public class SerializerService {
         }
     }
 
+    /**
+     * Deserializes a JSON containing the list of the saved access tokens.
+     *
+     * @param jsonObject The JSON containing the information.
+     * @return The list as a POJO.
+     * @throws UnknownFormatException Thrown if there was an error while deserializing.
+     */
     public List<SavedToken> deserializeSavedTokenList(JSONObject jsonObject) throws UnknownFormatException {
         try {
             List<SavedToken> result = new ArrayList<>();
@@ -380,6 +394,13 @@ public class SerializerService {
         }
     }
 
+    /**
+     * Serializes a list of saved profiles.
+     *
+     * @param savedProfileList The list of saved profiles.
+     * @return The list as a JSON.
+     * @throws UnknownFormatException Thrown if there was an error while serializing.
+     */
     public JSONObject serializeSavedProfileList(List<SavedProfile> savedProfileList) throws UnknownFormatException {
         try {
             JSONObject result = new JSONObject();
@@ -398,6 +419,13 @@ public class SerializerService {
         }
     }
 
+    /**
+     * Deserializes a list of saved profiles.
+     *
+     * @param jsonObject The JSON to deserialize from.
+     * @return The list of saved profiles as a POJO.
+     * @throws UnknownFormatException Thrown if there was an error while deserializing.
+     */
     public List<SavedProfile> deserializeSavedProfileList(JSONObject jsonObject) throws UnknownFormatException {
         try {
             List<SavedProfile> result = new ArrayList<>();
@@ -415,6 +443,13 @@ public class SerializerService {
         }
     }
 
+    /**
+     * Serializes a TTL cache of discovered APIs.
+     *
+     * @param ttlCache The cache to serialize.
+     * @return The cache in a JSON format.
+     * @throws UnknownFormatException Thrown if there was an error while serializing.
+     */
     public JSONObject serializeDiscoveredAPITTLCache(TTLCache<DiscoveredAPI> ttlCache) throws UnknownFormatException {
         try {
             JSONObject result = new JSONObject();
@@ -436,6 +471,13 @@ public class SerializerService {
         }
     }
 
+    /**
+     * Deserializes a TTL cache of discovered APIs.
+     *
+     * @param jsonObject The JSON object to deserialize from.
+     * @return The cache object.
+     * @throws UnknownFormatException Thrown if there was an error while deserializing.
+     */
     public TTLCache<DiscoveredAPI> deserializeDiscoveredAPITTLCache(JSONObject jsonObject) throws UnknownFormatException {
         try {
             Map<String, Pair<Date, DiscoveredAPI>> originalData = new HashMap<>();
@@ -446,7 +488,7 @@ public class SerializerService {
                 Date entryDate = new Date(entity.getLong("entry_date"));
                 String key = entity.getString("key");
                 DiscoveredAPI discoveredAPI = deserializeDiscoveredAPI(entity.getJSONObject("discovered_api"));
-                originalData.put(key, new Pair<Date, DiscoveredAPI>(entryDate, discoveredAPI));
+                originalData.put(key, new Pair<>(entryDate, discoveredAPI));
             }
             return new TTLCache<>(originalData, purgeAfterSeconds);
         } catch (JSONException ex) {

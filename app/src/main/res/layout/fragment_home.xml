@@ -17,7 +17,7 @@
         android:layout_centerHorizontal="true"
         android:layout_marginBottom="24dp"
         android:padding="16dp"
-        android:text="@string/connect_to_vpn_title"/>
+        android:text="@string/home_title"/>
 
     <TextView
         android:id="@+id/noProvidersYet"
@@ -62,7 +62,8 @@
             android:layout_width="32dp"
             android:layout_height="32dp"
             android:layout_marginLeft="24dp"
-            android:src="@drawable/ic_warning_black_36dp"
+            android:src="@drawable/maintenance_icon"
+            android:contentDescription="@string/content_description_warning_icon"
             android:visibility="gone"/>
     </FrameLayout>
 

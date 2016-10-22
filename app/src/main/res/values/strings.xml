@@ -3,17 +3,9 @@
     <!-- Overrides resource from OpenVPN lib. Reason: bad casing-->
     <string name="clear_log">Clear log</string>
 
-    <string name="custom_host_label">Specify the hostname of the VPN instance you want to connect to.</string>
-    <string name="custom_host_hint">vpn.example.com</string>
-    <string name="button_setup">Setup</string>
-    <string name="saved_configuration_available">Do you wish to use your previously used configuration?</string>
-    <string name="button_start_connection">Connect</string>
-    <string name="request_new_config_option">Alternatively, you can also request a new configuration, which will replace the currently saved one. For this you need to log in again.</string>
-    <string name="downloading_config">Downloading OpenVPN configuration…</string>
     <string name="error_state_missing">Error: \'state\' parameter not found in callback URL</string>
     <string name="error_access_token_missing">Error: \'accessToken\' parameter not found in callback URL.</string>
     <string name="error_state_mismatch">Error: state mismatch!</string>
-    <string name="current_status">Connection status: %s</string>
     <string name="button_disconnect">Disconnect</string>
     <string name="actionbar_title">eduVPN</string>
     <string name="choose_your_provider_title">Choose your provider</string>
@@ -21,11 +13,8 @@
     <string name="custom_provider_title">Provide the URL to your provider</string>
     <string name="custom_provider_prefix">https://</string>
     <string name="custom_provider_connect">Connect</string>
-    <string name="connect_to_vpn_title">Connect to VPN</string>
+    <string name="home_title">Connect to VPN</string>
     <string name="custom_provider_display_name">Custom provider</string>
-    <string name="loading_profiles">Loading profiles…</string>
-    <string name="error_loading_profiles">Error loading profiles.</string>
-    <string name="downloading_profile">Downloading profile…</string>
     <string name="error_importing_profile">Error importing profile.</string>
     <string name="error_fetching_profile">Error fetching profile. Details: %s</string>
     <string name="vpn_connection_status_title">VPN connection</string>
@@ -41,9 +30,6 @@
     <string name="connection_info_bytes_out">Bytes out</string>
     <string name="connection_info_ipv4">IPv4</string>
     <string name="connection_info_ipv6">IPv6</string>
-    <string name="connection_info_server">Server</string>
-    <string name="connection_info_server_ip">Server IP</string>
-    <string name="connection_info_port">Port</string>
     <string name="not_available">N/A</string>
     <string name="already_connected_please_disconnect">You are already connected. Please disconnect first.</string>
 
@@ -61,15 +47,11 @@
     <string name="maintenance_message">The VPN service will be under maintenance starting from %1$s until %2$s.</string>
     <string name="error_loading_system_messages">Unable to load system messages: %s</string>
     <string name="error_loading_user_messages">Unable to load user messages: %s</string>
-    <string name="profile_already_downloaded_select">This profile is already downloaded. Please select it from the home screen.</string>
-    <string name="home_title">Connect</string>
     <string name="home_add_provider">Add Provider</string>
     <string name="saved_profile_display_name">%1$s - %2$s</string>
     <string name="error_confirm_button">OK</string>
     <string name="error_dialog_title">Unexpected problem</string>
-    <string name="selected_profile_does_not_exist">Selected profile does not exist anymore.</string>
     <string name="vpn_profile_name">%1$s - %2$s</string>
-    <string name="select_downloaded_profile">Tap on your freshly downloaded profile in the list to connect to it.</string>
     <string name="no_providers_yet_click_on_add_provider">It appears you don\'t have any added providers yet.\nTap on the button below to get started.</string>
     <string name="font_roboto_regular" translatable="false">fonts/Roboto-Regular.ttf</string>
     <string name="font_roboto_medium">fonts/Roboto-Medium.ttf</string>
@@ -95,4 +77,6 @@
     <string name="settings_custom_tabs_opt_out_title">Use Custom Tabs</string>
     <string name="settings_save">Save</string>
     <string name="settings_saved">Saved changes to the settings.</string>
+    <string name="content_description_message_icon">Message icon</string>
+    <string name="content_description_warning_icon">Warning icon</string>
 </resources>
