@@ -6,6 +6,7 @@
     android:layout_height="match_parent"
     android:clickable="true"
     android:padding="16dp"
+    android:background="@color/backgroundColor"
     tools:context=".SettingsActivity">
 
     <TextView
