@@ -88,4 +88,11 @@
     <string name="cant_connect_application_state_missing">Can\'t connect, application state is missing.</string>
     <string name="callback_error">Callback error: %s</string>
     <string name="rejected_permission">User rejected access for the app.</string>
+    <string name="settings_title">Settings</string>
+    <string name="settings_force_tcp_title">Force TCP</string>
+    <string name="settings_force_tcp_description"><![CDATA[Sometimes, eduVPN can\'t connect properly because of very strict firewalls. Connecting directly through TCP can make it easier in these circumstances.]]></string>
+    <string name="settings_use_custom_tabs_description">Custom Tabs are faster and use less resources. If you turn this feature off, the default browser will be used instead.</string>
+    <string name="settings_custom_tabs_opt_out_title">Use Custom Tabs</string>
+    <string name="settings_save">Save</string>
+    <string name="settings_saved">Saved changes to the settings.</string>
 </resources>

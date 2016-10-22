@@ -9,6 +9,7 @@ import net.tuxed.vpnconfigimporter.entity.Instance;
 import net.tuxed.vpnconfigimporter.entity.Profile;
 import net.tuxed.vpnconfigimporter.entity.SavedProfile;
 import net.tuxed.vpnconfigimporter.entity.SavedToken;
+import net.tuxed.vpnconfigimporter.entity.Settings;
 import net.tuxed.vpnconfigimporter.utils.Log;
 import net.tuxed.vpnconfigimporter.utils.TTLCache;
 
@@ -29,7 +30,7 @@ public class PreferencesService {
 
     private static final String KEY_STATE = "state";
     private static final String KEY_ACCESS_TOKEN = "access_token";
-    private static final String KEY_CUSTOM_TABS_OPT_OUT = "custom_tabs_opt_out";
+    private static final String KEY_APP_SETTINGS = "app_settings";
 
     private static final String KEY_INSTANCE = "instance";
     private static final String KEY_PROFILE = "profile";
@@ -160,7 +161,7 @@ public class PreferencesService {
      *
      * @param accessToken The access token to use for the VPN provider API.
      */
-    public void currentAccessToken(@NonNull String accessToken) {
+    void currentAccessToken(@NonNull String accessToken) {
         _getSharedPreferences().edit().putString(KEY_ACCESS_TOKEN, accessToken).apply();
     }
 
@@ -174,12 +175,42 @@ public class PreferencesService {
     }
 
     /**
-     * Returns if the user has opted out of custom tabs usage.
+     * Returns the saved app settings, or the default settings if none found.
      *
      * @return True if the user does not want to use Custom Tabs. Otherwise false.
      */
-    public boolean getCustomTabsOptOut() {
-        return _getSharedPreferences().getBoolean(KEY_CUSTOM_TABS_OPT_OUT, false);
+    @NonNull
+    public Settings getAppSettings() {
+        Settings defaultSettings = new Settings(true, false);
+        String serializedSettings = _getSharedPreferences().getString(KEY_APP_SETTINGS, null);
+        if (serializedSettings == null) {
+            // Default settings.
+            saveAppSettings(defaultSettings);
+            return defaultSettings;
+        } else {
+            try {
+                return _serializerService.deserializeAppSettings(new JSONObject(serializedSettings));
+            } catch (SerializerService.UnknownFormatException | JSONException ex) {
+                Log.e(TAG, "Unable to deserialize app settings!", ex);
+                saveAppSettings(defaultSettings);
+                return defaultSettings;
+            }
+        }
+    }
+
+    /**
+     * Saves the app settings.
+     *
+     * @param settings The settings of the app to save.
+     */
+    public void saveAppSettings(Settings settings) {
+        try {
+            String serializedSettings = _serializerService.serializeAppSettings(settings).toString();
+            _getSharedPreferences().edit().putString(KEY_APP_SETTINGS, serializedSettings).apply();
+        } catch (SerializerService.UnknownFormatException ex) {
+            Log.e(TAG, "Unable to serialize and save app settings!");
+        }
+
     }
 
     /**

@@ -6,6 +6,7 @@ import net.tuxed.vpnconfigimporter.fragment.ConnectionStatusFragment;
 import net.tuxed.vpnconfigimporter.fragment.CustomProviderFragment;
 import net.tuxed.vpnconfigimporter.fragment.HomeFragment;
 import net.tuxed.vpnconfigimporter.fragment.ProviderSelectionFragment;
+import net.tuxed.vpnconfigimporter.fragment.SettingsFragment;
 
 import javax.inject.Singleton;
 
@@ -39,4 +40,6 @@ public interface EduVPNComponent {
     void inject(ConnectionStatusFragment connectionStatusFragment);
 
     void inject(HomeFragment homeFragment);
+
+    void inject(SettingsFragment settingsFragment);
 }

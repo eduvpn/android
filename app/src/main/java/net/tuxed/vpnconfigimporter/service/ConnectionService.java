@@ -4,9 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
-import android.support.annotation.CheckResult;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.customtabs.CustomTabsClient;
 import android.support.customtabs.CustomTabsIntent;
 import android.support.v4.content.ContextCompat;
@@ -44,7 +42,6 @@ public class ConnectionService {
     private HistoryService _historyService;
     private Context _context;
     private String _accessToken;
-    private boolean _optedOutOfCustomTabs = false;
 
     /**
      * Constructor.
@@ -57,7 +54,6 @@ public class ConnectionService {
         _preferencesService = preferencesService;
         _historyService = historyService;
         _accessToken = preferencesService.getCurrentAccessToken();
-        _optedOutOfCustomTabs = preferencesService.getCustomTabsOptOut();
     }
 
     /**
@@ -88,7 +84,7 @@ public class ConnectionService {
      * Warms up the Custom Tabs service, allowing it to load even more faster.
      */
     public void warmup() {
-        if (!_optedOutOfCustomTabs) {
+        if (_preferencesService.getAppSettings().useCustomTabs()) {
             CustomTabsClient.connectAndInitialize(_context, CUSTOM_TAB_PACKAGE_NAME);
         }
     }
@@ -100,7 +96,7 @@ public class ConnectionService {
      * @param instance      The instance to connect to.
      * @param discoveredAPI The discovered API which has the URL.
      */
-    public void initiateConnection(Activity activity, Instance instance, DiscoveredAPI discoveredAPI) {
+    public void initiateConnection(@NonNull Activity activity, @NonNull Instance instance, @NonNull DiscoveredAPI discoveredAPI) {
         String baseUrl = instance.getSanitizedBaseURI();
         String state = _generateState();
         String connectionUrl = _buildConnectionUrl(baseUrl, state);
@@ -108,7 +104,7 @@ public class ConnectionService {
         _preferencesService.currentConnectionState(state);
         _preferencesService.currentInstance(instance);
         _preferencesService.currentDiscoveredAPI(discoveredAPI);
-        if (_optedOutOfCustomTabs) {
+        if (!_preferencesService.getAppSettings().useCustomTabs()) {
             Intent viewUrlIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(connectionUrl));
             activity.startActivity(viewUrlIntent);
         } else {

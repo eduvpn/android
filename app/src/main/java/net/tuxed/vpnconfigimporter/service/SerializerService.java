@@ -8,6 +8,7 @@ import net.tuxed.vpnconfigimporter.entity.InstanceList;
 import net.tuxed.vpnconfigimporter.entity.Profile;
 import net.tuxed.vpnconfigimporter.entity.SavedProfile;
 import net.tuxed.vpnconfigimporter.entity.SavedToken;
+import net.tuxed.vpnconfigimporter.entity.Settings;
 import net.tuxed.vpnconfigimporter.entity.message.Maintenance;
 import net.tuxed.vpnconfigimporter.entity.message.Message;
 import net.tuxed.vpnconfigimporter.entity.message.Notification;
@@ -448,6 +449,41 @@ public class SerializerService {
                 originalData.put(key, new Pair<Date, DiscoveredAPI>(entryDate, discoveredAPI));
             }
             return new TTLCache<>(originalData, purgeAfterSeconds);
+        } catch (JSONException ex) {
+            throw new UnknownFormatException(ex);
+        }
+    }
+
+    /**
+     * Deserializes the app settings from JSON to POJO.
+     *
+     * @param jsonObject The json containing the settings.
+     * @return The settings as an object.
+     * @throws UnknownFormatException Thrown if there was a problem while parsing the JSON.
+     */
+    public Settings deserializeAppSettings(JSONObject jsonObject) throws UnknownFormatException {
+        try {
+            boolean useCustomTabs = jsonObject.getBoolean("use_custom_tabs");
+            boolean forceTcp = jsonObject.getBoolean("force_tcp");
+            return new Settings(useCustomTabs, forceTcp);
+        } catch (JSONException ex) {
+            throw new UnknownFormatException(ex);
+        }
+    }
+
+    /**
+     * Serializes the app settings to JSON.
+     *
+     * @param settings The settings to serialize.
+     * @return The app settings in a JSON format.
+     * @throws UnknownFormatException Thrown if there was an error while deserializing.
+     */
+    public JSONObject serializeAppSettings(Settings settings) throws UnknownFormatException {
+        JSONObject result = new JSONObject();
+        try {
+            result.put("use_custom_tabs", settings.useCustomTabs());
+            result.put("force_tcp", settings.forceTcp());
+            return result;
         } catch (JSONException ex) {
             throw new UnknownFormatException(ex);
         }

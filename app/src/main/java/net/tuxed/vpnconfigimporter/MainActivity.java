@@ -11,6 +11,7 @@ import android.widget.Toast;
 
 import net.tuxed.vpnconfigimporter.fragment.ConnectionStatusFragment;
 import net.tuxed.vpnconfigimporter.fragment.HomeFragment;
+import net.tuxed.vpnconfigimporter.fragment.SettingsFragment;
 import net.tuxed.vpnconfigimporter.service.ConnectionService;
 import net.tuxed.vpnconfigimporter.service.VPNService;
 import net.tuxed.vpnconfigimporter.utils.ErrorDialog;
@@ -108,8 +109,8 @@ public class MainActivity extends AppCompatActivity {
 
     @OnClick(R.id.settingsButton)
     protected void onSettingsButtonClicked() {
-        findViewById(R.id.settingsButton).animate().rotationBy(520).setDuration(800).setInterpolator(new AccelerateDecelerateInterpolator()).start();
-        Toast.makeText(this, "This will open the settings page later...", Toast.LENGTH_LONG).show();
+        Intent intent = new Intent(this, SettingsActivity.class);
+        startActivity(intent);
     }
 
 

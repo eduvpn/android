@@ -36,6 +36,12 @@
             </intent-filter>
         </activity>
 
+        <activity
+            android:name=".SettingsActivity"
+            android:launchMode="singleTask"
+            android:theme="@style/AppTheme.NoActionBar"
+            />
+
         <!-- Activities and services inherited from the OpenVPN library. -->
         <service
             android:name="de.blinkt.openvpn.core.OpenVPNService"
