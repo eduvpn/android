@@ -112,8 +112,8 @@ public class SerializerServiceTest {
         Maintenance maintenance = new Maintenance(utcCalendar.getTime(), utcCalendar.getTime(), utcCalendar.getTime());
         Notification notification = new Notification(utcCalendar.getTime(), "Example notification");
         List<Message> messageList = Arrays.asList(maintenance, notification);
-        JSONObject serializedList = _serializerService.serializeMessageList(messageList);
-        List<Message> deserializedList = _serializerService.deserializeMessageList(serializedList);
+        JSONObject serializedList = _serializerService.serializeMessageList(messageList, "system_messages");
+        List<Message> deserializedList = _serializerService.deserializeMessageList(serializedList, "system_messages");
         assertEquals(messageList.size(), deserializedList.size());
         assertEquals(_norm(messageList.get(0).getDate()), _norm(deserializedList.get(0).getDate()));
         assertEquals(_norm(((Maintenance)messageList.get(0)).getStart()), _norm(((Maintenance)deserializedList.get(0)).getStart()));
