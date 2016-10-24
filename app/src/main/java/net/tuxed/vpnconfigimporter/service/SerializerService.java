@@ -360,7 +360,7 @@ public class SerializerService {
             JSONArray array = new JSONArray();
             for (SavedToken savedToken : savedTokenList) {
                 JSONObject tokenJson = new JSONObject();
-                tokenJson.put("base_uri", savedToken.getBaseURI());
+                tokenJson.put("instance", serializeInstance(savedToken.getInstance()));
                 tokenJson.put("access_token", savedToken.getAccessToken());
                 array.put(tokenJson);
             }
@@ -384,9 +384,9 @@ public class SerializerService {
             JSONArray dataArray = jsonObject.getJSONArray("data");
             for (int i = 0; i < dataArray.length(); ++i) {
                 JSONObject tokenObject = dataArray.getJSONObject(i);
-                String baseUri = tokenObject.getString("base_uri");
+                Instance instance = deserializeInstance(tokenObject.getJSONObject("instance"));
                 String accessToken = tokenObject.getString("access_token");
-                result.add(new SavedToken(baseUri, accessToken));
+                result.add(new SavedToken(instance, accessToken));
             }
             return result;
         } catch (JSONException ex) {
