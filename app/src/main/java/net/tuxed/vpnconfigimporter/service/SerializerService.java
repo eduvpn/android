@@ -154,7 +154,7 @@ public class SerializerService {
     public JSONObject serializeInstance(Instance instance) throws UnknownFormatException {
         JSONObject result = new JSONObject();
         try {
-            result.put("base_uri", instance.getBaseUri());
+            result.put("base_uri", instance.getBaseURI());
             result.put("display_name", instance.getDisplayName());
             result.put("logo_uri", instance.getLogoUri());
         } catch (JSONException ex) {
@@ -199,7 +199,7 @@ public class SerializerService {
             JSONArray serializedInstances = new JSONArray();
             for (Instance instance : instanceList.getInstanceList()) {
                 JSONObject serializedInstance = new JSONObject();
-                serializedInstance.put("base_uri", instance.getBaseUri());
+                serializedInstance.put("base_uri", instance.getBaseURI());
                 serializedInstance.put("display_name", instance.getDisplayName());
                 serializedInstance.put("logo_uri", instance.getLogoUri());
                 serializedInstances.put(serializedInstance);

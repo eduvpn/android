@@ -47,7 +47,7 @@ public class PreferencesServiceTest {
         assertNotNull(retrievedInstance);
         assertEquals(instance.getDisplayName(), retrievedInstance.getDisplayName());
         assertEquals(instance.getLogoUri(), retrievedInstance.getLogoUri());
-        assertEquals(instance.getBaseUri(), retrievedInstance.getBaseUri());
+        assertEquals(instance.getBaseURI(), retrievedInstance.getBaseURI());
     }
     @Test
     public void testDiscoveredAPISave() {

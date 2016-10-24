@@ -71,7 +71,7 @@ public class SerializerServiceTest {
         JSONObject serializedInstance = _serializerService.serializeInstance(instance);
         Instance deserializedInstance = _serializerService.deserializeInstance(serializedInstance);
         assertEquals(instance.getDisplayName(), deserializedInstance.getDisplayName());
-        assertEquals(instance.getBaseUri(), deserializedInstance.getBaseUri());
+        assertEquals(instance.getBaseURI(), deserializedInstance.getBaseURI());
         assertEquals(instance.getLogoUri(), deserializedInstance.getLogoUri());
     }
 
@@ -99,10 +99,10 @@ public class SerializerServiceTest {
         assertEquals(instanceList.getVersion(), deserializedInstanceList.getVersion());
         assertEquals(instanceList.getInstanceList().size(), deserializedInstanceList.getInstanceList().size());
         assertEquals(instanceList.getInstanceList().get(0).getDisplayName(), deserializedInstanceList.getInstanceList().get(0).getDisplayName());
-        assertEquals(instanceList.getInstanceList().get(0).getBaseUri(), deserializedInstanceList.getInstanceList().get(0).getBaseUri());
+        assertEquals(instanceList.getInstanceList().get(0).getBaseURI(), deserializedInstanceList.getInstanceList().get(0).getBaseURI());
         assertEquals(instanceList.getInstanceList().get(0).getLogoUri(), deserializedInstanceList.getInstanceList().get(0).getLogoUri());
         assertEquals(instanceList.getInstanceList().get(1).getDisplayName(), deserializedInstanceList.getInstanceList().get(1).getDisplayName());
-        assertEquals(instanceList.getInstanceList().get(1).getBaseUri(), deserializedInstanceList.getInstanceList().get(1).getBaseUri());
+        assertEquals(instanceList.getInstanceList().get(1).getBaseURI(), deserializedInstanceList.getInstanceList().get(1).getBaseURI());
         assertEquals(instanceList.getInstanceList().get(1).getLogoUri(), deserializedInstanceList.getInstanceList().get(1).getLogoUri());
     }
 
@@ -153,14 +153,16 @@ public class SerializerServiceTest {
 
     @Test
     public void testSavedTokenListSerialization() throws SerializerService.UnknownFormatException {
-        SavedToken token1 = new SavedToken("baseUri1", "accessToken1");
-        SavedToken token2 = new SavedToken("baseUri2", "accessToken2");
+        Instance instance1 = new Instance("baseUri1", "displayName1", null);
+        Instance instance2 = new Instance("baseUri2", "displayName2", null);
+        SavedToken token1 = new SavedToken(instance1, "accessToken1");
+        SavedToken token2 = new SavedToken(instance2, "accessToken2");
         List<SavedToken> list = Arrays.asList(token1, token2);
         JSONObject serializedList = _serializerService.serializeSavedTokenList(list);
         List<SavedToken> deserializedList = _serializerService.deserializeSavedTokenList(serializedList);
         assertEquals(list.size(), deserializedList.size());
         for (int i = 0; i < list.size(); ++i) {
-            assertEquals(list.get(i).getBaseURI(), deserializedList.get(i).getBaseURI());
+            assertEquals(list.get(i).getInstance().getSanitizedBaseURI(), deserializedList.get(i).getInstance().getSanitizedBaseURI());
             assertEquals(list.get(i).getAccessToken(), deserializedList.get(i).getAccessToken());
         }
     }
@@ -178,7 +180,7 @@ public class SerializerServiceTest {
         List<SavedProfile> deserializedList = _serializerService.deserializeSavedProfileList(serializedList);
         assertEquals(list.size(), deserializedList.size());
         for (int i = 0; i < list.size(); ++i) {
-            assertEquals(list.get(i).getInstance().getBaseUri(), deserializedList.get(i).getInstance().getBaseUri());
+            assertEquals(list.get(i).getInstance().getBaseURI(), deserializedList.get(i).getInstance().getBaseURI());
             assertEquals(list.get(i).getInstance().getDisplayName(), deserializedList.get(i).getInstance().getDisplayName());
             assertEquals(list.get(i).getInstance().getLogoUri(), deserializedList.get(i).getInstance().getLogoUri());
             assertEquals(list.get(i).getProfile().getDisplayName(), deserializedList.get(i).getProfile().getDisplayName());

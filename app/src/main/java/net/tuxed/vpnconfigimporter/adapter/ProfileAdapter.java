@@ -92,7 +92,7 @@ public class ProfileAdapter extends RecyclerView.Adapter<ProfileViewHolder> {
     @Override
     public long getItemId(int position) {
         Pair<Instance, Profile> instanceProfilePair = getItem(position);
-        return instanceProfilePair.first.getBaseUri().hashCode() +
+        return instanceProfilePair.first.getBaseURI().hashCode() +
                 17 * instanceProfilePair.second.getProfileId().hashCode();
     }
 
