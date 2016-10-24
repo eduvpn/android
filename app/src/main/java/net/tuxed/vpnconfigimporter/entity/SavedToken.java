@@ -19,7 +19,7 @@ public class SavedToken {
         _accessToken = accessToken;
     }
 
-    public String getBaseUri() {
+    public String getBaseURI() {
         return _baseUri;
     }
 

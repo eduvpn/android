@@ -78,18 +78,18 @@ public class CustomProviderFragment extends Fragment {
         String postfix = _customProviderUrl.getText().toString();
         String url = prefix + postfix;
         if (getActivity() != null) {
-            final Instance customProviderinstance = _createCustomProviderInstance(getActivity(), url);
-            final ProgressDialog dialog = ProgressDialog.show(getContext(), getString(R.string.api_discovery_title), getString(R.string.api_discovery_message), true);
+            final Instance customProviderInstance = _createCustomProviderInstance(getActivity(), url);
+            final ProgressDialog dialog = ProgressDialog.show(getContext(), getString(R.string.progress_dialog_title), getString(R.string.api_discovery_message), true);
             // Discover the API
-            _apiService.getJSON(customProviderinstance.getSanitizedBaseUri() + API_DISCOVERY_POSTFIX, false, new APIService.Callback<JSONObject>() {
+            _apiService.getJSON(customProviderInstance.getSanitizedBaseURI() + API_DISCOVERY_POSTFIX, false, new APIService.Callback<JSONObject>() {
                 @Override
                 public void onSuccess(JSONObject result) {
                     try {
                         DiscoveredAPI discoveredAPI = _serializerService.deserializeDiscoveredAPI(result);
                         dialog.dismiss();
-                        _connectionService.initiateConnection(getActivity(), customProviderinstance, discoveredAPI);
+                        _connectionService.initiateConnection(getActivity(), customProviderInstance, discoveredAPI);
                     } catch (SerializerService.UnknownFormatException ex) {
-                        ErrorDialog.show(getContext(), R.string.error_dialog_title, ex.getMessage());
+                        ErrorDialog.show(getContext(), R.string.error_dialog_title, getString(R.string.custom_api_discovery_error, ex.toString()));
                         Log.e(TAG, "Error while parsing discovered API", ex);
                         dialog.dismiss();
                     }
@@ -99,7 +99,7 @@ public class CustomProviderFragment extends Fragment {
                 public void onError(String errorMessage) {
                     dialog.dismiss();
                     Log.e(TAG, "Error fetching discovered API: " + errorMessage);
-                    ErrorDialog.show(getContext(), R.string.error_dialog_title, errorMessage);
+                    ErrorDialog.show(getContext(), R.string.error_dialog_title, getString(R.string.custom_api_discovery_error, errorMessage));
                 }
             });
         }

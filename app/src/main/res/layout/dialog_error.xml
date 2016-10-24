@@ -11,7 +11,7 @@
 
     <TextView
         android:id="@+id/title"
-        fontPath="fonts/Roboto-Regular.ttf"
+        fontPath="@string/font_roboto_regular"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
@@ -25,7 +25,7 @@
 
     <TextView
         android:id="@+id/errorText"
-        fontPath="fonts/Roboto-Regular.ttf"
+        fontPath="@string/font_roboto_regular"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@+id/title"
@@ -39,7 +39,7 @@
 
     <Button
         android:id="@+id/confirmButton"
-        fontPath="fonts/Roboto-Medium.ttf"
+        fontPath="@string/font_roboto_medium"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@+id/errorText"

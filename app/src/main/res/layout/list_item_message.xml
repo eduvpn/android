@@ -4,16 +4,18 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:background="?attr/selectableItemBackground"
     tools:background="@android:color/white">
 
     <ImageView
         android:id="@+id/messageIcon"
-        android:layout_width="wrap_content"
-        android:layout_height="@dimen/list_item_provider_icon_size"
+        android:layout_width="@dimen/list_item_icon_width"
+        android:layout_height="@dimen/list_item_icon_height"
         android:layout_alignParentTop="true"
         android:layout_marginLeft="8dp"
         android:layout_marginTop="12dp"
         android:adjustViewBounds="true"
+        android:contentDescription="@string/content_description_message_icon"
         android:src="@drawable/maintenance_icon"/>
 
     <TextView

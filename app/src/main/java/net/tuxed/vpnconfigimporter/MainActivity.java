@@ -6,13 +6,10 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.view.animation.AccelerateDecelerateInterpolator;
 import android.widget.Toast;
 
-import net.tuxed.vpnconfigimporter.fragment.ConnectProfileFragment;
 import net.tuxed.vpnconfigimporter.fragment.ConnectionStatusFragment;
 import net.tuxed.vpnconfigimporter.fragment.HomeFragment;
-import net.tuxed.vpnconfigimporter.fragment.ProviderSelectionFragment;
 import net.tuxed.vpnconfigimporter.service.ConnectionService;
 import net.tuxed.vpnconfigimporter.service.VPNService;
 import net.tuxed.vpnconfigimporter.utils.ErrorDialog;
@@ -44,9 +41,9 @@ public class MainActivity extends AppCompatActivity {
         ButterKnife.bind(this);
         EduVPNApplication.get(this).component().inject(this);
         setSupportActionBar(_toolbar);
-        // If there's an ongoing VPN connection, open the status screen.
         _vpnService.onCreate(this);
         if (savedInstanceState == null) {
+            // If there's an ongoing VPN connection, open the status screen.
             if (_vpnService.getStatus() != VPNService.VPNStatus.DISCONNECTED) {
                 openFragment(new ConnectionStatusFragment(), false);
             } else {
@@ -75,10 +72,13 @@ public class MainActivity extends AppCompatActivity {
             _connectionService.parseCallbackIntent(intent);
             // Remove it so we don't parse it again.
             intent.setData(null);
-            openFragment(new ConnectProfileFragment(), true);
+            // Show the home fragment, so the user can select his new config(s)
+            openFragment(new HomeFragment(), false);
+            Toast.makeText(this, R.string.provider_added_new_configs_available, Toast.LENGTH_LONG).show();
         } catch (ConnectionService.InvalidConnectionAttemptException ex) {
-            ErrorDialog.show(this, R.string.error_dialog_title, ex.getLocalizedMessage());
+            ErrorDialog.show(this, R.string.error_dialog_title, ex.getMessage());
         }
+
     }
 
     @Override
@@ -107,8 +107,8 @@ public class MainActivity extends AppCompatActivity {
 
     @OnClick(R.id.settingsButton)
     protected void onSettingsButtonClicked() {
-        findViewById(R.id.settingsButton).animate().rotationBy(520).setDuration(800).setInterpolator(new AccelerateDecelerateInterpolator()).start();
-        Toast.makeText(this, "This will open the settings page later...", Toast.LENGTH_LONG).show();
+        Intent intent = new Intent(this, SettingsActivity.class);
+        startActivity(intent);
     }
 
 

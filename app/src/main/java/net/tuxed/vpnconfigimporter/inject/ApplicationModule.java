@@ -67,8 +67,8 @@ public class ApplicationModule {
 
     @Provides
     @Singleton
-    protected VPNService provideVPNService(Context context) {
-        return new VPNService(context);
+    protected VPNService provideVPNService(Context context, PreferencesService preferencesService) {
+        return new VPNService(context, preferencesService);
     }
 
     @Provides

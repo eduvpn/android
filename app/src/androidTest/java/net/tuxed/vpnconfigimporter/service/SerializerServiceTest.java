@@ -10,6 +10,7 @@ import net.tuxed.vpnconfigimporter.entity.InstanceList;
 import net.tuxed.vpnconfigimporter.entity.Profile;
 import net.tuxed.vpnconfigimporter.entity.SavedProfile;
 import net.tuxed.vpnconfigimporter.entity.SavedToken;
+import net.tuxed.vpnconfigimporter.entity.Settings;
 import net.tuxed.vpnconfigimporter.entity.message.Maintenance;
 import net.tuxed.vpnconfigimporter.entity.message.Message;
 import net.tuxed.vpnconfigimporter.entity.message.Notification;
@@ -43,6 +44,15 @@ public class SerializerServiceTest {
     @Before
     public void before() {
         _serializerService = new SerializerService();
+    }
+
+    @Test
+    public void testAppSettingsSerialization() throws SerializerService.UnknownFormatException {
+        Settings settings = new Settings(true, true);
+        JSONObject jsonObject = _serializerService.serializeAppSettings(settings);
+        Settings deserializedSettings = _serializerService.deserializeAppSettings(jsonObject);
+        assertEquals(settings.forceTcp(), deserializedSettings.forceTcp());
+        assertEquals(settings.useCustomTabs(), settings.useCustomTabs());
     }
 
     @Test
@@ -150,7 +160,7 @@ public class SerializerServiceTest {
         List<SavedToken> deserializedList = _serializerService.deserializeSavedTokenList(serializedList);
         assertEquals(list.size(), deserializedList.size());
         for (int i = 0; i < list.size(); ++i) {
-            assertEquals(list.get(i).getBaseUri(), deserializedList.get(i).getBaseUri());
+            assertEquals(list.get(i).getBaseURI(), deserializedList.get(i).getBaseURI());
             assertEquals(list.get(i).getAccessToken(), deserializedList.get(i).getAccessToken());
         }
     }

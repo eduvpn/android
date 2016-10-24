@@ -48,5 +48,4 @@ public class FormattingUtilsTest {
         assertEquals("5.00 GB", FormattingUtils.formatBytesTraffic(_context, 5*1024*1024*1024L));
         assertEquals("900.00 GB", FormattingUtils.formatBytesTraffic(_context, 900*1024*1024*1024L));
     }
-
 }

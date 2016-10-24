@@ -3,12 +3,12 @@ package net.tuxed.vpnconfigimporter.utils;
 import android.content.Context;
 
 import net.tuxed.vpnconfigimporter.R;
-import net.tuxed.vpnconfigimporter.entity.SavedProfile;
+import net.tuxed.vpnconfigimporter.entity.Instance;
+import net.tuxed.vpnconfigimporter.entity.Profile;
 import net.tuxed.vpnconfigimporter.entity.message.Maintenance;
 
 import java.text.DateFormat;
 import java.text.DecimalFormat;
-import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.Locale;
 
@@ -86,8 +86,28 @@ public class FormattingUtils {
         return context.getString(R.string.maintenance_message, beginDateString, endDateString);
     }
 
-    public static String formatSavedProfileName(Context context, SavedProfile savedProfile) {
-        return context.getString(R.string.saved_profile_display_name, savedProfile.getInstance().getDisplayName(),
-                savedProfile.getProfile().getDisplayName());
+    /**
+     * Creates a name to display in the list of saved profiles.
+     *
+     * @param context  The application or activity context.
+     * @param instance The provider which gives the first part of the name
+     * @param profile  The profile which gives the second part of the name.
+     * @return The name to display.
+     */
+    public static String formatProfileName(Context context, Instance instance, Profile profile) {
+        return context.getString(R.string.saved_profile_display_name, instance.getDisplayName(),
+                profile.getDisplayName());
+    }
+
+    /**
+     * Creates a name to display in the notification which will be visible in the status bar when the VPN is connected.
+     *
+     * @param context  The application or activity context.
+     * @param instance The VPN provider.
+     * @param profile  The profile which was downloaded.
+     * @return The name to display.
+     */
+    public static String formatVPNProfileName(Context context, Instance instance, Profile profile) {
+        return context.getString(R.string.vpn_profile_name, instance.getDisplayName(), profile.getDisplayName());
     }
 }

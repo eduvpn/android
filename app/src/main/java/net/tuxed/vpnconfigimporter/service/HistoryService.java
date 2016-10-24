@@ -1,5 +1,8 @@
 package net.tuxed.vpnconfigimporter.service;
 
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+
 import net.tuxed.vpnconfigimporter.entity.DiscoveredAPI;
 import net.tuxed.vpnconfigimporter.entity.SavedProfile;
 import net.tuxed.vpnconfigimporter.entity.SavedToken;
@@ -8,6 +11,7 @@ import net.tuxed.vpnconfigimporter.utils.TTLCache;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -26,12 +30,23 @@ public class HistoryService {
 
     private PreferencesService _preferencesService;
 
-    public HistoryService(PreferencesService preferencesService) {
+    /**
+     * Constructor.
+     *
+     * @param preferencesService The preferences service which stores the app state.
+     */
+    public HistoryService(@NonNull PreferencesService preferencesService) {
         _preferencesService = preferencesService;
         _load();
         _discoveredAPICache.purge();
+        // Save it immediately, because we just did a purge.
+        // (It is better to purge at app start, since we do have some time now).
+        _save();
     }
 
+    /**
+     * Loads the state of the service.
+     */
     private void _load() {
         _savedProfileList = _preferencesService.getSavedProfileList();
         if (_savedProfileList == null) {
@@ -50,47 +65,95 @@ public class HistoryService {
         }
     }
 
+    /**
+     * Saves the state of the service.
+     */
     private void _save() {
         _preferencesService.storeDiscoveredAPICache(_discoveredAPICache);
         _preferencesService.storeSavedProfileList(_savedProfileList);
         _preferencesService.storeSavedTokenList(_savedTokenList);
     }
 
-    public DiscoveredAPI getCachedDiscoveredAPI(String normalizedBaseUri) {
-        return _discoveredAPICache.get(normalizedBaseUri);
+    /**
+     * Returns a discovered API from the cache.
+     *
+     * @param sanitizedBaseURI The sanitized base URI of the API.
+     * @return A discovered API if a cached one was found. Null if none found.
+     */
+    @Nullable
+    public DiscoveredAPI getCachedDiscoveredAPI(@NonNull String sanitizedBaseURI) {
+        return _discoveredAPICache.get(sanitizedBaseURI);
     }
 
-    public void cacheDiscoveredAPI(String normalizedBaseUri, DiscoveredAPI discoveredAPI) {
-        _discoveredAPICache.put(normalizedBaseUri, discoveredAPI);
+    /**
+     * Caches a discovered API for future usage.
+     *
+     * @param sanitizedBaseURI The sanitized base URI of the API which was discovered.
+     * @param discoveredAPI    The discovered API object to save.
+     */
+    public void cacheDiscoveredAPI(@NonNull String sanitizedBaseURI, @NonNull DiscoveredAPI discoveredAPI) {
+        _discoveredAPICache.put(sanitizedBaseURI, discoveredAPI);
         _save();
     }
 
-    public String getCachedAccessToken(String normalizedBaseUri) {
+    /**
+     * Returns a cached access token for an API.
+     *
+     * @param sanitizedBaseURI The sanitized base URI of the API.
+     * @return The access token if found. Null if not found.
+     */
+    @Nullable
+    public String getCachedAccessToken(@NonNull String sanitizedBaseURI) {
         for (SavedToken savedToken : _savedTokenList) {
-            if (savedToken.getBaseUri().equals(normalizedBaseUri)) {
+            if (savedToken.getBaseURI().equals(sanitizedBaseURI)) {
                 return savedToken.getAccessToken();
             }
         }
         return null;
     }
 
-    public void cacheToken(String normalizedBaseUri, String accessToken) {
-        _savedTokenList.add(new SavedToken(normalizedBaseUri, accessToken));
+    /**
+     * Caches an access token for an API.
+     *
+     * @param sanitizedBaseURI The sanitized base URI of the API.
+     * @param accessToken      The access token to save.
+     */
+    public void cacheAccessToken(@NonNull String sanitizedBaseURI, @NonNull String accessToken) {
+        _savedTokenList.add(new SavedToken(sanitizedBaseURI, accessToken));
         _save();
     }
 
+    /**
+     * Returns the unmodifiable list of saved profiles.
+     *
+     * @return The list of saved profiles. If none found, the list will be empty.
+     */
+    @NonNull
     public List<SavedProfile> getSavedProfileList() {
         return Collections.unmodifiableList(_savedProfileList);
     }
 
-    public void cacheSavedProfile(SavedProfile savedProfile) {
+    /**
+     * Stores a saved profile, so the user can select it the next time.
+     *
+     * @param savedProfile The saved profile to store.
+     */
+    public void cacheSavedProfile(@NonNull SavedProfile savedProfile) {
         _savedProfileList.add(savedProfile);
         _save();
     }
 
-    public SavedProfile getCachedSavedProfile(String baseUri, String profileId) {
+    /**
+     * Returns a cached saved profile by looking it up by the API sanitized base URI and the profile ID.
+     *
+     * @param sanitizedBaseURI The sanitized base URI of the provider.
+     * @param profileId        The unique ID of the profile within the provider.
+     * @return The saved profile if found. Null if not found.
+     */
+    @Nullable
+    public SavedProfile getCachedSavedProfile(@NonNull String sanitizedBaseURI, @NonNull String profileId) {
         for (SavedProfile savedProfile : _savedProfileList) {
-            if (savedProfile.getInstance().getSanitizedBaseUri().equals(baseUri) &&
+            if (savedProfile.getInstance().getSanitizedBaseURI().equals(sanitizedBaseURI) &&
                     savedProfile.getProfile().getProfileId().equals(profileId)) {
                 return savedProfile;
             }
@@ -103,8 +166,34 @@ public class HistoryService {
      *
      * @param savedProfile The profile to remove.
      */
-    public void removeSavedProfile(SavedProfile savedProfile) {
+    public void removeSavedProfile(@NonNull SavedProfile savedProfile) {
         _savedProfileList.remove(savedProfile);
+        _save();
+    }
+
+    /**
+     * Removes the access token(s) which have the given base URI.
+     *
+     * @param sanitizedBaseURI The sanitizied base URI of the provider.
+     */
+    public void removeAccessTokens(@NonNull String sanitizedBaseURI) {
+        Iterator<SavedToken> savedTokenIterator = _savedTokenList.iterator();
+        while (savedTokenIterator.hasNext()) {
+            SavedToken savedToken = savedTokenIterator.next();
+            if (savedToken.getBaseURI().equals(sanitizedBaseURI)) {
+                savedTokenIterator.remove();
+            }
+        }
+        _save();
+    }
+
+    /**
+     * Removes a discovered API based on the provider.
+     *
+     * @param sanitizedBaseURI The sanitized base URI of the provider.
+     */
+    public void removeDiscoveredAPI(@NonNull String sanitizedBaseURI) {
+        _discoveredAPICache.remove(sanitizedBaseURI);
         _save();
     }
 }

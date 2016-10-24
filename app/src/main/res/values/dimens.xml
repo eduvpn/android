@@ -1,19 +1,14 @@
 <resources>
-    <!-- Default screen margins, per the Android Design guidelines. -->
-    <dimen name="activity_horizontal_margin">16dp</dimen>
-    <dimen name="activity_vertical_margin">16dp</dimen>
-
     <dimen name="actionbar_size">80dp</dimen>
     <dimen name="actionbar_icon_size">48dp</dimen>
 
     <dimen name="footer_height">44dp</dimen>
     <dimen name="footer_icon_size">32dp</dimen>
 
-    <dimen name="list_item_provider_height">48dp</dimen>
-    <dimen name="list_item_provider_icon_size">32dp</dimen>
+    <dimen name="list_item_icon_width">64dp</dimen>
+    <dimen name="list_item_icon_height">32dp</dimen>
 
-    <dimen name="list_item_profile_height">48dp</dimen>
-    <dimen name="list_item_profile_icon_size">32dp</dimen>
+    <dimen name="list_item_height">48dp</dimen>
 
     <dimen name="custom_provider_text_size">18sp</dimen>
     <dimen name="vpn_connection_fragment_padding">16dp</dimen>

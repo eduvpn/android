@@ -1,19 +1,11 @@
 <resources>
-    <string name="app_name">EduVPN</string>
+    <string name="app_name">eduVPN</string>
     <!-- Overrides resource from OpenVPN lib. Reason: bad casing-->
     <string name="clear_log">Clear log</string>
 
-    <string name="custom_host_label">Specify the hostname of the VPN instance you want to connect to.</string>
-    <string name="custom_host_hint">vpn.example.com</string>
-    <string name="button_setup">Setup</string>
-    <string name="saved_configuration_available">Do you wish to use your previously used configuration?</string>
-    <string name="button_start_connection">Connect</string>
-    <string name="request_new_config_option">Alternatively, you can also request a new configuration, which will replace the currently saved one. For this you need to log in again.</string>
-    <string name="downloading_config">Downloading OpenVPN configuration…</string>
     <string name="error_state_missing">Error: \'state\' parameter not found in callback URL</string>
     <string name="error_access_token_missing">Error: \'accessToken\' parameter not found in callback URL.</string>
     <string name="error_state_mismatch">Error: state mismatch!</string>
-    <string name="current_status">Connection status: %s</string>
     <string name="button_disconnect">Disconnect</string>
     <string name="actionbar_title">eduVPN</string>
     <string name="choose_your_provider_title">Choose your provider</string>
@@ -21,12 +13,10 @@
     <string name="custom_provider_title">Provide the URL to your provider</string>
     <string name="custom_provider_prefix">https://</string>
     <string name="custom_provider_connect">Connect</string>
-    <string name="connect_to_vpn_title">Connect to VPN</string>
+    <string name="home_title">Connect to VPN</string>
     <string name="custom_provider_display_name">Custom provider</string>
-    <string name="loading_profiles">Loading profiles...</string>
-    <string name="error_loading_profiles">Error loading profiles.</string>
-    <string name="downloading_profile">Downloading profile...</string>
     <string name="error_importing_profile">Error importing profile.</string>
+    <string name="error_fetching_profile">Error fetching profile. Details: %s</string>
     <string name="vpn_connection_status_title">VPN connection</string>
     <string name="connection_label_status">Status</string>
     <string name="connection_label_provider">Provider</string>
@@ -40,9 +30,6 @@
     <string name="connection_info_bytes_out">Bytes out</string>
     <string name="connection_info_ipv4">IPv4</string>
     <string name="connection_info_ipv6">IPv6</string>
-    <string name="connection_info_server">Server</string>
-    <string name="connection_info_server_ip">Server IP</string>
-    <string name="connection_info_port">Port</string>
     <string name="not_available">N/A</string>
     <string name="already_connected_please_disconnect">You are already connected. Please disconnect first.</string>
 
@@ -52,17 +39,44 @@
     <string name="traffic_kilobytes">%s KB</string>
     <string name="traffic_megabytes">%s MB</string>
     <string name="traffic_gigabytes">%s GB</string>
-    <string name="api_discovery_message">Discovering API...</string>
-    <string name="api_discovery_title">Just a sec</string>
+
+    <string name="progress_dialog_title">Just a sec</string>
+    <string name="api_discovery_message">Discovering API…</string>
+    <string name="vpn_profile_download_message">Downloading VPN profile…</string>
     <string name="display_other_name">Use a custom provider</string>
     <string name="maintenance_message">The VPN service will be under maintenance starting from %1$s until %2$s.</string>
     <string name="error_loading_system_messages">Unable to load system messages: %s</string>
     <string name="error_loading_user_messages">Unable to load user messages: %s</string>
-    <string name="profile_already_downloaded_select">This profile is already downloaded. Please select it from the home screen.</string>
-    <string name="home_title">Connect</string>
     <string name="home_add_provider">Add Provider</string>
     <string name="saved_profile_display_name">%1$s - %2$s</string>
     <string name="error_confirm_button">OK</string>
-    <string name="error_dialog_title">Error</string>
-    <string name="selected_profile_does_not_exist">Selected profile does not exist anymore.</string>
+    <string name="error_dialog_title">Unexpected problem</string>
+    <string name="vpn_profile_name">%1$s - %2$s</string>
+    <string name="no_providers_yet_click_on_add_provider">It appears you don\'t have any added providers yet.\nTap on the button below to get started.</string>
+    <string name="font_roboto_regular" translatable="false">fonts/Roboto-Regular.ttf</string>
+    <string name="font_roboto_medium">fonts/Roboto-Medium.ttf</string>
+    <string name="custom_api_discovery_error">It seems that this provider does not exist, or is not compatible with EduVPN.\nDetails: %s</string>
+    <string name="provider_added_new_configs_available">Provider added. You can now select more profiles.</string>
+    <string name="content_description_connection_status_icon">Connection status</string>
+    <string name="content_description_provider_icon">Provider icon</string>
+    <string name="content_description_application_logo">Application logo</string>
+    <string name="content_description_surfnet_logo">SURFnet logo</string>
+    <string name="content_description_settings_button">Settings button</string>
+    <string name="loading_available_profiles">Loading available profiles…</string>
+    <string name="api_discovery_failed">API discovery failed for the following provider: %s</string>
+    <string name="unable_to_fetch_profiles">Unable to fetch profiles from provider: %s</string>
+    <string name="could_not_fetch_all_profiles">Could not fetch all profiles.</string>
+    <string name="warnings_list">Resources missing</string>
+    <string name="cant_connect_application_state_missing">Can\'t connect, application state is missing.</string>
+    <string name="callback_error">Callback error: %s</string>
+    <string name="rejected_permission">User rejected access for the app.</string>
+    <string name="settings_title">Settings</string>
+    <string name="settings_force_tcp_title">Force TCP</string>
+    <string name="settings_force_tcp_description"><![CDATA[Sometimes, eduVPN can\'t connect properly because of very strict firewalls. Connecting directly through TCP can make it easier in these circumstances.]]></string>
+    <string name="settings_use_custom_tabs_description">Custom Tabs are faster and use less resources. If you turn this feature off, the default browser will be used instead.</string>
+    <string name="settings_custom_tabs_opt_out_title">Use Custom Tabs</string>
+    <string name="settings_save">Save</string>
+    <string name="settings_saved">Saved changes to the settings.</string>
+    <string name="content_description_message_icon">Message icon</string>
+    <string name="content_description_warning_icon">Warning icon</string>
 </resources>

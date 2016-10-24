@@ -11,13 +11,13 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
+import net.tuxed.vpnconfigimporter.Constants;
 import net.tuxed.vpnconfigimporter.EduVPNApplication;
 import net.tuxed.vpnconfigimporter.MainActivity;
 import net.tuxed.vpnconfigimporter.R;
 import net.tuxed.vpnconfigimporter.adapter.ProviderAdapter;
 import net.tuxed.vpnconfigimporter.entity.DiscoveredAPI;
 import net.tuxed.vpnconfigimporter.entity.Instance;
-import net.tuxed.vpnconfigimporter.entity.SavedToken;
 import net.tuxed.vpnconfigimporter.service.APIService;
 import net.tuxed.vpnconfigimporter.service.ConfigurationService;
 import net.tuxed.vpnconfigimporter.service.ConnectionService;
@@ -107,39 +107,29 @@ public class ProviderSelectionFragment extends Fragment {
      * @param instance The instance to connect to.
      */
     private void _connectToApi(final Instance instance) {
-        // If there's a saved access token and a discovered API, continue immediately to the config selector.
-        String savedToken = _historyService.getCachedAccessToken(instance.getSanitizedBaseUri());
-        DiscoveredAPI discoveredAPI = _historyService.getCachedDiscoveredAPI(instance.getSanitizedBaseUri());
-        if (savedToken != null && discoveredAPI != null) {
-            _preferencesService.currentInstance(instance);
-            _preferencesService.currentDiscoveredAPI(discoveredAPI);
-            _connectionService.setAccessToken(savedToken);
-            // Open the config selector immediately. If it would throw a 401, then we will trigger a login afterwards.
-            ((MainActivity)getActivity()).openFragment(new ConnectProfileFragment(), true);
-            return;
-        }
+        DiscoveredAPI discoveredAPI = _historyService.getCachedDiscoveredAPI(instance.getSanitizedBaseURI());
         // If there's only a discovered API, initiate the connection
         if (discoveredAPI != null) {
             Log.d(TAG, "Cached discovered API found.");
             _connectionService.initiateConnection(getActivity(), instance, discoveredAPI);
             return;
         }
-        // If no discovered API, fetch it first, then login
+        // If no discovered API, fetch it first, then initiate the connection for the login
         Log.d(TAG, "No cached discovered API found, continuing with discovery.");
-        final ProgressDialog dialog = ProgressDialog.show(getContext(), getString(R.string.api_discovery_title), getString(R.string.api_discovery_message), true);
+        final ProgressDialog dialog = ProgressDialog.show(getContext(), getString(R.string.progress_dialog_title), getString(R.string.api_discovery_message), true);
         // Discover the API
-        _apiService.getJSON(instance.getSanitizedBaseUri() + "/info.json", false, new APIService.Callback<JSONObject>() {
+        _apiService.getJSON(instance.getSanitizedBaseURI() + Constants.API_DISCOVERY_POSTFIX, false, new APIService.Callback<JSONObject>() {
             @Override
             public void onSuccess(JSONObject result) {
                 try {
                     DiscoveredAPI discoveredAPI = _serializerService.deserializeDiscoveredAPI(result);
                     dialog.dismiss();
                     // Cache the result
-                    _historyService.cacheDiscoveredAPI(instance.getSanitizedBaseUri(), discoveredAPI);
+                    _historyService.cacheDiscoveredAPI(instance.getSanitizedBaseURI(), discoveredAPI);
                     _connectionService.initiateConnection(getActivity(), instance, discoveredAPI);
                 } catch (SerializerService.UnknownFormatException ex) {
                     Log.e(TAG, "Error parsing discovered API!",  ex);
-                    ErrorDialog.show(getContext(), R.string.error_dialog_title, ex.getLocalizedMessage());
+                    ErrorDialog.show(getContext(), R.string.error_dialog_title, ex.toString());
                     dialog.dismiss();
                 }
             }

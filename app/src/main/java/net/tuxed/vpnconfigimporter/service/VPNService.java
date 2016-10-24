@@ -7,6 +7,8 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Handler;
 import android.os.IBinder;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 import net.tuxed.vpnconfigimporter.utils.Log;
 
@@ -19,6 +21,7 @@ import java.util.Observable;
 import de.blinkt.openvpn.LaunchVPN;
 import de.blinkt.openvpn.VpnProfile;
 import de.blinkt.openvpn.core.ConfigParser;
+import de.blinkt.openvpn.core.Connection;
 import de.blinkt.openvpn.core.OpenVPNService;
 import de.blinkt.openvpn.core.ProfileManager;
 import de.blinkt.openvpn.core.VpnStatus;
@@ -38,6 +41,8 @@ public class VPNService extends Observable implements VpnStatus.StateListener {
     private static final String TAG = VPNService.class.getName();
 
     private Context _context;
+
+    private PreferencesService _preferencesService;
 
     // Stores the current VPN status.
     private VpnStatus.ConnectionStatus _connectionStatus = VpnStatus.ConnectionStatus.LEVEL_NOTCONNECTED;
@@ -75,8 +80,18 @@ public class VPNService extends Observable implements VpnStatus.StateListener {
         }
     };
 
+    /**
+     * Constructor.
+     *
+     * @param context The application or activity context.
+     */
+    public VPNService(Context context, PreferencesService preferencesService) {
+        _context = context;
+        _preferencesService = preferencesService;
+    }
 
-    public void onCreate(Activity activity) {
+
+    public void onCreate(@NonNull Activity activity) {
         OpenVPNService.setNotificationActivityClass(activity.getClass());
         VpnStatus.addStateListener(this);
         Intent intent = new Intent(activity, OpenVPNService.class);
@@ -84,18 +99,9 @@ public class VPNService extends Observable implements VpnStatus.StateListener {
         activity.bindService(intent, _serviceConnection, Context.BIND_AUTO_CREATE);
     }
 
-    public void onDestroy(Activity activity) {
+    public void onDestroy(@NonNull Activity activity) {
         activity.unbindService(_serviceConnection);
         VpnStatus.removeStateListener(this);
-    }
-
-    /**
-     * Constructor.
-     *
-     * @param context The application or activity context.
-     */
-    public VPNService(Context context) {
-        _context = context;
     }
 
     /**
@@ -105,6 +111,7 @@ public class VPNService extends Observable implements VpnStatus.StateListener {
      * @param preferredName The preferred name for the config.
      * @return True if the import was successful, false if it failed.
      */
+    @Nullable
     public VpnProfile importConfig(String configString, String preferredName) {
         ConfigParser configParser = new ConfigParser();
         try {
@@ -131,8 +138,14 @@ public class VPNService extends Observable implements VpnStatus.StateListener {
      * @param activity   The current activity, required for providing a context.
      * @param vpnProfile The profile to connect to.
      */
-    public void connect(Activity activity, VpnProfile vpnProfile) {
-        Log.i(TAG, String.format("Initiating connection with profile '%s'", vpnProfile.getUUIDString()));
+    public void connect(@NonNull Activity activity, @NonNull VpnProfile vpnProfile) {
+        Log.i(TAG, "Initiating connection with profile:" + vpnProfile.getUUIDString());
+        boolean forceTcp = _preferencesService.getAppSettings().forceTcp();
+        Log.i(TAG, "Force TCP: " + forceTcp);
+        for (Connection connection : vpnProfile.mConnections) {
+            connection.mUseUdp = !forceTcp;
+        }
+        // Make sure these changes are NOT saved, since we don't want the config changes to be permanent.
         Intent intent = new Intent(activity, LaunchVPN.class);
         intent.putExtra(LaunchVPN.EXTRA_KEY, vpnProfile.getUUIDString());
         intent.putExtra(LaunchVPN.EXTRA_HIDELOG, true);
@@ -140,6 +153,9 @@ public class VPNService extends Observable implements VpnStatus.StateListener {
         activity.startActivity(intent);
     }
 
+    /**
+     * Disconnects the current VPN connection.
+     */
     public void disconnect() {
         _openVPNService.getManagement().stopVPN(false);
         // Reset all statistics
@@ -235,6 +251,23 @@ public class VPNService extends Observable implements VpnStatus.StateListener {
                 }
             }
         });
+    }
+
+    /**
+     * Returns the profile with the given UUID.
+     *
+     * @param profileUUID The UUID of the profile.
+     * @return The profile if found, otherwise null.
+     */
+    @Nullable
+    public VpnProfile getProfileWithUUID(@NonNull String profileUUID) {
+        ProfileManager profileManager = ProfileManager.getInstance(_context);
+        for (VpnProfile vpnProfile : profileManager.getProfiles()) {
+            if (vpnProfile.getUUIDString().equals(profileUUID)) {
+                return vpnProfile;
+            }
+        }
+        return null;
     }
 
     /**

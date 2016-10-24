@@ -2,11 +2,11 @@ package net.tuxed.vpnconfigimporter.inject;
 
 import net.tuxed.vpnconfigimporter.EduVPNApplication;
 import net.tuxed.vpnconfigimporter.MainActivity;
-import net.tuxed.vpnconfigimporter.fragment.ConnectProfileFragment;
 import net.tuxed.vpnconfigimporter.fragment.ConnectionStatusFragment;
 import net.tuxed.vpnconfigimporter.fragment.CustomProviderFragment;
 import net.tuxed.vpnconfigimporter.fragment.HomeFragment;
 import net.tuxed.vpnconfigimporter.fragment.ProviderSelectionFragment;
+import net.tuxed.vpnconfigimporter.fragment.SettingsFragment;
 
 import javax.inject.Singleton;
 
@@ -37,9 +37,9 @@ public interface EduVPNComponent {
 
     void inject(CustomProviderFragment customProviderFragment);
 
-    void inject(ConnectProfileFragment connectProfileFragment);
-
     void inject(ConnectionStatusFragment connectionStatusFragment);
 
     void inject(HomeFragment homeFragment);
+
+    void inject(SettingsFragment settingsFragment);
 }

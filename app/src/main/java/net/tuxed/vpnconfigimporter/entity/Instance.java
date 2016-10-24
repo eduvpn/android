@@ -25,7 +25,7 @@ public class Instance {
     }
 
     @NonNull
-    public String getSanitizedBaseUri() {
+    public String getSanitizedBaseURI() {
         if (_baseUri.endsWith("/")) {
             return _baseUri.substring(0, _baseUri.length() - 1);
         }

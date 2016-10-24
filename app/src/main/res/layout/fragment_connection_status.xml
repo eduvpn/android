@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -24,6 +23,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@+id/header"
+        android:baselineAligned="false"
         android:orientation="horizontal"
         android:weightSum="1">
 
@@ -31,7 +31,8 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="0.4"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            tools:ignore="UseCompoundDrawables">
 
             <TextView
                 style="@style/Label"
@@ -41,17 +42,19 @@
 
             <ImageView
                 android:id="@+id/connectionStatusIcon"
-                android:layout_width="wrap_content"
+                android:layout_width="64dp"
                 android:layout_height="@dimen/connection_status_details_row_height"
                 android:adjustViewBounds="true"
-                android:src="@drawable/vpn_icon"/>
+                android:contentDescription="@string/content_description_connection_status_icon"
+                android:src="@drawable/connection_status_disconnected"/>
         </LinearLayout>
 
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="0.3"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            tools:ignore="UseCompoundDrawables">
 
             <TextView
                 style="@style/Label"
@@ -61,9 +64,10 @@
 
             <ImageView
                 android:id="@+id/providerIcon"
-                android:layout_width="wrap_content"
+                android:layout_width="64dp"
                 android:layout_height="@dimen/connection_status_details_row_height"
                 android:adjustViewBounds="true"
+                android:contentDescription="@string/content_description_provider_icon"
                 android:src="@drawable/other_vpn_icon"/>
         </LinearLayout>
 
@@ -147,5 +151,6 @@
         android:layout_centerHorizontal="true"
         android:layout_marginBottom="@dimen/button_margin_bottom"
         android:layout_marginTop="12dp"
+        android:enabled="false"
         android:text="@string/button_disconnect"/>
 </RelativeLayout>

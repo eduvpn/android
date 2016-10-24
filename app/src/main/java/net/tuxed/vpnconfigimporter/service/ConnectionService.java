@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
+import android.support.annotation.NonNull;
 import android.support.customtabs.CustomTabsClient;
 import android.support.customtabs.CustomTabsIntent;
 import android.support.v4.content.ContextCompat;
@@ -36,11 +37,11 @@ public class ConnectionService {
     private static final String CUSTOM_TAB_PACKAGE_NAME = "com.android.chrome"; // This might change later,
     // as of now, this is the only browser which has Custom Tabs support.
 
+
     private PreferencesService _preferencesService;
     private HistoryService _historyService;
     private Context _context;
     private String _accessToken;
-    private boolean _optedOutOfCustomTabs = false;
 
     /**
      * Constructor.
@@ -53,7 +54,6 @@ public class ConnectionService {
         _preferencesService = preferencesService;
         _historyService = historyService;
         _accessToken = preferencesService.getCurrentAccessToken();
-        _optedOutOfCustomTabs = preferencesService.getCustomTabsOptOut();
     }
 
     /**
@@ -63,7 +63,7 @@ public class ConnectionService {
      * @param state   The random state.
      * @return The connection URL which should be opened in the browser.
      */
-    private String _buildConnectionUrl(String baseUrl, String state) {
+    private String _buildConnectionUrl(@NonNull String baseUrl, @NonNull String state) {
         return baseUrl + "/portal/_oauth/authorize?client_id=" + CLIENT_ID +
                 "&redirect_uri=" + REDIRECT_URI +
                 "&response_type=" + RESPONSE_TYPE +
@@ -84,7 +84,7 @@ public class ConnectionService {
      * Warms up the Custom Tabs service, allowing it to load even more faster.
      */
     public void warmup() {
-        if (!_optedOutOfCustomTabs) {
+        if (_preferencesService.getAppSettings().useCustomTabs()) {
             CustomTabsClient.connectAndInitialize(_context, CUSTOM_TAB_PACKAGE_NAME);
         }
     }
@@ -92,18 +92,19 @@ public class ConnectionService {
     /**
      * Initiates a connection to the VPN provider instance.
      *
-     * @param activity The current activity.
-     * @param instance The instance to connect to.
+     * @param activity      The current activity.
+     * @param instance      The instance to connect to.
+     * @param discoveredAPI The discovered API which has the URL.
      */
-    public void initiateConnection(Activity activity, Instance instance, DiscoveredAPI discoveredAPI) {
-        String baseUrl = instance.getSanitizedBaseUri();
+    public void initiateConnection(@NonNull Activity activity, @NonNull Instance instance, @NonNull DiscoveredAPI discoveredAPI) {
+        String baseUrl = instance.getSanitizedBaseURI();
         String state = _generateState();
         String connectionUrl = _buildConnectionUrl(baseUrl, state);
 
         _preferencesService.currentConnectionState(state);
         _preferencesService.currentInstance(instance);
         _preferencesService.currentDiscoveredAPI(discoveredAPI);
-        if (_optedOutOfCustomTabs) {
+        if (!_preferencesService.getAppSettings().useCustomTabs()) {
             Intent viewUrlIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(connectionUrl));
             activity.startActivity(viewUrlIntent);
         } else {
@@ -133,7 +134,7 @@ public class ConnectionService {
      * @param intent The intent to parse.
      * @throws InvalidConnectionAttemptException Thrown if there's a problem with the callback.
      */
-    public void parseCallbackIntent(Intent intent) throws InvalidConnectionAttemptException {
+    public void parseCallbackIntent(@NonNull Intent intent) throws InvalidConnectionAttemptException {
         Uri callbackUri = intent.getData();
         if (callbackUri == null) {
             // Not a callback intent. Check before calling this method.
@@ -145,7 +146,14 @@ public class ConnectionService {
 
         String accessToken = callbackUri.getQueryParameter("access_token");
         String state = callbackUri.getQueryParameter("state");
-
+        String error = callbackUri.getQueryParameter("error");
+        if (error != null) {
+            if ("access_denied".equals(error)) {
+                throw new InvalidConnectionAttemptException(_context.getString(R.string.rejected_permission));
+            } else {
+                throw new InvalidConnectionAttemptException(_context.getString(R.string.callback_error, error));
+            }
+        }
         if (accessToken == null || accessToken.isEmpty()) {
             throw new InvalidConnectionAttemptException(_context.getString(R.string.error_access_token_missing));
         }
@@ -164,7 +172,7 @@ public class ConnectionService {
         // Now we can delete the saved state
         _preferencesService.removeCurrentConnectionState();
         // Save the access token for later use.
-        _historyService.cacheToken(_preferencesService.getCurrentInstance().getSanitizedBaseUri(), _accessToken);
+        _historyService.cacheAccessToken(_preferencesService.getCurrentInstance().getSanitizedBaseURI(), _accessToken);
     }
 
     /**
@@ -176,6 +184,11 @@ public class ConnectionService {
         return _accessToken;
     }
 
+    /**
+     * Sets and saved the current access token to use with the requests.
+     *
+     * @param accessToken The access token to use for getting resources.
+     */
     public void setAccessToken(String accessToken) {
         _accessToken = accessToken;
         _preferencesService.currentAccessToken(accessToken);
