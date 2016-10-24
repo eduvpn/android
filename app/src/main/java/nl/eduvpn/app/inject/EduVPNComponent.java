@@ -1,12 +1,12 @@
-package net.tuxed.vpnconfigimporter.inject;
+package nl.eduvpn.app.inject;
 
-import net.tuxed.vpnconfigimporter.EduVPNApplication;
-import net.tuxed.vpnconfigimporter.MainActivity;
-import net.tuxed.vpnconfigimporter.fragment.ConnectionStatusFragment;
-import net.tuxed.vpnconfigimporter.fragment.CustomProviderFragment;
-import net.tuxed.vpnconfigimporter.fragment.HomeFragment;
-import net.tuxed.vpnconfigimporter.fragment.ProviderSelectionFragment;
-import net.tuxed.vpnconfigimporter.fragment.SettingsFragment;
+import nl.eduvpn.app.EduVPNApplication;
+import nl.eduvpn.app.MainActivity;
+import nl.eduvpn.app.fragment.ConnectionStatusFragment;
+import nl.eduvpn.app.fragment.CustomProviderFragment;
+import nl.eduvpn.app.fragment.HomeFragment;
+import nl.eduvpn.app.fragment.ProviderSelectionFragment;
+import nl.eduvpn.app.fragment.SettingsFragment;
 
 import javax.inject.Singleton;
 

@@ -1,10 +1,10 @@
-package net.tuxed.vpnconfigimporter.service;
+package nl.eduvpn.app.service;
 
 import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
-import net.tuxed.vpnconfigimporter.utils.Log;
+import nl.eduvpn.app.utils.Log;
 
 import org.json.JSONException;
 import org.json.JSONObject;

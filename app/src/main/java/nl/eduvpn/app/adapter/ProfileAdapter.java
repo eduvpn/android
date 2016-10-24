@@ -1,4 +1,4 @@
-package net.tuxed.vpnconfigimporter.adapter;
+package nl.eduvpn.app.adapter;
 
 import android.support.annotation.Nullable;
 import android.support.v7.widget.RecyclerView;
@@ -9,11 +9,11 @@ import android.view.ViewGroup;
 
 import com.squareup.picasso.Picasso;
 
-import net.tuxed.vpnconfigimporter.R;
-import net.tuxed.vpnconfigimporter.adapter.viewholder.ProfileViewHolder;
-import net.tuxed.vpnconfigimporter.entity.Instance;
-import net.tuxed.vpnconfigimporter.entity.Profile;
-import net.tuxed.vpnconfigimporter.utils.FormattingUtils;
+import nl.eduvpn.app.R;
+import nl.eduvpn.app.adapter.viewholder.ProfileViewHolder;
+import nl.eduvpn.app.entity.Instance;
+import nl.eduvpn.app.entity.Profile;
+import nl.eduvpn.app.utils.FormattingUtils;
 
 import java.util.ArrayList;
 import java.util.List;

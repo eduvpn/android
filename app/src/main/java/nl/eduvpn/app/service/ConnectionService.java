@@ -1,4 +1,4 @@
-package net.tuxed.vpnconfigimporter.service;
+package nl.eduvpn.app.service;
 
 import android.app.Activity;
 import android.content.Context;
@@ -9,10 +9,10 @@ import android.support.customtabs.CustomTabsClient;
 import android.support.customtabs.CustomTabsIntent;
 import android.support.v4.content.ContextCompat;
 
-import net.tuxed.vpnconfigimporter.R;
-import net.tuxed.vpnconfigimporter.entity.DiscoveredAPI;
-import net.tuxed.vpnconfigimporter.entity.Instance;
-import net.tuxed.vpnconfigimporter.utils.Log;
+import nl.eduvpn.app.R;
+import nl.eduvpn.app.entity.DiscoveredAPI;
+import nl.eduvpn.app.entity.Instance;
+import nl.eduvpn.app.utils.Log;
 
 import java.util.UUID;
 

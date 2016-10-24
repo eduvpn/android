@@ -1,11 +1,11 @@
-package net.tuxed.vpnconfigimporter;
+package nl.eduvpn.app;
 
 import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 
-import net.tuxed.vpnconfigimporter.fragment.SettingsFragment;
+import nl.eduvpn.app.fragment.SettingsFragment;
 
 import uk.co.chrisjenx.calligraphy.CalligraphyContextWrapper;
 

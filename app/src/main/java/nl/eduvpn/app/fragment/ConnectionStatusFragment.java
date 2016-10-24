@@ -1,4 +1,4 @@
-package net.tuxed.vpnconfigimporter.fragment;
+package nl.eduvpn.app.fragment;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -18,20 +18,20 @@ import android.widget.ViewSwitcher;
 
 import com.squareup.picasso.Picasso;
 
-import net.tuxed.vpnconfigimporter.EduVPNApplication;
-import net.tuxed.vpnconfigimporter.MainActivity;
-import net.tuxed.vpnconfigimporter.R;
-import net.tuxed.vpnconfigimporter.adapter.MessagesAdapter;
-import net.tuxed.vpnconfigimporter.entity.DiscoveredAPI;
-import net.tuxed.vpnconfigimporter.entity.Instance;
-import net.tuxed.vpnconfigimporter.entity.Profile;
-import net.tuxed.vpnconfigimporter.entity.message.Message;
-import net.tuxed.vpnconfigimporter.service.APIService;
-import net.tuxed.vpnconfigimporter.service.PreferencesService;
-import net.tuxed.vpnconfigimporter.service.SerializerService;
-import net.tuxed.vpnconfigimporter.service.VPNService;
-import net.tuxed.vpnconfigimporter.utils.ErrorDialog;
-import net.tuxed.vpnconfigimporter.utils.FormattingUtils;
+import nl.eduvpn.app.EduVPNApplication;
+import nl.eduvpn.app.MainActivity;
+import nl.eduvpn.app.R;
+import nl.eduvpn.app.adapter.MessagesAdapter;
+import nl.eduvpn.app.entity.DiscoveredAPI;
+import nl.eduvpn.app.entity.Instance;
+import nl.eduvpn.app.entity.Profile;
+import nl.eduvpn.app.entity.message.Message;
+import nl.eduvpn.app.service.APIService;
+import nl.eduvpn.app.service.PreferencesService;
+import nl.eduvpn.app.service.SerializerService;
+import nl.eduvpn.app.service.VPNService;
+import nl.eduvpn.app.utils.ErrorDialog;
+import nl.eduvpn.app.utils.FormattingUtils;
 
 import org.json.JSONObject;
 

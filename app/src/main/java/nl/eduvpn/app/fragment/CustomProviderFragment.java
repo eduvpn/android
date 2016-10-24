@@ -1,4 +1,4 @@
-package net.tuxed.vpnconfigimporter.fragment;
+package nl.eduvpn.app.fragment;
 
 import android.app.ProgressDialog;
 import android.content.Context;
@@ -11,15 +11,15 @@ import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 
-import net.tuxed.vpnconfigimporter.EduVPNApplication;
-import net.tuxed.vpnconfigimporter.R;
-import net.tuxed.vpnconfigimporter.entity.DiscoveredAPI;
-import net.tuxed.vpnconfigimporter.entity.Instance;
-import net.tuxed.vpnconfigimporter.service.APIService;
-import net.tuxed.vpnconfigimporter.service.ConnectionService;
-import net.tuxed.vpnconfigimporter.service.SerializerService;
-import net.tuxed.vpnconfigimporter.utils.ErrorDialog;
-import net.tuxed.vpnconfigimporter.utils.Log;
+import nl.eduvpn.app.EduVPNApplication;
+import nl.eduvpn.app.R;
+import nl.eduvpn.app.entity.DiscoveredAPI;
+import nl.eduvpn.app.entity.Instance;
+import nl.eduvpn.app.service.APIService;
+import nl.eduvpn.app.service.ConnectionService;
+import nl.eduvpn.app.service.SerializerService;
+import nl.eduvpn.app.utils.ErrorDialog;
+import nl.eduvpn.app.utils.Log;
 
 import org.json.JSONObject;
 
@@ -30,7 +30,7 @@ import butterknife.ButterKnife;
 import butterknife.OnClick;
 import butterknife.Unbinder;
 
-import static net.tuxed.vpnconfigimporter.Constants.API_DISCOVERY_POSTFIX;
+import static nl.eduvpn.app.Constants.API_DISCOVERY_POSTFIX;
 
 /**
  * Fragment where you can give the URL to a custom provider.

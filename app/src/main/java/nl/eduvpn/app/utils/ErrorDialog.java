@@ -1,4 +1,4 @@
-package net.tuxed.vpnconfigimporter.utils;
+package nl.eduvpn.app.utils;
 
 import android.app.Dialog;
 import android.content.Context;
@@ -7,7 +7,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
-import net.tuxed.vpnconfigimporter.R;
+import nl.eduvpn.app.R;
 
 /**
  * Utility class for displaying error dialogs through the entire application.

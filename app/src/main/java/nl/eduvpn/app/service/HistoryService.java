@@ -1,14 +1,14 @@
-package net.tuxed.vpnconfigimporter.service;
+package nl.eduvpn.app.service;
 
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
-import net.tuxed.vpnconfigimporter.entity.DiscoveredAPI;
-import net.tuxed.vpnconfigimporter.entity.Instance;
-import net.tuxed.vpnconfigimporter.entity.SavedProfile;
-import net.tuxed.vpnconfigimporter.entity.SavedToken;
-import net.tuxed.vpnconfigimporter.utils.Log;
-import net.tuxed.vpnconfigimporter.utils.TTLCache;
+import nl.eduvpn.app.entity.DiscoveredAPI;
+import nl.eduvpn.app.entity.Instance;
+import nl.eduvpn.app.entity.SavedProfile;
+import nl.eduvpn.app.entity.SavedToken;
+import nl.eduvpn.app.utils.Log;
+import nl.eduvpn.app.utils.TTLCache;
 
 import java.util.ArrayList;
 import java.util.Collections;

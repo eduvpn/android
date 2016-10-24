@@ -1,9 +1,9 @@
-package net.tuxed.vpnconfigimporter;
+package nl.eduvpn.app;
 
 import android.app.Application;
 import android.content.Context;
 
-import net.tuxed.vpnconfigimporter.inject.EduVPNComponent;
+import nl.eduvpn.app.inject.EduVPNComponent;
 
 import de.blinkt.openvpn.core.PRNGFixes;
 import de.blinkt.openvpn.core.VpnStatus;

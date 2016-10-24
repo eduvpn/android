@@ -1,9 +1,9 @@
-package net.tuxed.vpnconfigimporter.utils;
+package nl.eduvpn.app.utils;
 
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 
-import net.tuxed.vpnconfigimporter.R;
+import nl.eduvpn.app.R;
 
 /**
  * Adds item click support to a RecyclerView.

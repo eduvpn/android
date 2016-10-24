@@ -1,12 +1,12 @@
-package net.tuxed.vpnconfigimporter.service;
+package nl.eduvpn.app.service;
 
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 
-import net.tuxed.vpnconfigimporter.BuildConfig;
-import net.tuxed.vpnconfigimporter.entity.InstanceList;
-import net.tuxed.vpnconfigimporter.utils.Log;
+import nl.eduvpn.app.BuildConfig;
+import nl.eduvpn.app.entity.InstanceList;
+import nl.eduvpn.app.utils.Log;
 
 import org.json.JSONException;
 import org.json.JSONObject;

@@ -1,10 +1,10 @@
-package net.tuxed.vpnconfigimporter;
+package nl.eduvpn.app;
 
-import net.tuxed.vpnconfigimporter.service.HistoryServiceTest;
-import net.tuxed.vpnconfigimporter.service.PreferencesServiceTest;
-import net.tuxed.vpnconfigimporter.service.SerializerServiceTest;
-import net.tuxed.vpnconfigimporter.utils.FormattingUtilsTest;
-import net.tuxed.vpnconfigimporter.utils.TTLCacheTest;
+import nl.eduvpn.app.service.HistoryServiceTest;
+import nl.eduvpn.app.service.PreferencesServiceTest;
+import nl.eduvpn.app.service.SerializerServiceTest;
+import nl.eduvpn.app.utils.FormattingUtilsTest;
+import nl.eduvpn.app.utils.TTLCacheTest;
 
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;

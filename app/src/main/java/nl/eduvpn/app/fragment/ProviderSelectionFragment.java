@@ -1,4 +1,4 @@
-package net.tuxed.vpnconfigimporter.fragment;
+package nl.eduvpn.app.fragment;
 
 import android.app.ProgressDialog;
 import android.os.Bundle;
@@ -11,22 +11,22 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
-import net.tuxed.vpnconfigimporter.Constants;
-import net.tuxed.vpnconfigimporter.EduVPNApplication;
-import net.tuxed.vpnconfigimporter.MainActivity;
-import net.tuxed.vpnconfigimporter.R;
-import net.tuxed.vpnconfigimporter.adapter.ProviderAdapter;
-import net.tuxed.vpnconfigimporter.entity.DiscoveredAPI;
-import net.tuxed.vpnconfigimporter.entity.Instance;
-import net.tuxed.vpnconfigimporter.service.APIService;
-import net.tuxed.vpnconfigimporter.service.ConfigurationService;
-import net.tuxed.vpnconfigimporter.service.ConnectionService;
-import net.tuxed.vpnconfigimporter.service.HistoryService;
-import net.tuxed.vpnconfigimporter.service.PreferencesService;
-import net.tuxed.vpnconfigimporter.service.SerializerService;
-import net.tuxed.vpnconfigimporter.utils.ErrorDialog;
-import net.tuxed.vpnconfigimporter.utils.ItemClickSupport;
-import net.tuxed.vpnconfigimporter.utils.Log;
+import nl.eduvpn.app.Constants;
+import nl.eduvpn.app.EduVPNApplication;
+import nl.eduvpn.app.MainActivity;
+import nl.eduvpn.app.R;
+import nl.eduvpn.app.adapter.ProviderAdapter;
+import nl.eduvpn.app.entity.DiscoveredAPI;
+import nl.eduvpn.app.entity.Instance;
+import nl.eduvpn.app.service.APIService;
+import nl.eduvpn.app.service.ConfigurationService;
+import nl.eduvpn.app.service.ConnectionService;
+import nl.eduvpn.app.service.HistoryService;
+import nl.eduvpn.app.service.PreferencesService;
+import nl.eduvpn.app.service.SerializerService;
+import nl.eduvpn.app.utils.ErrorDialog;
+import nl.eduvpn.app.utils.ItemClickSupport;
+import nl.eduvpn.app.utils.Log;
 
 import org.json.JSONObject;
 

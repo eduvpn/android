@@ -1,4 +1,4 @@
-package net.tuxed.vpnconfigimporter.utils;
+package nl.eduvpn.app.utils;
 
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;

@@ -1,12 +1,12 @@
-package net.tuxed.vpnconfigimporter.service;
+package nl.eduvpn.app.service;
 
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.filters.LargeTest;
 import android.support.test.runner.AndroidJUnit4;
 
-import net.tuxed.vpnconfigimporter.entity.DiscoveredAPI;
-import net.tuxed.vpnconfigimporter.entity.Instance;
+import nl.eduvpn.app.entity.DiscoveredAPI;
+import nl.eduvpn.app.entity.Instance;
 
 import org.junit.Before;
 import org.junit.Test;

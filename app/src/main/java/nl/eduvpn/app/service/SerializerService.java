@@ -1,19 +1,19 @@
-package net.tuxed.vpnconfigimporter.service;
+package nl.eduvpn.app.service;
 
 import android.util.Pair;
 
-import net.tuxed.vpnconfigimporter.entity.DiscoveredAPI;
-import net.tuxed.vpnconfigimporter.entity.Instance;
-import net.tuxed.vpnconfigimporter.entity.InstanceList;
-import net.tuxed.vpnconfigimporter.entity.Profile;
-import net.tuxed.vpnconfigimporter.entity.SavedProfile;
-import net.tuxed.vpnconfigimporter.entity.SavedToken;
-import net.tuxed.vpnconfigimporter.entity.Settings;
-import net.tuxed.vpnconfigimporter.entity.message.Maintenance;
-import net.tuxed.vpnconfigimporter.entity.message.Message;
-import net.tuxed.vpnconfigimporter.entity.message.Notification;
-import net.tuxed.vpnconfigimporter.utils.Log;
-import net.tuxed.vpnconfigimporter.utils.TTLCache;
+import nl.eduvpn.app.entity.DiscoveredAPI;
+import nl.eduvpn.app.entity.Instance;
+import nl.eduvpn.app.entity.InstanceList;
+import nl.eduvpn.app.entity.Profile;
+import nl.eduvpn.app.entity.SavedProfile;
+import nl.eduvpn.app.entity.SavedToken;
+import nl.eduvpn.app.entity.Settings;
+import nl.eduvpn.app.entity.message.Maintenance;
+import nl.eduvpn.app.entity.message.Message;
+import nl.eduvpn.app.entity.message.Notification;
+import nl.eduvpn.app.utils.Log;
+import nl.eduvpn.app.utils.TTLCache;
 
 import org.json.JSONArray;
 import org.json.JSONException;

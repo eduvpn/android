@@ -1,4 +1,4 @@
-package net.tuxed.vpnconfigimporter.entity;
+package nl.eduvpn.app.entity;
 
 import android.support.annotation.NonNull;
 

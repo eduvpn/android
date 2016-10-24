@@ -1,4 +1,4 @@
-package net.tuxed.vpnconfigimporter.entity;
+package nl.eduvpn.app.entity;
 
 /**
  * Stores the mapping between the base URI and the access token.

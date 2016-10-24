@@ -1,4 +1,4 @@
-package net.tuxed.vpnconfigimporter.service;
+package nl.eduvpn.app.service;
 
 import android.app.Activity;
 import android.content.ComponentName;
@@ -10,7 +10,7 @@ import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
-import net.tuxed.vpnconfigimporter.utils.Log;
+import nl.eduvpn.app.utils.Log;
 
 import java.io.IOException;
 import java.io.StringReader;

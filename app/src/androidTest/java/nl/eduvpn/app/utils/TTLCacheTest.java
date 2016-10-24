@@ -1,4 +1,4 @@
-package net.tuxed.vpnconfigimporter.utils;
+package nl.eduvpn.app.utils;
 
 import android.support.test.filters.SmallTest;
 import android.support.test.runner.AndroidJUnit4;

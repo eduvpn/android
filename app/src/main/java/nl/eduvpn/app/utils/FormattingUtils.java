@@ -1,11 +1,11 @@
-package net.tuxed.vpnconfigimporter.utils;
+package nl.eduvpn.app.utils;
 
 import android.content.Context;
 
-import net.tuxed.vpnconfigimporter.R;
-import net.tuxed.vpnconfigimporter.entity.Instance;
-import net.tuxed.vpnconfigimporter.entity.Profile;
-import net.tuxed.vpnconfigimporter.entity.message.Maintenance;
+import nl.eduvpn.app.R;
+import nl.eduvpn.app.entity.Instance;
+import nl.eduvpn.app.entity.Profile;
+import nl.eduvpn.app.entity.message.Maintenance;
 
 import java.text.DateFormat;
 import java.text.DecimalFormat;

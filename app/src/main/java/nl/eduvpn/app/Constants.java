@@ -1,4 +1,4 @@
-package net.tuxed.vpnconfigimporter;
+package nl.eduvpn.app;
 
 /**
  * Contains application-wide constant values.

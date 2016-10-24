@@ -1,4 +1,4 @@
-package net.tuxed.vpnconfigimporter;
+package nl.eduvpn.app;
 
 import android.content.Context;
 import android.content.Intent;
@@ -8,11 +8,11 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.widget.Toast;
 
-import net.tuxed.vpnconfigimporter.fragment.ConnectionStatusFragment;
-import net.tuxed.vpnconfigimporter.fragment.HomeFragment;
-import net.tuxed.vpnconfigimporter.service.ConnectionService;
-import net.tuxed.vpnconfigimporter.service.VPNService;
-import net.tuxed.vpnconfigimporter.utils.ErrorDialog;
+import nl.eduvpn.app.fragment.ConnectionStatusFragment;
+import nl.eduvpn.app.fragment.HomeFragment;
+import nl.eduvpn.app.service.ConnectionService;
+import nl.eduvpn.app.service.VPNService;
+import nl.eduvpn.app.utils.ErrorDialog;
 
 import javax.inject.Inject;
 

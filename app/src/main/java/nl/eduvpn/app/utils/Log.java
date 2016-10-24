@@ -1,6 +1,6 @@
-package net.tuxed.vpnconfigimporter.utils;
+package nl.eduvpn.app.utils;
 
-import net.tuxed.vpnconfigimporter.Constants;
+import nl.eduvpn.app.Constants;
 
 /**
  * API for sending log output.

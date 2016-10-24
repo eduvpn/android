@@ -1,11 +1,11 @@
-package net.tuxed.vpnconfigimporter.adapter.viewholder;
+package nl.eduvpn.app.adapter.viewholder;
 
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import net.tuxed.vpnconfigimporter.R;
+import nl.eduvpn.app.R;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;

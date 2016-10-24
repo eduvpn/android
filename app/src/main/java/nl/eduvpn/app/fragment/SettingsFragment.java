@@ -1,4 +1,4 @@
-package net.tuxed.vpnconfigimporter.fragment;
+package nl.eduvpn.app.fragment;
 
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -10,10 +10,10 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.Toast;
 
-import net.tuxed.vpnconfigimporter.EduVPNApplication;
-import net.tuxed.vpnconfigimporter.R;
-import net.tuxed.vpnconfigimporter.entity.Settings;
-import net.tuxed.vpnconfigimporter.service.PreferencesService;
+import nl.eduvpn.app.EduVPNApplication;
+import nl.eduvpn.app.R;
+import nl.eduvpn.app.entity.Settings;
+import nl.eduvpn.app.service.PreferencesService;
 
 import javax.inject.Inject;
 

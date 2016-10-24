@@ -1,15 +1,15 @@
-package net.tuxed.vpnconfigimporter.inject;
+package nl.eduvpn.app.inject;
 
 import android.content.Context;
 
-import net.tuxed.vpnconfigimporter.EduVPNApplication;
-import net.tuxed.vpnconfigimporter.service.APIService;
-import net.tuxed.vpnconfigimporter.service.ConfigurationService;
-import net.tuxed.vpnconfigimporter.service.ConnectionService;
-import net.tuxed.vpnconfigimporter.service.HistoryService;
-import net.tuxed.vpnconfigimporter.service.PreferencesService;
-import net.tuxed.vpnconfigimporter.service.SerializerService;
-import net.tuxed.vpnconfigimporter.service.VPNService;
+import nl.eduvpn.app.EduVPNApplication;
+import nl.eduvpn.app.service.APIService;
+import nl.eduvpn.app.service.ConfigurationService;
+import nl.eduvpn.app.service.ConnectionService;
+import nl.eduvpn.app.service.HistoryService;
+import nl.eduvpn.app.service.PreferencesService;
+import nl.eduvpn.app.service.SerializerService;
+import nl.eduvpn.app.service.VPNService;
 
 import javax.inject.Singleton;
 

@@ -1,4 +1,4 @@
-package net.tuxed.vpnconfigimporter.entity;
+package nl.eduvpn.app.entity;
 
 /**
  * Represents a VPN connection profile.

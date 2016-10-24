@@ -1,17 +1,17 @@
-package net.tuxed.vpnconfigimporter.service;
+package nl.eduvpn.app.service;
 
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.support.annotation.NonNull;
 
-import net.tuxed.vpnconfigimporter.entity.DiscoveredAPI;
-import net.tuxed.vpnconfigimporter.entity.Instance;
-import net.tuxed.vpnconfigimporter.entity.Profile;
-import net.tuxed.vpnconfigimporter.entity.SavedProfile;
-import net.tuxed.vpnconfigimporter.entity.SavedToken;
-import net.tuxed.vpnconfigimporter.entity.Settings;
-import net.tuxed.vpnconfigimporter.utils.Log;
-import net.tuxed.vpnconfigimporter.utils.TTLCache;
+import nl.eduvpn.app.entity.DiscoveredAPI;
+import nl.eduvpn.app.entity.Instance;
+import nl.eduvpn.app.entity.Profile;
+import nl.eduvpn.app.entity.SavedProfile;
+import nl.eduvpn.app.entity.SavedToken;
+import nl.eduvpn.app.entity.Settings;
+import nl.eduvpn.app.utils.Log;
+import nl.eduvpn.app.utils.TTLCache;
 
 import org.json.JSONException;
 import org.json.JSONObject;
