@@ -60,11 +60,11 @@ public class HistoryServiceTest {
             _historyService.cacheDiscoveredAPI(baseURI + i, discoveredAPI);
             String profileId = "vpn_profile";
             String profileUUID = "ABCD-1234-DEFG-5678";
-            Instance instance = new Instance(baseURI, "displayName", null);
+            Instance instance = new Instance(baseURI + i, "displayName", null);
             Profile profile = new Profile("displayName", profileId, false);
             SavedProfile savedProfile = new SavedProfile(instance, profile, profileUUID);
             _historyService.cacheSavedProfile(savedProfile);
-            _historyService.cacheAccessToken(baseURI + i, "averylongaccesstoken1234567890somemoretextthatitisevenmorelonger");
+            _historyService.cacheAccessToken(instance, "averylongaccesstoken1234567890somemoretextthatitisevenmorelonger");
         }
         _reloadHistoryService(false);
         assertEquals(10, _historyService.getSavedProfileList().size());
@@ -92,7 +92,7 @@ public class HistoryServiceTest {
     public void testCacheAccessToken() {
         String exampleToken = "abcd1234defghthisisatoken";
         String baseURI = "http://example.com";
-        _historyService.cacheAccessToken(baseURI, exampleToken);
+        _historyService.cacheAccessToken(new Instance(baseURI, "displayName", null), exampleToken);
         _reloadHistoryService(false);
         String restoredToken = _historyService.getCachedAccessToken(baseURI);
         assertEquals(exampleToken, restoredToken);

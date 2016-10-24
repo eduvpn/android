@@ -5,22 +5,22 @@ package net.tuxed.vpnconfigimporter.entity;
  * Created by Daniel Zolnai on 2016-10-20.
  */
 public class SavedToken {
-    private String _baseUri;
+    private Instance _instance;
     private String _accessToken;
 
     /**
      * Constructor.
      *
-     * @param normalizedBaseUri The normalized base URI of the provider.
-     * @param accessToken       The access token which we can use to fetch data.
+     * @param instance    The VPN provider the token is valid for.
+     * @param accessToken The access token which we can use to fetch data.
      */
-    public SavedToken(String normalizedBaseUri, String accessToken) {
-        _baseUri = normalizedBaseUri;
+    public SavedToken(Instance instance, String accessToken) {
+        _instance = instance;
         _accessToken = accessToken;
     }
 
-    public String getBaseURI() {
-        return _baseUri;
+    public Instance getInstance() {
+        return _instance;
     }
 
     public String getAccessToken() {

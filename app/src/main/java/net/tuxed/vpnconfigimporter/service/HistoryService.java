@@ -4,6 +4,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 import net.tuxed.vpnconfigimporter.entity.DiscoveredAPI;
+import net.tuxed.vpnconfigimporter.entity.Instance;
 import net.tuxed.vpnconfigimporter.entity.SavedProfile;
 import net.tuxed.vpnconfigimporter.entity.SavedToken;
 import net.tuxed.vpnconfigimporter.utils.Log;
@@ -105,7 +106,7 @@ public class HistoryService {
     @Nullable
     public String getCachedAccessToken(@NonNull String sanitizedBaseURI) {
         for (SavedToken savedToken : _savedTokenList) {
-            if (savedToken.getBaseURI().equals(sanitizedBaseURI)) {
+            if (savedToken.getInstance().getSanitizedBaseURI().equals(sanitizedBaseURI)) {
                 return savedToken.getAccessToken();
             }
         }
@@ -115,11 +116,11 @@ public class HistoryService {
     /**
      * Caches an access token for an API.
      *
-     * @param sanitizedBaseURI The sanitized base URI of the API.
-     * @param accessToken      The access token to save.
+     * @param instance    The VPN provider the token is stored for.
+     * @param accessToken The access token to save.
      */
-    public void cacheAccessToken(@NonNull String sanitizedBaseURI, @NonNull String accessToken) {
-        _savedTokenList.add(new SavedToken(sanitizedBaseURI, accessToken));
+    public void cacheAccessToken(@NonNull Instance instance, @NonNull String accessToken) {
+        _savedTokenList.add(new SavedToken(instance, accessToken));
         _save();
     }
 
@@ -180,7 +181,7 @@ public class HistoryService {
         Iterator<SavedToken> savedTokenIterator = _savedTokenList.iterator();
         while (savedTokenIterator.hasNext()) {
             SavedToken savedToken = savedTokenIterator.next();
-            if (savedToken.getBaseURI().equals(sanitizedBaseURI)) {
+            if (savedToken.getInstance().getSanitizedBaseURI().equals(sanitizedBaseURI)) {
                 savedTokenIterator.remove();
             }
         }
@@ -195,5 +196,14 @@ public class HistoryService {
     public void removeDiscoveredAPI(@NonNull String sanitizedBaseURI) {
         _discoveredAPICache.remove(sanitizedBaseURI);
         _save();
+    }
+
+    /**
+     * Returns the list of all saved tokens.
+     *
+     * @return The list of all saved access tokens and instances.
+     */
+    public List<SavedToken> getSavedTokenList() {
+        return Collections.unmodifiableList(_savedTokenList);
     }
 }

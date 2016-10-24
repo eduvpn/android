@@ -172,7 +172,7 @@ public class ConnectionService {
         // Now we can delete the saved state
         _preferencesService.removeCurrentConnectionState();
         // Save the access token for later use.
-        _historyService.cacheAccessToken(_preferencesService.getCurrentInstance().getSanitizedBaseURI(), _accessToken);
+        _historyService.cacheAccessToken(_preferencesService.getCurrentInstance(), _accessToken);
     }
 
     /**

@@ -25,6 +25,7 @@ import net.tuxed.vpnconfigimporter.entity.DiscoveredAPI;
 import net.tuxed.vpnconfigimporter.entity.Instance;
 import net.tuxed.vpnconfigimporter.entity.Profile;
 import net.tuxed.vpnconfigimporter.entity.SavedProfile;
+import net.tuxed.vpnconfigimporter.entity.SavedToken;
 import net.tuxed.vpnconfigimporter.service.APIService;
 import net.tuxed.vpnconfigimporter.service.ConfigurationService;
 import net.tuxed.vpnconfigimporter.service.ConnectionService;
@@ -109,9 +110,8 @@ public class HomeFragment extends Fragment {
         _unbinder = ButterKnife.bind(this, view);
         EduVPNApplication.get(view.getContext()).component().inject(this);
         _profileList.setLayoutManager(new LinearLayoutManager(view.getContext(), LinearLayoutManager.VERTICAL, false));
-        List<Instance> availableInstances = _configurationService.getInstanceList().getInstanceList();
-        final List<Pair<Instance, String>> instanceAccessTokenPairs = _pairTokensWithInstances(availableInstances);
-        if (instanceAccessTokenPairs.size() == 0) {
+        final List<SavedToken> savedTokenList = _historyService.getSavedTokenList();
+        if (savedTokenList.size() == 0) {
             _loadingBar.setVisibility(View.GONE);
             _noProvidersYet.setVisibility(View.VISIBLE);
             _profileList.setVisibility(View.GONE);
@@ -121,7 +121,7 @@ public class HomeFragment extends Fragment {
             _profileList.setVisibility(View.VISIBLE);
             ProfileAdapter adapter = new ProfileAdapter(null);
             _profileList.setAdapter(adapter);
-            _fillList(adapter, instanceAccessTokenPairs);
+            _fillList(adapter, savedTokenList);
         }
 
         ItemClickSupport.addTo(_profileList).setOnItemClickListener(new ItemClickSupport.OnItemClickListener() {
@@ -185,23 +185,6 @@ public class HomeFragment extends Fragment {
         _unbinder.unbind();
     }
 
-    /**
-     * Pairs the instances with their access tokens.
-     *
-     * @param availableInstances The instances available to the user.
-     * @return The list of instances with their tokens. If an instance does not have a token, it will not be in the list.
-     */
-    private List<Pair<Instance, String>> _pairTokensWithInstances(List<Instance> availableInstances) {
-        List<Pair<Instance, String>> result = new ArrayList<>();
-        for (Instance instance : availableInstances) {
-            String accessToken = _historyService.getCachedAccessToken(instance.getSanitizedBaseURI());
-            if (accessToken != null) {
-                result.add(new Pair<>(instance, accessToken));
-            }
-        }
-        return result;
-    }
-
 
     /**
      * Starts fetching the list of profiles to be displayed.
@@ -212,12 +195,12 @@ public class HomeFragment extends Fragment {
      * @param adapter                  The adapter to show the profiles in.
      * @param instanceAccessTokenPairs Each instance & access token pair.
      */
-    private void _fillList(final ProfileAdapter adapter, List<Pair<Instance, String>> instanceAccessTokenPairs) {
+    private void _fillList(final ProfileAdapter adapter, List<SavedToken> instanceAccessTokenPairs) {
         _pendingInstanceCount = instanceAccessTokenPairs.size();
         _warnings = new ArrayList<>();
-        for (Pair<Instance, String> instanceAccessTokenPair : instanceAccessTokenPairs) {
-            final Instance instance = instanceAccessTokenPair.first;
-            final String accessToken = instanceAccessTokenPair.second;
+        for (SavedToken savedToken : instanceAccessTokenPairs) {
+            final Instance instance = savedToken.getInstance();
+            final String accessToken = savedToken.getAccessToken();
             DiscoveredAPI discoveredAPI = _historyService.getCachedDiscoveredAPI(instance.getSanitizedBaseURI());
             if (discoveredAPI != null) {
                 // We got everything, fetch the available profiles.

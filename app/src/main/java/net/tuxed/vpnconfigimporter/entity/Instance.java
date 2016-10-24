@@ -20,7 +20,7 @@ public class Instance {
     }
 
     @NonNull
-    public String getBaseUri() {
+    public String getBaseURI() {
         return _baseUri;
     }
 

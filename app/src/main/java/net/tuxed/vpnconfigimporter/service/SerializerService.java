@@ -154,7 +154,7 @@ public class SerializerService {
     public JSONObject serializeInstance(Instance instance) throws UnknownFormatException {
         JSONObject result = new JSONObject();
         try {
-            result.put("base_uri", instance.getBaseUri());
+            result.put("base_uri", instance.getBaseURI());
             result.put("display_name", instance.getDisplayName());
             result.put("logo_uri", instance.getLogoUri());
         } catch (JSONException ex) {
@@ -199,7 +199,7 @@ public class SerializerService {
             JSONArray serializedInstances = new JSONArray();
             for (Instance instance : instanceList.getInstanceList()) {
                 JSONObject serializedInstance = new JSONObject();
-                serializedInstance.put("base_uri", instance.getBaseUri());
+                serializedInstance.put("base_uri", instance.getBaseURI());
                 serializedInstance.put("display_name", instance.getDisplayName());
                 serializedInstance.put("logo_uri", instance.getLogoUri());
                 serializedInstances.put(serializedInstance);
@@ -360,7 +360,7 @@ public class SerializerService {
             JSONArray array = new JSONArray();
             for (SavedToken savedToken : savedTokenList) {
                 JSONObject tokenJson = new JSONObject();
-                tokenJson.put("base_uri", savedToken.getBaseURI());
+                tokenJson.put("instance", serializeInstance(savedToken.getInstance()));
                 tokenJson.put("access_token", savedToken.getAccessToken());
                 array.put(tokenJson);
             }
@@ -384,9 +384,9 @@ public class SerializerService {
             JSONArray dataArray = jsonObject.getJSONArray("data");
             for (int i = 0; i < dataArray.length(); ++i) {
                 JSONObject tokenObject = dataArray.getJSONObject(i);
-                String baseUri = tokenObject.getString("base_uri");
+                Instance instance = deserializeInstance(tokenObject.getJSONObject("instance"));
                 String accessToken = tokenObject.getString("access_token");
-                result.add(new SavedToken(baseUri, accessToken));
+                result.add(new SavedToken(instance, accessToken));
             }
             return result;
         } catch (JSONException ex) {
