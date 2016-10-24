@@ -280,13 +280,14 @@ public class SerializerService {
      * Deserializes a JSON with a list of messages into an ArrayList of message object.
      *
      * @param jsonObject The JSON to deserialize.
+     * @param String the message source, either "user_messages" or "system_messages"
      * @return The message instances in a list.
      * @throws UnknownFormatException Thrown if there was a problem while parsing.
      */
-    public List<Message> deserializeMessageList(JSONObject jsonObject) throws UnknownFormatException {
+    public List<Message> deserializeMessageList(JSONObject jsonObject, String messageSource) throws UnknownFormatException {
         try {
             JSONObject dataObject = jsonObject.getJSONObject("data");
-            JSONArray messagesArray = dataObject.getJSONArray("messages");
+            JSONArray messagesArray = dataObject.getJSONArray(messageSource);
             List<Message> result = new ArrayList<>();
             for (int i = 0; i < messagesArray.length(); ++i) {
                 JSONObject messageObject = messagesArray.getJSONObject(i);
@@ -316,16 +317,17 @@ public class SerializerService {
      * Serializes a list of messages into a JSON format.
      *
      * @param messageList The list of messages to serialize.
+     * @param String the message source, either "user_messages" or "system_messages"
      * @return The messages as a JSON object.
      * @throws UnknownFormatException Thrown if there was an error constructing the JSON.
      */
-    public JSONObject serializeMessageList(List<Message> messageList) throws UnknownFormatException {
+    public JSONObject serializeMessageList(List<Message> messageList, String messageSource) throws UnknownFormatException {
         try {
             JSONObject result = new JSONObject();
             JSONObject dataObject = new JSONObject();
             result.put("data", dataObject);
             JSONArray messagesArray = new JSONArray();
-            dataObject.put("messages", messagesArray);
+            dataObject.put(messageSource, messagesArray);
             for (Message message : messageList) {
                 JSONObject messageObject = new JSONObject();
                 messageObject.put("date", API_DATE_FORMAT.format(message.getDate()));

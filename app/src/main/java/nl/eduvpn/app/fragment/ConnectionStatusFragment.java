@@ -140,7 +140,7 @@ public class ConnectionStatusFragment extends Fragment implements VPNService.Con
             @Override
             public void onSuccess(JSONObject result) {
                 try {
-                    List<Message> systemMessagesList = _serializerService.deserializeMessageList(result);
+                    List<Message> systemMessagesList = _serializerService.deserializeMessageList(result, "system_messages");
                     messagesAdapter.setSystemMessages(systemMessagesList);
                 } catch (SerializerService.UnknownFormatException ex) {
                     ErrorDialog.show(getContext(), R.string.error_dialog_title, ex.toString());
@@ -158,7 +158,7 @@ public class ConnectionStatusFragment extends Fragment implements VPNService.Con
             @Override
             public void onSuccess(JSONObject result) {
                 try {
-                    List<Message> userMessagesList = _serializerService.deserializeMessageList(result);
+                    List<Message> userMessagesList = _serializerService.deserializeMessageList(result, "user_messages");
                     messagesAdapter.setUserMessages(userMessagesList);
                 } catch (SerializerService.UnknownFormatException ex) {
                     ErrorDialog.show(getContext(), R.string.error_dialog_title, ex.toString());
