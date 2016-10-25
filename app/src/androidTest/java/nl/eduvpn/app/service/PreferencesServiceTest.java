@@ -27,7 +27,7 @@ public class PreferencesServiceTest {
     @Before
     public void before() {
         SerializerService serializerService = new SerializerService();
-        Context context = InstrumentationRegistry.getTargetContext();
+        Context context = InstrumentationRegistry.getContext();
         _preferencesService = new PreferencesService(context, serializerService);
     }
 

@@ -11,6 +11,8 @@ import nl.eduvpn.app.entity.Instance;
 import nl.eduvpn.app.entity.Profile;
 import nl.eduvpn.app.entity.SavedProfile;
 
+import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -28,7 +30,8 @@ public class HistoryServiceTest {
     private HistoryService _historyService;
 
     @Before
-    public void setUp() throws Exception {
+    @After
+    public void clearPrefs() throws Exception {
         _reloadHistoryService(true);
     }
 
