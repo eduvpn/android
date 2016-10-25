@@ -6,8 +6,8 @@ capabilities = {
 	platformVersion: '5.1',
 	deviceName: 'Android Emulator',
 	app: './app/build/outputs/apk/app-debug.apk',
-	appPackage: 'net.tuxed.vpnconfigimporter',
-	appActivity: 'net.tuxed.vpnconfigimporter.MainActivity'
+	appPackage: 'nl.eduvpn.app',
+	appActivity: 'nl.eduvpn.app.MainActivity'
 }
 
 server_url = "http://127.0.0.1:4723/wd/hub"
