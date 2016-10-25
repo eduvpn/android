@@ -13,12 +13,6 @@ android {
         buildConfigField "String", "INSTANCE_LIST_URL", "\"https://eduvpn.surfcloud.nl/instances.json\""
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
-    sourceSets {
-        main {
-            assets.srcDirs = ['src/main/assets', 'src/main/ovpnlibs/assets']
-            jniLibs.srcDirs = ['src/main/ovpnlibs/lib']
-        }
-    }
 
     buildTypes {
         release {
