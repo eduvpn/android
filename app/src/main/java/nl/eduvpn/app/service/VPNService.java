@@ -143,8 +143,11 @@ public class VPNService extends Observable implements VpnStatus.StateListener {
         Log.i(TAG, "Initiating connection with profile:" + vpnProfile.getUUIDString());
         boolean forceTcp = _preferencesService.getAppSettings().forceTcp();
         Log.i(TAG, "Force TCP: " + forceTcp);
+        // If force TCP is enabled, disable the UDP connections
         for (Connection connection : vpnProfile.mConnections) {
-            connection.mUseUdp = !forceTcp;
+            if (connection.mUseUdp) {
+                connection.mEnabled = !forceTcp;
+            }
         }
         // Make sure these changes are NOT saved, since we don't want the config changes to be permanent.
         Intent intent = new Intent(activity, LaunchVPN.class);
