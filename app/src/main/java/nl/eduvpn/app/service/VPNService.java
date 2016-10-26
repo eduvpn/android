@@ -33,7 +33,7 @@ import de.blinkt.openvpn.core.VpnStatus;
 public class VPNService extends Observable implements VpnStatus.StateListener {
 
     public enum VPNStatus {
-        DISCONNECTED, CONNECTING, CONNECTED, PAUSED
+        DISCONNECTED, CONNECTING, CONNECTED, PAUSED, FAILED
     }
 
     private static final Long CONNECTION_INFO_UPDATE_INTERVAL_MS = 1000L;
@@ -184,6 +184,7 @@ public class VPNService extends Observable implements VpnStatus.StateListener {
             case LEVEL_VPNPAUSED:
                 return VPNStatus.PAUSED;
             case LEVEL_AUTH_FAILED:
+                return VPNStatus.FAILED;
             case LEVEL_NONETWORK:
             case LEVEL_NOTCONNECTED:
             case LEVEL_WAITING_FOR_USER_INPUT:
@@ -215,6 +216,8 @@ public class VPNService extends Observable implements VpnStatus.StateListener {
                     }
                 });
             }
+        } else if (getStatus() == VPNStatus.FAILED) {
+            System.out.println(logmessage);
         }
         // Notify the observers.
         _updatesHandler.post(new Runnable() {

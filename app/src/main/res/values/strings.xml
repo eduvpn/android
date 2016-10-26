@@ -77,4 +77,5 @@
     <string name="settings_saved">Saved changes to the settings.</string>
     <string name="content_description_message_icon">Message icon</string>
     <string name="content_description_warning_icon">Warning icon</string>
+    <string name="go_back">Back</string>
 </resources>
