@@ -206,4 +206,20 @@ public class HistoryService {
     public List<SavedToken> getSavedTokenList() {
         return Collections.unmodifiableList(_savedTokenList);
     }
+
+    /**
+     * Removes the saved profiles for an instance.
+     *
+     * @param sanitizedBaseURI The sanitized base URI of an instance.
+     */
+    public void removeSavedProfilesForInstance(String sanitizedBaseURI) {
+        Iterator<SavedProfile> savedProfileIterator = _savedProfileList.iterator();
+        while (savedProfileIterator.hasNext()) {
+            SavedProfile savedProfile = savedProfileIterator.next();
+            if (savedProfile.getInstance().getSanitizedBaseURI().equals(sanitizedBaseURI)) {
+                savedProfileIterator.remove();
+            }
+        }
+        _save();
+    }
 }

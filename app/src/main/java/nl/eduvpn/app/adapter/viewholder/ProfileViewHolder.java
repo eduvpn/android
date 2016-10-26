@@ -2,6 +2,7 @@ package nl.eduvpn.app.adapter.viewholder;
 
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -16,11 +17,14 @@ import butterknife.ButterKnife;
  */
 public class ProfileViewHolder extends RecyclerView.ViewHolder {
 
-    @BindView(R.id.provider_icon)
+    @BindView(R.id.providerIcon)
     public ImageView providerIcon;
 
-    @BindView(R.id.profile_name)
+    @BindView(R.id.profileName)
     public TextView profileName;
+
+    @BindView(R.id.undoButton)
+    public Button undoButton;
 
     public ProfileViewHolder(View itemView) {
         super(itemView);

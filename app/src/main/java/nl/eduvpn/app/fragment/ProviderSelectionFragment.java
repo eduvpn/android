@@ -73,6 +73,7 @@ public class ProviderSelectionFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_provider_selection, container, false);
         _unbinder = ButterKnife.bind(this, view);
         EduVPNApplication.get(view.getContext()).component().inject(this);
+        _providersList.setHasFixedSize(true);
         _providersList.setLayoutManager(new LinearLayoutManager(view.getContext(), LinearLayoutManager.VERTICAL, false));
         _providersList.setAdapter(new ProviderAdapter(_configurationService));
         ItemClickSupport.addTo(_providersList).setOnItemClickListener(new ItemClickSupport.OnItemClickListener() {

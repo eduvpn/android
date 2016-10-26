@@ -13,25 +13,9 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.ToggleButton;
 import android.widget.ViewSwitcher;
 
 import com.squareup.picasso.Picasso;
-
-import nl.eduvpn.app.EduVPNApplication;
-import nl.eduvpn.app.MainActivity;
-import nl.eduvpn.app.R;
-import nl.eduvpn.app.adapter.MessagesAdapter;
-import nl.eduvpn.app.entity.DiscoveredAPI;
-import nl.eduvpn.app.entity.Instance;
-import nl.eduvpn.app.entity.Profile;
-import nl.eduvpn.app.entity.message.Message;
-import nl.eduvpn.app.service.APIService;
-import nl.eduvpn.app.service.PreferencesService;
-import nl.eduvpn.app.service.SerializerService;
-import nl.eduvpn.app.service.VPNService;
-import nl.eduvpn.app.utils.ErrorDialog;
-import nl.eduvpn.app.utils.FormattingUtils;
 
 import org.json.JSONObject;
 
@@ -46,6 +30,20 @@ import butterknife.ButterKnife;
 import butterknife.OnClick;
 import butterknife.Unbinder;
 import de.blinkt.openvpn.activities.LogWindow;
+import nl.eduvpn.app.EduVPNApplication;
+import nl.eduvpn.app.MainActivity;
+import nl.eduvpn.app.R;
+import nl.eduvpn.app.adapter.MessagesAdapter;
+import nl.eduvpn.app.entity.DiscoveredAPI;
+import nl.eduvpn.app.entity.Instance;
+import nl.eduvpn.app.entity.Profile;
+import nl.eduvpn.app.entity.message.Message;
+import nl.eduvpn.app.service.APIService;
+import nl.eduvpn.app.service.PreferencesService;
+import nl.eduvpn.app.service.SerializerService;
+import nl.eduvpn.app.service.VPNService;
+import nl.eduvpn.app.utils.ErrorDialog;
+import nl.eduvpn.app.utils.FormattingUtils;
 
 /**
  * The fragment which displays the status of the current connection.
@@ -209,7 +207,8 @@ public class ConnectionStatusFragment extends Fragment implements VPNService.Con
                             }
                             break;
                         case FAILED:
-                            //TODO Display the error
+                            String message = getString(R.string.error_while_connecting, _vpnService.getErrorString());
+                            ErrorDialog.show(getContext(), R.string.error_dialog_title_unable_to_connect, message);
                             _currentStatusIcon.setImageResource(R.drawable.connection_status_disconnected);
                             break;
                         default:

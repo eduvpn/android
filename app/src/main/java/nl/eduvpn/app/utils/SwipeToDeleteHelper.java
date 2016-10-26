@@ -1,0 +1,88 @@
+package nl.eduvpn.app.utils;
+
+import android.content.Context;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.PorterDuff;
+import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.Drawable;
+import android.support.v4.content.ContextCompat;
+import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.helper.ItemTouchHelper;
+import android.view.View;
+
+import nl.eduvpn.app.R;
+import nl.eduvpn.app.adapter.ProfileAdapter;
+
+/**
+ * Swipe to delete helper based on: https://github.com/nemanja-kovacevic/recycler-view-swipe-to-delete
+ * Created by Daniel Zolnai on 2016-10-26.
+ */
+public class SwipeToDeleteHelper extends ItemTouchHelper.SimpleCallback {
+
+    private Drawable _background;
+    private Drawable _deleteIcon;
+    private int _deleteIconMargin;
+    private ProfileAdapter _profileAdapter;
+
+    public SwipeToDeleteHelper(Context context) {
+        super(0, ItemTouchHelper.LEFT);
+        _background = new ColorDrawable(ContextCompat.getColor(context, R.color.swipe_background_color));
+        _deleteIcon = ContextCompat.getDrawable(context, R.drawable.delete_icon);
+        _deleteIcon.setColorFilter(Color.WHITE, PorterDuff.Mode.SRC_ATOP);
+        _deleteIconMargin = (int)context.getResources().getDimension(R.dimen.swipe_to_delete_margin);
+    }
+
+    @Override
+    public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
+        // Not important, we don't want drag & drop
+        return false;
+    }
+
+    @Override
+    public int getSwipeDirs(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder) {
+        int position = viewHolder.getAdapterPosition();
+        _profileAdapter = (ProfileAdapter)recyclerView.getAdapter();
+        if (_profileAdapter.isUndoEnabled() && _profileAdapter.isPendingRemoval(position)) {
+            return 0;
+        }
+        return super.getSwipeDirs(recyclerView, viewHolder);
+    }
+
+    @Override
+    public void onSwiped(RecyclerView.ViewHolder viewHolder, int swipeDir) {
+        int swipedPosition = viewHolder.getAdapterPosition();
+        boolean undoOn = _profileAdapter.isUndoEnabled();
+        if (undoOn) {
+            _profileAdapter.pendingRemoval(swipedPosition);
+        } else {
+            _profileAdapter.remove(swipedPosition);
+        }
+    }
+
+
+    @Override
+
+    public void onChildDraw(Canvas c, RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, float dX, float dY, int actionState, boolean isCurrentlyActive) {
+        View itemView = viewHolder.itemView;
+        // Not sure why, but this method gets called for view holders that are already swiped away
+        if (viewHolder.getAdapterPosition() == -1) {
+            // Not interested in those
+            return;
+        }
+        // Draw red _background
+        _background.setBounds(itemView.getRight() + (int)dX, itemView.getTop(), itemView.getRight(), itemView.getBottom());
+        _background.draw(c);
+        // Draw X mark
+        int itemHeight = itemView.getBottom() - itemView.getTop();
+        int intrinsicWidth = _deleteIcon.getIntrinsicWidth();
+        int intrinsicHeight = _deleteIcon.getIntrinsicWidth();
+        int xMarkLeft = itemView.getRight() - _deleteIconMargin - intrinsicWidth;
+        int xMarkRight = itemView.getRight() - _deleteIconMargin;
+        int xMarkTop = itemView.getTop() + (itemHeight - intrinsicHeight) / 2;
+        int xMarkBottom = xMarkTop + intrinsicHeight;
+        _deleteIcon.setBounds(xMarkLeft, xMarkTop, xMarkRight, xMarkBottom);
+        _deleteIcon.draw(c);
+        super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
+    }
+}

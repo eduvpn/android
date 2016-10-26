@@ -8,6 +8,7 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.helper.ItemTouchHelper;
 import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -50,6 +51,8 @@ import butterknife.ButterKnife;
 import butterknife.OnClick;
 import butterknife.Unbinder;
 import de.blinkt.openvpn.VpnProfile;
+import nl.eduvpn.app.utils.SwipeToDeleteAnimator;
+import nl.eduvpn.app.utils.SwipeToDeleteHelper;
 
 /**
  * Fragment which is displayed when the app start.
@@ -109,6 +112,7 @@ public class HomeFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_home, container, false);
         _unbinder = ButterKnife.bind(this, view);
         EduVPNApplication.get(view.getContext()).component().inject(this);
+        _profileList.setHasFixedSize(true);
         _profileList.setLayoutManager(new LinearLayoutManager(view.getContext(), LinearLayoutManager.VERTICAL, false));
         final List<SavedToken> savedTokenList = _historyService.getSavedTokenList();
         if (savedTokenList.size() == 0) {
@@ -119,8 +123,11 @@ public class HomeFragment extends Fragment {
             _loadingBar.setVisibility(View.VISIBLE);
             _noProvidersYet.setVisibility(View.GONE);
             _profileList.setVisibility(View.VISIBLE);
-            ProfileAdapter adapter = new ProfileAdapter(null);
+            ProfileAdapter adapter = new ProfileAdapter(_historyService, null);
             _profileList.setAdapter(adapter);
+            ItemTouchHelper swipeHelper = new ItemTouchHelper(new SwipeToDeleteHelper(getContext()));
+            swipeHelper.attachToRecyclerView(_profileList);
+            _profileList.addItemDecoration(new SwipeToDeleteAnimator(getContext()));
             _fillList(adapter, savedTokenList);
         }
 
@@ -128,6 +135,9 @@ public class HomeFragment extends Fragment {
             @Override
             public void onItemClicked(RecyclerView recyclerView, int position, View v) {
                 ProfileAdapter adapter = (ProfileAdapter)recyclerView.getAdapter();
+                if (adapter.isPendingRemoval(position)) {
+                    return;
+                }
                 Pair<Instance, Profile> instanceProfilePair = adapter.getItem(position);
                 // We surely have a discovered API and access token, since we just loaded the list with them
                 Instance instance = instanceProfilePair.first;
@@ -168,6 +178,9 @@ public class HomeFragment extends Fragment {
                 // On long click we show the full name in a toast
                 // Is useful when the names don't fit too well.
                 ProfileAdapter adapter = (ProfileAdapter)recyclerView.getAdapter();
+                if (adapter.isPendingRemoval(position)) {
+                    return true;
+                }
                 Pair<Instance, Profile> instanceProfilePair = adapter.getItem(position);
                 Toast.makeText(
                         getContext(),

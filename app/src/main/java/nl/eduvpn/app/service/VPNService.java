@@ -55,6 +55,7 @@ public class VPNService extends Observable implements VpnStatus.StateListener {
     private Long _bytesOut;
     private String _serverIpV4;
     private String _serverIpV6;
+    private Integer _errorResource;
 
     private OpenVPNService _openVPNService;
     private ServiceConnection _serviceConnection = new ServiceConnection() {
@@ -158,6 +159,13 @@ public class VPNService extends Observable implements VpnStatus.StateListener {
      */
     public void disconnect() {
         _openVPNService.getManagement().stopVPN(false);
+        _onDisconnect();
+    }
+
+    /**
+     * Call this if the service has disconnected. Resets all statistics.
+     */
+    private void _onDisconnect() {
         // Reset all statistics
         detachConnectionInfoListener();
         _updatesHandler.removeCallbacksAndMessages(null);
@@ -166,7 +174,9 @@ public class VPNService extends Observable implements VpnStatus.StateListener {
         _bytesOut = null;
         _serverIpV4 = null;
         _serverIpV6 = null;
+        _errorResource = null;
     }
+
 
     /**
      * Returns a more simple status for the current connection level.
@@ -195,6 +205,19 @@ public class VPNService extends Observable implements VpnStatus.StateListener {
         }
     }
 
+    /**
+     * Returns the error string.
+     *
+     * @return The description of the error.
+     */
+    public String getErrorString() {
+        if (_errorResource != null) {
+            return _context.getString(_errorResource);
+        } else {
+            return null;
+        }
+    }
+
     @Override
     public void updateState(String state, String logmessage, int localizedResId, VpnStatus.ConnectionStatus level) {
         VpnStatus.ConnectionStatus oldStatus = _connectionStatus;
@@ -217,7 +240,9 @@ public class VPNService extends Observable implements VpnStatus.StateListener {
                 });
             }
         } else if (getStatus() == VPNStatus.FAILED) {
-            System.out.println(logmessage);
+            _errorResource = localizedResId;
+        } else if (getStatus() == VPNStatus.DISCONNECTED) {
+            _onDisconnect();
         }
         // Notify the observers.
         _updatesHandler.post(new Runnable() {

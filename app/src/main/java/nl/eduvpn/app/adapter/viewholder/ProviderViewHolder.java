@@ -16,7 +16,7 @@ import butterknife.ButterKnife;
  */
 public class ProviderViewHolder extends RecyclerView.ViewHolder {
 
-    @BindView(R.id.provider_icon)
+    @BindView(R.id.providerIcon)
     public ImageView providerIcon;
 
     @BindView(R.id.provider_display_name)

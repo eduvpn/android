@@ -11,5 +11,6 @@
     <color name="backgroundColor">#FFFFFF</color>
     <color name="hintColor">#C0C0C0</color>
     <color name="settingsDescriptionTextColor">#909090</color>
+    <color name="swipe_background_color">#00A2C8</color>
 
 </resources>

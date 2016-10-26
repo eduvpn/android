@@ -78,4 +78,7 @@
     <string name="content_description_message_icon">Message icon</string>
     <string name="content_description_warning_icon">Warning icon</string>
     <string name="go_back">Back</string>
+    <string name="error_while_connecting">An unexpected error occurred while connecting to the VPN provider: %s</string>
+    <string name="error_dialog_title_unable_to_connect">Unable to connect</string>
+    <string name="undo">Undo</string>
 </resources>
