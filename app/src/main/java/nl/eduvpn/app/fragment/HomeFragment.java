@@ -59,6 +59,7 @@ import nl.eduvpn.app.utils.Log;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -121,7 +122,7 @@ public class HomeFragment extends Fragment {
     private Unbinder _unbinder;
 
     private int _pendingInstanceCount;
-    private List<String> _warnings;
+    private List<Instance> _problemeticInstances;
 
     @Nullable
     @Override
@@ -227,7 +228,7 @@ public class HomeFragment extends Fragment {
      */
     private void _fillList(final ProfileAdapter adapter, List<SavedToken> instanceAccessTokenPairs) {
         _pendingInstanceCount = instanceAccessTokenPairs.size();
-        _warnings = new ArrayList<>();
+        _problemeticInstances = new ArrayList<>();
         for (SavedToken savedToken : instanceAccessTokenPairs) {
             final Instance instance = savedToken.getInstance();
             final String accessToken = savedToken.getAccessToken();
@@ -248,7 +249,7 @@ public class HomeFragment extends Fragment {
                                     _fetchProfileList(adapter, instance, discoveredAPI, accessToken);
                                 } catch (SerializerService.UnknownFormatException ex) {
                                     Log.e(TAG, "Error parsing discovered API!", ex);
-                                    _warnings.add(getString(R.string.api_discovery_failed, instance.getDisplayName()));
+                                    _problemeticInstances.add(instance);
                                     _checkLoadingFinished();
                                 }
                             }
@@ -256,7 +257,7 @@ public class HomeFragment extends Fragment {
                             @Override
                             public void onError(String errorMessage) {
                                 Log.e(TAG, "Error while fetching discovered API: " + errorMessage);
-                                _warnings.add(getString(R.string.api_discovery_failed, instance.getDisplayName()));
+                                _problemeticInstances.add(instance);
                                 _checkLoadingFinished();
                             }
                         });
@@ -286,7 +287,7 @@ public class HomeFragment extends Fragment {
                     }
                     adapter.addItems(newItems);
                 } catch (SerializerService.UnknownFormatException ex) {
-                    _warnings.add(getString(R.string.unable_to_fetch_profiles, instance.getDisplayName()));
+                    _problemeticInstances.add(instance);
                     Log.e(TAG, "Error parsing profile list.", ex);
                 }
                 _checkLoadingFinished();
@@ -294,14 +295,8 @@ public class HomeFragment extends Fragment {
 
             @Override
             public void onError(String errorMessage) {
-                _warnings.add(getString(R.string.unable_to_fetch_profiles, instance.getDisplayName()));
+                _problemeticInstances.add(instance);
                 Log.e(TAG, "Error fetching profile list: " + errorMessage);
-                if (APIService.USER_NOT_AUTHORIZED_ERROR.equals(errorMessage)) {
-                    // Token is not valid anymore.
-                    _historyService.removeAccessTokens(instance.getSanitizedBaseURI());
-                    _historyService.removeDiscoveredAPI(instance.getSanitizedBaseURI());
-                    Log.e(TAG, "API returned unauthorized error, removed cache for provider.");
-                }
                 _checkLoadingFinished();
             }
         });
@@ -314,7 +309,7 @@ public class HomeFragment extends Fragment {
      */
     private synchronized void _checkLoadingFinished() {
         _pendingInstanceCount--;
-        if (_pendingInstanceCount == 0 && _warnings.size() == 0) {
+        if (_pendingInstanceCount <= 0 && _problemeticInstances.size() == 0) {
             if (_loadingBar == null) {
                 Log.w(TAG, "Layout has been destroyed already.");
                 return;
@@ -334,7 +329,7 @@ public class HomeFragment extends Fragment {
                 }
             });
             animator.start();
-        } else if (_pendingInstanceCount == 0) {
+        } else if (_pendingInstanceCount <= 0) {
             // There are some warnings
             _displayText.setText(R.string.could_not_fetch_all_profiles);
             _warningIcon.setVisibility(View.VISIBLE);
@@ -343,11 +338,72 @@ public class HomeFragment extends Fragment {
                 @Override
                 public void onClick(View v) {
                     // Display a dialog with all the warnings
-                    StringBuilder warningsTextBuilder = new StringBuilder();
-                    for (String warning : _warnings) {
-                        warningsTextBuilder.append("- ").append(warning).append('\n');
-                    }
-                    ErrorDialog.show(getContext(), R.string.warnings_list, warningsTextBuilder.toString());
+                    ErrorDialog.show(getContext(),
+                            getString(R.string.warnings_list),
+                            getString(R.string.instance_access_warning_message),
+                            new ErrorDialog.InstanceWarningHandler() {
+                                @Override
+                                public List<Instance> getInstances() {
+                                    return _problemeticInstances;
+                                }
+
+                                @Override
+                                public void retryInstance(Instance instance) {
+                                    _warningIcon.setVisibility(View.GONE);
+                                    _progressBar.setVisibility(View.VISIBLE);
+                                    _displayText.setText(R.string.loading_available_profiles);
+                                    SavedToken savedToken = _historyService.getSavedToken(instance.getSanitizedBaseURI());
+                                    if (savedToken == null) {
+                                        // Should never happen
+                                        ErrorDialog.show(getContext(), R.string.error_dialog_title, R.string.data_removed);
+                                    } else {
+                                        // Retry
+                                        _problemeticInstances.remove(instance);
+                                        _fillList((ProfileAdapter)_profileList.getAdapter(), Collections.singletonList(savedToken));
+                                    }
+                                }
+
+                                @Override
+                                public void loginInstance(final Instance instance) {
+                                    _apiService.getJSON(instance.getSanitizedBaseURI() + Constants.API_DISCOVERY_POSTFIX,
+                                            false,
+                                            new APIService.Callback<JSONObject>() {
+                                                @Override
+                                                public void onSuccess(JSONObject result) {
+                                                    try {
+                                                        DiscoveredAPI discoveredAPI = _serializerService.deserializeDiscoveredAPI(result);
+                                                        // Cache the result
+                                                        _historyService.cacheDiscoveredAPI(instance.getSanitizedBaseURI(), discoveredAPI);
+                                                        _problemeticInstances.remove(instance);
+                                                        _connectionService.initiateConnection(getActivity(), instance, discoveredAPI);
+                                                    } catch (SerializerService.UnknownFormatException ex) {
+                                                        Log.e(TAG, "Error parsing discovered API!", ex);
+                                                        ErrorDialog.show(getContext(), R.string.error_dialog_title, R.string.provider_incorrect_format);
+                                                    }
+                                                }
+
+                                                @Override
+                                                public void onError(String errorMessage) {
+                                                    Log.e(TAG, "Error while fetching discovered API: " + errorMessage);
+                                                    ErrorDialog.show(getContext(), R.string.error_dialog_title, R.string.provider_not_found_retry);
+                                                }
+                                            });
+                                }
+
+                                @Override
+                                public void removeInstance(Instance instance) {
+                                    _historyService.removeAccessTokens(instance.getSanitizedBaseURI());
+                                    _historyService.removeDiscoveredAPI(instance.getSanitizedBaseURI());
+                                    _historyService.removeSavedProfilesForInstance(instance.getSanitizedBaseURI());
+                                    _problemeticInstances.remove(instance);
+                                    getActivity().runOnUiThread(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            _checkLoadingFinished();
+                                        }
+                                    });
+                                }
+                            });
                 }
             });
         }
@@ -395,12 +451,6 @@ public class HomeFragment extends Fragment {
                 dialog.dismiss();
                 ErrorDialog.show(getContext(), R.string.error_dialog_title, getString(R.string.error_fetching_profile, errorMessage));
                 Log.e(TAG, "Error fetching profile: " + errorMessage);
-                if (errorMessage.equals(APIService.USER_NOT_AUTHORIZED_ERROR)) {
-                    // Token is not valid anymore.
-                    _historyService.removeAccessTokens(instance.getSanitizedBaseURI());
-                    _historyService.removeDiscoveredAPI(instance.getSanitizedBaseURI());
-                    Log.e(TAG, "API returned unauthorized error, removed cache for provider.");
-                }
             }
         });
     }

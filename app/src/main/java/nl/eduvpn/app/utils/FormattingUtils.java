@@ -120,4 +120,20 @@ public class FormattingUtils {
         }
         return context.getString(R.string.saved_profile_display_name, instanceName, profile.getDisplayName());
     }
+
+    /**
+     * Formats a warning to be displayed if there was a login error.
+     *
+     * @param context  The application or activity context.
+     * @param instance The instance the warning belongs to.
+     * @return The string to display.
+     */
+    public static String formatAccessWarning(Context context, Instance instance) {
+        String instanceName = instance.getDisplayName();
+        if (instance.isCustom()) {
+            URI uri = URI.create(instance.getSanitizedBaseURI());
+            instanceName = uri.getHost();
+        }
+        return context.getString(R.string.access_rejected_instance, instanceName);
+    }
 }
