@@ -1,18 +1,13 @@
 {
     "instances": [
         {
-            "display_name": "Fran\u00e7ois (vpN.tuxed.net)",
-            "base_uri": "https://vpn.tuxed.net/",
+            "base_uri": "https://eduvpn.surfcloud.nl/",
+            "display_name": "SURFnet Public Demo",
             "logo_uri": "https://eduvpn.surfcloud.nl/img/placeholder.png"
         },
         {
-            "display_name": "SURFnet (labrat.eduvpn.nl)",
             "base_uri": "https://labrat.eduvpn.nl/",
-            "logo_uri": "https://eduvpn.surfcloud.nl/img/placeholder.png"
-        },
-        {
-            "display_name": "Fran\u00e7ois (vpX.tuxed.net)",
-            "base_uri": "https://vpx.tuxed.net/",
+            "display_name": "SURFnet Development",
             "logo_uri": "https://eduvpn.surfcloud.nl/img/placeholder.png"
         }
     ],
