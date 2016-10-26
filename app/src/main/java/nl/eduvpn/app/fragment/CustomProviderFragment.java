@@ -1,3 +1,20 @@
+/*
+ *  This file is part of eduVPN.
+ *
+ *     eduVPN is free software: you can redistribute it and/or modify
+ *     it under the terms of the GNU General Public License as published by
+ *     the Free Software Foundation, either version 3 of the License, or
+ *     (at your option) any later version.
+ *
+ *     eduVPN is distributed in the hope that it will be useful,
+ *     but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *     GNU General Public License for more details.
+ *
+ *     You should have received a copy of the GNU General Public License
+ *     along with eduVPN.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package nl.eduvpn.app.fragment;
 
 import android.app.ProgressDialog;
@@ -68,7 +85,7 @@ public class CustomProviderFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
         // Put the cursor in the field and show the keyboard automatically.
         _customProviderUrl.requestFocus();
-        InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+        InputMethodManager imm = (InputMethodManager)getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
         imm.showSoftInput(_customProviderUrl, InputMethodManager.SHOW_IMPLICIT);
     }
 
@@ -78,7 +95,7 @@ public class CustomProviderFragment extends Fragment {
         String postfix = _customProviderUrl.getText().toString();
         String url = prefix + postfix;
         if (getActivity() != null) {
-            final Instance customProviderInstance = _createCustomProviderInstance(getActivity(), url);
+            final Instance customProviderInstance = _createCustomProviderInstance(url);
             final ProgressDialog dialog = ProgressDialog.show(getContext(), getString(R.string.progress_dialog_title), getString(R.string.api_discovery_message), true);
             // Discover the API
             _apiService.getJSON(customProviderInstance.getSanitizedBaseURI() + API_DISCOVERY_POSTFIX, false, new APIService.Callback<JSONObject>() {
@@ -105,8 +122,14 @@ public class CustomProviderFragment extends Fragment {
         }
     }
 
-    private Instance _createCustomProviderInstance(Context context, String baseUri) {
-        return new Instance(baseUri, context.getString(R.string.custom_provider_display_name), null);
+    /**
+     * Creates a custom provider instance for caching.
+     *
+     * @param baseUri The base URI of the instance.
+     * @return A new instance.
+     */
+    private Instance _createCustomProviderInstance(String baseUri) {
+        return new Instance(baseUri, getString(R.string.custom_provider_display_name), null, true);
     }
 
     @Override

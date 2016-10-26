@@ -8,7 +8,7 @@
     android:orientation="vertical">
 
     <ImageView
-        android:id="@+id/provider_icon"
+        android:id="@+id/providerIcon"
         android:layout_width="@dimen/list_item_icon_width"
         android:layout_height="@dimen/list_item_icon_height"
         android:layout_centerVertical="true"
@@ -24,7 +24,7 @@
         android:layout_centerVertical="true"
         android:layout_marginLeft="12dp"
         android:layout_marginRight="8dp"
-        android:layout_toRightOf="@+id/provider_icon"
+        android:layout_toRightOf="@+id/providerIcon"
         android:ellipsize="middle"
         android:maxLines="1"
         android:textColor="@android:color/black"

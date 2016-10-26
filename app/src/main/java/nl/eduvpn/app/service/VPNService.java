@@ -1,3 +1,20 @@
+/*
+ *  This file is part of eduVPN.
+ *
+ *     eduVPN is free software: you can redistribute it and/or modify
+ *     it under the terms of the GNU General Public License as published by
+ *     the Free Software Foundation, either version 3 of the License, or
+ *     (at your option) any later version.
+ *
+ *     eduVPN is distributed in the hope that it will be useful,
+ *     but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *     GNU General Public License for more details.
+ *
+ *     You should have received a copy of the GNU General Public License
+ *     along with eduVPN.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package nl.eduvpn.app.service;
 
 import android.app.Activity;
@@ -33,7 +50,7 @@ import de.blinkt.openvpn.core.VpnStatus;
 public class VPNService extends Observable implements VpnStatus.StateListener {
 
     public enum VPNStatus {
-        DISCONNECTED, CONNECTING, CONNECTED, PAUSED
+        DISCONNECTED, CONNECTING, CONNECTED, PAUSED, FAILED
     }
 
     private static final Long CONNECTION_INFO_UPDATE_INTERVAL_MS = 1000L;
@@ -55,6 +72,7 @@ public class VPNService extends Observable implements VpnStatus.StateListener {
     private Long _bytesOut;
     private String _serverIpV4;
     private String _serverIpV6;
+    private Integer _errorResource;
 
     private OpenVPNService _openVPNService;
     private ServiceConnection _serviceConnection = new ServiceConnection() {
@@ -142,8 +160,11 @@ public class VPNService extends Observable implements VpnStatus.StateListener {
         Log.i(TAG, "Initiating connection with profile:" + vpnProfile.getUUIDString());
         boolean forceTcp = _preferencesService.getAppSettings().forceTcp();
         Log.i(TAG, "Force TCP: " + forceTcp);
+        // If force TCP is enabled, disable the UDP connections
         for (Connection connection : vpnProfile.mConnections) {
-            connection.mUseUdp = !forceTcp;
+            if (connection.mUseUdp) {
+                connection.mEnabled = !forceTcp;
+            }
         }
         // Make sure these changes are NOT saved, since we don't want the config changes to be permanent.
         Intent intent = new Intent(activity, LaunchVPN.class);
@@ -158,6 +179,13 @@ public class VPNService extends Observable implements VpnStatus.StateListener {
      */
     public void disconnect() {
         _openVPNService.getManagement().stopVPN(false);
+        _onDisconnect();
+    }
+
+    /**
+     * Call this if the service has disconnected. Resets all statistics.
+     */
+    private void _onDisconnect() {
         // Reset all statistics
         detachConnectionInfoListener();
         _updatesHandler.removeCallbacksAndMessages(null);
@@ -166,7 +194,9 @@ public class VPNService extends Observable implements VpnStatus.StateListener {
         _bytesOut = null;
         _serverIpV4 = null;
         _serverIpV6 = null;
+        _errorResource = null;
     }
+
 
     /**
      * Returns a more simple status for the current connection level.
@@ -184,6 +214,7 @@ public class VPNService extends Observable implements VpnStatus.StateListener {
             case LEVEL_VPNPAUSED:
                 return VPNStatus.PAUSED;
             case LEVEL_AUTH_FAILED:
+                return VPNStatus.FAILED;
             case LEVEL_NONETWORK:
             case LEVEL_NOTCONNECTED:
             case LEVEL_WAITING_FOR_USER_INPUT:
@@ -191,6 +222,19 @@ public class VPNService extends Observable implements VpnStatus.StateListener {
                 return VPNStatus.DISCONNECTED;
             default:
                 throw new RuntimeException("Unhandled VPN connection level!");
+        }
+    }
+
+    /**
+     * Returns the error string.
+     *
+     * @return The description of the error.
+     */
+    public String getErrorString() {
+        if (_errorResource != null) {
+            return _context.getString(_errorResource);
+        } else {
+            return null;
         }
     }
 
@@ -215,6 +259,10 @@ public class VPNService extends Observable implements VpnStatus.StateListener {
                     }
                 });
             }
+        } else if (getStatus() == VPNStatus.FAILED) {
+            _errorResource = localizedResId;
+        } else if (getStatus() == VPNStatus.DISCONNECTED) {
+            _onDisconnect();
         }
         // Notify the observers.
         _updatesHandler.post(new Runnable() {

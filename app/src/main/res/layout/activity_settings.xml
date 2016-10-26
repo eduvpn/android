@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
-    tools:context="net.tuxed.vpnconfigimporter.MainActivity">
+    tools:context=".MainActivity">
 
     <FrameLayout
         android:layout_width="match_parent"
@@ -55,7 +55,6 @@
 
             <TextView
                 android:id="@+id/actionbarTitle"
-                fontPath="@string/font_roboto_medium"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_centerVertical="true"
@@ -64,7 +63,7 @@
                 android:text="@string/settings_title"
                 android:textColor="@android:color/black"
                 android:textSize="24sp"
-                tools:ignore="MissingPrefix"/>
+                android:textStyle="bold"/>
 
         </RelativeLayout>
     </android.support.v7.widget.Toolbar>

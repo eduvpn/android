@@ -1,19 +1,51 @@
+/*
+ *  This file is part of eduVPN.
+ *
+ *     eduVPN is free software: you can redistribute it and/or modify
+ *     it under the terms of the GNU General Public License as published by
+ *     the Free Software Foundation, either version 3 of the License, or
+ *     (at your option) any later version.
+ *
+ *     eduVPN is distributed in the hope that it will be useful,
+ *     but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *     GNU General Public License for more details.
+ *
+ *     You should have received a copy of the GNU General Public License
+ *     along with eduVPN.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package nl.eduvpn.app.utils;
 
 import android.app.Dialog;
 import android.content.Context;
 import android.support.annotation.StringRes;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import java.util.List;
+
 import nl.eduvpn.app.R;
+import nl.eduvpn.app.entity.Instance;
 
 /**
  * Utility class for displaying error dialogs through the entire application.
  * Created by Daniel Zolnai on 2016-10-12.
  */
 public class ErrorDialog {
+
+    public interface InstanceWarningHandler {
+        List<Instance> getInstances();
+
+        void retryInstance(Instance instance);
+
+        void loginInstance(Instance instance);
+
+        void removeInstance(Instance instance);
+    }
 
     /**
      * Shows a new error dialog.
@@ -23,7 +55,7 @@ public class ErrorDialog {
      * @param message The message to show as a string.
      */
     public static void show(Context context, @StringRes int title, String message) {
-        show(context, context.getString(title), message);
+        show(context, context.getString(title), message, null);
     }
 
     /**
@@ -34,7 +66,7 @@ public class ErrorDialog {
      * @param message The message to show (string resource ID).
      */
     public static void show(Context context, @StringRes int title, @StringRes int message) {
-        show(context, context.getString(title), context.getString(message));
+        show(context, context.getString(title), context.getString(message), null);
     }
 
     /**
@@ -44,11 +76,40 @@ public class ErrorDialog {
      * @param title   The title of the dialog.
      * @param message The message to show.
      */
-    public static void show(Context context, String title, String message) {
+    public static void show(Context context, String title, String message, final InstanceWarningHandler handler) {
         final Dialog dialog = new Dialog(context, R.style.ErrorDialog);
         dialog.setCanceledOnTouchOutside(true);
         dialog.setContentView(R.layout.dialog_error);
         View view = dialog.findViewById(R.id.errorDialog);
+        if (handler != null) {
+            LayoutInflater inflater = LayoutInflater.from(context);
+            LinearLayout parent = (LinearLayout)view.findViewById(R.id.optionalViews);
+            for (final Instance instance : handler.getInstances()) {
+                View warningView = inflater.inflate(R.layout.list_item_token_warning, parent, true);
+                ((TextView)warningView.findViewById(R.id.displayText)).setText(FormattingUtils.formatAccessWarning(context, instance));
+                warningView.findViewById(R.id.retry).setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        dialog.dismiss();
+                        handler.retryInstance(instance);
+                    }
+                });
+                warningView.findViewById(R.id.remove).setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        dialog.dismiss();
+                        handler.removeInstance(instance);
+                    }
+                });
+                warningView.findViewById(R.id.login).setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        dialog.dismiss();
+                        handler.loginInstance(instance);
+                    }
+                });
+            }
+        }
         TextView titleView = (TextView)view.findViewById(R.id.title);
         TextView errorTextView = (TextView)view.findViewById(R.id.errorText);
         Button confirmButton = (Button)view.findViewById(R.id.confirmButton);

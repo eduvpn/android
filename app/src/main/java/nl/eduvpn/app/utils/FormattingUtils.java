@@ -1,3 +1,20 @@
+/*
+ *  This file is part of eduVPN.
+ *
+ *     eduVPN is free software: you can redistribute it and/or modify
+ *     it under the terms of the GNU General Public License as published by
+ *     the Free Software Foundation, either version 3 of the License, or
+ *     (at your option) any later version.
+ *
+ *     eduVPN is distributed in the hope that it will be useful,
+ *     but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *     GNU General Public License for more details.
+ *
+ *     You should have received a copy of the GNU General Public License
+ *     along with eduVPN.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package nl.eduvpn.app.utils;
 
 import android.content.Context;
@@ -7,6 +24,7 @@ import nl.eduvpn.app.entity.Instance;
 import nl.eduvpn.app.entity.Profile;
 import nl.eduvpn.app.entity.message.Maintenance;
 
+import java.net.URI;
 import java.text.DateFormat;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
@@ -95,19 +113,27 @@ public class FormattingUtils {
      * @return The name to display.
      */
     public static String formatProfileName(Context context, Instance instance, Profile profile) {
-        return context.getString(R.string.saved_profile_display_name, instance.getDisplayName(),
-                profile.getDisplayName());
+        String instanceName = instance.getDisplayName();
+        if (instance.isCustom()) {
+            URI uri = URI.create(instance.getSanitizedBaseURI());
+            instanceName = uri.getHost();
+        }
+        return context.getString(R.string.saved_profile_display_name, instanceName, profile.getDisplayName());
     }
 
     /**
-     * Creates a name to display in the notification which will be visible in the status bar when the VPN is connected.
+     * Formats a warning to be displayed if there was a login error.
      *
      * @param context  The application or activity context.
-     * @param instance The VPN provider.
-     * @param profile  The profile which was downloaded.
-     * @return The name to display.
+     * @param instance The instance the warning belongs to.
+     * @return The string to display.
      */
-    public static String formatVPNProfileName(Context context, Instance instance, Profile profile) {
-        return context.getString(R.string.vpn_profile_name, instance.getDisplayName(), profile.getDisplayName());
+    public static String formatAccessWarning(Context context, Instance instance) {
+        String instanceName = instance.getDisplayName();
+        if (instance.isCustom()) {
+            URI uri = URI.create(instance.getSanitizedBaseURI());
+            instanceName = uri.getHost();
+        }
+        return context.getString(R.string.access_rejected_instance, instanceName);
     }
 }

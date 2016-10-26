@@ -1,7 +1,25 @@
+/*
+ *  This file is part of eduVPN.
+ *
+ *     eduVPN is free software: you can redistribute it and/or modify
+ *     it under the terms of the GNU General Public License as published by
+ *     the Free Software Foundation, either version 3 of the License, or
+ *     (at your option) any later version.
+ *
+ *     eduVPN is distributed in the hope that it will be useful,
+ *     but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *     GNU General Public License for more details.
+ *
+ *     You should have received a copy of the GNU General Public License
+ *     along with eduVPN.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package nl.eduvpn.app.adapter.viewholder;
 
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -16,11 +34,14 @@ import butterknife.ButterKnife;
  */
 public class ProfileViewHolder extends RecyclerView.ViewHolder {
 
-    @BindView(R.id.provider_icon)
+    @BindView(R.id.providerIcon)
     public ImageView providerIcon;
 
-    @BindView(R.id.profile_name)
+    @BindView(R.id.profileName)
     public TextView profileName;
+
+    @BindView(R.id.undoButton)
+    public Button undoButton;
 
     public ProfileViewHolder(View itemView) {
         super(itemView);

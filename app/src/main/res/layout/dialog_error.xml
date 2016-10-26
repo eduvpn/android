@@ -11,7 +11,6 @@
 
     <TextView
         android:id="@+id/title"
-        fontPath="@string/font_roboto_regular"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
@@ -20,12 +19,10 @@
         android:textAllCaps="false"
         android:textColor="#222222"
         android:textSize="21sp"
-        tools:ignore="MissingPrefix"
         tools:text="Error"/>
 
     <TextView
         android:id="@+id/errorText"
-        fontPath="@string/font_roboto_regular"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@+id/title"
@@ -34,20 +31,24 @@
         android:gravity="center"
         android:textColor="@color/textColor"
         android:textSize="16sp"
-        tools:ignore="MissingPrefix"
         tools:text="Hello, this will be the message for the error dialog."/>
 
-    <Button
-        android:id="@+id/confirmButton"
-        fontPath="@string/font_roboto_medium"
+    <LinearLayout
+        android:id="@+id/optionalViews"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@+id/errorText"
+        android:orientation="vertical"/>
+
+    <Button
+        android:id="@+id/confirmButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/optionalViews"
         android:background="@drawable/dialog_button_bg"
         android:padding="10dp"
+        android:text="@string/error_confirm_button"
         android:textColor="@color/textColor"
         android:textSize="20sp"
-        tools:ignore="MissingPrefix"
-        android:text="@string/error_confirm_button"
-        tools:textStyle="bold"/>
+        android:textStyle="bold"/>
 </RelativeLayout>

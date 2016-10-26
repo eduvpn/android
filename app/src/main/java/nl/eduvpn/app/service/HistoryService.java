@@ -1,3 +1,20 @@
+/*
+ *  This file is part of eduVPN.
+ *
+ *     eduVPN is free software: you can redistribute it and/or modify
+ *     it under the terms of the GNU General Public License as published by
+ *     the Free Software Foundation, either version 3 of the License, or
+ *     (at your option) any later version.
+ *
+ *     eduVPN is distributed in the hope that it will be useful,
+ *     but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *     GNU General Public License for more details.
+ *
+ *     You should have received a copy of the GNU General Public License
+ *     along with eduVPN.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package nl.eduvpn.app.service;
 
 import android.support.annotation.NonNull;
@@ -120,6 +137,8 @@ public class HistoryService {
      * @param accessToken The access token to save.
      */
     public void cacheAccessToken(@NonNull Instance instance, @NonNull String accessToken) {
+        // Remove all previous entries
+        removeAccessTokens(instance.getSanitizedBaseURI());
         _savedTokenList.add(new SavedToken(instance, accessToken));
         _save();
     }
@@ -175,7 +194,7 @@ public class HistoryService {
     /**
      * Removes the access token(s) which have the given base URI.
      *
-     * @param sanitizedBaseURI The sanitizied base URI of the provider.
+     * @param sanitizedBaseURI The sanitized base URI of the provider.
      */
     public void removeAccessTokens(@NonNull String sanitizedBaseURI) {
         Iterator<SavedToken> savedTokenIterator = _savedTokenList.iterator();
@@ -205,5 +224,36 @@ public class HistoryService {
      */
     public List<SavedToken> getSavedTokenList() {
         return Collections.unmodifiableList(_savedTokenList);
+    }
+
+    /**
+     * Removes the saved profiles for an instance.
+     *
+     * @param sanitizedBaseURI The sanitized base URI of an instance.
+     */
+    public void removeSavedProfilesForInstance(@NonNull String sanitizedBaseURI) {
+        Iterator<SavedProfile> savedProfileIterator = _savedProfileList.iterator();
+        while (savedProfileIterator.hasNext()) {
+            SavedProfile savedProfile = savedProfileIterator.next();
+            if (savedProfile.getInstance().getSanitizedBaseURI().equals(sanitizedBaseURI)) {
+                savedProfileIterator.remove();
+            }
+        }
+        _save();
+    }
+
+    /**
+     * Returns a saved token for a given sanitized base URI.
+     * @param sanitizedBaseURI The base URI of the provider.
+     * @return The token if available, otherwise null.
+     */
+    @Nullable
+    public SavedToken getSavedToken(@NonNull String sanitizedBaseURI) {
+        for (SavedToken savedToken : _savedTokenList) {
+            if (sanitizedBaseURI.equals(savedToken.getInstance().getSanitizedBaseURI())) {
+                return savedToken;
+            }
+        }
+        return null;
     }
 }

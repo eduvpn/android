@@ -3,7 +3,7 @@
     <color name="mainColor">#00B3D0</color>
     <color name="colorPrimary">#00B3D0</color>
     <color name="colorPrimaryDark">#00A2C8</color>
-    <color name="colorAccent">#414182</color>
+    <color name="colorAccent">#00A2C8</color>
     <color name="textColor">#101010</color>
     <color name="buttonTextColor">#101010</color>
     <color name="disabledColor">#E0E0E0</color>
@@ -11,5 +11,6 @@
     <color name="backgroundColor">#FFFFFF</color>
     <color name="hintColor">#C0C0C0</color>
     <color name="settingsDescriptionTextColor">#909090</color>
+    <color name="swipe_background_color">#00A2C8</color>
 
 </resources>

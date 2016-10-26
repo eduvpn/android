@@ -1,4 +1,4 @@
-EduVPN PoC
+eduVPN PoC
 ==========
 
 This application is a proof of concept which showcases a simple flow where the user can log in, and download an OpenVPN configuration.

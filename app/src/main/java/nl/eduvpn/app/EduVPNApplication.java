@@ -1,3 +1,20 @@
+/*
+ *  This file is part of eduVPN.
+ *
+ *     eduVPN is free software: you can redistribute it and/or modify
+ *     it under the terms of the GNU General Public License as published by
+ *     the Free Software Foundation, either version 3 of the License, or
+ *     (at your option) any later version.
+ *
+ *     eduVPN is distributed in the hope that it will be useful,
+ *     but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *     GNU General Public License for more details.
+ *
+ *     You should have received a copy of the GNU General Public License
+ *     along with eduVPN.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package nl.eduvpn.app;
 
 import android.app.Application;
@@ -7,7 +24,6 @@ import nl.eduvpn.app.inject.EduVPNComponent;
 
 import de.blinkt.openvpn.core.PRNGFixes;
 import de.blinkt.openvpn.core.VpnStatus;
-import uk.co.chrisjenx.calligraphy.CalligraphyConfig;
 
 /**
  * Application object which keeps track of the app lifecycle.
@@ -23,12 +39,6 @@ public class EduVPNApplication extends Application {
         // These are required by the VPN library
         PRNGFixes.apply();
         VpnStatus.initLogCache(getApplicationContext().getCacheDir());
-
-        // This is required by Calligraphy for nicer fonts
-        CalligraphyConfig.initDefault(new CalligraphyConfig.Builder()
-                .setDefaultFontPath("fonts/Roboto-Regular.ttf")
-                .setFontAttrId(R.attr.fontPath)
-                .build());
         // Set up the injector
         _component = EduVPNComponent.Initializer.init(this);
     }

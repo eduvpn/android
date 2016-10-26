@@ -25,15 +25,13 @@
 
         <TextView
             android:id="@+id/custom_provider_prefix"
-            fontPath="@string/font_roboto_regular"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentLeft="true"
             android:layout_marginLeft="16dp"
             android:text="@string/custom_provider_prefix"
             android:textColor="@color/textColor"
-            android:textSize="@dimen/custom_provider_text_size"
-            tools:ignore="MissingPrefix"/>
+            android:textSize="@dimen/custom_provider_text_size"/>
 
         <EditText
             android:id="@+id/custom_provider_url"

@@ -1,3 +1,20 @@
+/*
+ *  This file is part of eduVPN.
+ *
+ *     eduVPN is free software: you can redistribute it and/or modify
+ *     it under the terms of the GNU General Public License as published by
+ *     the Free Software Foundation, either version 3 of the License, or
+ *     (at your option) any later version.
+ *
+ *     eduVPN is distributed in the hope that it will be useful,
+ *     but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *     GNU General Public License for more details.
+ *
+ *     You should have received a copy of the GNU General Public License
+ *     along with eduVPN.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package nl.eduvpn.app.service;
 
 import android.app.Activity;
@@ -59,12 +76,16 @@ public class ConnectionService {
     /**
      * Builds up the connection URL from the base URL and the random state.
      *
-     * @param baseUrl The base URL of the VPN provider.
+     * @param authorizationEndpoint The base URL of the VPN provider.
      * @param state   The random state.
      * @return The connection URL which should be opened in the browser.
      */
-    private String _buildConnectionUrl(@NonNull String baseUrl, @NonNull String state) {
-        return baseUrl + "/portal/_oauth/authorize?client_id=" + CLIENT_ID +
+    private String _buildConnectionUrl(@NonNull String authorizationEndpoint, @NonNull String state) {
+        String sanitizedURL = authorizationEndpoint;
+        if (sanitizedURL.endsWith("/")) {
+            sanitizedURL = sanitizedURL.substring(0, sanitizedURL.length() - 1);
+        }
+        return sanitizedURL + "?client_id=" + CLIENT_ID +
                 "&redirect_uri=" + REDIRECT_URI +
                 "&response_type=" + RESPONSE_TYPE +
                 "&scope=" + SCOPE +
@@ -97,9 +118,9 @@ public class ConnectionService {
      * @param discoveredAPI The discovered API which has the URL.
      */
     public void initiateConnection(@NonNull Activity activity, @NonNull Instance instance, @NonNull DiscoveredAPI discoveredAPI) {
-        String baseUrl = instance.getSanitizedBaseURI();
+        String authorizationUrl = discoveredAPI.getAuthorizationEndpoint();
         String state = _generateState();
-        String connectionUrl = _buildConnectionUrl(baseUrl, state);
+        String connectionUrl = _buildConnectionUrl(authorizationUrl, state);
 
         _preferencesService.currentConnectionState(state);
         _preferencesService.currentInstance(instance);

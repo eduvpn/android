@@ -13,12 +13,6 @@ android {
         buildConfigField "String", "INSTANCE_LIST_URL", "\"https://eduvpn.surfcloud.nl/instances.json\""
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
-    sourceSets {
-        main {
-            assets.srcDirs = ['src/main/assets', 'src/main/ovpnlibs/assets']
-            jniLibs.srcDirs = ['src/main/ovpnlibs/lib']
-        }
-    }
 
     buildTypes {
         release {
@@ -50,8 +44,6 @@ dependencies {
     // Dependency injection
     compile 'com.google.dagger:dagger:2.7'
     annotationProcessor 'com.google.dagger:dagger-compiler:2.7'
-    // Custom fonts
-    compile 'uk.co.chrisjenx:calligraphy:2.2.0'
     // Image loader
     compile 'com.squareup.picasso:picasso:2.5.2'
     compile project(':ics-openvpn-main')

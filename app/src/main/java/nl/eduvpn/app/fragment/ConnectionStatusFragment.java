@@ -1,3 +1,20 @@
+/*
+ *  This file is part of eduVPN.
+ *
+ *     eduVPN is free software: you can redistribute it and/or modify
+ *     it under the terms of the GNU General Public License as published by
+ *     the Free Software Foundation, either version 3 of the License, or
+ *     (at your option) any later version.
+ *
+ *     eduVPN is distributed in the hope that it will be useful,
+ *     but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *     GNU General Public License for more details.
+ *
+ *     You should have received a copy of the GNU General Public License
+ *     along with eduVPN.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package nl.eduvpn.app.fragment;
 
 import android.content.Intent;
@@ -13,11 +30,23 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.ToggleButton;
 import android.widget.ViewSwitcher;
 
 import com.squareup.picasso.Picasso;
 
+import org.json.JSONObject;
+
+import java.util.List;
+import java.util.Observable;
+import java.util.Observer;
+
+import javax.inject.Inject;
+
+import butterknife.BindView;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
+import butterknife.Unbinder;
+import de.blinkt.openvpn.activities.LogWindow;
 import nl.eduvpn.app.EduVPNApplication;
 import nl.eduvpn.app.MainActivity;
 import nl.eduvpn.app.R;
@@ -33,27 +62,11 @@ import nl.eduvpn.app.service.VPNService;
 import nl.eduvpn.app.utils.ErrorDialog;
 import nl.eduvpn.app.utils.FormattingUtils;
 
-import org.json.JSONObject;
-
-import java.util.List;
-import java.util.Observable;
-import java.util.Observer;
-
-import javax.inject.Inject;
-
-import butterknife.BindView;
-import butterknife.ButterKnife;
-import butterknife.OnClick;
-import butterknife.Unbinder;
-import de.blinkt.openvpn.activities.LogWindow;
-
 /**
  * The fragment which displays the status of the current connection.
  * Created by Daniel Zolnai on 2016-10-07.
  */
 public class ConnectionStatusFragment extends Fragment implements VPNService.ConnectionInfoCallback {
-
-    private enum Screen {NOTIFICATIONS, CONNECTION_INFO}
 
     @Inject
     protected VPNService _vpnService;
@@ -83,10 +96,10 @@ public class ConnectionStatusFragment extends Fragment implements VPNService.Con
     protected ViewSwitcher _viewSwitcher;
 
     @BindView(R.id.notificationsSwitchButton)
-    protected ToggleButton _notificationsSwitchButton;
+    protected Button _notificationsSwitchButton;
 
     @BindView(R.id.connectionInfoSwitchButton)
-    protected ToggleButton _connectionInfoSwitchButton;
+    protected Button _connectionInfoSwitchButton;
 
     @BindView(R.id.ipV4Value)
     protected TextView _ipV4Text;
@@ -107,8 +120,10 @@ public class ConnectionStatusFragment extends Fragment implements VPNService.Con
     protected Button _disconnectButton;
 
     private Observer _vpnStatusObserver;
-    private Screen _currentScreen = Screen.NOTIFICATIONS;
     private Unbinder _unbinder;
+
+    private boolean _userInitiatedDisconnect = false;
+    private boolean _userNavigation = false;
 
     @Nullable
     @Override
@@ -172,6 +187,7 @@ public class ConnectionStatusFragment extends Fragment implements VPNService.Con
                         Toast.LENGTH_SHORT).show();
             }
         });
+        _viewSwitcher.setDisplayedChild(0);
     }
 
     @Override
@@ -196,9 +212,21 @@ public class ConnectionStatusFragment extends Fragment implements VPNService.Con
                             _currentStatusIcon.setImageResource(R.drawable.connection_status_paused);
                             break;
                         case DISCONNECTED:
-                            // Go back to the home screen.
-                            _disconnectButton.setEnabled(false);
-                            ((MainActivity)getActivity()).openFragment(new HomeFragment(), false);
+                            if (_userInitiatedDisconnect) {
+                                // Go back to the home screen.
+                                _disconnectButton.setEnabled(false);
+                                ((MainActivity)getActivity()).openFragment(new HomeFragment(), false);
+                            } else {
+                                _currentStatusIcon.setImageResource(R.drawable.connection_status_disconnected);
+                                _disconnectButton.setEnabled(true);
+                                _disconnectButton.setText(R.string.go_back);
+                                _userNavigation = true;
+                            }
+                            break;
+                        case FAILED:
+                            String message = getString(R.string.error_while_connecting, _vpnService.getErrorString());
+                            ErrorDialog.show(getContext(), R.string.error_dialog_title_unable_to_connect, message);
+                            _currentStatusIcon.setImageResource(R.drawable.connection_status_disconnected);
                             break;
                         default:
                             throw new RuntimeException("Unhandled VPN status!");
@@ -229,31 +257,29 @@ public class ConnectionStatusFragment extends Fragment implements VPNService.Con
 
     @OnClick({ R.id.notificationsSwitchButton, R.id.connectionInfoSwitchButton })
     public void onSwitcherButtonClicked(View view) {
-        boolean switchToNotifications;
-        boolean dontSwitch; // Used to determine if the button for the current screen was unchecked
+        int selectedBg = R.drawable.switcher_button_bg_selected;
+        int defaultBg = R.drawable.switcher_button_bg;
         if (view == _notificationsSwitchButton) {
-            switchToNotifications = _notificationsSwitchButton.isChecked();
-            dontSwitch = !_notificationsSwitchButton.isChecked() && _currentScreen == Screen.NOTIFICATIONS;
+            _viewSwitcher.setDisplayedChild(0);
+            _notificationsSwitchButton.setBackgroundResource(selectedBg);
+            _connectionInfoSwitchButton.setBackgroundResource(defaultBg);
         } else {
-            switchToNotifications = !_connectionInfoSwitchButton.isChecked();
-            dontSwitch = !_connectionInfoSwitchButton.isChecked() && _currentScreen == Screen.CONNECTION_INFO;
+            _viewSwitcher.setDisplayedChild(1);
+            _notificationsSwitchButton.setBackgroundResource(defaultBg);
+            _connectionInfoSwitchButton.setBackgroundResource(selectedBg);
         }
-        if (!dontSwitch) {
-            int openChildId = switchToNotifications ? 0 : 1;
-            _viewSwitcher.setDisplayedChild(openChildId);
-        } else {
-            switchToNotifications = !switchToNotifications;
-        }
-        _notificationsSwitchButton.setChecked(switchToNotifications);
-        _connectionInfoSwitchButton.setChecked(!switchToNotifications);
-        _currentScreen = switchToNotifications ? Screen.NOTIFICATIONS : Screen.CONNECTION_INFO;
     }
 
     @OnClick(R.id.disconnectButton)
     protected void onDisconnectButtonClicked() {
-        _currentStatusIcon.setImageResource(R.drawable.connection_status_disconnected);
-        _disconnectButton.setEnabled(false);
-        _vpnService.disconnect();
+        if (_userNavigation) {
+            ((MainActivity)getActivity()).openFragment(new HomeFragment(), false);
+        } else {
+            _userInitiatedDisconnect = true;
+            _currentStatusIcon.setImageResource(R.drawable.connection_status_disconnected);
+            _disconnectButton.setEnabled(false);
+            _vpnService.disconnect();
+        }
     }
 
     @OnClick(R.id.viewLogButton)

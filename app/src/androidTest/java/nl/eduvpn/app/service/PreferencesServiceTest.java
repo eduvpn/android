@@ -1,3 +1,20 @@
+/*
+ *  This file is part of eduVPN.
+ *
+ *     eduVPN is free software: you can redistribute it and/or modify
+ *     it under the terms of the GNU General Public License as published by
+ *     the Free Software Foundation, either version 3 of the License, or
+ *     (at your option) any later version.
+ *
+ *     eduVPN is distributed in the hope that it will be useful,
+ *     but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *     GNU General Public License for more details.
+ *
+ *     You should have received a copy of the GNU General Public License
+ *     along with eduVPN.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package nl.eduvpn.app.service;
 
 import android.content.Context;
@@ -27,7 +44,7 @@ public class PreferencesServiceTest {
     @Before
     public void before() {
         SerializerService serializerService = new SerializerService();
-        Context context = InstrumentationRegistry.getTargetContext();
+        Context context = InstrumentationRegistry.getContext();
         _preferencesService = new PreferencesService(context, serializerService);
     }
 
@@ -41,13 +58,14 @@ public class PreferencesServiceTest {
 
     @Test
     public void testInstanceSave() {
-        Instance instance = new Instance("http://example.com", "Example", "http://example.com/image.jpg");
+        Instance instance = new Instance("http://example.com", "Example", "http://example.com/image.jpg", true);
         _preferencesService.currentInstance(instance);
         Instance retrievedInstance = _preferencesService.getCurrentInstance();
         assertNotNull(retrievedInstance);
         assertEquals(instance.getDisplayName(), retrievedInstance.getDisplayName());
         assertEquals(instance.getLogoUri(), retrievedInstance.getLogoUri());
         assertEquals(instance.getBaseURI(), retrievedInstance.getBaseURI());
+        assertEquals(instance.isCustom(), retrievedInstance.isCustom());
     }
     @Test
     public void testDiscoveredAPISave() {

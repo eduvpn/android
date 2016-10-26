@@ -1,3 +1,20 @@
+/*
+ *  This file is part of eduVPN.
+ *
+ *     eduVPN is free software: you can redistribute it and/or modify
+ *     it under the terms of the GNU General Public License as published by
+ *     the Free Software Foundation, either version 3 of the License, or
+ *     (at your option) any later version.
+ *
+ *     eduVPN is distributed in the hope that it will be useful,
+ *     but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *     GNU General Public License for more details.
+ *
+ *     You should have received a copy of the GNU General Public License
+ *     along with eduVPN.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package nl.eduvpn.app.service;
 
 import android.annotation.SuppressLint;
@@ -11,6 +28,8 @@ import nl.eduvpn.app.entity.Instance;
 import nl.eduvpn.app.entity.Profile;
 import nl.eduvpn.app.entity.SavedProfile;
 
+import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -28,7 +47,8 @@ public class HistoryServiceTest {
     private HistoryService _historyService;
 
     @Before
-    public void setUp() throws Exception {
+    @After
+    public void clearPrefs() throws Exception {
         _reloadHistoryService(true);
     }
 
@@ -60,7 +80,7 @@ public class HistoryServiceTest {
             _historyService.cacheDiscoveredAPI(baseURI + i, discoveredAPI);
             String profileId = "vpn_profile";
             String profileUUID = "ABCD-1234-DEFG-5678";
-            Instance instance = new Instance(baseURI + i, "displayName", null);
+            Instance instance = new Instance(baseURI + i, "displayName", null, true);
             Profile profile = new Profile("displayName", profileId, false);
             SavedProfile savedProfile = new SavedProfile(instance, profile, profileUUID);
             _historyService.cacheSavedProfile(savedProfile);
@@ -92,7 +112,7 @@ public class HistoryServiceTest {
     public void testCacheAccessToken() {
         String exampleToken = "abcd1234defghthisisatoken";
         String baseURI = "http://example.com";
-        _historyService.cacheAccessToken(new Instance(baseURI, "displayName", null), exampleToken);
+        _historyService.cacheAccessToken(new Instance(baseURI, "displayName", null, true), exampleToken);
         _reloadHistoryService(false);
         String restoredToken = _historyService.getCachedAccessToken(baseURI);
         assertEquals(exampleToken, restoredToken);
@@ -103,7 +123,7 @@ public class HistoryServiceTest {
         String baseURI = "http://example.com/baseURI";
         String profileId = "vpn_profile";
         String profileUUID = "ABCD-1234-DEFG-5678";
-        Instance instance = new Instance(baseURI, "displayName", null);
+        Instance instance = new Instance(baseURI, "displayName", null, true);
         Profile profile = new Profile("displayName", profileId, false);
         SavedProfile savedProfile = new SavedProfile(instance, profile, profileUUID);
         _historyService.cacheSavedProfile(savedProfile);
