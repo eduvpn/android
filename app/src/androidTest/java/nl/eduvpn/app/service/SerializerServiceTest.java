@@ -67,12 +67,13 @@ public class SerializerServiceTest {
 
     @Test
     public void testInstanceSerialization() throws SerializerService.UnknownFormatException {
-        Instance instance = new Instance("baseUri", "displayName", "logoUri");
+        Instance instance = new Instance("baseUri", "displayName", "logoUri", true);
         JSONObject serializedInstance = _serializerService.serializeInstance(instance);
         Instance deserializedInstance = _serializerService.deserializeInstance(serializedInstance);
         assertEquals(instance.getDisplayName(), deserializedInstance.getDisplayName());
         assertEquals(instance.getBaseURI(), deserializedInstance.getBaseURI());
         assertEquals(instance.getLogoUri(), deserializedInstance.getLogoUri());
+        assertEquals(instance.isCustom(), deserializedInstance.isCustom());
     }
 
     @Test
@@ -91,8 +92,8 @@ public class SerializerServiceTest {
 
     @Test
     public void testInstanceListSerialization() throws SerializerService.UnknownFormatException {
-        Instance instance1 = new Instance("baseUri", "displayName", "logoUri");
-        Instance instance2 = new Instance("baseUri2", "displayName2", "logoUri2");
+        Instance instance1 = new Instance("baseUri", "displayName", "logoUri",true);
+        Instance instance2 = new Instance("baseUri2", "displayName2", "logoUri2", true);
         InstanceList instanceList = new InstanceList(1, Arrays.asList(instance1, instance2));
         JSONObject serializedInstanceList = _serializerService.serializeInstanceList(instanceList);
         InstanceList deserializedInstanceList = _serializerService.deserializeInstanceList(serializedInstanceList);
@@ -153,8 +154,8 @@ public class SerializerServiceTest {
 
     @Test
     public void testSavedTokenListSerialization() throws SerializerService.UnknownFormatException {
-        Instance instance1 = new Instance("baseUri1", "displayName1", null);
-        Instance instance2 = new Instance("baseUri2", "displayName2", null);
+        Instance instance1 = new Instance("baseUri1", "displayName1", null, true);
+        Instance instance2 = new Instance("baseUri2", "displayName2", null, true);
         SavedToken token1 = new SavedToken(instance1, "accessToken1");
         SavedToken token2 = new SavedToken(instance2, "accessToken2");
         List<SavedToken> list = Arrays.asList(token1, token2);
@@ -169,8 +170,8 @@ public class SerializerServiceTest {
 
     @Test
     public void testSavedProfileListSerialization() throws SerializerService.UnknownFormatException {
-        Instance instance1 = new Instance("baseUri1", "displayName1", "logoUri1");
-        Instance instance2 = new Instance("baseUri2", "displayName2", "logoUri2");
+        Instance instance1 = new Instance("baseUri1", "displayName1", "logoUri1", true);
+        Instance instance2 = new Instance("baseUri2", "displayName2", "logoUri2", true);
         Profile profile1 = new Profile("displayName1", "profileId1", false);
         Profile profile2 = new Profile("displayName2", "profileId2", true);
         SavedProfile savedProfile1 = new SavedProfile(instance1, profile1, "profileUUID1");
@@ -183,6 +184,8 @@ public class SerializerServiceTest {
             assertEquals(list.get(i).getInstance().getBaseURI(), deserializedList.get(i).getInstance().getBaseURI());
             assertEquals(list.get(i).getInstance().getDisplayName(), deserializedList.get(i).getInstance().getDisplayName());
             assertEquals(list.get(i).getInstance().getLogoUri(), deserializedList.get(i).getInstance().getLogoUri());
+            assertEquals(list.get(i).getInstance().isCustom(), deserializedList.get(i).getInstance().isCustom());
+
             assertEquals(list.get(i).getProfile().getDisplayName(), deserializedList.get(i).getProfile().getDisplayName());
             assertEquals(list.get(i).getProfile().getProfileId(), deserializedList.get(i).getProfile().getProfileId());
             assertEquals(list.get(i).getProfileUUID(), deserializedList.get(i).getProfileUUID());

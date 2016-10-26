@@ -51,7 +51,6 @@
     <string name="saved_profile_display_name">%1$s - %2$s</string>
     <string name="error_confirm_button">OK</string>
     <string name="error_dialog_title">Unexpected problem</string>
-    <string name="vpn_profile_name">%1$s - %2$s</string>
     <string name="no_providers_yet_click_on_add_provider">It appears you don\'t have any added providers yet.\nTap on the button below to get started.</string>
     <string name="custom_api_discovery_error">It seems that this provider does not exist, or is not compatible with eduVPN.\nDetails: %s</string>
     <string name="provider_added_new_configs_available">Provider added. You can now select more profiles.</string>

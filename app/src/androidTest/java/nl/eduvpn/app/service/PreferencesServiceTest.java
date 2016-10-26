@@ -41,13 +41,14 @@ public class PreferencesServiceTest {
 
     @Test
     public void testInstanceSave() {
-        Instance instance = new Instance("http://example.com", "Example", "http://example.com/image.jpg");
+        Instance instance = new Instance("http://example.com", "Example", "http://example.com/image.jpg", true);
         _preferencesService.currentInstance(instance);
         Instance retrievedInstance = _preferencesService.getCurrentInstance();
         assertNotNull(retrievedInstance);
         assertEquals(instance.getDisplayName(), retrievedInstance.getDisplayName());
         assertEquals(instance.getLogoUri(), retrievedInstance.getLogoUri());
         assertEquals(instance.getBaseURI(), retrievedInstance.getBaseURI());
+        assertEquals(instance.isCustom(), retrievedInstance.isCustom());
     }
     @Test
     public void testDiscoveredAPISave() {

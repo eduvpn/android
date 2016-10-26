@@ -12,11 +12,13 @@ public class Instance {
     private String _baseUri;
     private String _displayName;
     private String _logoUri;
+    private boolean _isCustom;
 
-    public Instance(@NonNull String baseUri, @NonNull String displayName, @Nullable String logoUri) {
+    public Instance(@NonNull String baseUri, @NonNull String displayName, @Nullable String logoUri, boolean isCustom) {
         _baseUri = baseUri;
         _displayName = displayName;
         _logoUri = logoUri;
+        _isCustom = isCustom;
     }
 
     @NonNull
@@ -40,5 +42,9 @@ public class Instance {
     @Nullable
     public String getLogoUri() {
         return _logoUri;
+    }
+
+    public boolean isCustom() {
+        return _isCustom;
     }
 }

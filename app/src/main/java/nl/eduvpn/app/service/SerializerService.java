@@ -157,6 +157,7 @@ public class SerializerService {
             result.put("base_uri", instance.getBaseURI());
             result.put("display_name", instance.getDisplayName());
             result.put("logo_uri", instance.getLogoUri());
+            result.put("is_custom", instance.isCustom());
         } catch (JSONException ex) {
             throw new UnknownFormatException(ex);
         }
@@ -178,7 +179,11 @@ public class SerializerService {
             if (jsonObject.has("logo_uri")) {
                 logoUri = jsonObject.getString("logo_uri");
             }
-            return new Instance(baseUri, displayName, logoUri);
+            boolean isCustom = false;
+            if (jsonObject.has("is_custom")) {
+                isCustom = jsonObject.getBoolean("is_custom");
+            }
+            return new Instance(baseUri, displayName, logoUri, isCustom);
         } catch (JSONException ex) {
             throw new UnknownFormatException(ex);
         }
@@ -198,10 +203,7 @@ public class SerializerService {
             serialized.put("version", instanceList.getVersion());
             JSONArray serializedInstances = new JSONArray();
             for (Instance instance : instanceList.getInstanceList()) {
-                JSONObject serializedInstance = new JSONObject();
-                serializedInstance.put("base_uri", instance.getBaseURI());
-                serializedInstance.put("display_name", instance.getDisplayName());
-                serializedInstance.put("logo_uri", instance.getLogoUri());
+                JSONObject serializedInstance = serializeInstance(instance);
                 serializedInstances.put(serializedInstance);
             }
             serialized.put("instances", serializedInstances);
@@ -279,8 +281,8 @@ public class SerializerService {
     /**
      * Deserializes a JSON with a list of messages into an ArrayList of message object.
      *
-     * @param jsonObject The JSON to deserialize.
-     * @param String the message source, either "user_messages" or "system_messages"
+     * @param jsonObject    The JSON to deserialize.
+     * @param messageSource the message source, either "user_messages" or "system_messages"
      * @return The message instances in a list.
      * @throws UnknownFormatException Thrown if there was a problem while parsing.
      */
@@ -316,8 +318,8 @@ public class SerializerService {
     /**
      * Serializes a list of messages into a JSON format.
      *
-     * @param messageList The list of messages to serialize.
-     * @param String the message source, either "user_messages" or "system_messages"
+     * @param messageList   The list of messages to serialize.
+     * @param messageSource the message source, either "user_messages" or "system_messages"
      * @return The messages as a JSON object.
      * @throws UnknownFormatException Thrown if there was an error constructing the JSON.
      */

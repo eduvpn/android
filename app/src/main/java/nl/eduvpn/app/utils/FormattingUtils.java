@@ -7,6 +7,7 @@ import nl.eduvpn.app.entity.Instance;
 import nl.eduvpn.app.entity.Profile;
 import nl.eduvpn.app.entity.message.Maintenance;
 
+import java.net.URI;
 import java.text.DateFormat;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
@@ -95,19 +96,11 @@ public class FormattingUtils {
      * @return The name to display.
      */
     public static String formatProfileName(Context context, Instance instance, Profile profile) {
-        return context.getString(R.string.saved_profile_display_name, instance.getDisplayName(),
-                profile.getDisplayName());
-    }
-
-    /**
-     * Creates a name to display in the notification which will be visible in the status bar when the VPN is connected.
-     *
-     * @param context  The application or activity context.
-     * @param instance The VPN provider.
-     * @param profile  The profile which was downloaded.
-     * @return The name to display.
-     */
-    public static String formatVPNProfileName(Context context, Instance instance, Profile profile) {
-        return context.getString(R.string.vpn_profile_name, instance.getDisplayName(), profile.getDisplayName());
+        String instanceName = instance.getDisplayName();
+        if (instance.isCustom()) {
+            URI uri = URI.create(instance.getSanitizedBaseURI());
+            instanceName = uri.getHost();
+        }
+        return context.getString(R.string.saved_profile_display_name, instanceName, profile.getDisplayName());
     }
 }

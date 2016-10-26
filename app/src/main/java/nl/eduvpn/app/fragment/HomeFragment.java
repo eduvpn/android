@@ -357,7 +357,7 @@ public class HomeFragment extends Fragment {
             @Override
             public void onSuccess(byte[] result) {
                 String vpnConfig = new String(result);
-                String configName = FormattingUtils.formatVPNProfileName(getContext(), instance, profile);
+                String configName = FormattingUtils.formatProfileName(getContext(), instance, profile);
                 VpnProfile vpnProfile = _vpnService.importConfig(vpnConfig, configName);
                 if (vpnProfile != null && getActivity() != null) {
                     // Cache the profile
