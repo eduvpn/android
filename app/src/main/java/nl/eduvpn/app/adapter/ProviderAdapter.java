@@ -83,7 +83,7 @@ public class ProviderAdapter extends RecyclerView.Adapter<ProviderViewHolder> {
         if (_instanceList == null || position == _instanceList.size()) {
             // Other item
             holder.providerDisplayName.setText(R.string.provider_other_display_name);
-            holder.providerIcon.setImageResource(R.drawable.other_vpn_icon);
+            holder.providerIcon.setImageResource(R.drawable.external_provider);
         } else {
             // Usual item
             Instance instance = getItem(position);
@@ -92,11 +92,11 @@ public class ProviderAdapter extends RecyclerView.Adapter<ProviderViewHolder> {
             if (instance.getLogoUri() != null) {
                 Picasso.with(holder.providerIcon.getContext())
                         .load(instance.getLogoUri())
-                        .placeholder(R.drawable.vpn_icon)
+                        .placeholder(R.drawable.external_provider)
                         .fit()
                         .into(holder.providerIcon);
             } else{
-                holder.providerIcon.setImageResource(R.drawable.vpn_icon);
+                holder.providerIcon.setImageResource(R.drawable.external_provider);
             }
         }
     }

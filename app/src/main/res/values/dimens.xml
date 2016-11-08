@@ -9,6 +9,7 @@
     <dimen name="list_item_icon_height">32dp</dimen>
 
     <dimen name="list_item_height">48dp</dimen>
+    <dimen name="profile_list_item_height">56dp</dimen>
 
     <dimen name="custom_provider_text_size">18sp</dimen>
     <dimen name="vpn_connection_fragment_padding">16dp</dimen>
