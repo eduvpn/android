@@ -14,7 +14,7 @@
         android:layout_centerVertical="true"
         android:layout_marginLeft="8dp"
         android:contentDescription="@string/content_description_provider_icon"
-        android:src="@drawable/vpn_icon"/>
+        android:src="@drawable/external_provider"/>
 
     <TextView
         android:id="@+id/provider_display_name"

@@ -141,12 +141,12 @@ public class ProfileAdapter extends RecyclerView.Adapter<ProfileViewHolder> {
             if (instanceProfilePair.first.getLogoUri() != null) {
                 Picasso.with(holder.providerIcon.getContext())
                         .load(instanceProfilePair.first.getLogoUri())
-                        .placeholder(R.drawable.vpn_icon)
+                        .placeholder(R.drawable.external_provider)
                         .fit()
                         .noFade()
                         .into(holder.providerIcon);
             } else {
-                holder.providerIcon.setImageResource(R.drawable.vpn_icon);
+                holder.providerIcon.setImageResource(R.drawable.external_provider);
             }
         }
     }

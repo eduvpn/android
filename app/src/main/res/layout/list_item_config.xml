@@ -15,7 +15,7 @@
         android:layout_marginLeft="8dp"
         android:adjustViewBounds="true"
         android:contentDescription="@string/content_description_provider_icon"
-        android:src="@drawable/vpn_icon"/>
+        android:src="@drawable/external_provider"/>
 
     <LinearLayout
         android:id="@+id/textContainer"
