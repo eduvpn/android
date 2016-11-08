@@ -136,11 +136,8 @@ public class ProfileAdapter extends RecyclerView.Adapter<ProfileViewHolder> {
             holder.profileName.setVisibility(View.VISIBLE);
             holder.providerIcon.setVisibility(View.VISIBLE);
             holder.undoButton.setVisibility(View.GONE);
-            holder.profileName.setText(
-                    FormattingUtils.formatProfileName(
-                            holder.profileName.getContext(),
-                            instanceProfilePair.first,
-                            instanceProfilePair.second));
+            holder.profileName.setText(instanceProfilePair.second.getDisplayName());
+            holder.profileProvider.setText(FormattingUtils.formatInstanceUrl(instanceProfilePair.first));
             if (instanceProfilePair.first.getLogoUri() != null) {
                 Picasso.with(holder.providerIcon.getContext())
                         .load(instanceProfilePair.first.getLogoUri())

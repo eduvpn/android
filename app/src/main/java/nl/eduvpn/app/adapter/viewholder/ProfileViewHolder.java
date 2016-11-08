@@ -40,6 +40,9 @@ public class ProfileViewHolder extends RecyclerView.ViewHolder {
     @BindView(R.id.profileName)
     public TextView profileName;
 
+    @BindView(R.id.profileProvider)
+    public TextView profileProvider;
+
     @BindView(R.id.undoButton)
     public Button undoButton;
 
