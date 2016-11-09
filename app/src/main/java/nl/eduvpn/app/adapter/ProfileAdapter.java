@@ -141,7 +141,6 @@ public class ProfileAdapter extends RecyclerView.Adapter<ProfileViewHolder> {
             if (instanceProfilePair.first.getLogoUri() != null) {
                 Picasso.with(holder.providerIcon.getContext())
                         .load(instanceProfilePair.first.getLogoUri())
-                        .placeholder(R.drawable.external_provider)
                         .fit()
                         .noFade()
                         .into(holder.providerIcon);
