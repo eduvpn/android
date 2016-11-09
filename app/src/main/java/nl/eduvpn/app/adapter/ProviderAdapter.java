@@ -92,7 +92,6 @@ public class ProviderAdapter extends RecyclerView.Adapter<ProviderViewHolder> {
             if (instance.getLogoUri() != null) {
                 Picasso.with(holder.providerIcon.getContext())
                         .load(instance.getLogoUri())
-                        .placeholder(R.drawable.external_provider)
                         .fit()
                         .into(holder.providerIcon);
             } else{
