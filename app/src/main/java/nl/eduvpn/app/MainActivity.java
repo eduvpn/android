@@ -19,6 +19,7 @@ package nl.eduvpn.app;
 
 import android.content.Context;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AppCompatActivity;
@@ -36,6 +37,7 @@ import javax.inject.Inject;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+import nl.eduvpn.app.utils.Log;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -77,6 +79,14 @@ public class MainActivity extends AppCompatActivity {
         if (intent.getData() == null) {
             // Not a callback intent.
             return;
+        } else {
+            // TODO remove these because this is sensitive information
+            Log.i(TAG, "Activity opened with URL: " + intent.getData());
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP_MR1) {
+                if (getReferrer() != null) {
+                    Log.i(TAG, "Opened from: " + getReferrer().toString());
+                }
+            }
         }
         if (_vpnService.getStatus() != VPNService.VPNStatus.DISCONNECTED) {
             // The user clicked on an authorization link while the VPN is connected.
