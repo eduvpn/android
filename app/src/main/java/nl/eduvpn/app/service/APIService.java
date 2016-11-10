@@ -124,9 +124,9 @@ public class APIService {
                 } catch (FileNotFoundException ex) {
                     return "URL not found: " + url;
                 } catch (IOException ex) {
-                    return ex.toString();
+                    return ex.getMessage();
                 } catch (JSONException ex) {
-                    return ex.toString();
+                    return ex.getMessage();
                 } catch (UserNotAuthorizedException ex) {
                     return USER_NOT_AUTHORIZED_ERROR;
                 }
@@ -177,7 +177,7 @@ public class APIService {
                         return _fetchByteResource(url, data, accessTokenParam);
                     }
                 } catch (IOException ex) {
-                    return ex.toString();
+                    return ex.getMessage();
                 } catch (UserNotAuthorizedException ex) {
                     return USER_NOT_AUTHORIZED_ERROR;
                 }
