@@ -32,7 +32,7 @@
 
                 <data
                     android:host="import"
-                    android:scheme="vpn"/>
+                    android:scheme="nl.eduvpn.app"/>
             </intent-filter>
         </activity>
 
