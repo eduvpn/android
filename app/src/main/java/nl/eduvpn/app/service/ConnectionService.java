@@ -49,8 +49,8 @@ public class ConnectionService {
 
     private static final String SCOPE = "config";
     private static final String RESPONSE_TYPE = "token";
-    private static final String REDIRECT_URI = "vpn://import/callback";
-    private static final String CLIENT_ID = "vpn-companion";
+    private static final String REDIRECT_URI = "nl.eduvpn.app://import/callback";
+    private static final String CLIENT_ID = "nl.eduvpn.app";
     private static final String CUSTOM_TAB_PACKAGE_NAME = "com.android.chrome"; // This might change later,
     // as of now, this is the only browser which has Custom Tabs support.
 
