@@ -86,6 +86,6 @@
     <string name="access_rejected_instance">Access to %s has been rejected.</string>
     <string name="instance_access_warning_message">Could not connect to all providers.</string>
     <string name="data_removed">The provider data was already removed.</string>
-    <string name="provider_not_found_retry">Could not found the provider metadata.</string>
+    <string name="provider_not_found_retry">Could not find the provider metadata.</string>
     <string name="provider_incorrect_format">Data returned by the provider has an incorrect format</string>
 </resources>
