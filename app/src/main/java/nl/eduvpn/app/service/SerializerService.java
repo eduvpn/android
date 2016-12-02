@@ -79,21 +79,17 @@ public class SerializerService {
      */
     public List<Profile> deserializeProfileList(JSONObject json) throws UnknownFormatException {
         try {
-            if (json.has("data")) {
-                JSONObject dataObject = json.getJSONObject("data");
-                if (dataObject.has("profile_list")) {
-                    JSONArray poolList = dataObject.getJSONArray("profile_list");
-                    List<Profile> result = new ArrayList<>(poolList.length());
-                    for (int i = 0; i < poolList.length(); ++i) {
-                        JSONObject profileObject = poolList.getJSONObject(i);
-                        result.add(deserializeProfile(profileObject));
-                    }
-                    return result;
-                } else {
-                    throw new UnknownFormatException("'profile_list' key inside 'data' missing!");
+            if (json.has("profile_list")) {
+                JSONObject dataObject = json.getJSONObject("profile_list");
+                JSONArray profileList = dataObject.getJSONArray("data");
+                List<Profile> result = new ArrayList<>(profileList.length());
+                for (int i = 0; i < profileList.length(); ++i) {
+                    JSONObject profileObject = profileList.getJSONObject(i);
+                    result.add(deserializeProfile(profileObject));
                 }
+                return result;
             } else {
-                throw new UnknownFormatException("'data' key missing!");
+                throw new UnknownFormatException("'profile_list' key missing!");
             }
         } catch (JSONException ex) {
             throw new UnknownFormatException(ex);
@@ -305,8 +301,8 @@ public class SerializerService {
      */
     public List<Message> deserializeMessageList(JSONObject jsonObject, String messageSource) throws UnknownFormatException {
         try {
-            JSONObject dataObject = jsonObject.getJSONObject("data");
-            JSONArray messagesArray = dataObject.getJSONArray(messageSource);
+            JSONObject dataObject = jsonObject.getJSONObject(messageSource);
+            JSONArray messagesArray = dataObject.getJSONArray("data");
             List<Message> result = new ArrayList<>();
             for (int i = 0; i < messagesArray.length(); ++i) {
                 JSONObject messageObject = messagesArray.getJSONObject(i);
@@ -344,9 +340,9 @@ public class SerializerService {
         try {
             JSONObject result = new JSONObject();
             JSONObject dataObject = new JSONObject();
-            result.put("data", dataObject);
+            result.put(messageSource, dataObject);
             JSONArray messagesArray = new JSONArray();
-            dataObject.put(messageSource, messagesArray);
+            dataObject.put("data", messagesArray);
             for (Message message : messageList) {
                 JSONObject messageObject = new JSONObject();
                 messageObject.put("date", API_DATE_FORMAT.format(message.getDate()));
