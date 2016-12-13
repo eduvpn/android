@@ -306,17 +306,17 @@ public class SerializerService {
             List<Message> result = new ArrayList<>();
             for (int i = 0; i < messagesArray.length(); ++i) {
                 JSONObject messageObject = messagesArray.getJSONObject(i);
-                String dateString = messageObject.getString("date");
+                String dateString = messageObject.getString("date_time");
                 Date date = API_DATE_FORMAT.parse(dateString);
                 String messageType = messageObject.getString("type");
                 if ("maintenance".equals(messageType)) {
-                    String startString = messageObject.getString("start");
+                    String startString = messageObject.getString("begin");
                     Date startDate = API_DATE_FORMAT.parse(startString);
                     String endString = messageObject.getString("end");
                     Date endDate = API_DATE_FORMAT.parse(endString);
                     result.add(new Maintenance(date, startDate, endDate));
                 } else if ("notification".equals(messageType)) {
-                    String content = messageObject.getString("content");
+                    String content = messageObject.getString("message");
                     result.add(new Notification(date, content));
                 } else {
                     Log.w(TAG, "Unknown message type: " + messageType);
@@ -345,13 +345,13 @@ public class SerializerService {
             dataObject.put("data", messagesArray);
             for (Message message : messageList) {
                 JSONObject messageObject = new JSONObject();
-                messageObject.put("date", API_DATE_FORMAT.format(message.getDate()));
+                messageObject.put("date_time", API_DATE_FORMAT.format(message.getDate()));
                 if (message instanceof Maintenance) {
-                    messageObject.put("start", API_DATE_FORMAT.format(((Maintenance)message).getStart()));
+                    messageObject.put("begin", API_DATE_FORMAT.format(((Maintenance)message).getStart()));
                     messageObject.put("end", API_DATE_FORMAT.format(((Maintenance)message).getEnd()));
                     messageObject.put("type", "maintenance");
                 } else if (message instanceof Notification) {
-                    messageObject.put("content", ((Notification)message).getContent());
+                    messageObject.put("message", ((Notification)message).getContent());
                     messageObject.put("type", "notification");
                 } else {
                     throw new RuntimeException("Unexpected message format!");
