@@ -422,8 +422,7 @@ public class HomeFragment extends Fragment {
                 getString(R.string.vpn_profile_download_message),
                 true,
                 false);
-        String uniqueName = "Android_" + System.currentTimeMillis() / 1000L;
-        String requestData = "config_name=" + uniqueName + "&profile_id=" + profile.getProfileId();
+        String requestData = "display_name=eduVPN%20for%20Android&profile_id=" + profile.getProfileId();
         String url = discoveredAPI.getCreateConfigAPI();
         _apiService.postResource(url, requestData, true, new APIService.Callback<byte[]>() {
 
