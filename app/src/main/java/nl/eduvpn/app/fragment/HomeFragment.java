@@ -311,7 +311,7 @@ public class HomeFragment extends Fragment {
         _pendingInstanceCount--;
         if (_pendingInstanceCount <= 0 && _problemeticInstances.size() == 0) {
             if (_loadingBar == null) {
-                Log.w(TAG, "Layout has been destroyed already.");
+                Log.d(TAG, "Layout has been destroyed already.");
                 return;
             }
             float startHeight = _loadingBar.getHeight();
@@ -323,13 +323,19 @@ public class HomeFragment extends Fragment {
                     float fraction = animation.getAnimatedFraction();
                     float alpha = 1f - fraction;
                     float height = (Float)animation.getAnimatedValue();
-                    _loadingBar.setAlpha(alpha);
-                    _loadingBar.getLayoutParams().height = (int)height;
-                    _loadingBar.requestLayout();
+                    if (_loadingBar != null) {
+                        _loadingBar.setAlpha(alpha);
+                        _loadingBar.getLayoutParams().height = (int)height;
+                        _loadingBar.requestLayout();
+                    }
                 }
             });
             animator.start();
         } else if (_pendingInstanceCount <= 0) {
+            if (_displayText == null) {
+                Log.d(TAG, "Layout has been destroyed already.");
+                return;
+            }
             // There are some warnings
             _displayText.setText(R.string.could_not_fetch_all_profiles);
             _warningIcon.setVisibility(View.VISIBLE);

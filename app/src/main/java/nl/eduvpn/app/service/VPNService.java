@@ -26,14 +26,19 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-
-import nl.eduvpn.app.utils.Log;
+import android.support.v4.util.Pair;
 
 import java.io.IOException;
 import java.io.StringReader;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.net.SocketException;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 import java.util.Observable;
+import java.util.regex.Pattern;
 
 import de.blinkt.openvpn.LaunchVPN;
 import de.blinkt.openvpn.VpnProfile;
@@ -42,6 +47,7 @@ import de.blinkt.openvpn.core.Connection;
 import de.blinkt.openvpn.core.OpenVPNService;
 import de.blinkt.openvpn.core.ProfileManager;
 import de.blinkt.openvpn.core.VpnStatus;
+import nl.eduvpn.app.utils.Log;
 
 /**
  * Service responsible for managing the VPN profiles and the connection.
@@ -54,6 +60,7 @@ public class VPNService extends Observable implements VpnStatus.StateListener {
     }
 
     private static final Long CONNECTION_INFO_UPDATE_INTERVAL_MS = 1000L;
+    private static final String VPN_INTERFACE_NAME = "tun0";
 
     private static final String TAG = VPNService.class.getName();
 
@@ -238,6 +245,66 @@ public class VPNService extends Observable implements VpnStatus.StateListener {
         }
     }
 
+    /**
+     * Retrieves the IP4 and IPv6 addresses assigned by the VPN server to this client using a network interface lookup.
+     *
+     * @return The IPv4 and IPv6 addresses in this order as a pair. If not found, a null value is returned instead.
+     */
+    private Pair<String, String> _lookupVpnIpAddresses() {
+        try {
+            List<NetworkInterface> networkInterfaces = Collections.list(NetworkInterface.getNetworkInterfaces());
+            for (NetworkInterface networkInterface : networkInterfaces) {
+                if (VPN_INTERFACE_NAME.equals(networkInterface.getName())) {
+                    List<InetAddress> addresses = Collections.list(networkInterface.getInetAddresses());
+                    String ipV4 = null;
+                    String ipV6 = null;
+                    for (InetAddress address : addresses) {
+                        String ip = address.getHostAddress();
+                        boolean isIPv4 = ip.indexOf(':') < 0;
+                        if (isIPv4) {
+                            ipV4 = ip;
+                        } else {
+                            int delimiter = ip.indexOf('%');
+                            ipV6 = delimiter < 0 ? ip.toUpperCase() : ip.substring(0, delimiter).toUpperCase();
+                        }
+                    }
+                    if (ipV4 != null || ipV6 != null) {
+                        return new Pair<>(ipV4, ipV6);
+                    } else {
+                        return null;
+                    }
+                }
+            }
+        } catch (SocketException ex) {
+            Log.w(TAG, "Unable to retrieve network interface info!", ex);
+        }
+        return null;
+    }
+
+    /**
+     * Parses the IPv4 and IPv6 from the log message.
+     *
+     * @param logMessage The log message to parse from.
+     * @return The IPv4 and IPv6 addresses as a pair in this order. If the parsing failed (unexpected format), then a null value will be returned.
+     */
+    private Pair<String, String> _parseVpnIpAddressesFromLogMessage(String logMessage) {
+        if (logMessage != null && logMessage.length() > 0) {
+            String[] splits = logMessage.split(Pattern.quote(","));
+            if (splits.length == 7) {
+                String ipV4 = splits[1];
+                String ipV6 = splits[6];
+                if (ipV4.length() == 0) {
+                    ipV4 = null;
+                }
+                if (ipV6.length() == 0) {
+                    ipV6 = null;
+                }
+                return new Pair<>(ipV4, ipV6);
+            }
+        }
+        return null;
+    }
+
     @Override
     public void updateState(String state, String logmessage, int localizedResId, VpnStatus.ConnectionStatus level) {
         VpnStatus.ConnectionStatus oldStatus = _connectionStatus;
@@ -248,9 +315,19 @@ public class VPNService extends Observable implements VpnStatus.StateListener {
         }
         if (getStatus() == VPNStatus.CONNECTED) {
             _connectionTime = new Date();
-            // Set the other variables for the metadata
-            _serverIpV4 = _openVPNService.getLastLocalIpV4Address();
-            _serverIpV6 = _openVPNService.getLastLocalIpV6Address();
+            // Try to get the address from a lookup
+            Pair<String, String> ips = _lookupVpnIpAddresses();
+            if (ips != null) {
+                _serverIpV4 = ips.first;
+                _serverIpV6 = ips.second;
+            } else {
+                Log.i(TAG, "Unable to determine IP addresses from network interface lookup, using log message instead.");
+                ips = _parseVpnIpAddressesFromLogMessage(logmessage);
+                if (ips != null) {
+                    _serverIpV4 = ips.first;
+                    _serverIpV6 = ips.second;
+                }
+            }
             if (_connectionInfoCallback != null) {
                 _updatesHandler.post(new Runnable() {
                     @Override

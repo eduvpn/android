@@ -85,8 +85,9 @@ public class ErrorDialog {
             LayoutInflater inflater = LayoutInflater.from(context);
             LinearLayout parent = (LinearLayout)view.findViewById(R.id.optionalViews);
             for (final Instance instance : handler.getInstances()) {
-                View warningView = inflater.inflate(R.layout.list_item_token_warning, parent, true);
-                ((TextView)warningView.findViewById(R.id.displayText)).setText(FormattingUtils.formatAccessWarning(context, instance));
+                View warningView = inflater.inflate(R.layout.list_item_token_warning, parent, false);
+                String warningText = FormattingUtils.formatAccessWarning(context, instance);
+                ((TextView)warningView.findViewById(R.id.displayText)).setText(warningText);
                 warningView.findViewById(R.id.retry).setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
@@ -108,6 +109,7 @@ public class ErrorDialog {
                         handler.loginInstance(instance);
                     }
                 });
+                parent.addView(warningView);
             }
         }
         TextView titleView = (TextView)view.findViewById(R.id.title);
