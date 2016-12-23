@@ -68,8 +68,6 @@ import nl.eduvpn.app.utils.FormattingUtils;
  */
 public class ConnectionStatusFragment extends Fragment implements VPNService.ConnectionInfoCallback {
 
-    private static final long DISCONNECT_BUTTON_ENABLE_DELAY_MILLISECONDS = 5000;
-
     @Inject
     protected VPNService _vpnService;
 
@@ -207,16 +205,7 @@ public class ConnectionStatusFragment extends Fragment implements VPNService.Con
                             break;
                         case CONNECTING:
                             _currentStatusIcon.setImageResource(R.drawable.connection_status_connecting);
-                            _disconnectButton.setEnabled(false);
-                            _disconnectButton.postDelayed(new Runnable() {
-                                @Override
-                                public void run() {
-                                    // Allow the user to disconnect after some time.
-                                    if (_disconnectButton != null) {
-                                        _disconnectButton.setEnabled(true);
-                                    }
-                                }
-                            }, DISCONNECT_BUTTON_ENABLE_DELAY_MILLISECONDS);
+                            _disconnectButton.setEnabled(true);
                             break;
                         case PAUSED:
                             _disconnectButton.setEnabled(true);
