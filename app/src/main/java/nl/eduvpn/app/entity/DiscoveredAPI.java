@@ -26,20 +26,17 @@ import android.support.annotation.Nullable;
  */
 public class DiscoveredAPI {
 
-    private Integer _version;
     private String _authorizationEndpoint;
     private String _createConfigAPI;
     private String _profileListAPI;
     private String _systemMessagesAPI;
     private String _userMessagesAPI;
 
-    public DiscoveredAPI(@NonNull Integer version,
-                         @NonNull String authorizationEndpoint,
+    public DiscoveredAPI(@NonNull String authorizationEndpoint,
                          @NonNull String createConfigAPI,
                          @NonNull String profileListAPI,
                          @Nullable String systemMessagesAPI,
                          @Nullable String userMessagesAPI) {
-        _version = version;
         _authorizationEndpoint = authorizationEndpoint;
         _createConfigAPI = createConfigAPI;
         _profileListAPI = profileListAPI;
@@ -49,10 +46,6 @@ public class DiscoveredAPI {
 
     public String getAuthorizationEndpoint() {
         return _authorizationEndpoint;
-    }
-
-    public Integer getVersion() {
-        return _version;
     }
 
     public String getCreateConfigAPI() {

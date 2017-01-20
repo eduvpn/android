@@ -264,7 +264,7 @@ public class SerializerService {
             if (apiVersionedObject.has("user_messages")) {
                 userMessagesAPI = apiVersionedObject.getString("user_messages");
             }
-            return new DiscoveredAPI(version, authorizationEndpoint, createConfigAPI,
+            return new DiscoveredAPI(authorizationEndpoint, createConfigAPI,
                     profileListAPI, systemMessagesAPI, userMessagesAPI);
         } catch (JSONException ex) {
             throw new UnknownFormatException(ex);
