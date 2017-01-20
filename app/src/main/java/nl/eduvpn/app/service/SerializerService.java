@@ -235,30 +235,34 @@ public class SerializerService {
      */
     public DiscoveredAPI deserializeDiscoveredAPI(JSONObject result) throws UnknownFormatException {
         try {
-            Integer version = result.getInt("version");
-            if (version != 1) {
-                throw new UnknownFormatException("Unknown version: " + version);
+            // we only support version 1 at the moment
+            JSONObject apiObject = result.getJSONObject("api");
+            if (apiObject == null) {
+                throw new UnknownFormatException("'api' is missing!");
             }
-            String authorizationEndpoint = result.getString("authorization_endpoint");
+            JSONObject apiVersionedObject = apiObject.getJSONObject("http://eduvpn.org/api#1");
+            if (apiVersionedObject == null) {
+                throw new UnknownFormatException("'http://eduvpn.org/api#1' is missing!");
+            }
+            String authorizationEndpoint = apiVersionedObject.getString("authorization_endpoint");
             if (authorizationEndpoint == null) {
                 throw new UnknownFormatException("'authorization_endpoint' is missing!");
             }
-            JSONObject apiObject = result.getJSONObject("api");
-            String createConfigAPI = apiObject.getString("create_config");
+            String createConfigAPI = apiVersionedObject.getString("create_config");
             if (createConfigAPI == null) {
                 throw new UnknownFormatException("'create_config' is missing!");
             }
-            String profileListAPI = apiObject.getString("profile_list");
+            String profileListAPI = apiVersionedObject.getString("profile_list");
             if (profileListAPI == null) {
                 throw new UnknownFormatException("'profile_list' is missing!");
             }
             String systemMessagesAPI = null;
-            if (apiObject.has("system_messages")) {
-                systemMessagesAPI = apiObject.getString("system_messages");
+            if (apiVersionedObject.has("system_messages")) {
+                systemMessagesAPI = apiVersionedObject.getString("system_messages");
             }
             String userMessagesAPI = null;
-            if (apiObject.has("user_messages")) {
-                userMessagesAPI = apiObject.getString("user_messages");
+            if (apiVersionedObject.has("user_messages")) {
+                userMessagesAPI = apiVersionedObject.getString("user_messages");
             }
             return new DiscoveredAPI(version, authorizationEndpoint, createConfigAPI,
                     profileListAPI, systemMessagesAPI, userMessagesAPI);
@@ -277,13 +281,14 @@ public class SerializerService {
     public JSONObject serializeDiscoveredAPI(DiscoveredAPI discoveredAPI) throws UnknownFormatException {
         JSONObject result = new JSONObject();
         try {
-            result.put("version", discoveredAPI.getVersion());
-            result.put("authorization_endpoint", discoveredAPI.getAuthorizationEndpoint());
-            JSONObject apiObject = new JSONObject();
-            apiObject.put("create_config", discoveredAPI.getCreateConfigAPI());
-            apiObject.put("profile_list", discoveredAPI.getProfileListAPI());
-            apiObject.put("user_messages", discoveredAPI.getUserMessagesAPI());
-            apiObject.put("system_messages", discoveredAPI.getSystemMessagesAPI());
+            JSONObject apiVersionedObject = new JSONObject();
+            apiVersionedObject.put("create_config", discoveredAPI.getCreateConfigAPI());
+            apiVersionedObject.put("profile_list", discoveredAPI.getProfileListAPI());
+            apiVersionedObject.put("user_messages", discoveredAPI.getUserMessagesAPI());
+            apiVersionedObject.put("system_messages", discoveredAPI.getSystemMessagesAPI());
+            apiVersionedObject.put("authorization_endpoint", discoveredAPI.getAuthorizationEndpoint());
+            apiObject apiObject = new JSONObject();
+            apiObject.put("http://eduvpn.org/api#1", apiVersionedObject);
             result.put("api", apiObject);
             return result;
         } catch (JSONException ex) {
