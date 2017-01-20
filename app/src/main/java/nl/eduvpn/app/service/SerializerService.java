@@ -287,7 +287,7 @@ public class SerializerService {
             apiVersionedObject.put("user_messages", discoveredAPI.getUserMessagesAPI());
             apiVersionedObject.put("system_messages", discoveredAPI.getSystemMessagesAPI());
             apiVersionedObject.put("authorization_endpoint", discoveredAPI.getAuthorizationEndpoint());
-            apiObject apiObject = new JSONObject();
+            JSONObject apiObject = new JSONObject();
             apiObject.put("http://eduvpn.org/api#1", apiVersionedObject);
             result.put("api", apiObject);
             return result;
