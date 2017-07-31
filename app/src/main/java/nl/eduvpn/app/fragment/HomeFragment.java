@@ -34,6 +34,19 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.json.JSONObject;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+import javax.inject.Inject;
+
+import butterknife.BindView;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
+import butterknife.Unbinder;
+import de.blinkt.openvpn.VpnProfile;
 import nl.eduvpn.app.Constants;
 import nl.eduvpn.app.EduVPNApplication;
 import nl.eduvpn.app.MainActivity;
@@ -55,20 +68,6 @@ import nl.eduvpn.app.utils.ErrorDialog;
 import nl.eduvpn.app.utils.FormattingUtils;
 import nl.eduvpn.app.utils.ItemClickSupport;
 import nl.eduvpn.app.utils.Log;
-
-import org.json.JSONObject;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
-import javax.inject.Inject;
-
-import butterknife.BindView;
-import butterknife.ButterKnife;
-import butterknife.OnClick;
-import butterknife.Unbinder;
-import de.blinkt.openvpn.VpnProfile;
 import nl.eduvpn.app.utils.SwipeToDeleteAnimator;
 import nl.eduvpn.app.utils.SwipeToDeleteHelper;
 
@@ -122,7 +121,7 @@ public class HomeFragment extends Fragment {
     private Unbinder _unbinder;
 
     private int _pendingInstanceCount;
-    private List<Instance> _problemeticInstances;
+    private List<Instance> _problematicInstances;
 
     @Nullable
     @Override
@@ -228,7 +227,7 @@ public class HomeFragment extends Fragment {
      */
     private void _fillList(final ProfileAdapter adapter, List<SavedToken> instanceAccessTokenPairs) {
         _pendingInstanceCount = instanceAccessTokenPairs.size();
-        _problemeticInstances = new ArrayList<>();
+        _problematicInstances = new ArrayList<>();
         for (SavedToken savedToken : instanceAccessTokenPairs) {
             final Instance instance = savedToken.getInstance();
             final String accessToken = savedToken.getAccessToken();
@@ -249,7 +248,7 @@ public class HomeFragment extends Fragment {
                                     _fetchProfileList(adapter, instance, discoveredAPI, accessToken);
                                 } catch (SerializerService.UnknownFormatException ex) {
                                     Log.e(TAG, "Error parsing discovered API!", ex);
-                                    _problemeticInstances.add(instance);
+                                    _problematicInstances.add(instance);
                                     _checkLoadingFinished();
                                 }
                             }
@@ -257,7 +256,7 @@ public class HomeFragment extends Fragment {
                             @Override
                             public void onError(String errorMessage) {
                                 Log.e(TAG, "Error while fetching discovered API: " + errorMessage);
-                                _problemeticInstances.add(instance);
+                                _problematicInstances.add(instance);
                                 _checkLoadingFinished();
                             }
                         });
@@ -287,7 +286,7 @@ public class HomeFragment extends Fragment {
                     }
                     adapter.addItems(newItems);
                 } catch (SerializerService.UnknownFormatException ex) {
-                    _problemeticInstances.add(instance);
+                    _problematicInstances.add(instance);
                     Log.e(TAG, "Error parsing profile list.", ex);
                 }
                 _checkLoadingFinished();
@@ -295,7 +294,7 @@ public class HomeFragment extends Fragment {
 
             @Override
             public void onError(String errorMessage) {
-                _problemeticInstances.add(instance);
+                _problematicInstances.add(instance);
                 Log.e(TAG, "Error fetching profile list: " + errorMessage);
                 _checkLoadingFinished();
             }
@@ -309,7 +308,7 @@ public class HomeFragment extends Fragment {
      */
     private synchronized void _checkLoadingFinished() {
         _pendingInstanceCount--;
-        if (_pendingInstanceCount <= 0 && _problemeticInstances.size() == 0) {
+        if (_pendingInstanceCount <= 0 && _problematicInstances.size() == 0) {
             if (_loadingBar == null) {
                 Log.d(TAG, "Layout has been destroyed already.");
                 return;
@@ -350,7 +349,7 @@ public class HomeFragment extends Fragment {
                             new ErrorDialog.InstanceWarningHandler() {
                                 @Override
                                 public List<Instance> getInstances() {
-                                    return _problemeticInstances;
+                                    return _problematicInstances;
                                 }
 
                                 @Override
@@ -364,7 +363,7 @@ public class HomeFragment extends Fragment {
                                         ErrorDialog.show(getContext(), R.string.error_dialog_title, R.string.data_removed);
                                     } else {
                                         // Retry
-                                        _problemeticInstances.remove(instance);
+                                        _problematicInstances.remove(instance);
                                         _fillList((ProfileAdapter)_profileList.getAdapter(), Collections.singletonList(savedToken));
                                     }
                                 }
@@ -380,7 +379,7 @@ public class HomeFragment extends Fragment {
                                                         DiscoveredAPI discoveredAPI = _serializerService.deserializeDiscoveredAPI(result);
                                                         // Cache the result
                                                         _historyService.cacheDiscoveredAPI(instance.getSanitizedBaseURI(), discoveredAPI);
-                                                        _problemeticInstances.remove(instance);
+                                                        _problematicInstances.remove(instance);
                                                         _connectionService.initiateConnection(getActivity(), instance, discoveredAPI);
                                                     } catch (SerializerService.UnknownFormatException ex) {
                                                         Log.e(TAG, "Error parsing discovered API!", ex);
@@ -401,7 +400,7 @@ public class HomeFragment extends Fragment {
                                     _historyService.removeAccessTokens(instance.getSanitizedBaseURI());
                                     _historyService.removeDiscoveredAPI(instance.getSanitizedBaseURI());
                                     _historyService.removeSavedProfilesForInstance(instance.getSanitizedBaseURI());
-                                    _problemeticInstances.remove(instance);
+                                    _problematicInstances.remove(instance);
                                     getActivity().runOnUiThread(new Runnable() {
                                         @Override
                                         public void run() {
@@ -464,6 +463,6 @@ public class HomeFragment extends Fragment {
      */
     @OnClick(R.id.addProvider)
     protected void onAddProviderClicked() {
-        ((MainActivity)getActivity()).openFragment(new ProviderSelectionFragment(), true);
+        ((MainActivity)getActivity()).openFragment(new TypeSelectorFragment(), true);
     }
 }

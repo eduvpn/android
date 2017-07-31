@@ -28,11 +28,19 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
+import org.json.JSONObject;
+
+import javax.inject.Inject;
+
+import butterknife.BindView;
+import butterknife.ButterKnife;
+import butterknife.Unbinder;
 import nl.eduvpn.app.Constants;
 import nl.eduvpn.app.EduVPNApplication;
 import nl.eduvpn.app.MainActivity;
 import nl.eduvpn.app.R;
 import nl.eduvpn.app.adapter.ProviderAdapter;
+import nl.eduvpn.app.entity.ConnectionType;
 import nl.eduvpn.app.entity.DiscoveredAPI;
 import nl.eduvpn.app.entity.Instance;
 import nl.eduvpn.app.service.APIService;
@@ -45,14 +53,6 @@ import nl.eduvpn.app.utils.ErrorDialog;
 import nl.eduvpn.app.utils.ItemClickSupport;
 import nl.eduvpn.app.utils.Log;
 
-import org.json.JSONObject;
-
-import javax.inject.Inject;
-
-import butterknife.BindView;
-import butterknife.ButterKnife;
-import butterknife.Unbinder;
-
 /**
  * The fragment showing the provider list.
  * Created by Daniel Zolnai on 2016-10-07.
@@ -60,6 +60,7 @@ import butterknife.Unbinder;
 public class ProviderSelectionFragment extends Fragment {
 
     private static final String TAG = ProviderSelectionFragment.class.getName();
+    public static final String EXTRA_CONNECTION_TYPE = "extra_connection_type";
 
     @BindView(R.id.providersList)
     protected RecyclerView _providersList;
@@ -84,6 +85,33 @@ public class ProviderSelectionFragment extends Fragment {
 
     private Unbinder _unbinder;
 
+    @ConnectionType
+    private int _selectedConnectionType;
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        if (savedInstanceState != null) {
+            //noinspection WrongConstant
+            _selectedConnectionType = savedInstanceState.getInt(EXTRA_CONNECTION_TYPE, -1);
+            if (_selectedConnectionType < 0) {
+                throw new RuntimeException("Selected connection type was not saved into instance state!");
+            }
+        } else {
+            //noinspection WrongConstant
+            _selectedConnectionType = getArguments().getInt(EXTRA_CONNECTION_TYPE, -1);
+            if (_selectedConnectionType < 0) {
+                throw new RuntimeException("Selected connection type was not provided via arguments!");
+            }
+        }
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putInt(EXTRA_CONNECTION_TYPE, _selectedConnectionType);
+    }
+
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -92,7 +120,7 @@ public class ProviderSelectionFragment extends Fragment {
         EduVPNApplication.get(view.getContext()).component().inject(this);
         _providersList.setHasFixedSize(true);
         _providersList.setLayoutManager(new LinearLayoutManager(view.getContext(), LinearLayoutManager.VERTICAL, false));
-        _providersList.setAdapter(new ProviderAdapter(_configurationService));
+        _providersList.setAdapter(new ProviderAdapter(_configurationService, _selectedConnectionType));
         ItemClickSupport.addTo(_providersList).setOnItemClickListener(new ItemClickSupport.OnItemClickListener() {
             @Override
             public void onItemClicked(RecyclerView recyclerView, int position, View v) {
@@ -100,7 +128,11 @@ public class ProviderSelectionFragment extends Fragment {
                 if (instance == null) {
                     if (getActivity() != null) {
                         MainActivity activity = (MainActivity)getActivity();
-                        activity.openFragment(new CustomProviderFragment(), true);
+                        Fragment customProviderFragment = new CustomProviderFragment();
+                        Bundle fragmentParameters = new Bundle();
+                        fragmentParameters.putInt(CustomProviderFragment.EXTRA_CONNECTION_TYPE, _selectedConnectionType);
+                        customProviderFragment.setArguments(fragmentParameters);
+                        activity.openFragment(customProviderFragment, true);
                     }
                 } else {
                     _connectToApi(instance);
@@ -122,6 +154,7 @@ public class ProviderSelectionFragment extends Fragment {
 
     /**
      * Starts connecting to an API provider.
+     *
      * @param instance The instance to connect to.
      */
     private void _connectToApi(final Instance instance) {
@@ -146,7 +179,7 @@ public class ProviderSelectionFragment extends Fragment {
                     _historyService.cacheDiscoveredAPI(instance.getSanitizedBaseURI(), discoveredAPI);
                     _connectionService.initiateConnection(getActivity(), instance, discoveredAPI);
                 } catch (SerializerService.UnknownFormatException ex) {
-                    Log.e(TAG, "Error parsing discovered API!",  ex);
+                    Log.e(TAG, "Error parsing discovered API!", ex);
                     ErrorDialog.show(getContext(), R.string.error_dialog_title, ex.toString());
                     dialog.dismiss();
                 }

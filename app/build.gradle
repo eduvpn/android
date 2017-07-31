@@ -11,6 +11,7 @@ android {
         versionCode 2
         versionName "1.0.1"
         buildConfigField "String", "INSTANCE_LIST_URL", "\"https://static.eduvpn.nl/instances.json\""
+        buildConfigField "String", "FEDERATION_LIST_URL", "\"https://static.eduvpn.nl/federation.json\""
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
 

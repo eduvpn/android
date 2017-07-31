@@ -87,6 +87,8 @@
         android:id="@+id/profileList"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_above="@+id/addProvider"
+        android:layout_marginBottom="8dp"
         android:layout_below="@+id/loadingBar"
         android:layout_centerHorizontal="true"
         android:layout_marginLeft="16dp"

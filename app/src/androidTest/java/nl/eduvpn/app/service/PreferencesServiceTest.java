@@ -22,6 +22,7 @@ import android.support.test.InstrumentationRegistry;
 import android.support.test.filters.LargeTest;
 import android.support.test.runner.AndroidJUnit4;
 
+import nl.eduvpn.app.entity.ConnectionType;
 import nl.eduvpn.app.entity.DiscoveredAPI;
 import nl.eduvpn.app.entity.Instance;
 
@@ -58,7 +59,7 @@ public class PreferencesServiceTest {
 
     @Test
     public void testInstanceSave() {
-        Instance instance = new Instance("http://example.com", "Example", "http://example.com/image.jpg", true);
+        Instance instance = new Instance("http://example.com", "Example", "http://example.com/image.jpg", ConnectionType.SECURE_INTERNET, true);
         _preferencesService.currentInstance(instance);
         Instance retrievedInstance = _preferencesService.getCurrentInstance();
         assertNotNull(retrievedInstance);
