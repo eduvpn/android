@@ -24,6 +24,7 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Handler;
 import android.os.IBinder;
+import android.os.RemoteException;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.util.Pair;
@@ -44,6 +45,8 @@ import de.blinkt.openvpn.LaunchVPN;
 import de.blinkt.openvpn.VpnProfile;
 import de.blinkt.openvpn.core.ConfigParser;
 import de.blinkt.openvpn.core.Connection;
+import de.blinkt.openvpn.core.ConnectionStatus;
+import de.blinkt.openvpn.core.IOpenVPNServiceInternal;
 import de.blinkt.openvpn.core.OpenVPNService;
 import de.blinkt.openvpn.core.ProfileManager;
 import de.blinkt.openvpn.core.VpnStatus;
@@ -69,7 +72,7 @@ public class VPNService extends Observable implements VpnStatus.StateListener {
     private PreferencesService _preferencesService;
 
     // Stores the current VPN status.
-    private VpnStatus.ConnectionStatus _connectionStatus = VpnStatus.ConnectionStatus.LEVEL_NOTCONNECTED;
+    private ConnectionStatus _connectionStatus = ConnectionStatus.LEVEL_NOTCONNECTED;
     // These are used to provide connection info updates
     private ConnectionInfoCallback _connectionInfoCallback;
     private Handler _updatesHandler = new Handler();
@@ -81,14 +84,13 @@ public class VPNService extends Observable implements VpnStatus.StateListener {
     private String _serverIpV6;
     private Integer _errorResource;
 
-    private OpenVPNService _openVPNService;
+    private IOpenVPNServiceInternal _openVPNService;
+
     private ServiceConnection _serviceConnection = new ServiceConnection() {
 
         @Override
-        public void onServiceConnected(ComponentName className, IBinder service) {
-            // We've bound to LocalService, cast the IBinder and get LocalService instance
-            OpenVPNService.LocalBinder binder = (OpenVPNService.LocalBinder)service;
-            _openVPNService = binder.getService();
+        public void onServiceConnected(ComponentName className, IBinder binder) {
+            _openVPNService = IOpenVPNServiceInternal.Stub.asInterface(binder);
         }
 
         @Override
@@ -185,7 +187,11 @@ public class VPNService extends Observable implements VpnStatus.StateListener {
      * Disconnects the current VPN connection.
      */
     public void disconnect() {
-        _openVPNService.getManagement().stopVPN(false);
+        try {
+            _openVPNService.stopVPN(false);
+        } catch (RemoteException ex) {
+            Log.e(TAG, "Exception when trying to stop connection. Connection might not be closed!", ex);
+        }
         _onDisconnect();
     }
 
@@ -305,9 +311,15 @@ public class VPNService extends Observable implements VpnStatus.StateListener {
         return null;
     }
 
+
     @Override
-    public void updateState(String state, String logmessage, int localizedResId, VpnStatus.ConnectionStatus level) {
-        VpnStatus.ConnectionStatus oldStatus = _connectionStatus;
+    public void setConnectedVPN(String uuid) {
+        Log.i(TAG, "Connected with profile: " + uuid);
+    }
+
+    @Override
+    public void updateState(String state, String logmessage, int localizedResId, ConnectionStatus level) {
+        ConnectionStatus oldStatus = _connectionStatus;
         _connectionStatus = level;
         if (_connectionStatus == oldStatus) {
             // Nothing changed.

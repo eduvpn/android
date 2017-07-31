@@ -69,7 +69,7 @@ public class PreferencesServiceTest {
     }
     @Test
     public void testDiscoveredAPISave() {
-        DiscoveredAPI discoveredAPI = new DiscoveredAPI(1, "http://example.com/", "http://example.com/create_config",
+        DiscoveredAPI discoveredAPI = new DiscoveredAPI("http://example.com/", "http://example.com/create_config",
                 "http://example.com/profile_list", "http://example.com/system_messages", "http://example.com/user_messages");
         _preferencesService.currentDiscoveredAPI(discoveredAPI);
         DiscoveredAPI retrievedDiscoveredAPI = _preferencesService.getCurrentDiscoveredAPI();

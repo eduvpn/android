@@ -21,19 +21,21 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 
-import nl.eduvpn.app.BuildConfig;
-import nl.eduvpn.app.entity.InstanceList;
-import nl.eduvpn.app.utils.Log;
-
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.Observable;
+
+import nl.eduvpn.app.BuildConfig;
+import nl.eduvpn.app.entity.InstanceList;
+import nl.eduvpn.app.utils.Log;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 
 /**
  * Service which provides the app configuration.
@@ -49,12 +51,14 @@ public class ConfigurationService extends Observable {
 
     private Context _context;
     private SerializerService _serializerService;
+    private OkHttpClient _okHttpClient;
 
     private InstanceList _instanceList;
 
-    public ConfigurationService(Context context, SerializerService serializerService) {
+    public ConfigurationService(Context context, SerializerService serializerService, OkHttpClient okHttpClient) {
         _context = context;
         _serializerService = serializerService;
+        _okHttpClient = okHttpClient;
         _loadSavedInstanceList();
         _fetchLatestConfiguration();
     }
@@ -139,21 +143,14 @@ public class ConfigurationService extends Observable {
             @Override
             protected InstanceList doInBackground(Void... params) {
                 try {
-                    URL url = new URL(BuildConfig.INSTANCE_LIST_URL);
-                    HttpURLConnection urlConnection = (HttpURLConnection)url.openConnection();
-                    urlConnection.setRequestMethod("GET");
-                    urlConnection.setConnectTimeout(10000);
-                    urlConnection.setReadTimeout(10000);
-                    urlConnection.connect();
-                    InputStream inputStream = urlConnection.getInputStream();
-                    BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
-                    StringBuilder stringBuilder = new StringBuilder();
-                    String line;
-                    while ((line = bufferedReader.readLine()) != null) {
-                        stringBuilder.append(line).append('\n');
+                    Request request = new Request.Builder().url(BuildConfig.INSTANCE_LIST_URL).build();
+                    Response response = _okHttpClient.newCall(request).execute();
+                    if (response.body() != null) {
+                        return  _parseInstanceList(response.body().string());
+                    } else {
+                       throw new IOException("Response body is empty!");
                     }
-                    String instanceList = stringBuilder.toString();
-                    return  _parseInstanceList(instanceList);
+
                 } catch (Exception ex) {
                     Log.w(TAG, "Error reading latest configuration from the URL!", ex);
                     return null;

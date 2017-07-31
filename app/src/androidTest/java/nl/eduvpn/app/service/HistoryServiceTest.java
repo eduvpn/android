@@ -75,7 +75,7 @@ public class HistoryServiceTest {
         // Should be still fast.
         String baseURI = "http://example.com/baseURI";
         for (int i = 0; i < 10; ++i) {
-            DiscoveredAPI discoveredAPI = new DiscoveredAPI(1, "http://example.com/", "http://example.com/create_config",
+            DiscoveredAPI discoveredAPI = new DiscoveredAPI("http://example.com/", "http://example.com/create_config",
                     "http://example.com/profile_list", "http://example.com/system_messages", "http://example.com/user_messages");
             _historyService.cacheDiscoveredAPI(baseURI + i, discoveredAPI);
             String profileId = "vpn_profile";
@@ -98,7 +98,7 @@ public class HistoryServiceTest {
     @Test
     public void testCacheDiscoveredAPI() {
         String baseUri = "http://example.com";
-        DiscoveredAPI discoveredAPI = new DiscoveredAPI(1, "http://example.com/", "http://example.com/create_config",
+        DiscoveredAPI discoveredAPI = new DiscoveredAPI("http://example.com/", "http://example.com/create_config",
                 "http://example.com/profile_list", "http://example.com/system_messages", "http://example.com/user_messages");
         _historyService.cacheDiscoveredAPI(baseUri, discoveredAPI);
         _reloadHistoryService(false);

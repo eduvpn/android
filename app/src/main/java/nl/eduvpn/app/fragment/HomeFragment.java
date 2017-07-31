@@ -430,11 +430,10 @@ public class HomeFragment extends Fragment {
                 false);
         String requestData = "display_name=eduVPN%20for%20Android&profile_id=" + profile.getProfileId();
         String url = discoveredAPI.getCreateConfigAPI();
-        _apiService.postResource(url, requestData, true, new APIService.Callback<byte[]>() {
+        _apiService.postResource(url, requestData, true, new APIService.Callback<String>() {
 
             @Override
-            public void onSuccess(byte[] result) {
-                String vpnConfig = new String(result);
+            public void onSuccess(String vpnConfig) {
                 String configName = FormattingUtils.formatProfileName(getContext(), instance, profile);
                 VpnProfile vpnProfile = _vpnService.importConfig(vpnConfig, configName);
                 if (vpnProfile != null && getActivity() != null) {

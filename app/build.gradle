@@ -1,13 +1,13 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 24
-    buildToolsVersion "24.0.3"
+    compileSdkVersion 26
+    buildToolsVersion "26.0.1"
 
     defaultConfig {
         applicationId "nl.eduvpn.app"
-        minSdkVersion 15
-        targetSdkVersion 24
+        minSdkVersion 21
+        targetSdkVersion 26
         versionCode 2
         versionName "1.0.1"
         buildConfigField "String", "INSTANCE_LIST_URL", "\"https://static.eduvpn.nl/instances.json\""
@@ -28,16 +28,17 @@ android {
     }
 }
 
+def supportLibVersion = "25.4.0" // Please try to stay in sync with the version used in the ics-openvpn module
+
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
-    testCompile 'junit:junit:4.12'
-    androidTestCompile 'com.android.support:support-annotations:24.2.0'
-    androidTestCompile 'com.android.support.test:runner:0.5'
-    androidTestCompile 'com.android.support.test:rules:0.5'
-    compile 'com.android.support:appcompat-v7:24.2.0'
-    compile 'com.android.support:design:24.2.0'
-    compile 'com.android.support:recyclerview-v7:24.2.0'
-    compile 'com.android.support:customtabs:24.2.0'
+
+    compile "com.android.support:appcompat-v7:$supportLibVersion"
+    compile "com.android.support:design:$supportLibVersion"
+    compile "com.android.support:recyclerview-v7:$supportLibVersion"
+    compile "com.android.support:customtabs:$supportLibVersion"
+    // HTTP client
+    compile 'com.squareup.okhttp3:okhttp:3.8.1'
     // View injection
     compile 'com.jakewharton:butterknife:8.4.0'
     annotationProcessor 'com.jakewharton:butterknife-compiler:8.4.0'
@@ -47,4 +48,9 @@ dependencies {
     // Image loader
     compile 'com.squareup.picasso:picasso:2.5.2'
     compile project(':ics-openvpn-main')
+
+    testCompile 'junit:junit:4.12'
+    androidTestCompile "com.android.support:support-annotations:$supportLibVersion"
+    androidTestCompile 'com.android.support.test:runner:0.5'
+    androidTestCompile 'com.android.support.test:rules:0.5'
 }
