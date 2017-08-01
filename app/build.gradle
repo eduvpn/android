@@ -43,8 +43,6 @@ android {
 def supportLibVersion = "25.4.0" // Please try to stay in sync with the version used in the ics-openvpn module
 
 dependencies {
-    compile fileTree(include: ['*.jar'], dir: 'libs')
-
     compile "com.android.support:appcompat-v7:$supportLibVersion"
     compile "com.android.support:design:$supportLibVersion"
     compile "com.android.support:recyclerview-v7:$supportLibVersion"
@@ -52,15 +50,18 @@ dependencies {
     // HTTP client
     compile 'com.squareup.okhttp3:okhttp:3.8.1'
     // View injection
-    compile 'com.jakewharton:butterknife:8.4.0'
-    annotationProcessor 'com.jakewharton:butterknife-compiler:8.4.0'
+    compile 'com.jakewharton:butterknife:8.7.0'
+    annotationProcessor 'com.jakewharton:butterknife-compiler:8.7.0'
     // Dependency injection
-    compile 'com.google.dagger:dagger:2.7'
-    annotationProcessor 'com.google.dagger:dagger-compiler:2.7'
+    compile 'com.google.dagger:dagger:2.11'
+    annotationProcessor 'com.google.dagger:dagger-compiler:2.11'
     // Image loader
     compile 'com.squareup.picasso:picasso:2.5.2'
+
+    // The VPN library
     compile project(':ics-openvpn-main')
 
+    // All testing related libraries
     testCompile 'junit:junit:4.12'
     androidTestCompile "com.android.support:support-annotations:$supportLibVersion"
     androidTestCompile 'com.android.support.test:runner:0.5'
