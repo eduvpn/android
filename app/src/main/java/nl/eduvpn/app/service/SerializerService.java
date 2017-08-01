@@ -143,6 +143,12 @@ public class SerializerService {
     public InstanceList deserializeInstanceList(JSONObject json) throws UnknownFormatException {
         try {
             Integer version = json.getInt("version");
+            Integer sequenceNumber;
+            if (json.has("seq")) {
+                sequenceNumber = json.getInt("seq");
+            } else {
+                sequenceNumber = -1; // This will make sure that the new one will surely have a greater number.
+            }
             if (version != 1) {
                 throw new UnknownFormatException("Unknown version property: " + version);
             }
@@ -152,7 +158,7 @@ public class SerializerService {
                 JSONObject instanceObject = instanceArray.getJSONObject(i);
                 instances.add(deserializeInstance(instanceObject));
             }
-            return new InstanceList(version, instances);
+            return new InstanceList(version, instances, sequenceNumber);
         } catch (JSONException ex) {
             throw new UnknownFormatException(ex);
         }
@@ -221,6 +227,7 @@ public class SerializerService {
         try {
             JSONObject serialized = new JSONObject();
             serialized.put("version", instanceList.getVersion());
+            serialized.put("seq", instanceList.getSequenceNumber());
             JSONArray serializedInstances = new JSONArray();
             for (Instance instance : instanceList.getInstanceList()) {
                 JSONObject serializedInstance = serializeInstance(instance);

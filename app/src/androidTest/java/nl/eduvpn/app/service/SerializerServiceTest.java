@@ -117,10 +117,11 @@ public class SerializerServiceTest {
     public void testInstanceListSerialization() throws SerializerService.UnknownFormatException {
         Instance instance1 = new Instance("baseUri", "displayName", "logoUri", ConnectionType.SECURE_INTERNET, true);
         Instance instance2 = new Instance("baseUri2", "displayName2", "logoUri2", ConnectionType.SECURE_INTERNET, true);
-        InstanceList instanceList = new InstanceList(1, Arrays.asList(instance1, instance2));
+        InstanceList instanceList = new InstanceList(1, Arrays.asList(instance1, instance2), 231);
         JSONObject serializedInstanceList = _serializerService.serializeInstanceList(instanceList);
         InstanceList deserializedInstanceList = _serializerService.deserializeInstanceList(serializedInstanceList);
         assertEquals(instanceList.getVersion(), deserializedInstanceList.getVersion());
+        assertEquals(instanceList.getSequenceNumber(), deserializedInstanceList.getSequenceNumber());
         assertEquals(instanceList.getInstanceList().size(), deserializedInstanceList.getInstanceList().size());
         assertEquals(instanceList.getInstanceList().get(0).getDisplayName(), deserializedInstanceList.getInstanceList().get(0).getDisplayName());
         assertEquals(instanceList.getInstanceList().get(0).getBaseURI(), deserializedInstanceList.getInstanceList().get(0).getBaseURI());

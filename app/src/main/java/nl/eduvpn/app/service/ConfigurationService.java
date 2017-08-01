@@ -17,8 +17,6 @@
 
 package nl.eduvpn.app.service;
 
-import android.content.Context;
-import android.content.SharedPreferences;
 import android.support.annotation.NonNull;
 
 import org.json.JSONException;
@@ -54,21 +52,17 @@ public class ConfigurationService extends java.util.Observable {
 
     private static final String TAG = ConfigurationService.class.getName();
 
-    private static final String PREFERENCES = "configuration_service_preferences";
-    private static final String INSTANCE_LIST_KEY = "instance_list";
-    private static final String FEDERATION_LIST_KEY = "federation_list";
-
-
-    private final Context _context;
     private final SerializerService _serializerService;
+    private final PreferencesService _preferencesService;
     private final SecurityService _securityService;
     private final OkHttpClient _okHttpClient;
 
     private InstanceList _secureInternetList;
     private InstanceList _instituteAccessList;
 
-    public ConfigurationService(Context context, SerializerService serializerService, SecurityService securityService, OkHttpClient okHttpClient) {
-        _context = context;
+    public ConfigurationService(PreferencesService preferencesService, SerializerService serializerService,
+                                SecurityService securityService, OkHttpClient okHttpClient) {
+        _preferencesService = preferencesService;
         _serializerService = serializerService;
         _securityService = securityService;
         _okHttpClient = okHttpClient;
@@ -86,7 +80,7 @@ public class ConfigurationService extends java.util.Observable {
         if (_secureInternetList == null) {
             return Collections.emptyList();
         } else {
-            return _secureInternetList.getInstanceList();
+            return Collections.unmodifiableList(_secureInternetList.getInstanceList());
         }
     }
 
@@ -95,50 +89,27 @@ public class ConfigurationService extends java.util.Observable {
         if (_instituteAccessList == null) {
             return Collections.emptyList();
         } else {
-            return _instituteAccessList.getInstanceList();
+            return Collections.unmodifiableList(_instituteAccessList.getInstanceList());
         }
-    }
-
-    private SharedPreferences _getPreferences() {
-        return _context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE);
     }
 
     private void _loadSavedLists() {
         // Loads the saved configuration from the storage.
         // If none found, it will default to the one in the app.
-        String savedInstanceList = _getPreferences().getString(INSTANCE_LIST_KEY, null);
-        String savedFederationList = _getPreferences().getString(FEDERATION_LIST_KEY, null);
-        try {
-            if (savedInstanceList != null) {
-                _secureInternetList = _parseInstanceList(savedInstanceList);
-            }
-            if (savedFederationList != null) {
-                _instituteAccessList = _parseInstanceList(savedFederationList);
-            }
-        } catch (Exception ex) {
-            Log.e(TAG, "Unable to parse saved instance list JSON.", ex);
-        }
+        _secureInternetList = _preferencesService.getInstanceList(ConnectionType.SECURE_INTERNET);
+        _instituteAccessList = _preferencesService.getInstanceList(ConnectionType.INSTITUTE_ACCESS);
     }
 
-    /**
-     * Saves the currently loaded instance list so it can be loaded next time.
-     */
-    private void _saveLists() {
-        try {
-            if (_secureInternetList == null) {
-                throw new RuntimeException("No instance list set!");
-            }
-            JSONObject serialized = _serializerService.serializeInstanceList(_secureInternetList);
-            _getPreferences().edit().putString(INSTANCE_LIST_KEY, serialized.toString()).apply();
-            if (_instituteAccessList == null) {
-                throw new RuntimeException("No federation list set!");
-            }
-            serialized = _serializerService.serializeInstanceList(_instituteAccessList);
-            _getPreferences().edit().putString(FEDERATION_LIST_KEY, serialized.toString()).apply();
-        } catch (SerializerService.UnknownFormatException ex) {
-            Log.e(TAG, "Unable to save the instance or federation list!", ex);
+    private void _saveListIfChanged(@NonNull InstanceList instanceList, @ConnectionType int connectionType) {
+        InstanceList previousList = _preferencesService.getInstanceList(connectionType);
+        if (previousList == null || previousList.getSequenceNumber() < instanceList.getSequenceNumber()) {
+            Log.i(TAG, "Previously saved instance list for connection type " + connectionType + " is outdated, or there was" +
+                    " no existing one. Saving new list for the future.");
+            _preferencesService.storeInstanceList(connectionType, instanceList);
+        } else {
+            Log.d(TAG, "Previously saved instance list for connection type " + connectionType + " has the same version as " +
+                    "the newly downloaded one, new one does not have to be cached.");
         }
-
     }
 
     /**
@@ -184,7 +155,7 @@ public class ConfigurationService extends java.util.Observable {
                         } else {
                             _instituteAccessList = instanceList;
                         }
-                        _saveLists();
+                        _saveListIfChanged(instanceList, connectionType);
                         Log.i(TAG, "Successfully refreshed instance list for connection type: " + connectionType);
                     }
                 }, new Consumer<Throwable>() {

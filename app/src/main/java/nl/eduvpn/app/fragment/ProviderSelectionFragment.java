@@ -197,7 +197,7 @@ public class ProviderSelectionFragment extends Fragment {
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        _connectionService.warmup();
+        _connectionService.warmUp();
     }
 
     @Override

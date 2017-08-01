@@ -58,8 +58,9 @@ public class ApplicationModule {
 
     @Provides
     @Singleton
-    protected ConfigurationService provideConfigurationService(Context context, SerializerService serializerService, SecurityService securityService, OkHttpClient okHttpClient) {
-        return new ConfigurationService(context, serializerService, securityService, okHttpClient);
+    protected ConfigurationService provideConfigurationService(PreferencesService preferencesService, SerializerService serializerService,
+                                                               SecurityService securityService, OkHttpClient okHttpClient) {
+        return new ConfigurationService(preferencesService, serializerService, securityService, okHttpClient);
     }
 
     @Provides
