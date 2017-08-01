@@ -349,7 +349,8 @@ public class HomeFragment extends Fragment {
      * Checks if the loading has finished.
      * If yes, it hides the loading animation.
      * If there were any errors, it will display a warning bar as well.
-     * @param adapter
+     *
+     * @param adapter The adapter which the items are being loaded into.
      */
     private synchronized void _checkLoadingFinished(final ProfileAdapter adapter) {
         _pendingInstanceCount--;

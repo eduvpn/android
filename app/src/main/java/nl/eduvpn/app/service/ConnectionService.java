@@ -55,9 +55,9 @@ public class ConnectionService {
     // as of now, this is the only browser which has Custom Tabs support.
 
 
-    private PreferencesService _preferencesService;
-    private HistoryService _historyService;
-    private Context _context;
+    private final PreferencesService _preferencesService;
+    private final HistoryService _historyService;
+    private final Context _context;
     private String _accessToken;
 
     /**

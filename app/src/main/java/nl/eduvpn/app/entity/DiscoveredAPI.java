@@ -26,11 +26,11 @@ import android.support.annotation.Nullable;
  */
 public class DiscoveredAPI {
 
-    private String _authorizationEndpoint;
-    private String _createConfigAPI;
-    private String _profileListAPI;
-    private String _systemMessagesAPI;
-    private String _userMessagesAPI;
+    private final String _authorizationEndpoint;
+    private final String _createConfigAPI;
+    private final String _profileListAPI;
+    private final String _systemMessagesAPI;
+    private final String _userMessagesAPI;
 
     public DiscoveredAPI(@NonNull String authorizationEndpoint,
                          @NonNull String createConfigAPI,
@@ -44,22 +44,27 @@ public class DiscoveredAPI {
         _userMessagesAPI = userMessagesAPI;
     }
 
+    @NonNull
     public String getAuthorizationEndpoint() {
         return _authorizationEndpoint;
     }
 
+    @NonNull
     public String getCreateConfigAPI() {
         return _createConfigAPI;
     }
 
+    @NonNull
     public String getProfileListAPI() {
         return _profileListAPI;
     }
 
+    @Nullable
     public String getSystemMessagesAPI() {
         return _systemMessagesAPI;
     }
 
+    @Nullable
     public String getUserMessagesAPI() {
         return _userMessagesAPI;
     }

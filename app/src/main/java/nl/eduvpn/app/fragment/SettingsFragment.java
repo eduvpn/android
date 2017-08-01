@@ -17,7 +17,6 @@
 
 package nl.eduvpn.app.fragment;
 
-import android.app.Activity;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -28,18 +27,16 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.Toast;
 
-import nl.eduvpn.app.EduVPNApplication;
-import nl.eduvpn.app.R;
-import nl.eduvpn.app.SettingsActivity;
-import nl.eduvpn.app.entity.Settings;
-import nl.eduvpn.app.service.PreferencesService;
-
 import javax.inject.Inject;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import butterknife.Unbinder;
+import nl.eduvpn.app.EduVPNApplication;
+import nl.eduvpn.app.R;
+import nl.eduvpn.app.entity.Settings;
+import nl.eduvpn.app.service.PreferencesService;
 
 /**
  * Fragment which displays the available settings to the user.

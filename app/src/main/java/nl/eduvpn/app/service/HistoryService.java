@@ -47,7 +47,7 @@ public class HistoryService {
     private List<SavedProfile> _savedProfileList;
     private List<SavedToken> _savedTokenList;
 
-    private PreferencesService _preferencesService;
+    private final PreferencesService _preferencesService;
 
     /**
      * Constructor.

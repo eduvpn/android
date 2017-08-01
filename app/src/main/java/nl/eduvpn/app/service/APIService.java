@@ -26,7 +26,6 @@ import org.json.JSONObject;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.concurrent.Exchanger;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -37,6 +36,7 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
+import okhttp3.ResponseBody;
 
 /**
  * This service is responsible for fetching data from API endpoints.
@@ -73,8 +73,8 @@ public class APIService {
         void onError(String errorMessage);
     }
 
-    private ConnectionService _connectionService;
-    private OkHttpClient _okHttpClient;
+    private final ConnectionService _connectionService;
+    private final OkHttpClient _okHttpClient;
 
     public APIService(ConnectionService connectionService, OkHttpClient okHttpClient) {
         _connectionService = connectionService;
@@ -218,8 +218,9 @@ public class APIService {
         }
         // Get the body of the response
         String result = null;
-        if (response.body() != null) {
-            result = response.body().string();
+        ResponseBody responseBody = response.body();
+        if (responseBody != null) {
+            result = responseBody.string();
         }
         Log.d(TAG, "POST " + url + " data: '" + requestData + "': " + result);
         if (statusCode >= 200 && statusCode <= 299) {
@@ -235,9 +236,8 @@ public class APIService {
      * @param urlString   The URL as a string.
      * @param accessToken The access token to fetch the resource with. Can be null.
      * @return The URL connection which can be used to connect to the URL.
-     * @throws IOException Thrown if there was a problem while creating the connection.
      */
-    private Request.Builder _createRequestBuilder(@NonNull String urlString, @Nullable String accessToken) throws IOException {
+    private Request.Builder _createRequestBuilder(@NonNull String urlString, @Nullable String accessToken) {
         Request.Builder builder = new Request.Builder().get().url(urlString);
         if (accessToken != null) {
             builder = builder.header(HEADER_AUTHORIZATION, "Bearer " + accessToken);
@@ -262,8 +262,9 @@ public class APIService {
         }
         // Get the body of the response
         String responseString = null;
-        if (response.body() != null) {
-            responseString = response.body().string();
+        ResponseBody responseBody = response.body();
+        if (responseBody != null) {
+            responseString = responseBody.string();
         }
         Log.d(TAG, "GET " + url + ": " + responseString);
         if (statusCode >= 200 && statusCode <= 299) {

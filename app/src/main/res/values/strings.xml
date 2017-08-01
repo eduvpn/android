@@ -54,14 +54,6 @@
     <string name="no_providers_yet_click_on_add_provider">It appears you don\'t have any added providers yet.\nTap on the button below to get started.</string>
     <string name="custom_api_discovery_error">It seems that this provider does not exist, or is not compatible with eduVPN.\nDetails: %s</string>
     <string name="provider_added_new_configs_available">Provider added. You can now select your profile.</string>
-    <string name="content_description_connection_status_icon">Connection status</string>
-    <string name="content_description_provider_icon">Provider icon</string>
-    <string name="content_description_application_logo">Application logo</string>
-    <string name="content_description_surfnet_logo">SURFnet logo</string>
-    <string name="content_description_settings_button">Settings button</string>
-    <string name="loading_available_profiles">Loading available profiles…</string>
-    <string name="api_discovery_failed">API discovery failed for the following provider: %s</string>
-    <string name="unable_to_fetch_profiles">Unable to fetch profiles from provider: %s</string>
     <string name="could_not_fetch_all_profiles">Could not fetch all profiles.</string>
     <string name="warnings_list">Resources missing</string>
     <string name="cant_connect_application_state_missing">Can\'t connect, application state is missing.</string>
@@ -73,9 +65,8 @@
     <string name="settings_use_custom_tabs_description">Custom Tabs are faster and use less resources. If you turn this feature off, the default browser will be used instead.</string>
     <string name="settings_custom_tabs_opt_out_title">Use Custom Tabs</string>
     <string name="settings_save">Save</string>
+    <string name="loading_available_profiles">Loading available profiles…</string>
     <string name="settings_saved">Saved changes to the settings.</string>
-    <string name="content_description_message_icon">Message icon</string>
-    <string name="content_description_warning_icon">Warning icon</string>
     <string name="go_back">Back</string>
     <string name="error_while_connecting">An unexpected error occurred while connecting to the VPN provider: %s</string>
     <string name="error_dialog_title_unable_to_connect">Unable to connect</string>
@@ -92,4 +83,5 @@
     <string name="vpn_option_label_institute_access">Institute Access</string>
     <string name="header_institute_access">Institute Access</string>
     <string name="header_secure_internet">Secure Internet</string>
+    <string name="profile_name_not_found">Unknown profile</string>
 </resources>

@@ -83,7 +83,7 @@ public class ErrorDialog {
         View view = dialog.findViewById(R.id.errorDialog);
         if (handler != null) {
             LayoutInflater inflater = LayoutInflater.from(context);
-            LinearLayout parent = (LinearLayout)view.findViewById(R.id.optionalViews);
+            LinearLayout parent = view.findViewById(R.id.optionalViews);
             for (final Instance instance : handler.getInstances()) {
                 View warningView = inflater.inflate(R.layout.list_item_token_warning, parent, false);
                 String warningText = FormattingUtils.formatAccessWarning(context, instance);
@@ -112,9 +112,9 @@ public class ErrorDialog {
                 parent.addView(warningView);
             }
         }
-        TextView titleView = (TextView)view.findViewById(R.id.title);
-        TextView errorTextView = (TextView)view.findViewById(R.id.errorText);
-        Button confirmButton = (Button)view.findViewById(R.id.confirmButton);
+        TextView titleView = view.findViewById(R.id.title);
+        TextView errorTextView = view.findViewById(R.id.errorText);
+        Button confirmButton = view.findViewById(R.id.confirmButton);
         titleView.setText(title);
         errorTextView.setText(message);
         confirmButton.setOnClickListener(new View.OnClickListener() {

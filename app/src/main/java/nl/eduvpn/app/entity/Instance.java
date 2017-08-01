@@ -20,19 +20,17 @@ package nl.eduvpn.app.entity;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
-import de.blinkt.openvpn.core.Connection;
-
 /**
  * A configuration for an instance.
  * Created by Daniel Zolnai on 2016-10-07.
  */
 public class Instance {
 
-    private String _baseUri;
-    private String _displayName;
-    private String _logoUri;
-    private boolean _isCustom;
-    private @ConnectionType int _connectionType;
+    private final String _baseUri;
+    private final String _displayName;
+    private final String _logoUri;
+    private final boolean _isCustom;
+    private final @ConnectionType int _connectionType;
 
     public Instance(@NonNull String baseUri, @NonNull String displayName, @Nullable String logoUri,
                     @ConnectionType int connectionType, boolean isCustom) {

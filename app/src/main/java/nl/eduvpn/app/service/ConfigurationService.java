@@ -38,6 +38,7 @@ import nl.eduvpn.app.utils.Log;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
+import okhttp3.ResponseBody;
 
 /**
  * Service which provides the app configuration.
@@ -52,9 +53,9 @@ public class ConfigurationService extends Observable {
     private static final String FEDERATION_LIST_KEY = "federation_list";
 
 
-    private Context _context;
-    private SerializerService _serializerService;
-    private OkHttpClient _okHttpClient;
+    private final Context _context;
+    private final SerializerService _serializerService;
+    private final OkHttpClient _okHttpClient;
 
     private InstanceList _instanceList;
     private InstanceList _federationList;
@@ -164,9 +165,10 @@ public class ConfigurationService extends Observable {
                 String requestUrl = connectionType == ConnectionType.SECURE_INTERNET ? BuildConfig.INSTANCE_LIST_URL : BuildConfig.FEDERATION_LIST_URL;
                 Request request = new Request.Builder().url(requestUrl).build();
                 Response response = _okHttpClient.newCall(request).execute();
-                if (response.body() != null) {
+                ResponseBody responseBody = response.body();
+                if (responseBody != null) {
                     //noinspection WrongConstant
-                    return TaskResult.success(connectionType, _parseInstanceList(response.body().string()));
+                    return TaskResult.success(connectionType, _parseInstanceList(responseBody.string()));
                 } else {
                     throw new IOException("Response body is empty!");
                 }
@@ -190,7 +192,7 @@ public class ConfigurationService extends Observable {
                 notifyObservers();
             }
         }
-    };
+    }
 
     private static class TaskResult {
         @ConnectionType
