@@ -52,6 +52,7 @@ import nl.eduvpn.app.EduVPNApplication;
 import nl.eduvpn.app.MainActivity;
 import nl.eduvpn.app.R;
 import nl.eduvpn.app.adapter.ProfileAdapter;
+import nl.eduvpn.app.entity.ConnectionType;
 import nl.eduvpn.app.entity.DiscoveredAPI;
 import nl.eduvpn.app.entity.Instance;
 import nl.eduvpn.app.entity.Profile;
@@ -100,8 +101,17 @@ public class HomeFragment extends Fragment {
     @Inject
     protected ConfigurationService _configurationService;
 
-    @BindView(R.id.profileList)
-    protected RecyclerView _profileList;
+    @BindView(R.id.secureInternetList)
+    protected RecyclerView _secureInternetList;
+
+    @BindView(R.id.instituteAccessList)
+    protected RecyclerView _instituteAccessList;
+
+    @BindView(R.id.secureInternetContainer)
+    protected View _secureInternetContainer;
+
+    @BindView(R.id.instituteAccessContainer)
+    protected View _instituteAccessContainer;
 
     @BindView(R.id.noProvidersYet)
     protected TextView _noProvidersYet;
@@ -129,26 +139,55 @@ public class HomeFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_home, container, false);
         _unbinder = ButterKnife.bind(this, view);
         EduVPNApplication.get(view.getContext()).component().inject(this);
-        _profileList.setHasFixedSize(true);
-        _profileList.setLayoutManager(new LinearLayoutManager(view.getContext(), LinearLayoutManager.VERTICAL, false));
-        final List<SavedToken> savedTokenList = _historyService.getSavedTokenList();
-        if (savedTokenList.size() == 0) {
+
+        // Basic setup of the lists
+        _secureInternetList.setHasFixedSize(true);
+        _instituteAccessList.setHasFixedSize(true);
+        _secureInternetList.setLayoutManager(new LinearLayoutManager(view.getContext(), LinearLayoutManager.VERTICAL, false));
+        _instituteAccessList.setLayoutManager(new LinearLayoutManager(view.getContext(), LinearLayoutManager.VERTICAL, false));
+
+        // Swipe to delete
+        ItemTouchHelper instituteSwipeHelper = new ItemTouchHelper(new SwipeToDeleteHelper(getContext()));
+        instituteSwipeHelper.attachToRecyclerView(_instituteAccessList);
+        _instituteAccessList.addItemDecoration(new SwipeToDeleteAnimator(getContext()));
+        ItemTouchHelper secureInternetSwipeHelper = new ItemTouchHelper(new SwipeToDeleteHelper(getContext()));
+        secureInternetSwipeHelper.attachToRecyclerView(_secureInternetList);
+        _secureInternetList.addItemDecoration(new SwipeToDeleteAnimator(getContext()));
+
+        // Fill with data
+        List<SavedToken> savedInstituteAccessTokens = _historyService.getSavedTokensForConnectionType(ConnectionType.INSTITUTE_ACCESS);
+        List<SavedToken> savedSecureInternetTokens = _historyService.getSavedTokensForConnectionType(ConnectionType.SECURE_INTERNET);
+        if (savedInstituteAccessTokens.isEmpty() && savedSecureInternetTokens.isEmpty()) {
+            // No saved tokens
             _loadingBar.setVisibility(View.GONE);
             _noProvidersYet.setVisibility(View.VISIBLE);
-            _profileList.setVisibility(View.GONE);
+            _instituteAccessContainer.setVisibility(View.GONE);
+            _secureInternetContainer.setVisibility(View.GONE);
         } else {
+
             _loadingBar.setVisibility(View.VISIBLE);
             _noProvidersYet.setVisibility(View.GONE);
-            _profileList.setVisibility(View.VISIBLE);
-            ProfileAdapter adapter = new ProfileAdapter(_historyService, null);
-            _profileList.setAdapter(adapter);
-            ItemTouchHelper swipeHelper = new ItemTouchHelper(new SwipeToDeleteHelper(getContext()));
-            swipeHelper.attachToRecyclerView(_profileList);
-            _profileList.addItemDecoration(new SwipeToDeleteAnimator(getContext()));
-            _fillList(adapter, savedTokenList);
-        }
+            // There are some saved institute access tokens
+            if (!savedInstituteAccessTokens.isEmpty()) {
+                ProfileAdapter adapter = new ProfileAdapter(_historyService, null);
+                _instituteAccessList.setAdapter(adapter);
+                _fillList(adapter, savedInstituteAccessTokens);
+                _instituteAccessContainer.setVisibility(View.VISIBLE);
+            } else {
+                _instituteAccessContainer.setVisibility(View.GONE);
+            }
 
-        ItemClickSupport.addTo(_profileList).setOnItemClickListener(new ItemClickSupport.OnItemClickListener() {
+            // There are some saved secure internet tokens
+            if (!savedSecureInternetTokens.isEmpty()) {
+                ProfileAdapter adapter = new ProfileAdapter(_historyService, null);
+                _secureInternetList.setAdapter(adapter);
+                _fillList(adapter, savedSecureInternetTokens);
+                _secureInternetContainer.setVisibility(View.VISIBLE);
+            } else {
+                _secureInternetContainer.setVisibility(View.GONE);
+            }
+        }
+        ItemClickSupport.OnItemClickListener clickListener = new ItemClickSupport.OnItemClickListener() {
             @Override
             public void onItemClicked(RecyclerView recyclerView, int position, View v) {
                 ProfileAdapter adapter = (ProfileAdapter)recyclerView.getAdapter();
@@ -188,8 +227,10 @@ public class HomeFragment extends Fragment {
                 // Ok so we don't have a downloaded profile, we need to download one
                 _downloadProfileAndConnect(instance, discoveredAPI, profile);
             }
-        });
-        ItemClickSupport.addTo(_profileList).setOnItemLongClickListener(new ItemClickSupport.OnItemLongClickListener() {
+        };
+        ItemClickSupport.addTo(_instituteAccessList).setOnItemClickListener(clickListener);
+        ItemClickSupport.addTo(_secureInternetList).setOnItemClickListener(clickListener);
+        ItemClickSupport.OnItemLongClickListener longClickListener = new ItemClickSupport.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClicked(RecyclerView recyclerView, int position, View v) {
                 // On long click we show the full name in a toast
@@ -205,7 +246,10 @@ public class HomeFragment extends Fragment {
                         Toast.LENGTH_SHORT).show();
                 return true;
             }
-        });
+        };
+        ItemClickSupport.addTo(_instituteAccessList).setOnItemLongClickListener(longClickListener);
+        ItemClickSupport.addTo(_secureInternetList).setOnItemLongClickListener(longClickListener);
+
         return view;
     }
 
@@ -249,7 +293,7 @@ public class HomeFragment extends Fragment {
                                 } catch (SerializerService.UnknownFormatException ex) {
                                     Log.e(TAG, "Error parsing discovered API!", ex);
                                     _problematicInstances.add(instance);
-                                    _checkLoadingFinished();
+                                    _checkLoadingFinished(adapter);
                                 }
                             }
 
@@ -257,7 +301,7 @@ public class HomeFragment extends Fragment {
                             public void onError(String errorMessage) {
                                 Log.e(TAG, "Error while fetching discovered API: " + errorMessage);
                                 _problematicInstances.add(instance);
-                                _checkLoadingFinished();
+                                _checkLoadingFinished(adapter);
                             }
                         });
             }
@@ -289,14 +333,14 @@ public class HomeFragment extends Fragment {
                     _problematicInstances.add(instance);
                     Log.e(TAG, "Error parsing profile list.", ex);
                 }
-                _checkLoadingFinished();
+                _checkLoadingFinished(adapter);
             }
 
             @Override
             public void onError(String errorMessage) {
                 _problematicInstances.add(instance);
                 Log.e(TAG, "Error fetching profile list: " + errorMessage);
-                _checkLoadingFinished();
+                _checkLoadingFinished(adapter);
             }
         });
     }
@@ -305,8 +349,9 @@ public class HomeFragment extends Fragment {
      * Checks if the loading has finished.
      * If yes, it hides the loading animation.
      * If there were any errors, it will display a warning bar as well.
+     * @param adapter
      */
-    private synchronized void _checkLoadingFinished() {
+    private synchronized void _checkLoadingFinished(final ProfileAdapter adapter) {
         _pendingInstanceCount--;
         if (_pendingInstanceCount <= 0 && _problematicInstances.size() == 0) {
             if (_loadingBar == null) {
@@ -364,7 +409,7 @@ public class HomeFragment extends Fragment {
                                     } else {
                                         // Retry
                                         _problematicInstances.remove(instance);
-                                        _fillList((ProfileAdapter)_profileList.getAdapter(), Collections.singletonList(savedToken));
+                                        _fillList(adapter, Collections.singletonList(savedToken));
                                     }
                                 }
 
@@ -404,7 +449,7 @@ public class HomeFragment extends Fragment {
                                     getActivity().runOnUiThread(new Runnable() {
                                         @Override
                                         public void run() {
-                                            _checkLoadingFinished();
+                                            _checkLoadingFinished(adapter);
                                         }
                                     });
                                 }

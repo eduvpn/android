@@ -69,7 +69,7 @@ public class MainActivity extends AppCompatActivity {
             // If there's an ongoing VPN connection, open the status screen.
             if (_vpnService.getStatus() != VPNService.VPNStatus.DISCONNECTED) {
                 openFragment(new ConnectionStatusFragment(), false);
-            } else if (!_historyService.getSavedProfileList().isEmpty()) {
+            } else if (!_historyService.getSavedTokenList().isEmpty()) {
                 openFragment(new HomeFragment(), false);
             } else {
                 // User has no previously saved profiles. Show the type selector.

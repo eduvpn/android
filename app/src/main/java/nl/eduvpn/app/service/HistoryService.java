@@ -20,6 +20,7 @@ package nl.eduvpn.app.service;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
+import nl.eduvpn.app.entity.ConnectionType;
 import nl.eduvpn.app.entity.DiscoveredAPI;
 import nl.eduvpn.app.entity.Instance;
 import nl.eduvpn.app.entity.SavedProfile;
@@ -152,6 +153,18 @@ public class HistoryService {
     public List<SavedProfile> getSavedProfileList() {
         return Collections.unmodifiableList(_savedProfileList);
     }
+
+    @NonNull
+    public List<SavedToken> getSavedTokensForConnectionType(@ConnectionType int connectionType) {
+        List<SavedToken> result = new ArrayList<>();
+        for (SavedToken savedToken: _savedTokenList) {
+            if (savedToken.getInstance().getConnectionType() == connectionType) {
+                result.add(savedToken);
+            }
+        }
+        return Collections.unmodifiableList(result);
+    }
+
 
     /**
      * Stores a saved profile, so the user can select it the next time.
