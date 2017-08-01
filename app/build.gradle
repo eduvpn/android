@@ -22,9 +22,20 @@ android {
         }
     }
 
+    productFlavors {
+        // Android Studio uses the alphabetically first flavor as the default, so I selected a name which would precede "dev" (sadly, "default" is a reserved keyword)
+        basic {
+        }
+        dev {
+            // Override the URLs for fetching the configs
+            buildConfigField "String", "INSTANCE_LIST_URL", "\"https://static.eduvpn.nl/instances-dev.json\""
+            buildConfigField "String", "FEDERATION_LIST_URL", "\"https://static.eduvpn.nl/federation-dev.json\""
+        }
+    }
+
     lintOptions {
         disable 'GradleDependency', // Gradle dependencies can be a bit outdated, since we prefer to use the same versions as in the VPN library
-                'UnsafeNativeCodeLocation', // The OpenVPN so files are put to a different place, as per the documentation
+                'UnsafeNativeCodeLocation', // The OpenVPN .so files are put to a different place, as per the documentation
                 'RtlSymmetry', 'RtlHardcoded' // No support for RTL as of now
     }
 }

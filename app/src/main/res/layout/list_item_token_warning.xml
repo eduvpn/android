@@ -31,7 +31,7 @@
         android:layout_marginLeft="12dp"
         android:layout_marginRight="8dp"
         android:padding="8dp"
-        android:textColor="@android:color/black"
+        android:textColor="@color/textColor"
         android:textSize="18sp"
         tools:text="Access to host.example.com has been rejected."/>
 

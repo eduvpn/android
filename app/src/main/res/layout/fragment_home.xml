@@ -81,7 +81,7 @@
         android:layout_height="12dp"
         android:layout_alignBottom="@+id/loadingBar"
         android:layout_marginTop="-12dp"
-        android:background="@drawable/white_gradient"/>
+        android:background="@drawable/loading_gradient"/>
 
     <LinearLayout
         android:layout_width="match_parent"

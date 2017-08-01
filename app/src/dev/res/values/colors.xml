@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~  This file is part of eduVPN.
+  ~
+  ~     eduVPN is free software: you can redistribute it and/or modify
+  ~     it under the terms of the GNU General Public License as published by
+  ~     the Free Software Foundation, either version 3 of the License, or
+  ~     (at your option) any later version.
+  ~
+  ~     eduVPN is distributed in the hope that it will be useful,
+  ~     but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~     GNU General Public License for more details.
+  ~
+  ~     You should have received a copy of the GNU General Public License
+  ~     along with eduVPN.  If not, see <http://www.gnu.org/licenses/>.
+  -->
+
+<resources>
+    <color name="mainColor">#505050</color>
+    <color name="colorPrimary">#505050</color>
+    <color name="colorPrimaryDark">#202020</color>
+    <color name="colorAccent">#FF9800</color>
+    <color name="colorSwitchThumbNormal">#D0D0D0</color>
+    <color name="textColor">#FFFFFF</color>
+    <color name="buttonTextColor">#FFFFFF</color>
+    <color name="disabledColor">#808080</color>
+    <color name="pressedColor">#FF5722</color>
+    <color name="backgroundColor">#000000</color>
+    <color name="hintColor">#C0C0C0</color>
+    <color name="settingsDescriptionTextColor">#FFFFFF</color>
+    <color name="swipeBackgroundColor">#CF0000</color>
+    <color name="iconColor">#F0F0F0</color>
+    <color name="transparentGradientColor">#00000000</color>
+    <color name="gradientColor">#000000</color>
+    <color name="buttonBackgroundColor">#FF8700</color>
+    <color name="switcherInactiveBackground">#303030</color>
+    <color name="switcherActiveBackground">#505050</color>
+    <color name="switcherStrokeColor">#606060</color>
+</resources>

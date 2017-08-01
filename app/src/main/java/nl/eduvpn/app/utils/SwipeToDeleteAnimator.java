@@ -35,7 +35,7 @@ public class SwipeToDeleteAnimator extends RecyclerView.ItemDecoration {
     private Drawable _background;
 
     public SwipeToDeleteAnimator(Context context) {
-        _background = new ColorDrawable(ContextCompat.getColor(context, R.color.swipe_background_color));
+        _background = new ColorDrawable(ContextCompat.getColor(context, R.color.swipeBackgroundColor));
     }
     @Override
     public void onDraw(Canvas c, RecyclerView parent, RecyclerView.State state) {
