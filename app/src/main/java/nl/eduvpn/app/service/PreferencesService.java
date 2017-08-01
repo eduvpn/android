@@ -20,6 +20,7 @@ package nl.eduvpn.app.service;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 import nl.eduvpn.app.entity.DiscoveredAPI;
 import nl.eduvpn.app.entity.Instance;
@@ -85,7 +86,7 @@ public class PreferencesService {
      *
      * @param state The state to save.
      */
-    public void currentConnectionState(@NonNull String state) {
+    public void storeCurrentConnectionState(@NonNull String state) {
         _getSharedPreferences().edit()
                 .putString(KEY_STATE, state)
                 .apply();
@@ -96,6 +97,7 @@ public class PreferencesService {
      *
      * @return The saved connection state. Null if none.
      */
+    @Nullable
     public String getCurrentConnectionState() {
         return _getSharedPreferences().getString(KEY_STATE, null);
     }
@@ -145,7 +147,7 @@ public class PreferencesService {
      *
      * @param profile The profile to save.
      */
-    public void currentProfile(@NonNull Profile profile) {
+    public void storeCurrentProfile(@NonNull Profile profile) {
         try {
             _getSharedPreferences().edit()
                     .putString(KEY_PROFILE, _serializerService.serializeProfile(profile).toString())
@@ -158,8 +160,9 @@ public class PreferencesService {
     /**
      * Returns the previously saved profile.
      *
-     * @return The lastly saved profile with {@link #currentProfile(Profile)}.
+     * @return The lastly saved profile with {@link #storeCurrentProfile(Profile)}.
      */
+    @Nullable
     public Profile getCurrentProfile() {
         String serializedProfile = _getSharedPreferences().getString(KEY_PROFILE, null);
         if (serializedProfile == null) {
@@ -178,7 +181,7 @@ public class PreferencesService {
      *
      * @param accessToken The access token to use for the VPN provider API.
      */
-    void currentAccessToken(@NonNull String accessToken) {
+    void storeCurrentAccessToken(@NonNull String accessToken) {
         _getSharedPreferences().edit().putString(KEY_ACCESS_TOKEN, accessToken).apply();
     }
 
@@ -187,6 +190,7 @@ public class PreferencesService {
      *
      * @return The lastly saved access token.
      */
+    @Nullable
     public String getCurrentAccessToken() {
         return _getSharedPreferences().getString(KEY_ACCESS_TOKEN, null);
     }
@@ -198,18 +202,18 @@ public class PreferencesService {
      */
     @NonNull
     public Settings getAppSettings() {
-        Settings defaultSettings = new Settings(true, false);
+        Settings defaultSettings = new Settings(Settings.USE_CUSTOM_TABS_DEFAULT_VALUE, Settings.FORCE_TCP_DEFAULT_VALUE);
         String serializedSettings = _getSharedPreferences().getString(KEY_APP_SETTINGS, null);
         if (serializedSettings == null) {
             // Default settings.
-            saveAppSettings(defaultSettings);
+            storeAppSettings(defaultSettings);
             return defaultSettings;
         } else {
             try {
                 return _serializerService.deserializeAppSettings(new JSONObject(serializedSettings));
             } catch (SerializerService.UnknownFormatException | JSONException ex) {
                 Log.e(TAG, "Unable to deserialize app settings!", ex);
-                saveAppSettings(defaultSettings);
+                storeAppSettings(defaultSettings);
                 return defaultSettings;
             }
         }
@@ -220,7 +224,7 @@ public class PreferencesService {
      *
      * @param settings The settings of the app to save.
      */
-    public void saveAppSettings(Settings settings) {
+    public void storeAppSettings(@NonNull Settings settings) {
         try {
             String serializedSettings = _serializerService.serializeAppSettings(settings).toString();
             _getSharedPreferences().edit().putString(KEY_APP_SETTINGS, serializedSettings).apply();
@@ -235,7 +239,7 @@ public class PreferencesService {
      *
      * @param discoveredAPI The discovered API.
      */
-    public void currentDiscoveredAPI(@NonNull DiscoveredAPI discoveredAPI) {
+    public void storeCurrentDiscoveredAPI(@NonNull DiscoveredAPI discoveredAPI) {
         try {
             _getSharedPreferences().edit()
                     .putString(KEY_DISCOVERED_API, _serializerService.serializeDiscoveredAPI(discoveredAPI).toString())
@@ -250,6 +254,7 @@ public class PreferencesService {
      *
      * @return A discovered API if saved, otherwise null.
      */
+    @Nullable
     public DiscoveredAPI getCurrentDiscoveredAPI() {
         String serializedDiscoveredAPI = _getSharedPreferences().getString(KEY_DISCOVERED_API, null);
         if (serializedDiscoveredAPI == null) {
@@ -268,6 +273,7 @@ public class PreferencesService {
      *
      * @return The saved list, or null if not exists.
      */
+    @Nullable
     public List<SavedProfile> getSavedProfileList() {
         String serializedSavedProfileList = _getSharedPreferences().getString(KEY_SAVED_PROFILES, null);
         if (serializedSavedProfileList == null) {
@@ -301,6 +307,7 @@ public class PreferencesService {
      *
      * @return The saved list, or null if not exists.
      */
+    @Nullable
     public List<SavedToken> getSavedTokenList() {
         String serializedSavedTokenList = _getSharedPreferences().getString(KEY_SAVED_TOKENS, null);
         if (serializedSavedTokenList == null) {
@@ -333,6 +340,7 @@ public class PreferencesService {
      *
      * @return The discovered API cache. Null if no saved one.
      */
+    @Nullable
     public TTLCache<DiscoveredAPI> getDiscoveredAPICache() {
         String serializedCache = _getSharedPreferences().getString(KEY_DISCOVERED_API_CACHE, null);
         if (serializedCache == null) {

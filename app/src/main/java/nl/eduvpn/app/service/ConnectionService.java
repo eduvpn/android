@@ -122,9 +122,9 @@ public class ConnectionService {
         String state = _generateState();
         String connectionUrl = _buildConnectionUrl(authorizationUrl, state);
 
-        _preferencesService.currentConnectionState(state);
+        _preferencesService.storeCurrentConnectionState(state);
         _preferencesService.currentInstance(instance);
-        _preferencesService.currentDiscoveredAPI(discoveredAPI);
+        _preferencesService.storeCurrentDiscoveredAPI(discoveredAPI);
         if (!_preferencesService.getAppSettings().useCustomTabs()) {
             Intent viewUrlIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(connectionUrl));
             activity.startActivity(viewUrlIntent);
@@ -189,7 +189,7 @@ public class ConnectionService {
         }
         // Save the access token
         _accessToken = accessToken;
-        _preferencesService.currentAccessToken(accessToken);
+        _preferencesService.storeCurrentAccessToken(accessToken);
         // Now we can delete the saved state
         _preferencesService.removeCurrentConnectionState();
         // Save the access token for later use.
@@ -212,6 +212,6 @@ public class ConnectionService {
      */
     public void setAccessToken(String accessToken) {
         _accessToken = accessToken;
-        _preferencesService.currentAccessToken(accessToken);
+        _preferencesService.storeCurrentAccessToken(accessToken);
     }
 }

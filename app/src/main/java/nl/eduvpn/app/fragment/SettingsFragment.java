@@ -17,6 +17,7 @@
 
 package nl.eduvpn.app.fragment;
 
+import android.app.Activity;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -29,6 +30,7 @@ import android.widget.Toast;
 
 import nl.eduvpn.app.EduVPNApplication;
 import nl.eduvpn.app.R;
+import nl.eduvpn.app.SettingsActivity;
 import nl.eduvpn.app.entity.Settings;
 import nl.eduvpn.app.service.PreferencesService;
 
@@ -48,10 +50,10 @@ public class SettingsFragment extends Fragment {
     @Inject
     protected PreferencesService _preferencesService;
 
-    @BindView(R.id.forceTcpCheckbox)
+    @BindView(R.id.forceTcpSwitch)
     protected SwitchCompat _forceTcpSwitch;
 
-    @BindView(R.id.useCustomTabsCheckbox)
+    @BindView(R.id.useCustomTabsSwitch)
     protected SwitchCompat _customTabsSwitch;
 
     @BindView(R.id.saveButton)
@@ -73,7 +75,7 @@ public class SettingsFragment extends Fragment {
         return view;
     }
 
-    @OnClick({R.id.forceTcpCheckbox, R.id.useCustomTabsCheckbox })
+    @OnClick({R.id.forceTcpSwitch, R.id.useCustomTabsSwitch })
     public void onSettingChanged() {
         boolean useCustomTabs = _customTabsSwitch.isChecked();
         boolean forceTcp = _forceTcpSwitch.isChecked();
@@ -91,7 +93,7 @@ public class SettingsFragment extends Fragment {
     protected void onSaveButtonClicked() {
         boolean useCustomTabs = _customTabsSwitch.isChecked();
         boolean forceTcp = _forceTcpSwitch.isChecked();
-        _preferencesService.saveAppSettings(new Settings(useCustomTabs, forceTcp));
+        _preferencesService.storeAppSettings(new Settings(useCustomTabs, forceTcp));
         Toast.makeText(getContext(), R.string.settings_saved, Toast.LENGTH_LONG).show();
         getActivity().finish();
     }

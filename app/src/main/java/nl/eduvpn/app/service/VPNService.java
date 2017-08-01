@@ -118,14 +118,27 @@ public class VPNService extends Observable implements VpnStatus.StateListener {
     }
 
 
+    /**
+     * Call this when your activity is starting up.
+     *
+     * @param activity The current activity to bind the service with.
+     */
     public void onCreate(@NonNull Activity activity) {
         OpenVPNService.setNotificationActivityClass(activity.getClass());
         VpnStatus.addStateListener(this);
         Intent intent = new Intent(activity, OpenVPNService.class);
+        intent.putExtra(OpenVPNService.ALWAYS_SHOW_NOTIFICATION, true);
         intent.setAction(OpenVPNService.START_SERVICE);
         activity.bindService(intent, _serviceConnection, Context.BIND_AUTO_CREATE);
     }
 
+    /**
+     * Call this when the activity is being destroyed.
+     * This does not shut down the VPN connection, only removes the listeners from it. The listeners will be reattached
+     * on the next startup.
+     *
+     * @param activity The activity being destroyed.
+     */
     public void onDestroy(@NonNull Activity activity) {
         activity.unbindService(_serviceConnection);
         VpnStatus.removeStateListener(this);

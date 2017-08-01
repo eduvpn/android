@@ -205,8 +205,8 @@ public class HomeFragment extends Fragment {
                     return;
                 }
                 _preferencesService.currentInstance(instance);
-                _preferencesService.currentDiscoveredAPI(discoveredAPI);
-                _preferencesService.currentProfile(profile);
+                _preferencesService.storeCurrentDiscoveredAPI(discoveredAPI);
+                _preferencesService.storeCurrentProfile(profile);
                 _connectionService.setAccessToken(accessToken);
                 // In case we already have a downloaded profile, connect to it right away.
                 SavedProfile savedProfile = _historyService.getCachedSavedProfile(instance.getSanitizedBaseURI(), profile.getProfileId());
