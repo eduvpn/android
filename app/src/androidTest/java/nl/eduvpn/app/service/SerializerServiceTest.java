@@ -21,6 +21,7 @@ import android.support.test.filters.LargeTest;
 import android.support.test.runner.AndroidJUnit4;
 import android.util.Pair;
 
+import nl.eduvpn.app.entity.ConnectionType;
 import nl.eduvpn.app.entity.DiscoveredAPI;
 import nl.eduvpn.app.entity.Instance;
 import nl.eduvpn.app.entity.InstanceList;
@@ -84,18 +85,19 @@ public class SerializerServiceTest {
 
     @Test
     public void testInstanceSerialization() throws SerializerService.UnknownFormatException {
-        Instance instance = new Instance("baseUri", "displayName", "logoUri", true);
+        Instance instance = new Instance("baseUri", "displayName", "logoUri", ConnectionType.SECURE_INTERNET, true);
         JSONObject serializedInstance = _serializerService.serializeInstance(instance);
         Instance deserializedInstance = _serializerService.deserializeInstance(serializedInstance);
         assertEquals(instance.getDisplayName(), deserializedInstance.getDisplayName());
         assertEquals(instance.getBaseURI(), deserializedInstance.getBaseURI());
         assertEquals(instance.getLogoUri(), deserializedInstance.getLogoUri());
+        assertEquals(instance.getConnectionType(), deserializedInstance.getConnectionType());
         assertEquals(instance.isCustom(), deserializedInstance.isCustom());
     }
 
     @Test
     public void testDiscoveredAPISerialization() throws SerializerService.UnknownFormatException {
-        DiscoveredAPI discoveredAPI = new DiscoveredAPI(1, "authEndpoint", "createConfig", "profileList",
+        DiscoveredAPI discoveredAPI = new DiscoveredAPI("authEndpoint", "createConfig", "profileList",
                 "systemMessages", "userMessages");
         JSONObject serializedDiscoveredAPI = _serializerService.serializeDiscoveredAPI(discoveredAPI);
         DiscoveredAPI deserializedDiscoveredAPI = _serializerService.deserializeDiscoveredAPI(serializedDiscoveredAPI);
@@ -108,8 +110,8 @@ public class SerializerServiceTest {
 
     @Test
     public void testInstanceListSerialization() throws SerializerService.UnknownFormatException {
-        Instance instance1 = new Instance("baseUri", "displayName", "logoUri",true);
-        Instance instance2 = new Instance("baseUri2", "displayName2", "logoUri2", true);
+        Instance instance1 = new Instance("baseUri", "displayName", "logoUri", ConnectionType.SECURE_INTERNET, true);
+        Instance instance2 = new Instance("baseUri2", "displayName2", "logoUri2", ConnectionType.SECURE_INTERNET, true);
         InstanceList instanceList = new InstanceList(1, Arrays.asList(instance1, instance2));
         JSONObject serializedInstanceList = _serializerService.serializeInstanceList(instanceList);
         InstanceList deserializedInstanceList = _serializerService.deserializeInstanceList(serializedInstanceList);
@@ -142,9 +144,9 @@ public class SerializerServiceTest {
     @Test
     public void testTTLCacheSerialization() throws SerializerService.UnknownFormatException {
         TTLCache<DiscoveredAPI> cache = new TTLCache<>(100);
-        DiscoveredAPI discoveredAPI1 = new DiscoveredAPI(1, "authEndpoint", "createConfig", "profileList",
+        DiscoveredAPI discoveredAPI1 = new DiscoveredAPI("authEndpoint", "createConfig", "profileList",
                 "systemMessages", "userMessages");
-        DiscoveredAPI discoveredAPI2 = new DiscoveredAPI(1, "authEndpoint2", "createConfig2", "profileList2",
+        DiscoveredAPI discoveredAPI2 = new DiscoveredAPI("authEndpoint2", "createConfig2", "profileList2",
                 "systemMessages2", "userMessages2");
         cache.put("key1", discoveredAPI1);
         cache.put("key2", discoveredAPI2);
@@ -169,8 +171,8 @@ public class SerializerServiceTest {
 
     @Test
     public void testSavedTokenListSerialization() throws SerializerService.UnknownFormatException {
-        Instance instance1 = new Instance("baseUri1", "displayName1", null, true);
-        Instance instance2 = new Instance("baseUri2", "displayName2", null, true);
+        Instance instance1 = new Instance("baseUri1", "displayName1", null, ConnectionType.SECURE_INTERNET,  true);
+        Instance instance2 = new Instance("baseUri2", "displayName2", null, ConnectionType.SECURE_INTERNET, true);
         SavedToken token1 = new SavedToken(instance1, "accessToken1");
         SavedToken token2 = new SavedToken(instance2, "accessToken2");
         List<SavedToken> list = Arrays.asList(token1, token2);
@@ -185,8 +187,8 @@ public class SerializerServiceTest {
 
     @Test
     public void testSavedProfileListSerialization() throws SerializerService.UnknownFormatException {
-        Instance instance1 = new Instance("baseUri1", "displayName1", "logoUri1", true);
-        Instance instance2 = new Instance("baseUri2", "displayName2", "logoUri2", true);
+        Instance instance1 = new Instance("baseUri1", "displayName1", "logoUri1", ConnectionType.SECURE_INTERNET, true);
+        Instance instance2 = new Instance("baseUri2", "displayName2", "logoUri2", ConnectionType.INSTITUTE_ACCESS, true);
         Profile profile1 = new Profile("displayName1", "profileId1", false);
         Profile profile2 = new Profile("displayName2", "profileId2", true);
         SavedProfile savedProfile1 = new SavedProfile(instance1, profile1, "profileUUID1");
@@ -200,6 +202,7 @@ public class SerializerServiceTest {
             assertEquals(list.get(i).getInstance().getDisplayName(), deserializedList.get(i).getInstance().getDisplayName());
             assertEquals(list.get(i).getInstance().getLogoUri(), deserializedList.get(i).getInstance().getLogoUri());
             assertEquals(list.get(i).getInstance().isCustom(), deserializedList.get(i).getInstance().isCustom());
+            assertEquals(list.get(i).getInstance().getConnectionType(), deserializedList.get(i).getInstance().getConnectionType());
 
             assertEquals(list.get(i).getProfile().getDisplayName(), deserializedList.get(i).getProfile().getDisplayName());
             assertEquals(list.get(i).getProfile().getProfileId(), deserializedList.get(i).getProfile().getProfileId());

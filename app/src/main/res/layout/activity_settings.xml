@@ -61,7 +61,7 @@
                 android:layout_toRightOf="@+id/actionbarLogo"
                 android:paddingLeft="8dp"
                 android:text="@string/settings_title"
-                android:textColor="@android:color/black"
+                android:textColor="@color/textColor"
                 android:textSize="24sp"
                 android:textStyle="bold"/>
 

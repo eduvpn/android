@@ -44,7 +44,7 @@ public class SwipeToDeleteHelper extends ItemTouchHelper.SimpleCallback {
 
     public SwipeToDeleteHelper(Context context) {
         super(0, ItemTouchHelper.LEFT);
-        _background = new ColorDrawable(ContextCompat.getColor(context, R.color.swipe_background_color));
+        _background = new ColorDrawable(ContextCompat.getColor(context, R.color.swipeBackgroundColor));
         _deleteIcon = ContextCompat.getDrawable(context, R.drawable.delete_icon);
         _deleteIcon.setColorFilter(Color.WHITE, PorterDuff.Mode.SRC_ATOP);
         _deleteIconMargin = (int)context.getResources().getDimension(R.dimen.swipe_to_delete_margin);

@@ -19,6 +19,8 @@ package nl.eduvpn.app.inject;
 
 import android.content.Context;
 
+import java.util.concurrent.TimeUnit;
+
 import nl.eduvpn.app.EduVPNApplication;
 import nl.eduvpn.app.service.APIService;
 import nl.eduvpn.app.service.ConfigurationService;
@@ -32,6 +34,7 @@ import javax.inject.Singleton;
 
 import dagger.Module;
 import dagger.Provides;
+import okhttp3.OkHttpClient;
 
 /**
  * Application module providing the different dependencies
@@ -54,8 +57,8 @@ public class ApplicationModule {
 
     @Provides
     @Singleton
-    protected ConfigurationService provideConfigurationService(Context context, SerializerService serializerService) {
-        return new ConfigurationService(context, serializerService);
+    protected ConfigurationService provideConfigurationService(Context context, SerializerService serializerService, OkHttpClient okHttpClient) {
+        return new ConfigurationService(context, serializerService, okHttpClient);
     }
 
     @Provides
@@ -72,8 +75,8 @@ public class ApplicationModule {
 
     @Provides
     @Singleton
-    protected APIService provideAPIService(ConnectionService connectionService) {
-        return new APIService(connectionService);
+    protected APIService provideAPIService(ConnectionService connectionService, OkHttpClient okHttpClient) {
+        return new APIService(connectionService, okHttpClient);
     }
 
     @Provides
@@ -92,5 +95,16 @@ public class ApplicationModule {
     @Singleton
     protected HistoryService provideHistoryService(PreferencesService preferencesService) {
         return new HistoryService(preferencesService);
+    }
+
+    @Provides
+    @Singleton
+    protected OkHttpClient provideHttpClient() {
+        OkHttpClient.Builder clientBuilder = new OkHttpClient.Builder()
+                .retryOnConnectionFailure(true)
+                .connectTimeout(10, TimeUnit.SECONDS)
+                .writeTimeout(30, TimeUnit.SECONDS)
+                .readTimeout(30, TimeUnit.SECONDS);
+        return clientBuilder.build();
     }
 }

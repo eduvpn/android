@@ -34,7 +34,6 @@ import nl.eduvpn.app.R;
 import nl.eduvpn.app.adapter.viewholder.ProfileViewHolder;
 import nl.eduvpn.app.entity.Instance;
 import nl.eduvpn.app.entity.Profile;
-import nl.eduvpn.app.entity.SavedProfile;
 import nl.eduvpn.app.service.HistoryService;
 import nl.eduvpn.app.utils.FormattingUtils;
 
@@ -112,7 +111,7 @@ public class ProfileAdapter extends RecyclerView.Adapter<ProfileViewHolder> {
         if (_itemsPendingRemoval.contains(instanceProfilePair)) {
             // We need to show the "undo" state of the row
             Context context = holder.itemView.getContext();
-            holder.itemView.setBackgroundColor(ContextCompat.getColor(context, R.color.swipe_background_color));
+            holder.itemView.setBackgroundColor(ContextCompat.getColor(context, R.color.swipeBackgroundColor));
             holder.profileName.setVisibility(View.GONE);
             holder.providerIcon.setVisibility(View.GONE);
             holder.undoButton.setVisibility(View.VISIBLE);
@@ -132,7 +131,8 @@ public class ProfileAdapter extends RecyclerView.Adapter<ProfileViewHolder> {
 
             });
         } else {
-            holder.itemView.setBackgroundColor(Color.WHITE);
+            Context context = holder.itemView.getContext();
+            holder.itemView.setBackgroundColor(ContextCompat.getColor(context, R.color.backgroundColor));
             holder.profileName.setVisibility(View.VISIBLE);
             holder.providerIcon.setVisibility(View.VISIBLE);
             holder.undoButton.setVisibility(View.GONE);

@@ -24,14 +24,15 @@ import android.view.ViewGroup;
 
 import com.squareup.picasso.Picasso;
 
-import nl.eduvpn.app.R;
-import nl.eduvpn.app.adapter.viewholder.ProviderViewHolder;
-import nl.eduvpn.app.entity.Instance;
-import nl.eduvpn.app.service.ConfigurationService;
-
 import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
+
+import nl.eduvpn.app.R;
+import nl.eduvpn.app.adapter.viewholder.ProviderViewHolder;
+import nl.eduvpn.app.entity.ConnectionType;
+import nl.eduvpn.app.entity.Instance;
+import nl.eduvpn.app.service.ConfigurationService;
 
 /**
  * Adapter for the providers list.
@@ -41,13 +42,23 @@ public class ProviderAdapter extends RecyclerView.Adapter<ProviderViewHolder> {
 
     private List<Instance> _instanceList;
     private LayoutInflater _layoutInflater;
+    private @ConnectionType int _connectionType;
 
-    public ProviderAdapter(final ConfigurationService configurationService) {
-        _instanceList = configurationService.getInstanceList().getInstanceList();
+    public ProviderAdapter(final ConfigurationService configurationService, @ConnectionType final int connectionType) {
+        _connectionType = connectionType;
+        if (connectionType == ConnectionType.SECURE_INTERNET) {
+            _instanceList = configurationService.getInstanceList();
+        } else {
+            _instanceList = configurationService.getFederationList();
+        }
         configurationService.addObserver(new Observer() {
             @Override
             public void update(Observable o, Object arg) {
-                _instanceList = configurationService.getInstanceList().getInstanceList();
+                if (_connectionType == ConnectionType.SECURE_INTERNET) {
+                    _instanceList = configurationService.getInstanceList();
+                } else {
+                    _instanceList = configurationService.getFederationList();
+                }
                 notifyDataSetChanged();
             }
         });
@@ -55,6 +66,7 @@ public class ProviderAdapter extends RecyclerView.Adapter<ProviderViewHolder> {
 
     /**
      * Returns the item at the given position.
+     *
      * @param position The position of the item.
      * @return The item at the given position. Null if 'Other' item or invalid query.
      */
@@ -94,7 +106,7 @@ public class ProviderAdapter extends RecyclerView.Adapter<ProviderViewHolder> {
                         .load(instance.getLogoUri())
                         .fit()
                         .into(holder.providerIcon);
-            } else{
+            } else {
                 holder.providerIcon.setImageResource(R.drawable.external_provider);
             }
         }

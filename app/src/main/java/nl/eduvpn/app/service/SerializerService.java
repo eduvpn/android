@@ -19,6 +19,7 @@ package nl.eduvpn.app.service;
 
 import android.util.Pair;
 
+import nl.eduvpn.app.entity.ConnectionType;
 import nl.eduvpn.app.entity.DiscoveredAPI;
 import nl.eduvpn.app.entity.Instance;
 import nl.eduvpn.app.entity.InstanceList;
@@ -171,6 +172,7 @@ public class SerializerService {
             result.put("display_name", instance.getDisplayName());
             result.put("logo_uri", instance.getLogoUri());
             result.put("is_custom", instance.isCustom());
+            result.put("connection_type", instance.getConnectionType());
         } catch (JSONException ex) {
             throw new UnknownFormatException(ex);
         }
@@ -196,7 +198,12 @@ public class SerializerService {
             if (jsonObject.has("is_custom")) {
                 isCustom = jsonObject.getBoolean("is_custom");
             }
-            return new Instance(baseUri, displayName, logoUri, isCustom);
+            @ConnectionType int connectionType = ConnectionType.SECURE_INTERNET;
+            if (jsonObject.has("connection_type")) {
+                //noinspection WrongConstant
+                connectionType = jsonObject.getInt("connection_type");
+            }
+            return new Instance(baseUri, displayName, logoUri, connectionType, isCustom);
         } catch (JSONException ex) {
             throw new UnknownFormatException(ex);
         }

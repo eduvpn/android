@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="?attr/selectableItemBackground"
-    tools:background="@android:color/white">
+    tools:background="@color/backgroundColor">
 
     <ImageView
         android:id="@+id/messageIcon"
@@ -14,6 +14,7 @@
         android:layout_alignParentTop="true"
         android:layout_marginLeft="8dp"
         android:layout_marginTop="12dp"
+        android:tint="@color/iconColor"
         android:adjustViewBounds="true"
         android:contentDescription="@string/content_description_message_icon"
         android:src="@drawable/maintenance_icon"/>
@@ -28,7 +29,7 @@
         android:layout_marginTop="8dp"
         android:layout_toRightOf="@+id/messageIcon"
         android:gravity="left"
-        android:textColor="@android:color/black"
+        android:textColor="@color/textColor"
         android:textSize="15sp"
         tools:text="The VPN service will be under maintanence beginning from 2016.10.21 12:00 until 2016.10.30 16:00. Connecting to the VPN may still be possible, but the service will not be guaranteed."/>
 

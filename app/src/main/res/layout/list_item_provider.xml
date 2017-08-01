@@ -27,7 +27,7 @@
         android:layout_toRightOf="@+id/providerIcon"
         android:ellipsize="middle"
         android:maxLines="1"
-        android:textColor="@android:color/black"
+        android:textColor="@color/textColor"
         android:textSize="18sp"
         tools:text="Hogeschool van Amsterdam publieke beta / pilot"/>
 

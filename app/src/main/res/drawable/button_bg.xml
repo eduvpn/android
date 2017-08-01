@@ -14,7 +14,7 @@
     </item>
     <item>
         <shape>
-            <solid android:color="@color/mainColor"/>
+            <solid android:color="@color/buttonBackgroundColor"/>
             <corners android:radius="8dp"/>
         </shape>
     </item>

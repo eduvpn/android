@@ -21,23 +21,22 @@ import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
-import nl.eduvpn.app.utils.Log;
-
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.BufferedOutputStream;
-import java.io.BufferedReader;
-import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
+import java.util.concurrent.Exchanger;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+
+import nl.eduvpn.app.utils.Log;
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 
 /**
  * This service is responsible for fetching data from API endpoints.
@@ -49,20 +48,11 @@ public class APIService {
     }
 
     private static final String TAG = APIService.class.getName();
-
     public static final String USER_NOT_AUTHORIZED_ERROR = "User not authorized.";
-
-    private static final int CONNECT_TIMEOUT_MS = 10000;
-    private static final int READ_TIMEOUT_MS = 20000;
-    private static final int READ_BLOCK_SIZE = 16 * 1024;
-
     private static final String HEADER_AUTHORIZATION = "Authorization";
-
     private static final int STATUS_CODE_UNAUTHORIZED = 401;
-
     private static final int CONFIG_MAX_THREAD_POOL_SIZE = 16;
-    private static final ThreadPoolExecutor EXECUTOR =
-            new ThreadPoolExecutor(8, CONFIG_MAX_THREAD_POOL_SIZE, 30000, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
+    private static final ThreadPoolExecutor EXECUTOR = new ThreadPoolExecutor(8, CONFIG_MAX_THREAD_POOL_SIZE, 30000, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
 
     /**
      * Callback interface for returning results asynchronously.
@@ -84,9 +74,11 @@ public class APIService {
     }
 
     private ConnectionService _connectionService;
+    private OkHttpClient _okHttpClient;
 
-    public APIService(ConnectionService connectionService) {
+    public APIService(ConnectionService connectionService, OkHttpClient okHttpClient) {
         _connectionService = connectionService;
+        _okHttpClient = okHttpClient;
     }
 
     private String _getAccessToken() {
@@ -124,6 +116,7 @@ public class APIService {
                 } catch (FileNotFoundException ex) {
                     return "URL not found: " + url;
                 } catch (IOException ex) {
+                    ex.printStackTrace();
                     return ex.getMessage();
                 } catch (JSONException ex) {
                     return ex.getMessage();
@@ -154,7 +147,7 @@ public class APIService {
      * @param data     The request data.
      * @param callback The callback for notifying about the result.
      */
-    public void postResource(@NonNull final String url, @Nullable final String data, final boolean useToken, final Callback<byte[]> callback) {
+    public void postResource(@NonNull final String url, @Nullable final String data, final boolean useToken, final Callback<String> callback) {
         String accessToken = _getAccessToken();
         if (!useToken) {
             accessToken = null;
@@ -177,18 +170,22 @@ public class APIService {
                         return _fetchByteResource(url, data, accessTokenParam);
                     }
                 } catch (IOException ex) {
-                    return ex.getMessage();
+                    return ex;
                 } catch (UserNotAuthorizedException ex) {
-                    return USER_NOT_AUTHORIZED_ERROR;
+                    return ex;
                 }
             }
 
             @Override
             protected void onPostExecute(Object result) {
-                if (result instanceof byte[]) {
-                    callback.onSuccess((byte[])result);
-                } else if (result instanceof String) {
-                    callback.onError((String)result);
+                if (result instanceof String) {
+                    callback.onSuccess((String)result);
+                } else if (result instanceof Exception) {
+                    if (result instanceof UserNotAuthorizedException) {
+                        callback.onError(USER_NOT_AUTHORIZED_ERROR);
+                    } else {
+                        callback.onError(result.toString());
+                    }
                 } else {
                     throw new RuntimeException("Invalid result received from background task!");
                 }
@@ -206,32 +203,29 @@ public class APIService {
      * @return The result as a byte array.
      * @throws IOException Thrown if there was a problem creating the connection.
      */
-    private byte[] _fetchByteResource(@NonNull String url, @Nullable String requestData, @Nullable String accessToken) throws IOException, UserNotAuthorizedException {
-        HttpURLConnection urlConnection = _createConnection(url, accessToken);
-        urlConnection.setRequestMethod("POST");
+    private String _fetchByteResource(@NonNull String url, @Nullable String requestData, @Nullable String accessToken) throws IOException, UserNotAuthorizedException {
+        Request.Builder requestBuilder = _createRequestBuilder(url, accessToken);
         if (requestData != null) {
-            OutputStream out = new BufferedOutputStream(urlConnection.getOutputStream());
-            out.write(requestData.getBytes("UTF-8"));
-            out.flush();
+            requestBuilder.method("POST", RequestBody.create(MediaType.parse("application/x-www-form-urlencoded"), requestData));
+        } else {
+            requestBuilder.method("POST", null);
         }
-        urlConnection.connect();
-        int statusCode = urlConnection.getResponseCode();
+        Request request = requestBuilder.build();
+        Response response = _okHttpClient.newCall(request).execute();
+        int statusCode = response.code();
         if (statusCode == STATUS_CODE_UNAUTHORIZED) {
             throw new UserNotAuthorizedException();
         }
         // Get the body of the response
-        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-        int bytesRead;
-        byte[] data = new byte[READ_BLOCK_SIZE];
-        while ((bytesRead = urlConnection.getInputStream().read(data, 0, data.length)) != -1) {
-            buffer.write(data, 0, bytesRead);
+        String result = null;
+        if (response.body() != null) {
+            result = response.body().string();
         }
-        byte[] result = buffer.toByteArray();
-        Log.d(TAG, "POST " + url + " data: '" + requestData + "': " + new String(result));
+        Log.d(TAG, "POST " + url + " data: '" + requestData + "': " + result);
         if (statusCode >= 200 && statusCode <= 299) {
             return result;
         } else {
-            throw new IOException("Unsuccessful response: " + new String(result));
+            throw new IOException("Unsuccessful response: " + result);
         }
     }
 
@@ -243,16 +237,12 @@ public class APIService {
      * @return The URL connection which can be used to connect to the URL.
      * @throws IOException Thrown if there was a problem while creating the connection.
      */
-    private HttpURLConnection _createConnection(@NonNull String urlString, @Nullable String accessToken) throws IOException {
-        URL url = new URL(urlString);
-        HttpURLConnection urlConnection = (HttpURLConnection)url.openConnection();
-        urlConnection.setConnectTimeout(CONNECT_TIMEOUT_MS);
-        urlConnection.setReadTimeout(READ_TIMEOUT_MS);
-        urlConnection.setRequestMethod("GET");
+    private Request.Builder _createRequestBuilder(@NonNull String urlString, @Nullable String accessToken) throws IOException {
+        Request.Builder builder = new Request.Builder().get().url(urlString);
         if (accessToken != null) {
-            urlConnection.setRequestProperty(HEADER_AUTHORIZATION, "Bearer " + accessToken);
+            builder = builder.header(HEADER_AUTHORIZATION, "Bearer " + accessToken);
         }
-        return urlConnection;
+        return builder;
     }
 
     /**
@@ -264,22 +254,17 @@ public class APIService {
      * @throws JSONException Thrown if the returned JSON was invalid or not a JSON at all.
      */
     private JSONObject _fetchJSON(@NonNull String url, @Nullable String accessToken) throws IOException, JSONException, UserNotAuthorizedException {
-        HttpURLConnection urlConnection = _createConnection(url, accessToken);
-        urlConnection.connect();
-        int statusCode = urlConnection.getResponseCode();
+        Request.Builder requestBuilder = _createRequestBuilder(url, accessToken);
+        Response response = _okHttpClient.newCall(requestBuilder.build()).execute();
+        int statusCode = response.code();
         if (statusCode == STATUS_CODE_UNAUTHORIZED) {
             throw new UserNotAuthorizedException();
         }
         // Get the body of the response
-        BufferedReader bufferedReader;
-        bufferedReader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));
-        StringBuilder stringBuilder = new StringBuilder();
-        String line;
-        while ((line = bufferedReader.readLine()) != null) {
-            stringBuilder.append(line).append("\n");
+        String responseString = null;
+        if (response.body() != null) {
+            responseString = response.body().string();
         }
-        bufferedReader.close();
-        String responseString = stringBuilder.toString();
         Log.d(TAG, "GET " + url + ": " + responseString);
         if (statusCode >= 200 && statusCode <= 299) {
             return new JSONObject(responseString);

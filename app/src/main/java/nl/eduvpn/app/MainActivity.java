@@ -28,7 +28,9 @@ import android.widget.Toast;
 
 import nl.eduvpn.app.fragment.ConnectionStatusFragment;
 import nl.eduvpn.app.fragment.HomeFragment;
+import nl.eduvpn.app.fragment.TypeSelectorFragment;
 import nl.eduvpn.app.service.ConnectionService;
+import nl.eduvpn.app.service.HistoryService;
 import nl.eduvpn.app.service.VPNService;
 import nl.eduvpn.app.utils.ErrorDialog;
 
@@ -45,6 +47,9 @@ public class MainActivity extends AppCompatActivity {
 
     @Inject
     protected ConnectionService _connectionService;
+
+    @Inject
+    protected HistoryService _historyService;
 
     @Inject
     protected VPNService _vpnService;
@@ -64,9 +69,11 @@ public class MainActivity extends AppCompatActivity {
             // If there's an ongoing VPN connection, open the status screen.
             if (_vpnService.getStatus() != VPNService.VPNStatus.DISCONNECTED) {
                 openFragment(new ConnectionStatusFragment(), false);
-            } else {
-                // Else we just show the provider selection fragment.
+            } else if (!_historyService.getSavedTokenList().isEmpty()) {
                 openFragment(new HomeFragment(), false);
+            } else {
+                // User has no previously saved profiles. Show the type selector.
+                openFragment(new TypeSelectorFragment(), false);
             }
         } // else the activity will automatically restore everything.
         // The app might have been reopened from a URL.

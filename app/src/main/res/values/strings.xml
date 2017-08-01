@@ -88,4 +88,8 @@
     <string name="data_removed">The provider data was already removed.</string>
     <string name="provider_not_found_retry">Could not find the provider metadata.</string>
     <string name="provider_incorrect_format">Data returned by the provider has an incorrect format</string>
+    <string name="vpn_option_label_secure_internet">Connect to the internet securely, for example when using WiFi</string>
+    <string name="vpn_option_label_institute_access">Institute Access</string>
+    <string name="header_institute_access">Institute Access</string>
+    <string name="header_secure_internet">Secure Internet</string>
 </resources>
