@@ -100,7 +100,7 @@
             android:orientation="vertical">
 
             <TextView
-                style="@style/ConnectionTypeHeader"
+                style="@style/AuthorizationTypeHeader"
                 android:text="@string/header_secure_internet"/>
 
             <android.support.v7.widget.RecyclerView
@@ -120,7 +120,7 @@
             android:orientation="vertical">
 
             <TextView
-                style="@style/ConnectionTypeHeader"
+                style="@style/AuthorizationTypeHeader"
                 android:text="@string/header_institute_access"/>
 
             <android.support.v7.widget.RecyclerView

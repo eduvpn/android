@@ -32,7 +32,7 @@ import org.junit.runner.RunWith;
 
 import java.util.Random;
 
-import nl.eduvpn.app.entity.ConnectionType;
+import nl.eduvpn.app.entity.AuthorizationType;
 import nl.eduvpn.app.entity.DiscoveredAPI;
 import nl.eduvpn.app.entity.Instance;
 import nl.eduvpn.app.entity.Profile;
@@ -95,7 +95,7 @@ public class HistoryServiceTest {
             _historyService.cacheDiscoveredAPI(baseURI + i, discoveredAPI);
             String profileId = "vpn_profile";
             String profileUUID = "ABCD-1234-DEFG-5678";
-            Instance instance = new Instance(baseURI + i, "displayName", null, ConnectionType.SECURE_INTERNET, true);
+            Instance instance = new Instance(baseURI + i, "displayName", null, AuthorizationType.SECURE_INTERNET, true);
             Profile profile = new Profile("displayName", profileId, false);
             SavedProfile savedProfile = new SavedProfile(instance, profile, profileUUID);
             _historyService.cacheSavedProfile(savedProfile);
@@ -127,7 +127,7 @@ public class HistoryServiceTest {
     public void testCacheAccessToken() {
         String exampleToken = "abcd1234defghthisisatoken";
         String baseURI = "http://example.com";
-        _historyService.cacheAccessToken(new Instance(baseURI, "displayName", null, ConnectionType.SECURE_INTERNET, true), exampleToken);
+        _historyService.cacheAccessToken(new Instance(baseURI, "displayName", null, AuthorizationType.SECURE_INTERNET, true), exampleToken);
         _reloadHistoryService(false);
         String restoredToken = _historyService.getCachedAccessToken(baseURI);
         assertEquals(exampleToken, restoredToken);
@@ -138,7 +138,7 @@ public class HistoryServiceTest {
         String baseURI = "http://example.com/baseURI";
         String profileId = "vpn_profile";
         String profileUUID = "ABCD-1234-DEFG-5678";
-        Instance instance = new Instance(baseURI, "displayName", null, ConnectionType.SECURE_INTERNET, true);
+        Instance instance = new Instance(baseURI, "displayName", null, AuthorizationType.SECURE_INTERNET, true);
         Profile profile = new Profile("displayName", profileId, false);
         SavedProfile savedProfile = new SavedProfile(instance, profile, profileUUID);
         _historyService.cacheSavedProfile(savedProfile);

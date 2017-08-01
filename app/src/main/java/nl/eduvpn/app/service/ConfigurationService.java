@@ -34,7 +34,7 @@ import io.reactivex.functions.BiFunction;
 import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
 import nl.eduvpn.app.BuildConfig;
-import nl.eduvpn.app.entity.ConnectionType;
+import nl.eduvpn.app.entity.AuthorizationType;
 import nl.eduvpn.app.entity.Instance;
 import nl.eduvpn.app.entity.InstanceList;
 import nl.eduvpn.app.entity.exception.InvalidSignatureException;
@@ -96,21 +96,21 @@ public class ConfigurationService extends java.util.Observable {
     private void _loadSavedLists() {
         // Loads the saved configuration from the storage.
         // If none found, it will default to the one in the app.
-        _secureInternetList = _preferencesService.getInstanceList(ConnectionType.SECURE_INTERNET);
-        _instituteAccessList = _preferencesService.getInstanceList(ConnectionType.INSTITUTE_ACCESS);
+        _secureInternetList = _preferencesService.getInstanceList(AuthorizationType.LOCAL);
+        _instituteAccessList = _preferencesService.getInstanceList(AuthorizationType.DISTRIBUTED);
     }
 
-    private void _saveListIfChanged(@NonNull InstanceList instanceList, @ConnectionType int connectionType) {
-        InstanceList previousList = _preferencesService.getInstanceList(connectionType);
+    private void _saveListIfChanged(@NonNull InstanceList instanceList, @AuthorizationType int authorizationType) {
+        InstanceList previousList = _preferencesService.getInstanceList(authorizationType);
         if (previousList == null || previousList.getSequenceNumber() < instanceList.getSequenceNumber()) {
-            Log.i(TAG, "Previously saved instance list for connection type " + connectionType + " is outdated, or there was" +
+            Log.i(TAG, "Previously saved instance list for connection type " + authorizationType + " is outdated, or there was" +
                     " no existing one. Saving new list for the future.");
-            _preferencesService.storeInstanceList(connectionType, instanceList);
+            _preferencesService.storeInstanceList(authorizationType, instanceList);
             setChanged();
             notifyObservers();
             clearChanged();
         } else {
-            Log.d(TAG, "Previously saved instance list for connection type " + connectionType + " has the same version as " +
+            Log.d(TAG, "Previously saved instance list for connection type " + authorizationType + " has the same version as " +
                     "the newly downloaded one, new one does not have to be cached.");
         }
     }
@@ -119,15 +119,15 @@ public class ConfigurationService extends java.util.Observable {
      * Parses the JSON string of the instance list to a POJO object.
      *
      * @param instanceListString The string with the JSON representation.
-     * @param connectionType     The connection types for these instances.
+     * @param authorizationType     The authorization types for these instances.
      * @return An InstanceList object containing the same information.
      * @throws JSONException Thrown if the JSON was malformed or had an unknown list version.
      */
-    private InstanceList _parseInstanceList(String instanceListString, @ConnectionType int connectionType) throws Exception {
+    private InstanceList _parseInstanceList(String instanceListString, @AuthorizationType int authorizationType) throws Exception {
         JSONObject instanceListJson = new JSONObject(instanceListString);
         InstanceList result = _serializerService.deserializeInstanceList(instanceListJson);
         for (Instance instance : result.getInstanceList()) {
-            instance.setConnectionType(connectionType);
+            instance.setAuthorizationType(authorizationType);
         }
         return result;
     }
@@ -136,21 +136,21 @@ public class ConfigurationService extends java.util.Observable {
      * Downloads, parses, and saves the latest configuration retrieved from the URL defined in the build configuration.
      */
     private void _fetchLatestConfiguration() {
-        _fetchConfigurationForConnectionType(ConnectionType.INSTITUTE_ACCESS);
-        _fetchConfigurationForConnectionType(ConnectionType.SECURE_INTERNET);
+        _fetchConfigurationForAuthorizationType(AuthorizationType.DISTRIBUTED);
+        _fetchConfigurationForAuthorizationType(AuthorizationType.LOCAL);
     }
 
-    private void _fetchConfigurationForConnectionType(@ConnectionType final int connectionType) {
-        Observable<String> instanceListObservable = _createInstanceListObservable(connectionType);
-        Observable<String> signatureObservable = _createSignatureObservable(connectionType);
+    private void _fetchConfigurationForAuthorizationType(@AuthorizationType final int authorizationType) {
+        Observable<String> instanceListObservable = _createInstanceListObservable(authorizationType);
+        Observable<String> signatureObservable = _createSignatureObservable(authorizationType);
         // Combine the result of the two
         Observable.zip(instanceListObservable, signatureObservable, new BiFunction<String, String, InstanceList>() {
             @Override
             public InstanceList apply(@io.reactivex.annotations.NonNull String instanceList, @io.reactivex.annotations.NonNull String signature) throws Exception {
                 if (_securityService.isValidSignature(instanceList, signature)) {
-                    return _parseInstanceList(instanceList, connectionType);
+                    return _parseInstanceList(instanceList, authorizationType);
                 } else {
-                    throw new InvalidSignatureException("Signature validation failed for instance list! Connection type: " + connectionType);
+                    throw new InvalidSignatureException("Signature validation failed for instance list! Authorization type: " + authorizationType);
                 }
             }
         }).subscribeOn(Schedulers.io())
@@ -158,27 +158,27 @@ public class ConfigurationService extends java.util.Observable {
                 .subscribe(new Consumer<InstanceList>() {
                     @Override
                     public void accept(InstanceList instanceList) throws Exception {
-                        if (connectionType == ConnectionType.SECURE_INTERNET) {
+                        if (authorizationType == AuthorizationType.LOCAL) {
                             _secureInternetList = instanceList;
                         } else {
                             _instituteAccessList = instanceList;
                         }
-                        _saveListIfChanged(instanceList, connectionType);
-                        Log.i(TAG, "Successfully refreshed instance list for connection type: " + connectionType);
+                        _saveListIfChanged(instanceList, authorizationType);
+                        Log.i(TAG, "Successfully refreshed instance list for authorization type: " + authorizationType);
                     }
                 }, new Consumer<Throwable>() {
                     @Override
                     public void accept(Throwable throwable) throws Exception {
-                        Log.e(TAG, "Error encountered while fetching instance list for connection type: " + connectionType, throwable);
+                        Log.e(TAG, "Error encountered while fetching instance list for authorization type: " + authorizationType, throwable);
                     }
                 });
     }
 
-    private Observable<String> _createSignatureObservable(@ConnectionType final int connectionType) {
+    private Observable<String> _createSignatureObservable(@AuthorizationType final int authorizationType) {
         return Observable.defer(new Callable<ObservableSource<String>>() {
             @Override
             public ObservableSource<String> call() throws Exception {
-                String signatureRequestUrl = connectionType == ConnectionType.SECURE_INTERNET ? BuildConfig.INSTANCE_LIST_URL : BuildConfig.FEDERATION_LIST_URL;
+                String signatureRequestUrl = authorizationType == AuthorizationType.LOCAL ? BuildConfig.INSTANCE_LIST_URL : BuildConfig.FEDERATION_LIST_URL;
                 signatureRequestUrl = signatureRequestUrl + BuildConfig.SIGNATURE_URL_POSTFIX;
                 Request request = new Request.Builder().url(signatureRequestUrl).build();
                 Response response = _okHttpClient.newCall(request).execute();
@@ -193,11 +193,11 @@ public class ConfigurationService extends java.util.Observable {
         }).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread());
     }
 
-    private Observable<String> _createInstanceListObservable(@ConnectionType final int connectionType) {
+    private Observable<String> _createInstanceListObservable(@AuthorizationType final int authorizationType) {
         return Observable.defer(new Callable<ObservableSource<String>>() {
             @Override
             public ObservableSource<String> call() throws Exception {
-                String listRequestUrl = connectionType == ConnectionType.SECURE_INTERNET ? BuildConfig.INSTANCE_LIST_URL : BuildConfig.FEDERATION_LIST_URL;
+                String listRequestUrl = authorizationType == AuthorizationType.LOCAL ? BuildConfig.INSTANCE_LIST_URL : BuildConfig.FEDERATION_LIST_URL;
                 Request request = new Request.Builder().url(listRequestUrl).build();
                 Response response = _okHttpClient.newCall(request).execute();
                 ResponseBody responseBody = response.body();

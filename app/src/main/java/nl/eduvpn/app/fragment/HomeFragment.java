@@ -52,7 +52,7 @@ import nl.eduvpn.app.EduVPNApplication;
 import nl.eduvpn.app.MainActivity;
 import nl.eduvpn.app.R;
 import nl.eduvpn.app.adapter.ProfileAdapter;
-import nl.eduvpn.app.entity.ConnectionType;
+import nl.eduvpn.app.entity.AuthorizationType;
 import nl.eduvpn.app.entity.DiscoveredAPI;
 import nl.eduvpn.app.entity.Instance;
 import nl.eduvpn.app.entity.Profile;
@@ -155,8 +155,8 @@ public class HomeFragment extends Fragment {
         _secureInternetList.addItemDecoration(new SwipeToDeleteAnimator(getContext()));
 
         // Fill with data
-        List<SavedToken> savedInstituteAccessTokens = _historyService.getSavedTokensForConnectionType(ConnectionType.INSTITUTE_ACCESS);
-        List<SavedToken> savedSecureInternetTokens = _historyService.getSavedTokensForConnectionType(ConnectionType.SECURE_INTERNET);
+        List<SavedToken> savedInstituteAccessTokens = _historyService.getSavedTokensForAuthorizationType(AuthorizationType.INSTITUTE_ACCESS);
+        List<SavedToken> savedSecureInternetTokens = _historyService.getSavedTokensForAuthorizationType(AuthorizationType.SECURE_INTERNET);
         if (savedInstituteAccessTokens.isEmpty() && savedSecureInternetTokens.isEmpty()) {
             // No saved tokens
             _loadingBar.setVisibility(View.GONE);

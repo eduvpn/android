@@ -34,7 +34,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
 
-import nl.eduvpn.app.entity.ConnectionType;
+import nl.eduvpn.app.entity.AuthorizationType;
 import nl.eduvpn.app.entity.DiscoveredAPI;
 import nl.eduvpn.app.entity.Instance;
 import nl.eduvpn.app.entity.InstanceList;
@@ -178,7 +178,7 @@ public class SerializerService {
             result.put("display_name", instance.getDisplayName());
             result.put("logo_uri", instance.getLogoUri());
             result.put("is_custom", instance.isCustom());
-            result.put("connection_type", instance.getConnectionType());
+            result.put("authorization_type", instance.getAuthorizationType());
         } catch (JSONException ex) {
             throw new UnknownFormatException(ex);
         }
@@ -204,12 +204,12 @@ public class SerializerService {
             if (jsonObject.has("is_custom")) {
                 isCustom = jsonObject.getBoolean("is_custom");
             }
-            @ConnectionType int connectionType = ConnectionType.SECURE_INTERNET;
-            if (jsonObject.has("connection_type")) {
+            @AuthorizationType int authorizationType = AuthorizationType.LOCAL;
+            if (jsonObject.has("authorization_type")) {
                 //noinspection WrongConstant
-                connectionType = jsonObject.getInt("connection_type");
+                authorizationType = jsonObject.getInt("authorization_type");
             }
-            return new Instance(baseUri, displayName, logoUri, connectionType, isCustom);
+            return new Instance(baseUri, displayName, logoUri, authorizationType, isCustom);
         } catch (JSONException ex) {
             throw new UnknownFormatException(ex);
         }

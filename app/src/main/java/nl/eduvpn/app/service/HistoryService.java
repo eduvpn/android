@@ -20,7 +20,7 @@ package nl.eduvpn.app.service;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
-import nl.eduvpn.app.entity.ConnectionType;
+import nl.eduvpn.app.entity.AuthorizationType;
 import nl.eduvpn.app.entity.DiscoveredAPI;
 import nl.eduvpn.app.entity.Instance;
 import nl.eduvpn.app.entity.SavedProfile;
@@ -155,10 +155,10 @@ public class HistoryService {
     }
 
     @NonNull
-    public List<SavedToken> getSavedTokensForConnectionType(@ConnectionType int connectionType) {
+    public List<SavedToken> getSavedTokensForAuthorizationType(@AuthorizationType int authorizationType) {
         List<SavedToken> result = new ArrayList<>();
         for (SavedToken savedToken: _savedTokenList) {
-            if (savedToken.getInstance().getConnectionType() == connectionType) {
+            if (savedToken.getInstance().getAuthorizationType() == authorizationType) {
                 result.add(savedToken);
             }
         }

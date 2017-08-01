@@ -26,7 +26,7 @@ import org.json.JSONObject;
 
 import java.util.List;
 
-import nl.eduvpn.app.entity.ConnectionType;
+import nl.eduvpn.app.entity.AuthorizationType;
 import nl.eduvpn.app.entity.DiscoveredAPI;
 import nl.eduvpn.app.entity.Instance;
 import nl.eduvpn.app.entity.InstanceList;
@@ -377,11 +377,11 @@ public class PreferencesService {
     /**
      * Stores the instance list for a specific connection type
      */
-    public void storeInstanceList(@ConnectionType int connectionType, InstanceList instanceListToSave) {
+    public void storeInstanceList(@AuthorizationType int authorizationType, InstanceList instanceListToSave) {
         String key;
-        if (connectionType == ConnectionType.INSTITUTE_ACCESS) {
+        if (authorizationType == AuthorizationType.DISTRIBUTED) {
             key = KEY_INSTANCE_LIST_INSTITUTE_ACCESS;
-        } else if (connectionType == ConnectionType.SECURE_INTERNET) {
+        } else if (authorizationType == AuthorizationType.LOCAL) {
             key = KEY_INSTANCE_LIST_SECURE_INTERNET;
         } else {
             throw new RuntimeException("Unexpected connection type!");
@@ -390,19 +390,19 @@ public class PreferencesService {
             String serializedInstanceList = _serializerService.serializeInstanceList(instanceListToSave).toString();
             _getSharedPreferences().edit().putString(key, serializedInstanceList).apply();
         } catch (SerializerService.UnknownFormatException ex) {
-            Log.e(TAG, "Cannot save instance list for connection type: " + connectionType, ex);
+            Log.e(TAG, "Cannot save instance list for connection type: " + authorizationType, ex);
         }
     }
 
     /**
-     * Stores the instance list for a specific connection type
+     * Stores the instance list for a specific authorization type
      */
     @Nullable
-    public InstanceList getInstanceList(@ConnectionType int connectionType) {
+    public InstanceList getInstanceList(@AuthorizationType int authorizationType) {
         String key;
-        if (connectionType == ConnectionType.INSTITUTE_ACCESS) {
+        if (authorizationType == AuthorizationType.DISTRIBUTED) {
             key = KEY_INSTANCE_LIST_INSTITUTE_ACCESS;
-        } else if (connectionType == ConnectionType.SECURE_INTERNET) {
+        } else if (authorizationType == AuthorizationType.LOCAL) {
             key = KEY_INSTANCE_LIST_SECURE_INTERNET;
         } else {
             throw new RuntimeException("Unexpected connection type!");
@@ -414,7 +414,7 @@ public class PreferencesService {
             }
             return _serializerService.deserializeInstanceList(new JSONObject(serializedInstanceList));
         } catch (SerializerService.UnknownFormatException | JSONException ex) {
-            Log.e(TAG, "Cannot deserialize previously saved instance list of connection type: " + connectionType, ex);
+            Log.e(TAG, "Cannot deserialize previously saved instance list of authorization type: " + authorizationType, ex);
             return null;
         }
     }
