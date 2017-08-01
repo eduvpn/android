@@ -17,19 +17,21 @@
 
 package nl.eduvpn.app.service;
 
-import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
+import java.util.concurrent.Callable;
+
+import io.reactivex.Observable;
+import io.reactivex.ObservableSource;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.functions.Consumer;
+import io.reactivex.schedulers.Schedulers;
 import nl.eduvpn.app.utils.Log;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
@@ -51,8 +53,6 @@ public class APIService {
     public static final String USER_NOT_AUTHORIZED_ERROR = "User not authorized.";
     private static final String HEADER_AUTHORIZATION = "Authorization";
     private static final int STATUS_CODE_UNAUTHORIZED = 401;
-    private static final int CONFIG_MAX_THREAD_POOL_SIZE = 16;
-    private static final ThreadPoolExecutor EXECUTOR = new ThreadPoolExecutor(8, CONFIG_MAX_THREAD_POOL_SIZE, 30000, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
 
     /**
      * Callback interface for returning results asynchronously.
@@ -96,47 +96,37 @@ public class APIService {
         if (!useToken) {
             accessToken = null;
         }
-        AsyncTask<String, Void, Object> asyncTask = new AsyncTask<String, Void, Object>() {
+        final String finalToken = accessToken;
+        Observable.defer(new Callable<ObservableSource<JSONObject>>() {
             @Override
-            protected Object doInBackground(String... params) {
+            public Observable<JSONObject> call() {
                 try {
-                    String accessTokenParam = null;
-                    if (params != null && params.length == 1) {
-                        accessTokenParam = params[0];
-                    }
-                    // We do a retry once.
-                    try {
-                        return _fetchJSON(url, accessTokenParam);
-                    } catch (Exception ex) {
-                        if (ex instanceof UserNotAuthorizedException) {
-                            throw ex;
-                        }
-                        return _fetchJSON(url, accessTokenParam);
-                    }
-                } catch (FileNotFoundException ex) {
-                    return "URL not found: " + url;
+                    return Observable.just(_fetchJSON(url, finalToken));
                 } catch (IOException ex) {
-                    ex.printStackTrace();
-                    return ex.getMessage();
+                    return Observable.error(ex);
                 } catch (JSONException ex) {
-                    return ex.getMessage();
+                    return Observable.error(ex);
                 } catch (UserNotAuthorizedException ex) {
-                    return USER_NOT_AUTHORIZED_ERROR;
+                    return Observable.error(ex);
                 }
             }
-
-            @Override
-            protected void onPostExecute(Object result) {
-                if (result instanceof JSONObject) {
-                    callback.onSuccess((JSONObject)result);
-                } else if (result instanceof String) {
-                    callback.onError((String)result);
-                } else {
-                    throw new RuntimeException("Invalid result received from background task!");
-                }
-            }
-        };
-        asyncTask.executeOnExecutor(EXECUTOR, accessToken);
+        }).observeOn(AndroidSchedulers.mainThread())
+                .subscribeOn(Schedulers.io())
+                .subscribe(new Consumer<JSONObject>() {
+                    @Override
+                    public void accept(JSONObject jsonObject) throws Exception {
+                        callback.onSuccess(jsonObject);
+                    }
+                }, new Consumer<Throwable>() {
+                    @Override
+                    public void accept(Throwable throwable) throws Exception {
+                        if (throwable instanceof UserNotAuthorizedException) {
+                            callback.onError(USER_NOT_AUTHORIZED_ERROR);
+                        } else {
+                            callback.onError(throwable.toString());
+                        }
+                    }
+                });
     }
 
     /**
@@ -152,46 +142,31 @@ public class APIService {
         if (!useToken) {
             accessToken = null;
         }
-        AsyncTask<String, Void, Object> asyncTask = new AsyncTask<String, Void, Object>() {
+        final String finalToken = accessToken;
+        Observable.defer(new Callable<ObservableSource<String>>() {
             @Override
-            protected Object doInBackground(String... params) {
+            public Observable<String> call() {
                 try {
-                    String accessTokenParam = null;
-                    if (params != null && params.length == 1) {
-                        accessTokenParam = params[0];
-                    }
-                    // We do a retry once.
-                    try {
-                        return _fetchByteResource(url, data, accessTokenParam);
-                    } catch (Exception ex) {
-                        if (ex instanceof UserNotAuthorizedException) {
-                            throw ex;
-                        }
-                        return _fetchByteResource(url, data, accessTokenParam);
-                    }
+                    return Observable.just(_fetchByteResource(url, data, finalToken));
                 } catch (IOException ex) {
-                    return ex;
+                    return Observable.error(ex);
                 } catch (UserNotAuthorizedException ex) {
-                    return ex;
+                    return Observable.error(ex);
                 }
             }
-
-            @Override
-            protected void onPostExecute(Object result) {
-                if (result instanceof String) {
-                    callback.onSuccess((String)result);
-                } else if (result instanceof Exception) {
-                    if (result instanceof UserNotAuthorizedException) {
-                        callback.onError(USER_NOT_AUTHORIZED_ERROR);
-                    } else {
-                        callback.onError(result.toString());
+        }).observeOn(AndroidSchedulers.mainThread())
+                .subscribeOn(Schedulers.io())
+                .subscribe(new Consumer<String>() {
+                    @Override
+                    public void accept(String string) throws Exception {
+                        callback.onSuccess(string);
                     }
-                } else {
-                    throw new RuntimeException("Invalid result received from background task!");
-                }
-            }
-        };
-        asyncTask.executeOnExecutor(EXECUTOR, accessToken);
+                }, new Consumer<Throwable>() {
+                    @Override
+                    public void accept(Throwable throwable) throws Exception {
+                        callback.onError(throwable.toString());
+                    }
+                });
     }
 
     /**

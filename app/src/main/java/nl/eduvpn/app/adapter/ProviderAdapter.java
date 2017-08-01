@@ -47,17 +47,17 @@ public class ProviderAdapter extends RecyclerView.Adapter<ProviderViewHolder> {
     public ProviderAdapter(final ConfigurationService configurationService, @ConnectionType final int connectionType) {
         _connectionType = connectionType;
         if (connectionType == ConnectionType.SECURE_INTERNET) {
-            _instanceList = configurationService.getInstanceList();
+            _instanceList = configurationService.getSecureInternetList();
         } else {
-            _instanceList = configurationService.getFederationList();
+            _instanceList = configurationService.getInstituteAccessList();
         }
         configurationService.addObserver(new Observer() {
             @Override
             public void update(Observable o, Object arg) {
                 if (_connectionType == ConnectionType.SECURE_INTERNET) {
-                    _instanceList = configurationService.getInstanceList();
+                    _instanceList = configurationService.getSecureInternetList();
                 } else {
-                    _instanceList = configurationService.getFederationList();
+                    _instanceList = configurationService.getInstituteAccessList();
                 }
                 notifyDataSetChanged();
             }

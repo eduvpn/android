@@ -27,6 +27,7 @@ import nl.eduvpn.app.service.ConfigurationService;
 import nl.eduvpn.app.service.ConnectionService;
 import nl.eduvpn.app.service.HistoryService;
 import nl.eduvpn.app.service.PreferencesService;
+import nl.eduvpn.app.service.SecurityService;
 import nl.eduvpn.app.service.SerializerService;
 import nl.eduvpn.app.service.VPNService;
 
@@ -57,8 +58,8 @@ public class ApplicationModule {
 
     @Provides
     @Singleton
-    protected ConfigurationService provideConfigurationService(Context context, SerializerService serializerService, OkHttpClient okHttpClient) {
-        return new ConfigurationService(context, serializerService, okHttpClient);
+    protected ConfigurationService provideConfigurationService(Context context, SerializerService serializerService, SecurityService securityService, OkHttpClient okHttpClient) {
+        return new ConfigurationService(context, serializerService, securityService, okHttpClient);
     }
 
     @Provides
@@ -95,6 +96,12 @@ public class ApplicationModule {
     @Singleton
     protected HistoryService provideHistoryService(PreferencesService preferencesService) {
         return new HistoryService(preferencesService);
+    }
+
+    @Provides
+    @Singleton
+    protected SecurityService provideSecurityService() {
+        return new SecurityService();
     }
 
     @Provides

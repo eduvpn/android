@@ -19,7 +19,6 @@ package nl.eduvpn.app.service;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 
 import org.json.JSONException;
@@ -28,12 +27,19 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
-import java.util.Observable;
+import java.util.concurrent.Callable;
 
+import io.reactivex.Observable;
+import io.reactivex.ObservableSource;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.functions.BiFunction;
+import io.reactivex.functions.Consumer;
+import io.reactivex.schedulers.Schedulers;
 import nl.eduvpn.app.BuildConfig;
 import nl.eduvpn.app.entity.ConnectionType;
 import nl.eduvpn.app.entity.Instance;
 import nl.eduvpn.app.entity.InstanceList;
+import nl.eduvpn.app.entity.exception.InvalidSignatureException;
 import nl.eduvpn.app.utils.Log;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -44,7 +50,7 @@ import okhttp3.ResponseBody;
  * Service which provides the app configuration.
  * Created by Daniel Zolnai on 2016-10-07.
  */
-public class ConfigurationService extends Observable {
+public class ConfigurationService extends java.util.Observable {
 
     private static final String TAG = ConfigurationService.class.getName();
 
@@ -55,14 +61,16 @@ public class ConfigurationService extends Observable {
 
     private final Context _context;
     private final SerializerService _serializerService;
+    private final SecurityService _securityService;
     private final OkHttpClient _okHttpClient;
 
-    private InstanceList _instanceList;
-    private InstanceList _federationList;
+    private InstanceList _secureInternetList;
+    private InstanceList _instituteAccessList;
 
-    public ConfigurationService(Context context, SerializerService serializerService, OkHttpClient okHttpClient) {
+    public ConfigurationService(Context context, SerializerService serializerService, SecurityService securityService, OkHttpClient okHttpClient) {
         _context = context;
         _serializerService = serializerService;
+        _securityService = securityService;
         _okHttpClient = okHttpClient;
         _loadSavedLists();
         _fetchLatestConfiguration();
@@ -74,20 +82,20 @@ public class ConfigurationService extends Observable {
      * @return The instance list configuration.
      */
     @NonNull
-    public List<Instance> getInstanceList() {
-        if (_instanceList == null) {
+    public List<Instance> getSecureInternetList() {
+        if (_secureInternetList == null) {
             return Collections.emptyList();
         } else {
-            return _instanceList.getInstanceList();
+            return _secureInternetList.getInstanceList();
         }
     }
 
     @NonNull
-    public List<Instance> getFederationList() {
-        if (_federationList == null) {
+    public List<Instance> getInstituteAccessList() {
+        if (_instituteAccessList == null) {
             return Collections.emptyList();
         } else {
-            return _federationList.getInstanceList();
+            return _instituteAccessList.getInstanceList();
         }
     }
 
@@ -102,10 +110,10 @@ public class ConfigurationService extends Observable {
         String savedFederationList = _getPreferences().getString(FEDERATION_LIST_KEY, null);
         try {
             if (savedInstanceList != null) {
-                _instanceList = _parseInstanceList(savedInstanceList);
+                _secureInternetList = _parseInstanceList(savedInstanceList);
             }
             if (savedFederationList != null) {
-                _federationList = _parseInstanceList(savedFederationList);
+                _instituteAccessList = _parseInstanceList(savedFederationList);
             }
         } catch (Exception ex) {
             Log.e(TAG, "Unable to parse saved instance list JSON.", ex);
@@ -117,15 +125,15 @@ public class ConfigurationService extends Observable {
      */
     private void _saveLists() {
         try {
-            if (_instanceList == null) {
+            if (_secureInternetList == null) {
                 throw new RuntimeException("No instance list set!");
             }
-            JSONObject serialized = _serializerService.serializeInstanceList(_instanceList);
+            JSONObject serialized = _serializerService.serializeInstanceList(_secureInternetList);
             _getPreferences().edit().putString(INSTANCE_LIST_KEY, serialized.toString()).apply();
-            if (_federationList == null) {
+            if (_instituteAccessList == null) {
                 throw new RuntimeException("No federation list set!");
             }
-            serialized = _serializerService.serializeInstanceList(_federationList);
+            serialized = _serializerService.serializeInstanceList(_instituteAccessList);
             _getPreferences().edit().putString(FEDERATION_LIST_KEY, serialized.toString()).apply();
         } catch (SerializerService.UnknownFormatException ex) {
             Log.e(TAG, "Unable to save the instance or federation list!", ex);
@@ -149,85 +157,78 @@ public class ConfigurationService extends Observable {
      * Downloads, parses, and saves the latest configuration retrieved from the URL defined in the build configuration.
      */
     private void _fetchLatestConfiguration() {
-        AsyncTask<Integer, Void, TaskResult> instituteAccessTask = new DownloadTask();
-        AsyncTask<Integer, Void, TaskResult> secureInternetTask = new DownloadTask();
-        instituteAccessTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, ConnectionType.INSTITUTE_ACCESS);
-        secureInternetTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, ConnectionType.SECURE_INTERNET);
+        _fetchConfigurationForConnectionType(ConnectionType.INSTITUTE_ACCESS);
+        _fetchConfigurationForConnectionType(ConnectionType.SECURE_INTERNET);
     }
 
-    private class DownloadTask extends AsyncTask<Integer, Void, TaskResult> {
+    private void _fetchConfigurationForConnectionType(@ConnectionType final int connectionType) {
+        Observable<String> instanceListObservable = _createInstanceListObservable(connectionType);
+        Observable<String> signatureObservable = _createSignatureObservable(connectionType);
+        // Combine the result of the two
+        Observable.zip(instanceListObservable, signatureObservable, new BiFunction<String, String, InstanceList>() {
+            @Override
+            public InstanceList apply(@io.reactivex.annotations.NonNull String instanceList, @io.reactivex.annotations.NonNull String signature) throws Exception {
+                if (_securityService.isValidSignature(instanceList, signature)) {
+                    return _parseInstanceList(instanceList);
+                } else {
+                    throw new InvalidSignatureException("Signature validation failed for instance list! Connection type: " + connectionType);
+                }
+            }
+        }).subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Consumer<InstanceList>() {
+                    @Override
+                    public void accept(InstanceList instanceList) throws Exception {
+                        if (connectionType == ConnectionType.SECURE_INTERNET) {
+                            _secureInternetList = instanceList;
+                        } else {
+                            _instituteAccessList = instanceList;
+                        }
+                        _saveLists();
+                        Log.i(TAG, "Successfully refreshed instance list for connection type: " + connectionType);
+                    }
+                }, new Consumer<Throwable>() {
+                    @Override
+                    public void accept(Throwable throwable) throws Exception {
+                        Log.e(TAG, "Error encountered while fetching instance list for connection type: " + connectionType, throwable);
+                    }
+                });
+    }
 
-        @Override
-        protected TaskResult doInBackground(Integer... params) {
-            try {
-                // First fetch the instance list
-                int connectionType = params[0];
-                String requestUrl = connectionType == ConnectionType.SECURE_INTERNET ? BuildConfig.INSTANCE_LIST_URL : BuildConfig.FEDERATION_LIST_URL;
-                Request request = new Request.Builder().url(requestUrl).build();
+    private Observable<String> _createSignatureObservable(@ConnectionType final int connectionType) {
+        return Observable.defer(new Callable<ObservableSource<String>>() {
+            @Override
+            public ObservableSource<String> call() throws Exception {
+                String signatureRequestUrl = connectionType == ConnectionType.SECURE_INTERNET ? BuildConfig.INSTANCE_LIST_URL : BuildConfig.FEDERATION_LIST_URL;
+                signatureRequestUrl = signatureRequestUrl + BuildConfig.SIGNATURE_URL_POSTFIX;
+                Request request = new Request.Builder().url(signatureRequestUrl).build();
                 Response response = _okHttpClient.newCall(request).execute();
                 ResponseBody responseBody = response.body();
                 if (responseBody != null) {
                     //noinspection WrongConstant
-                    return TaskResult.success(connectionType, _parseInstanceList(responseBody.string()));
+                    return Observable.just(responseBody.string());
                 } else {
-                    throw new IOException("Response body is empty!");
+                    return Observable.error(new IOException("Response body is empty!"));
                 }
-
-            } catch (Exception ex) {
-                Log.w(TAG, "Error reading latest configuration from the URL!", ex);
-                return TaskResult.fail();
             }
-        }
-
-        @Override
-        protected void onPostExecute(TaskResult taskResult) {
-            if (taskResult.isSuccessful()) {
-                if (taskResult.getConnectionType() == ConnectionType.INSTITUTE_ACCESS) {
-                    _federationList = taskResult.getInstanceList();
-                } else {
-                    _instanceList = taskResult.getInstanceList();
-                }
-                _saveLists();
-                setChanged();
-                notifyObservers();
-            }
-        }
+        }).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread());
     }
 
-    private static class TaskResult {
-        @ConnectionType
-        private int _connectionType;
-
-        private InstanceList _instanceList;
-
-        private boolean _successful;
-
-        private TaskResult(boolean successful, int connectionType, InstanceList instanceList) {
-            _successful = successful;
-            _connectionType = connectionType;
-            _instanceList = instanceList;
-        }
-
-        public static TaskResult fail() {
-            return new TaskResult(false, -1, null);
-        }
-
-        public static TaskResult success(@ConnectionType int connectionType, InstanceList result) {
-            return new TaskResult(true, connectionType, result);
-        }
-
-        public boolean isSuccessful() {
-            return _successful;
-        }
-
-        public InstanceList getInstanceList() {
-            return _instanceList;
-        }
-
-        @ConnectionType
-        public int getConnectionType() {
-            return _connectionType;
-        }
+    private Observable<String> _createInstanceListObservable(@ConnectionType final int connectionType) {
+        return Observable.defer(new Callable<ObservableSource<String>>() {
+            @Override
+            public ObservableSource<String> call() throws Exception {
+                String listRequestUrl = connectionType == ConnectionType.SECURE_INTERNET ? BuildConfig.INSTANCE_LIST_URL : BuildConfig.FEDERATION_LIST_URL;
+                Request request = new Request.Builder().url(listRequestUrl).build();
+                Response response = _okHttpClient.newCall(request).execute();
+                ResponseBody responseBody = response.body();
+                if (responseBody != null) {
+                    //noinspection WrongConstant
+                    return Observable.just(responseBody.string());
+                } else {
+                    return Observable.error(new IOException("Response body is empty!"));
+                }
+            }
+        }).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread());
     }
-
 }
