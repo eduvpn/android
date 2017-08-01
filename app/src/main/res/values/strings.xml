@@ -84,4 +84,7 @@
     <string name="header_institute_access">Institute Access</string>
     <string name="header_secure_internet">Secure Internet</string>
     <string name="profile_name_not_found">Unknown profile</string>
+    <string name="vpn_profile_creating_keypair">Creating keypair...</string>
+    <string name="error_creating_keypair">Error creating keypair. Details: %s</string>
+    <string name="error_parsing_keypair">Error parsing keypair. Details: %s</string>
 </resources>

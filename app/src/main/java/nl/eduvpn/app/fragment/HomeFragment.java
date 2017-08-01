@@ -55,6 +55,7 @@ import nl.eduvpn.app.adapter.ProfileAdapter;
 import nl.eduvpn.app.entity.AuthorizationType;
 import nl.eduvpn.app.entity.DiscoveredAPI;
 import nl.eduvpn.app.entity.Instance;
+import nl.eduvpn.app.entity.KeyPair;
 import nl.eduvpn.app.entity.Profile;
 import nl.eduvpn.app.entity.SavedProfile;
 import nl.eduvpn.app.entity.SavedToken;
@@ -227,7 +228,7 @@ public class HomeFragment extends Fragment {
                     }
                 }
                 // Ok so we don't have a downloaded profile, we need to download one
-                _downloadProfileAndConnect(instance, discoveredAPI, profile);
+                _createKeypairIfNeeded(instance, discoveredAPI, profile);
             }
         };
         ItemClickSupport.addTo(_instituteAccessList).setOnItemClickListener(clickListener);
@@ -342,7 +343,7 @@ public class HomeFragment extends Fragment {
     private void _fetchProfileList(@NonNull final ProfileAdapter adapter, @NonNull final Instance instance,
                                    @NonNull DiscoveredAPI discoveredAPI, @NonNull String accessToken) {
         _connectionService.setAccessToken(accessToken);
-        _apiService.getJSON(discoveredAPI.getProfileListAPI(), true, new APIService.Callback<JSONObject>() {
+        _apiService.getJSON(discoveredAPI.getProfileListEndpoint(), true, new APIService.Callback<JSONObject>() {
             @Override
             public void onSuccess(JSONObject result) {
                 try {
@@ -490,39 +491,35 @@ public class HomeFragment extends Fragment {
      * @param discoveredAPI The discovered API.
      * @param profile       The profile to download.
      */
-    private void _downloadProfileAndConnect(@NonNull final Instance instance, @NonNull DiscoveredAPI discoveredAPI, @NonNull final Profile profile) {
+    private void _createKeypairIfNeeded(@NonNull final Instance instance, @NonNull DiscoveredAPI discoveredAPI, @NonNull final Profile profile) {
+        // First we create a keypair, if there is no saved one yet.
         final ProgressDialog dialog = ProgressDialog.show(getContext(),
                 getString(R.string.progress_dialog_title),
-                getString(R.string.vpn_profile_download_message),
+                getString(R.string.vpn_profile_creating_keypair),
                 true,
                 false);
-        String requestData = "display_name=eduVPN%20for%20Android&profile_id=" + profile.getProfileId();
-        String url = discoveredAPI.getCreateConfigAPI();
-        _apiService.postResource(url, requestData, true, new APIService.Callback<String>() {
+        String requestData = "display_name=eduVPN%20for%20Android";
+        String createKeyPairEndpoint = discoveredAPI.getCreateKeyPairEndpoint();
+        _apiService.postResource(createKeyPairEndpoint, requestData, true, new APIService.Callback<String>() {
 
             @Override
-            public void onSuccess(String vpnConfig) {
-                String configName = FormattingUtils.formatProfileName(getContext(), instance, profile);
-                VpnProfile vpnProfile = _vpnService.importConfig(vpnConfig, configName);
-                if (vpnProfile != null && getActivity() != null) {
-                    // Cache the profile
-                    SavedProfile savedProfile = new SavedProfile(instance, profile, vpnProfile.getUUIDString());
-                    _historyService.cacheSavedProfile(savedProfile);
-                    // Connect with the profile
+            public void onSuccess(String keyPairJson) {
+                try {
+                    KeyPair keyPair = _serializerService.deserializeKeyPair(new JSONObject(keyPairJson));
+                    Log.i(TAG, "Created key pair, is it successful: " + keyPair.isOK());
+                    // TODO create profile
+                } catch (Exception ex) {
                     dialog.dismiss();
-                    _vpnService.connect(getActivity(), vpnProfile);
-                    ((MainActivity)getActivity()).openFragment(new ConnectionStatusFragment(), false);
-                } else {
-                    dialog.dismiss();
-                    ErrorDialog.show(getContext(), R.string.error_dialog_title, R.string.error_importing_profile);
+                    ErrorDialog.show(getContext(), R.string.error_dialog_title, getString(R.string.error_parsing_keypair, ex.getMessage()));
+                    Log.e(TAG, "Unable to parse keypair data", ex);
                 }
             }
 
             @Override
             public void onError(String errorMessage) {
                 dialog.dismiss();
-                ErrorDialog.show(getContext(), R.string.error_dialog_title, getString(R.string.error_fetching_profile, errorMessage));
-                Log.e(TAG, "Error fetching profile: " + errorMessage);
+                ErrorDialog.show(getContext(), R.string.error_dialog_title, getString(R.string.error_creating_keypair, errorMessage));
+                Log.e(TAG, "Error creating keypair: " + errorMessage);
             }
         });
     }

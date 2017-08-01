@@ -25,6 +25,7 @@ import nl.eduvpn.app.entity.AuthorizationType;
 import nl.eduvpn.app.entity.DiscoveredAPI;
 import nl.eduvpn.app.entity.Instance;
 import nl.eduvpn.app.entity.InstanceList;
+import nl.eduvpn.app.entity.KeyPair;
 import nl.eduvpn.app.entity.Profile;
 import nl.eduvpn.app.entity.SavedProfile;
 import nl.eduvpn.app.entity.SavedToken;
@@ -102,15 +103,12 @@ public class SerializerServiceTest {
 
     @Test
     public void testDiscoveredAPISerialization() throws SerializerService.UnknownFormatException {
-        DiscoveredAPI discoveredAPI = new DiscoveredAPI("authEndpoint", "createConfig", "profileList",
-                "systemMessages", "userMessages");
+        DiscoveredAPI discoveredAPI = new DiscoveredAPI("base_uri", "auth_endpoint", "token_endpoint");
         JSONObject serializedDiscoveredAPI = _serializerService.serializeDiscoveredAPI(discoveredAPI);
         DiscoveredAPI deserializedDiscoveredAPI = _serializerService.deserializeDiscoveredAPI(serializedDiscoveredAPI);
         assertEquals(discoveredAPI.getAuthorizationEndpoint(), deserializedDiscoveredAPI.getAuthorizationEndpoint());
-        assertEquals(discoveredAPI.getCreateConfigAPI(), deserializedDiscoveredAPI.getCreateConfigAPI());
-        assertEquals(discoveredAPI.getProfileListAPI(), deserializedDiscoveredAPI.getProfileListAPI());
-        assertEquals(discoveredAPI.getSystemMessagesAPI(), deserializedDiscoveredAPI.getSystemMessagesAPI());
-        assertEquals(discoveredAPI.getUserMessagesAPI(), deserializedDiscoveredAPI.getUserMessagesAPI());
+        assertEquals(discoveredAPI.getApiBaseUri(), deserializedDiscoveredAPI.getApiBaseUri());
+        assertEquals(discoveredAPI.getTokenEndpoint(), deserializedDiscoveredAPI.getTokenEndpoint());
     }
 
     @Test
@@ -150,10 +148,8 @@ public class SerializerServiceTest {
     @Test
     public void testTTLCacheSerialization() throws SerializerService.UnknownFormatException {
         TTLCache<DiscoveredAPI> cache = new TTLCache<>(100);
-        DiscoveredAPI discoveredAPI1 = new DiscoveredAPI("authEndpoint", "createConfig", "profileList",
-                "systemMessages", "userMessages");
-        DiscoveredAPI discoveredAPI2 = new DiscoveredAPI("authEndpoint2", "createConfig2", "profileList2",
-                "systemMessages2", "userMessages2");
+        DiscoveredAPI discoveredAPI1 = new DiscoveredAPI("baseuri1", "authendpoint1", "tokenendpoint1");
+        DiscoveredAPI discoveredAPI2 = new DiscoveredAPI("baseuri2", "authendpoint2", "tokenendpoint2");
         cache.put("key1", discoveredAPI1);
         cache.put("key2", discoveredAPI2);
         JSONObject serializedCache = _serializerService.serializeDiscoveredAPITTLCache(cache);
@@ -167,11 +163,9 @@ public class SerializerServiceTest {
             Map.Entry<String, Pair<Date, DiscoveredAPI>> deserializedEntry = deserializedIterator.next();
             assertEquals(entry.getKey(), deserializedEntry.getKey());
             assertEquals(entry.getValue().first, deserializedEntry.getValue().first);
-            assertEquals(entry.getValue().second.getCreateConfigAPI(), deserializedEntry.getValue().second.getCreateConfigAPI());
-            assertEquals(entry.getValue().second.getProfileListAPI(), deserializedEntry.getValue().second.getProfileListAPI());
+            assertEquals(entry.getValue().second.getApiBaseUri(), deserializedEntry.getValue().second.getApiBaseUri());
             assertEquals(entry.getValue().second.getAuthorizationEndpoint(), deserializedEntry.getValue().second.getAuthorizationEndpoint());
-            assertEquals(entry.getValue().second.getUserMessagesAPI(), deserializedEntry.getValue().second.getUserMessagesAPI());
-            assertEquals(entry.getValue().second.getSystemMessagesAPI(), deserializedEntry.getValue().second.getSystemMessagesAPI());
+            assertEquals(entry.getValue().second.getTokenEndpoint(), deserializedEntry.getValue().second.getTokenEndpoint());
         }
     }
 
@@ -214,6 +208,22 @@ public class SerializerServiceTest {
             assertEquals(list.get(i).getProfile().getProfileId(), deserializedList.get(i).getProfile().getProfileId());
             assertEquals(list.get(i).getProfileUUID(), deserializedList.get(i).getProfileUUID());
         }
+    }
+
+    @Test
+    public void testKeyPairSerialization() throws SerializerService.UnknownFormatException {
+        KeyPair keyPair = new KeyPair(false, "cert1", "pk1");
+        JSONObject serializedKeyPair = _serializerService.serializeKeyPair(keyPair);
+        KeyPair deserializedKeyPair = _serializerService.deserializeKeyPair(serializedKeyPair);
+        assertEquals(keyPair.isOK(), deserializedKeyPair.isOK());
+        assertEquals(keyPair.getCertificate(), deserializedKeyPair.getCertificate());
+        assertEquals(keyPair.getPrivateKey(), deserializedKeyPair.getPrivateKey());
+         keyPair = new KeyPair(true, "example certificate", "example private key");
+        serializedKeyPair = _serializerService.serializeKeyPair(keyPair);
+        deserializedKeyPair = _serializerService.deserializeKeyPair(serializedKeyPair);
+        assertEquals(keyPair.isOK(), deserializedKeyPair.isOK());
+        assertEquals(keyPair.getCertificate(), deserializedKeyPair.getCertificate());
+        assertEquals(keyPair.getPrivateKey(), deserializedKeyPair.getPrivateKey());
     }
 
     /**

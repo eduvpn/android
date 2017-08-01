@@ -17,8 +17,10 @@
 
 package nl.eduvpn.app.entity;
 
+import android.net.Uri;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+
+import nl.eduvpn.app.Constants;
 
 /**
  * A discovered API entity, containing all the URLs.
@@ -26,22 +28,16 @@ import android.support.annotation.Nullable;
  */
 public class DiscoveredAPI {
 
-    private final String _authorizationEndpoint;
-    private final String _createConfigAPI;
-    private final String _profileListAPI;
-    private final String _systemMessagesAPI;
-    private final String _userMessagesAPI;
+    private String _apiBaseUri;
+    private String _authorizationEndpoint;
+    private String _tokenEndpoint;
 
-    public DiscoveredAPI(@NonNull String authorizationEndpoint,
-                         @NonNull String createConfigAPI,
-                         @NonNull String profileListAPI,
-                         @Nullable String systemMessagesAPI,
-                         @Nullable String userMessagesAPI) {
+    public DiscoveredAPI(@NonNull String apiBaseUri,
+                         @NonNull String authorizationEndpoint,
+                         @NonNull String tokenEndpoint) {
+        _apiBaseUri = apiBaseUri;
         _authorizationEndpoint = authorizationEndpoint;
-        _createConfigAPI = createConfigAPI;
-        _profileListAPI = profileListAPI;
-        _systemMessagesAPI = systemMessagesAPI;
-        _userMessagesAPI = userMessagesAPI;
+        _tokenEndpoint = tokenEndpoint;
     }
 
     @NonNull
@@ -49,24 +45,31 @@ public class DiscoveredAPI {
         return _authorizationEndpoint;
     }
 
-    @NonNull
-    public String getCreateConfigAPI() {
-        return _createConfigAPI;
+    public String getApiBaseUri() {
+        return _apiBaseUri;
     }
 
-    @NonNull
-    public String getProfileListAPI() {
-        return _profileListAPI;
+    public String getTokenEndpoint() {
+        return _tokenEndpoint;
     }
 
-    @Nullable
-    public String getSystemMessagesAPI() {
-        return _systemMessagesAPI;
+    public String getSystemMessagesEndpoint() {
+        return Uri.parse(_apiBaseUri).buildUpon().appendPath(Constants.API_SYSTEM_MESSAGES_PATH).build().toString();
     }
 
-    @Nullable
-    public String getUserMessagesAPI() {
-        return _userMessagesAPI;
+    public String getUserMessagesEndpoint() {
+        return Uri.parse(_apiBaseUri).buildUpon().appendPath(Constants.API_USER_MESSAGES_PATH).build().toString();
     }
 
+    public String getProfileListEndpoint() {
+        return Uri.parse(_apiBaseUri).buildUpon().appendPath(Constants.API_PROFILE_LIST_PATH).build().toString();
+    }
+
+    public String getCreateKeyPairEndpoint() {
+        return Uri.parse(_apiBaseUri).buildUpon().appendPath(Constants.API_CREATE_KEYPAIR).build().toString();
+    }
+
+    public String getProfileConfigEndpoint() {
+        return Uri.parse(_apiBaseUri).buildUpon().appendPath(Constants.API_PROFILE_CONFIG).build().toString();
+    }
 }

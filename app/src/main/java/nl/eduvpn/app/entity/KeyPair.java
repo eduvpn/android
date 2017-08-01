@@ -15,20 +15,32 @@
  *     along with eduVPN.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package nl.eduvpn.app;
+package nl.eduvpn.app.entity;
 
 /**
- * Contains application-wide constant values.
- * Created by Daniel Zolnai on 2016-09-14.
+ * Keypair which is created by the API and sent to the user
+ * Created by Daniel Zolnai on 2017-08-01.
  */
-public class Constants {
-    public static final boolean DEBUG = BuildConfig.BUILD_TYPE.equalsIgnoreCase("debug");
+public class KeyPair {
+    private boolean _isOK;
+    private String _certificate;
+    private String _privateKey;
 
-    public static final String API_DISCOVERY_POSTFIX = "/info.json";
+    public KeyPair(boolean isOK, String certificate, String privateKey) {
+        _isOK = isOK;
+        _certificate = certificate;
+        _privateKey = privateKey;
+    }
 
-    public static final String API_SYSTEM_MESSAGES_PATH = "system_messages";
-    public static final String API_USER_MESSAGES_PATH = "user_messages";
-    public static final String API_PROFILE_LIST_PATH = "profile_list";
-    public static final String API_CREATE_KEYPAIR = "create_keypair";
-    public static final String API_PROFILE_CONFIG = "profile_config";
+    public boolean isOK() {
+        return _isOK;
+    }
+
+    public String getCertificate() {
+        return _certificate;
+    }
+
+    public String getPrivateKey() {
+        return _privateKey;
+    }
 }
