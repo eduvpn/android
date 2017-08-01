@@ -106,6 +106,9 @@ public class ConfigurationService extends java.util.Observable {
             Log.i(TAG, "Previously saved instance list for connection type " + connectionType + " is outdated, or there was" +
                     " no existing one. Saving new list for the future.");
             _preferencesService.storeInstanceList(connectionType, instanceList);
+            setChanged();
+            notifyObservers();
+            clearChanged();
         } else {
             Log.d(TAG, "Previously saved instance list for connection type " + connectionType + " has the same version as " +
                     "the newly downloaded one, new one does not have to be cached.");
@@ -116,12 +119,17 @@ public class ConfigurationService extends java.util.Observable {
      * Parses the JSON string of the instance list to a POJO object.
      *
      * @param instanceListString The string with the JSON representation.
+     * @param connectionType     The connection types for these instances.
      * @return An InstanceList object containing the same information.
      * @throws JSONException Thrown if the JSON was malformed or had an unknown list version.
      */
-    private InstanceList _parseInstanceList(String instanceListString) throws Exception {
+    private InstanceList _parseInstanceList(String instanceListString, @ConnectionType int connectionType) throws Exception {
         JSONObject instanceListJson = new JSONObject(instanceListString);
-        return _serializerService.deserializeInstanceList(instanceListJson);
+        InstanceList result = _serializerService.deserializeInstanceList(instanceListJson);
+        for (Instance instance : result.getInstanceList()) {
+            instance.setConnectionType(connectionType);
+        }
+        return result;
     }
 
     /**
@@ -140,7 +148,7 @@ public class ConfigurationService extends java.util.Observable {
             @Override
             public InstanceList apply(@io.reactivex.annotations.NonNull String instanceList, @io.reactivex.annotations.NonNull String signature) throws Exception {
                 if (_securityService.isValidSignature(instanceList, signature)) {
-                    return _parseInstanceList(instanceList);
+                    return _parseInstanceList(instanceList, connectionType);
                 } else {
                     throw new InvalidSignatureException("Signature validation failed for instance list! Connection type: " + connectionType);
                 }

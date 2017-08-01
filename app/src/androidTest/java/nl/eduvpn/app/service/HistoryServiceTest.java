@@ -19,14 +19,18 @@ package nl.eduvpn.app.service;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.filters.LargeTest;
 import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import java.util.Random;
 
 import nl.eduvpn.app.entity.ConnectionType;
 import nl.eduvpn.app.entity.DiscoveredAPI;
@@ -47,11 +51,18 @@ import static org.junit.Assert.assertNull;
 public class HistoryServiceTest {
 
     private HistoryService _historyService;
+    private static SharedPreferences _securePreferences;
 
     @Before
     @After
     public void clearPrefs() throws Exception {
         _reloadHistoryService(true);
+    }
+
+    @BeforeClass
+    public static void setPreferences() {
+        Context context = InstrumentationRegistry.getTargetContext();
+        _securePreferences = new SecurityService(context).getSecurePreferences();
     }
 
     /**
@@ -62,16 +73,18 @@ public class HistoryServiceTest {
     @SuppressLint({ "CommitPrefEdits", "ApplySharedPref" })
     private void _reloadHistoryService(boolean clearHistory) {
         SerializerService serializerService = new SerializerService();
-        Context context = InstrumentationRegistry.getTargetContext();
-        PreferencesService preferencesService = new PreferencesService(context, serializerService);
+        PreferencesService preferencesService = new PreferencesService(serializerService, _securePreferences);
         // Clean the shared preferences if needed
         if (clearHistory) {
             preferencesService._getSharedPreferences().edit().clear().commit();
+        } else {
+            // By doing a new commit, we make sure that all other pending transactions are being taken care of
+            preferencesService._getSharedPreferences().edit().putInt("DUMMY_KEY", new Random().nextInt()).commit();
         }
         _historyService = new HistoryService(preferencesService);
     }
 
-    @Test(timeout = 300)
+    @Test(timeout = 1000) // Could be a lot faster, but we use secure preferences, which encrypts and decrypts on-the-fly.
     public void testSerializationSpeed() {
         // We create, save and restore 10 discovered APIs, 10 saved profiles, 10 access tokens.
         // Should be still fast.

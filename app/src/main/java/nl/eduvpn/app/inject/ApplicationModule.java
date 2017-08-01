@@ -18,6 +18,7 @@
 package nl.eduvpn.app.inject;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 
 import java.util.concurrent.TimeUnit;
 
@@ -65,8 +66,14 @@ public class ApplicationModule {
 
     @Provides
     @Singleton
-    protected PreferencesService providePreferencesService(Context context, SerializerService serializerService) {
-        return new PreferencesService(context, serializerService);
+    protected SharedPreferences provideSecurePreferences(SecurityService securityService) {
+        return securityService.getSecurePreferences();
+    }
+
+    @Provides
+    @Singleton
+    protected PreferencesService providePreferencesService(SerializerService serializerService, SharedPreferences sharedPreferences) {
+        return new PreferencesService(serializerService, sharedPreferences);
     }
 
     @Provides
@@ -101,8 +108,8 @@ public class ApplicationModule {
 
     @Provides
     @Singleton
-    protected SecurityService provideSecurityService() {
-        return new SecurityService();
+    protected SecurityService provideSecurityService(Context context) {
+        return new SecurityService(context);
     }
 
     @Provides

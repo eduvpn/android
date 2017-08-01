@@ -17,7 +17,6 @@
 
 package nl.eduvpn.app.service;
 
-import android.content.Context;
 import android.content.SharedPreferences;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -64,17 +63,17 @@ public class PreferencesService {
     private static final String KEY_SAVED_TOKENS = "saved_tokens";
     private static final String KEY_DISCOVERED_API_CACHE = "discovered_api_cache";
 
-    private Context _context;
     private SerializerService _serializerService;
+    private SharedPreferences _sharedPreferences;
 
     /**
      * Constructor.
      *
-     * @param context           The application or activity context.
      * @param serializerService The serializer service used to serialize and deserialize objects.
+     * @param sharedPreferences The secured shared preferences where the data will be stored.
      */
-    public PreferencesService(Context context, SerializerService serializerService) {
-        _context = context;
+    public PreferencesService(SerializerService serializerService, SharedPreferences sharedPreferences) {
+        _sharedPreferences = sharedPreferences;
         _serializerService = serializerService;
     }
 
@@ -84,7 +83,7 @@ public class PreferencesService {
      * @return The preferences to be used.
      */
     SharedPreferences _getSharedPreferences() {
-        return _context.getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE);
+        return _sharedPreferences;
     }
 
     /**

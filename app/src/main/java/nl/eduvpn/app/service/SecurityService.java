@@ -17,12 +17,23 @@
 
 package nl.eduvpn.app.service;
 
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.security.keystore.KeyGenParameterSpec;
+import android.security.keystore.KeyProperties;
 import android.util.Base64;
+
+import com.securepreferences.SecurePreferences;
 
 import org.libsodium.jni.NaCl;
 import org.libsodium.jni.Sodium;
 
 import java.nio.charset.Charset;
+import java.security.KeyStore;
+
+import javax.crypto.Cipher;
+import javax.crypto.KeyGenerator;
+import javax.crypto.SecretKey;
 
 import nl.eduvpn.app.BuildConfig;
 import nl.eduvpn.app.utils.Log;
@@ -42,6 +53,15 @@ public class SecurityService {
         NaCl.sodium();
     }
 
+    private final Context _context;
+
+    public SecurityService(Context context) {
+        _context = context;
+    }
+
+    public SharedPreferences getSecurePreferences() {
+        return new SecurePreferences(_context);
+    }
     public boolean isValidSignature(String message, String signatureBase64) {
         byte[] signatureBytes = Base64.decode(signatureBase64, Base64.DEFAULT);
         byte[] messageBytes = message.getBytes(Charset.forName("UTF-8"));
@@ -52,6 +72,4 @@ public class SecurityService {
         }
         return true;
     }
-
-
 }

@@ -72,4 +72,8 @@ public class Instance {
     public boolean isCustom() {
         return _isCustom;
     }
+
+    public void setConnectionType(@ConnectionType  int connectionType) {
+        _connectionType = connectionType;
+    }
 }

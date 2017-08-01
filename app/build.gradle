@@ -49,6 +49,8 @@ dependencies {
     compile "com.android.support:design:$supportLibVersion"
     compile "com.android.support:recyclerview-v7:$supportLibVersion"
     compile "com.android.support:customtabs:$supportLibVersion"
+    // Secure preferences
+    compile 'com.scottyab:secure-preferences-lib:0.1.4'
     // HTTP client
     compile 'com.squareup.okhttp3:okhttp:3.8.1'
     // View injection
