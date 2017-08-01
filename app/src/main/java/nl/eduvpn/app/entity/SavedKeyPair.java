@@ -18,31 +18,23 @@
 package nl.eduvpn.app.entity;
 
 /**
- * Keypair which is created by the API and sent to the user.
+ * Extends the keypair with a base URI which we add.
  * Created by Daniel Zolnai on 2017-08-01.
  */
-public class KeyPair {
+public class SavedKeyPair {
+    private String _apiBaseUri;
+    private KeyPair _keyPair;
 
-    private boolean _isOK;
-    private String _certificate;
-    private String _privateKey;
-
-    public KeyPair(boolean isOK, String certificate, String privateKey) {
-        _isOK = isOK;
-        _certificate = certificate;
-        _privateKey = privateKey;
+    public SavedKeyPair(String apiBaseUri, KeyPair keyPair) {
+        _apiBaseUri = apiBaseUri;
+        _keyPair = keyPair;
     }
 
-
-    public boolean isOK() {
-        return _isOK;
+    public String getApiBaseUri() {
+        return _apiBaseUri;
     }
 
-    public String getCertificate() {
-        return _certificate;
-    }
-
-    public String getPrivateKey() {
-        return _privateKey;
+    public KeyPair getKeyPair() {
+        return _keyPair;
     }
 }

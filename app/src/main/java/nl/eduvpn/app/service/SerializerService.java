@@ -40,6 +40,7 @@ import nl.eduvpn.app.entity.Instance;
 import nl.eduvpn.app.entity.InstanceList;
 import nl.eduvpn.app.entity.KeyPair;
 import nl.eduvpn.app.entity.Profile;
+import nl.eduvpn.app.entity.SavedKeyPair;
 import nl.eduvpn.app.entity.SavedProfile;
 import nl.eduvpn.app.entity.SavedToken;
 import nl.eduvpn.app.entity.Settings;
@@ -606,4 +607,86 @@ public class SerializerService {
             throw new UnknownFormatException(ex);
         }
     }
+
+    /**
+     * Serializes a saved key pair.
+     *
+     * @param savedKeyPair The saved key pair to serialize.
+     * @return The JSON representation of the saved key pair.
+     * @throws UnknownFormatException Thrown if an error happens during serialization.
+     */
+    public JSONObject serializeSavedKeyPair(SavedKeyPair savedKeyPair) throws UnknownFormatException {
+        JSONObject result = new JSONObject();
+        try {
+            result.put("api_base_uri", savedKeyPair.getApiBaseUri());
+            result.put("key_pair", serializeKeyPair(savedKeyPair.getKeyPair()));
+            return result;
+        } catch (JSONException ex) {
+            throw new UnknownFormatException(ex);
+        }
+    }
+
+    /**
+     * Deserializes a key pair from JSON.
+     *
+     * @param jsonObject The JSON object to deserialize.
+     * @return The saved key pair instance.
+     * @throws UnknownFormatException Thrown if the JSON has an unknown format.
+     */
+    public SavedKeyPair deserializeSavedKeyPair(JSONObject jsonObject) throws UnknownFormatException {
+        try {
+            String apiBaseUri = jsonObject.getString("api_base_uri");
+            KeyPair keyPair = deserializeKeyPair(jsonObject.getJSONObject("key_pair"));
+            return new SavedKeyPair(apiBaseUri, keyPair);
+        } catch (JSONException ex) {
+            throw new UnknownFormatException(ex);
+        }
+    }
+
+    /**
+     * Serializes a list of saved key pairs.
+     *
+     * @param savedKeyPairList The key pair list to serialize.
+     * @return The key pair list serialized to JSON format.
+     * @throws UnknownFormatException Thrown if there was an error while serializing.
+     */
+    public JSONObject serializeSavedKeyPairList(List<SavedKeyPair> savedKeyPairList) throws UnknownFormatException {
+        try {
+            JSONArray serialized = new JSONArray();
+            for (SavedKeyPair savedKeyPair : savedKeyPairList) {
+                JSONObject serializedKeyPair = serializeSavedKeyPair(savedKeyPair);
+                serialized.put(serializedKeyPair);
+            }
+            JSONObject result = new JSONObject();
+            result.put("items", serialized);
+            return result;
+        } catch (JSONException ex) {
+            ex.printStackTrace();
+            throw new UnknownFormatException(ex);
+        }
+    }
+
+
+    /**
+     * Deserializes a list of saved key pairs.
+     *
+     * @param jsonObject The json to deserialize from.
+     * @return The list of saved key pairs created from the JSON.
+     * @throws UnknownFormatException Thrown if there was an error while deserializing.
+     */
+    public List<SavedKeyPair> deserializeSavedKeyPairList(JSONObject jsonObject) throws UnknownFormatException {
+        try {
+            List<SavedKeyPair> result = new ArrayList<>();
+            JSONArray itemsList = jsonObject.getJSONArray("items");
+            for (int i = 0; i < itemsList.length(); ++i) {
+                JSONObject serializedItem = itemsList.getJSONObject(i);
+                SavedKeyPair savedKeyPair = deserializeSavedKeyPair(serializedItem);
+                result.add(savedKeyPair);
+            }
+            return result;
+        } catch (JSONException ex) {
+            throw new UnknownFormatException(ex);
+        }
+    }
+
 }

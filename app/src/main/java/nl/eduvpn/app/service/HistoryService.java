@@ -26,8 +26,11 @@ import java.util.Iterator;
 import java.util.List;
 
 import nl.eduvpn.app.entity.AuthorizationType;
+import java.util.ListIterator;
+
 import nl.eduvpn.app.entity.DiscoveredAPI;
 import nl.eduvpn.app.entity.Instance;
+import nl.eduvpn.app.entity.SavedKeyPair;
 import nl.eduvpn.app.entity.SavedProfile;
 import nl.eduvpn.app.entity.SavedToken;
 import nl.eduvpn.app.utils.Log;
@@ -46,6 +49,7 @@ public class HistoryService {
     private TTLCache<DiscoveredAPI> _discoveredAPICache;
     private List<SavedProfile> _savedProfileList;
     private List<SavedToken> _savedTokenList;
+    private List<SavedKeyPair> _savedKeyPairList;
 
     private final PreferencesService _preferencesService;
 
@@ -81,6 +85,11 @@ public class HistoryService {
         if (_discoveredAPICache == null) {
             Log.i(TAG, "No discovered API cache found.");
             _discoveredAPICache = new TTLCache<>(DISCOVERED_API_CACHE_TTL_SECONDS);
+        }
+        _savedKeyPairList = _preferencesService.getSavedKeyPairList();
+        if (_savedKeyPairList == null) {
+            Log.i(TAG, "No saved key pair found.");
+            _savedKeyPairList = new ArrayList<>();
         }
     }
 
@@ -277,5 +286,47 @@ public class HistoryService {
             }
         }
         return null;
+    }
+
+    /**
+     * Returns a saved key pair for a discovered API.
+     * @param discoveredAPI The discovered API.
+     * @return The saved key pair if there was a previously generated one. Null if none created yet.
+     */
+    public SavedKeyPair getSavedKeyPairForAPI(DiscoveredAPI discoveredAPI) {
+        for (SavedKeyPair savedKeyPair : _savedKeyPairList) {
+            if (savedKeyPair.getApiBaseUri().equals(discoveredAPI.getApiBaseUri())) {
+                return savedKeyPair;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Stores a saved key pair so it can be retrieved next time.
+     *
+     * @param savedKeyPair The saved key pair to store.
+     */
+    public void storeSavedKeyPair(@NonNull SavedKeyPair savedKeyPair) {
+        // Check if it is not a duplicate
+        boolean wasDuplicate = false;
+        ListIterator<SavedKeyPair> savedKeyPairIterator = _savedKeyPairList.listIterator();
+        while (savedKeyPairIterator.hasNext()) {
+            SavedKeyPair current = savedKeyPairIterator.next();
+            if (current.getApiBaseUri().equals(savedKeyPair.getApiBaseUri())) {
+                if (!wasDuplicate) {
+                    savedKeyPairIterator.set(savedKeyPair);
+                } else {
+                    // We already replaced one. So this one is a duplicate.
+                    Log.w(TAG, "Found a duplicate key pair entry! Removing second one.");
+                    savedKeyPairIterator.remove();
+                }
+                wasDuplicate = true;
+            }
+        }
+        if (!wasDuplicate) {
+            _savedKeyPairList.add(savedKeyPair);
+        }
+        _preferencesService.storeSavedKeyPairList(_savedKeyPairList);
     }
 }

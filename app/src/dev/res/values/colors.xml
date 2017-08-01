@@ -27,6 +27,7 @@
     <color name="disabledColor">#808080</color>
     <color name="pressedColor">#FF5722</color>
     <color name="backgroundColor">#000000</color>
+    <color name="backgroundPressedColor">#202020</color>
     <color name="hintColor">#C0C0C0</color>
     <color name="settingsDescriptionTextColor">#FFFFFF</color>
     <color name="swipeBackgroundColor">#CF0000</color>

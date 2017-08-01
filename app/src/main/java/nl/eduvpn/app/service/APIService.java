@@ -92,30 +92,57 @@ public class APIService {
      * @param callback The callback for returning the result or notifying about an error.
      */
     public void getJSON(final String url, final boolean useToken, final Callback<JSONObject> callback) {
+        getString(url, useToken, new Callback<String>() {
+            @Override
+            public void onSuccess(String result) {
+                try {
+                    callback.onSuccess(new JSONObject(result));
+                } catch (JSONException ex) {
+                    callback.onError("Error parsing JSON: " + ex.toString());
+                }
+            }
+
+            @Override
+            public void onError(String errorMessage) {
+                callback.onError(errorMessage);
+            }
+        });
+    }
+
+    /**
+     * Retrieves a resource as a string.
+     *
+     * @param url      The URL to get the resource from.
+     * @param useToken If the access token should be used.
+     * @param callback The callback where the result is returned.
+     */
+    public void getString(final String url, final boolean useToken, final Callback<String> callback) {
         String accessToken = _getAccessToken();
         if (!useToken) {
             accessToken = null;
         }
         final String finalToken = accessToken;
-        Observable.defer(new Callable<ObservableSource<JSONObject>>() {
+        Observable.defer(new Callable<ObservableSource<String>>() {
             @Override
-            public Observable<JSONObject> call() {
+            public Observable<String> call() {
                 try {
-                    return Observable.just(_fetchJSON(url, finalToken));
+                    return Observable.just(_fetchString(url, finalToken));
                 } catch (IOException ex) {
                     return Observable.error(ex);
                 } catch (JSONException ex) {
                     return Observable.error(ex);
                 } catch (UserNotAuthorizedException ex) {
                     return Observable.error(ex);
+
                 }
             }
+
         }).observeOn(AndroidSchedulers.mainThread())
                 .subscribeOn(Schedulers.io())
-                .subscribe(new Consumer<JSONObject>() {
+                .subscribe(new Consumer<String>() {
                     @Override
-                    public void accept(JSONObject jsonObject) throws Exception {
-                        callback.onSuccess(jsonObject);
+                    public void accept(String string) throws Exception {
+                        callback.onSuccess(string);
                     }
                 }, new Consumer<Throwable>() {
                     @Override
@@ -228,7 +255,7 @@ public class APIService {
      * @throws IOException   Thrown if there was a problem while connecting.
      * @throws JSONException Thrown if the returned JSON was invalid or not a JSON at all.
      */
-    private JSONObject _fetchJSON(@NonNull String url, @Nullable String accessToken) throws IOException, JSONException, UserNotAuthorizedException {
+    private String _fetchString(@NonNull String url, @Nullable String accessToken) throws IOException, JSONException, UserNotAuthorizedException {
         Request.Builder requestBuilder = _createRequestBuilder(url, accessToken);
         Response response = _okHttpClient.newCall(requestBuilder.build()).execute();
         int statusCode = response.code();
@@ -242,10 +269,6 @@ public class APIService {
             responseString = responseBody.string();
         }
         Log.d(TAG, "GET " + url + ": " + responseString);
-        if (statusCode >= 200 && statusCode <= 299) {
-            return new JSONObject(responseString);
-        } else {
-            throw new IOException("Unsuccessful response: " + responseString);
-        }
+        return responseString;
     }
 }
