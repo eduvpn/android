@@ -46,7 +46,6 @@ import nl.eduvpn.app.utils.TTLCache;
 public class PreferencesService {
     private static final String TAG = PreferencesService.class.getName();
 
-    private static final String KEY_STATE = "state";
     private static final String KEY_ACCESS_TOKEN = "access_token";
     private static final String KEY_APP_SETTINGS = "app_settings";
 
@@ -84,34 +83,6 @@ public class PreferencesService {
      */
     SharedPreferences _getSharedPreferences() {
         return _sharedPreferences;
-    }
-
-    /**
-     * Saves the connection state.
-     *
-     * @param state The state to save.
-     */
-    public void storeCurrentConnectionState(@NonNull String state) {
-        _getSharedPreferences().edit()
-                .putString(KEY_STATE, state)
-                .apply();
-    }
-
-    /**
-     * Returns the lastly saved connection state string.
-     *
-     * @return The saved connection state. Null if none.
-     */
-    @Nullable
-    public String getCurrentConnectionState() {
-        return _getSharedPreferences().getString(KEY_STATE, null);
-    }
-
-    /**
-     * Removed the saved state, if any.
-     */
-    public void removeCurrentConnectionState() {
-        _getSharedPreferences().edit().remove(KEY_STATE).apply();
     }
 
     /**

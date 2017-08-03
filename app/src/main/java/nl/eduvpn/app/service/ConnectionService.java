@@ -19,18 +19,19 @@ package nl.eduvpn.app.service;
 
 import android.app.Activity;
 import android.app.PendingIntent;
-import android.app.ProgressDialog;
-import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.support.annotation.NonNull;
+import android.widget.Toast;
 
+import net.openid.appauth.AuthorizationException;
 import net.openid.appauth.AuthorizationRequest;
 import net.openid.appauth.AuthorizationResponse;
 import net.openid.appauth.AuthorizationService;
 import net.openid.appauth.AuthorizationServiceConfiguration;
 import net.openid.appauth.CodeVerifierUtil;
 import net.openid.appauth.ResponseTypeValues;
+import net.openid.appauth.TokenResponse;
 
 import java.util.concurrent.Callable;
 
@@ -52,16 +53,10 @@ import nl.eduvpn.app.utils.Log;
  */
 public class ConnectionService {
 
-    public class InvalidConnectionAttemptException extends Exception {
-        public InvalidConnectionAttemptException(String message) {
-            super(message);
-        }
-    }
-
     private static final String TAG = ConnectionService.class.getName();
 
     private static final String SCOPE = "config";
-    private static final String RESPONSE_TYPE = "code";
+    private static final String RESPONSE_TYPE = ResponseTypeValues.CODE;
     private static final String REDIRECT_URI = "org.eduvpn.app:/api/callback";
     private static final String CLIENT_ID = "org.eduvpn.app";
 
@@ -72,18 +67,17 @@ public class ConnectionService {
     private final HistoryService _historyService;
     private final SecurityService _securityService;
     private AuthorizationService _authorizationService;
-    private final Context _context;
     private String _accessToken;
 
     /**
      * Constructor.
      *
-     * @param context            The application or activity context.
      * @param preferencesService The preferences service used to store temporary data.
+     * @param historyService     History service for storing data for long-term usage
+     * @param securityService    For security related tasks.
      */
-    public ConnectionService(Context context, PreferencesService preferencesService, HistoryService historyService,
+    public ConnectionService(PreferencesService preferencesService, HistoryService historyService,
                              SecurityService securityService) {
-        _context = context;
         _preferencesService = preferencesService;
         _securityService = securityService;
         _historyService = historyService;
@@ -109,7 +103,6 @@ public class ConnectionService {
                 String stateString = _securityService.generateSecureRandomString(32);
                 _preferencesService.currentInstance(instance);
                 _preferencesService.storeCurrentDiscoveredAPI(discoveredAPI);
-                _preferencesService.storeCurrentConnectionState(stateString);
                 AuthorizationServiceConfiguration serviceConfig =
                         new AuthorizationServiceConfiguration(
                                 Uri.parse(discoveredAPI.getAuthorizationEndpoint()),
@@ -151,45 +144,52 @@ public class ConnectionService {
     }
 
     /**
-     * Checks if the returned state is valid.
-     *
-     * @param state The returned state.
-     * @return True if the state is valid and matches the saved state. Else false.
-     */
-    private boolean _validateState(String state) {
-        String savedState = _preferencesService.getCurrentConnectionState();
-        return state != null && savedState != null && savedState.equals(state);
-    }
-
-    /**
      * Parses the authorization response and retrieves the access token.
      *
      * @param authorizationResponse The auth response to process.
-     * @throws InvalidConnectionAttemptException Thrown if there's a problem with the callback.
+     * @param activity              The current activity.
      */
-    public void parseAuthorizationResponse(@NonNull AuthorizationResponse authorizationResponse) throws InvalidConnectionAttemptException {
+    public void parseAuthorizationResponse(@NonNull AuthorizationResponse authorizationResponse, final Activity activity) {
         Log.i(TAG, "Got auth response: " + authorizationResponse.jsonSerializeString());
-        String accessToken = authorizationResponse.accessToken;
-        String state = authorizationResponse.state;
-        if (accessToken == null || accessToken.isEmpty()) {
-            throw new InvalidConnectionAttemptException(_context.getString(R.string.error_access_token_missing));
-        }
-        if (state == null || state.isEmpty()) {
-            throw new InvalidConnectionAttemptException(_context.getString(R.string.error_state_missing));
-        }
-        // Make sure the state is valid
-        boolean isStateValid = _validateState(state);
+        _authorizationService.performTokenRequest(
+                authorizationResponse.createTokenExchangeRequest(),
+                new AuthorizationService.TokenResponseCallback() {
+                    @Override
+                    public void onTokenRequestCompleted(TokenResponse tokenResponse, AuthorizationException ex) {
+                        if (tokenResponse != null) {
+                            // exchange succeeded
+                            _processTokenExchangeResponse(tokenResponse, activity);
+                        } else {
+                            // authorization failed, check ex for more details
+                            ErrorDialog.show(activity,
+                                    R.string.authorization_error_title,
+                                    activity.getString(R.string.authorization_error_message, ex.error, ex.code, ex.getMessage()));
+                        }
+                        _authorizationService.dispose();
+                        _authorizationService = null;
+                    }
+                });
 
-        if (!isStateValid) {
-            throw new InvalidConnectionAttemptException(_context.getString(R.string.error_state_mismatch));
+    }
+
+    /**
+     * Process the the exchanged token.
+     *
+     * @param tokenResponse The response from the token exchange.
+     * @param activity      The current activity.
+     */
+    private void _processTokenExchangeResponse(TokenResponse tokenResponse, Activity activity) {
+        String accessToken = tokenResponse.accessToken;
+        if (accessToken == null || accessToken.isEmpty()) {
+            ErrorDialog.show(activity, R.string.error_dialog_title, R.string.error_access_token_missing);
+            return;
         }
         // Save the access token
         _accessToken = accessToken;
         _preferencesService.storeCurrentAccessToken(accessToken);
-        // Now we can delete the saved state
-        _preferencesService.removeCurrentConnectionState();
         // Save the access token for later use.
         _historyService.cacheAccessToken(_preferencesService.getCurrentInstance(), _accessToken);
+        Toast.makeText(activity, R.string.provider_added_new_configs_available, Toast.LENGTH_LONG).show();
     }
 
     /**

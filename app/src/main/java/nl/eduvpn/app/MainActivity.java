@@ -85,9 +85,9 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
-        AuthorizationResponse authorizationResponse = AuthorizationResponse.fromIntent(getIntent());
+        AuthorizationResponse authorizationResponse = AuthorizationResponse.fromIntent(intent);
         //noinspection ThrowableResultOfMethodCallIgnored
-        AuthorizationException authorizationException = AuthorizationException.fromIntent(getIntent());
+        AuthorizationException authorizationException = AuthorizationException.fromIntent(intent);
         if (authorizationResponse == null && authorizationException == null) {
             // Not a callback intent.
             return;
@@ -112,16 +112,11 @@ public class MainActivity extends AppCompatActivity {
                     authorizationException.code,
                     authorizationException.getMessage()));
         } else {
-            try {
-                _connectionService.parseAuthorizationResponse(authorizationResponse);
-            } catch (ConnectionService.InvalidConnectionAttemptException ex) {
-                ErrorDialog.show(this, R.string.error_dialog_title, ex.getMessage());
-            }
+            _connectionService.parseAuthorizationResponse(authorizationResponse, this);
             // Remove it so we don't parse it again.
             intent.setData(null);
             // Show the home fragment, so the user can select his new config(s)
             openFragment(new HomeFragment(), false);
-            Toast.makeText(this, R.string.provider_added_new_configs_available, Toast.LENGTH_LONG).show();
         }
     }
 
