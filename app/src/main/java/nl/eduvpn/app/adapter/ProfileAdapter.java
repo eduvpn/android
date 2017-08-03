@@ -31,7 +31,9 @@ import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
 
 import nl.eduvpn.app.R;
@@ -81,25 +83,26 @@ public class ProfileAdapter extends RecyclerView.Adapter<ProfileViewHolder> {
      *
      * @param profiles The list of profiles to add to the list of current items.
      */
-    public void addItems(List<Pair<Instance, Profile>> profiles) {
-        int oldSize;
+    public void addItemsIfNotAdded(List<Pair<Instance, Profile>> profiles) {
         synchronized (_profileListLock) {
-            oldSize = _profileList.size();
-            _profileList.addAll(profiles);
-        }
-        notifyItemRangeInserted(oldSize, profiles.size());
-    }
-
-    /**
-     * Replaces all items in the adapter. If you are adding only new items, use
-     * the {@link #addItems(List)} method instead for better performance.
-     * @param profiles
-     */
-    public void setItems(List<Pair<Instance, Profile>> profiles) {
-        synchronized (_profileListLock) {
-            _profileList = profiles;
+            for (Pair<Instance, Profile> newPair : profiles) {
+                ListIterator<Pair<Instance, Profile>> existingItemIterator = _profileList.listIterator();
+                boolean replacedItem = false;
+                while(existingItemIterator.hasNext() && !replacedItem) {
+                    Pair<Instance, Profile> existingPair = existingItemIterator.next();
+                    if (existingPair.first.getBaseURI().equals(newPair.first.getBaseURI())) {
+                        // Replace the item
+                        replacedItem = true;
+                        existingItemIterator.set(newPair);
+                    }
+                }
+                if (!replacedItem) {
+                    _profileList.add(newPair);
+                }
+            }
         }
         notifyDataSetChanged();
+
     }
 
 

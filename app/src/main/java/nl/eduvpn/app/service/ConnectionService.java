@@ -34,7 +34,6 @@ import net.openid.appauth.CodeVerifierUtil;
 import net.openid.appauth.ResponseTypeValues;
 import net.openid.appauth.TokenResponse;
 import net.openid.appauth.browser.BrowserBlacklist;
-import net.openid.appauth.browser.BrowserWhitelist;
 import net.openid.appauth.browser.VersionedBrowserMatcher;
 
 import java.util.concurrent.Callable;

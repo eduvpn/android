@@ -390,7 +390,7 @@ public class HomeFragment extends Fragment {
                     for (Profile profile : profiles) {
                         newItems.add(new Pair<>(instance, profile));
                     }
-                    adapter.addItems(newItems);
+                    adapter.addItemsIfNotAdded(newItems);
                 } catch (SerializerService.UnknownFormatException ex) {
                     _problematicInstances.add(instance);
                     Log.e(TAG, "Error parsing profile list.", ex);
@@ -556,7 +556,9 @@ public class HomeFragment extends Fragment {
                     _downloadProfileWithKeyPair(instance, discoveredAPI, savedKeyPair, profile, dialog);
                 } catch (Exception ex) {
                     dialog.dismiss();
-                    ErrorDialog.show(getContext(), R.string.error_dialog_title, getString(R.string.error_parsing_keypair, ex.getMessage()));
+                    if (getActivity() != null) {
+                        ErrorDialog.show(getContext(), R.string.error_dialog_title, getString(R.string.error_parsing_keypair, ex.getMessage()));
+                    }
                     Log.e(TAG, "Unable to parse keypair data", ex);
                 }
             }
