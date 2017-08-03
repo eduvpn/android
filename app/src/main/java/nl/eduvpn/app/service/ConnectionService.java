@@ -24,6 +24,7 @@ import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.widget.Toast;
 
+import net.openid.appauth.AppAuthConfiguration;
 import net.openid.appauth.AuthorizationException;
 import net.openid.appauth.AuthorizationRequest;
 import net.openid.appauth.AuthorizationResponse;
@@ -32,6 +33,9 @@ import net.openid.appauth.AuthorizationServiceConfiguration;
 import net.openid.appauth.CodeVerifierUtil;
 import net.openid.appauth.ResponseTypeValues;
 import net.openid.appauth.TokenResponse;
+import net.openid.appauth.browser.BrowserBlacklist;
+import net.openid.appauth.browser.BrowserWhitelist;
+import net.openid.appauth.browser.VersionedBrowserMatcher;
 
 import java.util.concurrent.Callable;
 
@@ -85,7 +89,18 @@ public class ConnectionService {
     }
 
     public void warmUp(Activity activity) {
-        _authorizationService = new AuthorizationService(activity);
+        if (!_preferencesService.getAppSettings().useCustomTabs()) {
+            // We do not allow any custom tab implementation.
+            _authorizationService = new AuthorizationService(activity, new AppAuthConfiguration.Builder()
+                    .setBrowserMatcher(new BrowserBlacklist(
+                            VersionedBrowserMatcher.CHROME_CUSTOM_TAB,
+                            VersionedBrowserMatcher.SAMSUNG_CUSTOM_TAB)
+                    )
+                    .build());
+        } else {
+            // Default behavior
+            _authorizationService = new AuthorizationService(activity);
+        }
     }
 
 
@@ -126,7 +141,7 @@ public class ConnectionService {
                     @Override
                     public void accept(AuthorizationRequest authorizationRequest) throws Exception {
                         if (_authorizationService == null) {
-                            _authorizationService = new AuthorizationService(activity);
+                            warmUp(activity);
                             Log.w(TAG, "WARNING: You did not call warmUp() on the service before making your first call! You might see increased waiting times before opening the browser.");
                         }
                         _authorizationService.performAuthorizationRequest(
