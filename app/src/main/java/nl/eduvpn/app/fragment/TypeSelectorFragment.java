@@ -57,7 +57,7 @@ public class TypeSelectorFragment extends Fragment {
     protected void _onInstituteAccessClicked() {
         ProviderSelectionFragment providerSelectionFragment = new ProviderSelectionFragment();
         Bundle fragmentParameters = new Bundle();
-        fragmentParameters.putInt(ProviderSelectionFragment.EXTRA_AUTHORIZATION_TYPE, AuthorizationType.INSTITUTE_ACCESS);
+        fragmentParameters.putInt(ProviderSelectionFragment.EXTRA_AUTHORIZATION_TYPE, AuthorizationType.LOCAL);
         providerSelectionFragment.setArguments(fragmentParameters);
         ((MainActivity)getActivity()).openFragment(providerSelectionFragment, true);
     }
@@ -66,7 +66,7 @@ public class TypeSelectorFragment extends Fragment {
     protected void _onSecureInternetClicked() {
         ProviderSelectionFragment providerSelectionFragment = new ProviderSelectionFragment();
         Bundle fragmentParameters = new Bundle();
-        fragmentParameters.putInt(ProviderSelectionFragment.EXTRA_AUTHORIZATION_TYPE, AuthorizationType.SECURE_INTERNET);
+        fragmentParameters.putInt(ProviderSelectionFragment.EXTRA_AUTHORIZATION_TYPE, AuthorizationType.DISTRIBUTED);
         providerSelectionFragment.setArguments(fragmentParameters);
         ((MainActivity)getActivity()).openFragment(providerSelectionFragment, true);
     }

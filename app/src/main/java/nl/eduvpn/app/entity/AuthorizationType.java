@@ -29,6 +29,6 @@ import java.lang.annotation.RetentionPolicy;
 @IntDef({ AuthorizationType.LOCAL, AuthorizationType.DISTRIBUTED })
 @Retention(RetentionPolicy.SOURCE)
 public @interface AuthorizationType {
-    int DISTRIBUTED = 0;
-    int LOCAL = 1;
+    int LOCAL = 0;
+    int DISTRIBUTED = 1;
 }

@@ -20,6 +20,11 @@ package nl.eduvpn.app.service;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+
 import nl.eduvpn.app.entity.AuthorizationType;
 import nl.eduvpn.app.entity.DiscoveredAPI;
 import nl.eduvpn.app.entity.Instance;
@@ -27,11 +32,6 @@ import nl.eduvpn.app.entity.SavedProfile;
 import nl.eduvpn.app.entity.SavedToken;
 import nl.eduvpn.app.utils.Log;
 import nl.eduvpn.app.utils.TTLCache;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
 
 /**
  * Service which stores previously used access token and profile names.
@@ -118,13 +118,15 @@ public class HistoryService {
     /**
      * Returns a cached access token for an API.
      *
-     * @param sanitizedBaseURI The sanitized base URI of the API.
+     * @param instance The instance to get the access token for.
      * @return The access token if found. Null if not found.
      */
     @Nullable
-    public String getCachedAccessToken(@NonNull String sanitizedBaseURI) {
+    public String getCachedAccessToken(@NonNull Instance instance) {
         for (SavedToken savedToken : _savedTokenList) {
-            if (savedToken.getInstance().getSanitizedBaseURI().equals(sanitizedBaseURI)) {
+            if (savedToken.getInstance().getSanitizedBaseURI().equals(instance.getBaseURI())) {
+                return savedToken.getAccessToken();
+            } else if (instance.getAuthorizationType() == AuthorizationType.DISTRIBUTED || savedToken.getInstance().getAuthorizationType() == AuthorizationType.DISTRIBUTED) {
                 return savedToken.getAccessToken();
             }
         }
@@ -139,7 +141,7 @@ public class HistoryService {
      */
     public void cacheAccessToken(@NonNull Instance instance, @NonNull String accessToken) {
         // Remove all previous entries
-        removeAccessTokens(instance.getSanitizedBaseURI());
+        removeAccessTokens(instance);
         _savedTokenList.add(new SavedToken(instance, accessToken));
         _save();
     }
@@ -154,10 +156,16 @@ public class HistoryService {
         return Collections.unmodifiableList(_savedProfileList);
     }
 
+    /**
+     * Returns the saved tokens for a specific auth type.
+     *
+     * @param authorizationType The authorization type filter.
+     * @return The list of saved tokens for specific instances.
+     */
     @NonNull
     public List<SavedToken> getSavedTokensForAuthorizationType(@AuthorizationType int authorizationType) {
         List<SavedToken> result = new ArrayList<>();
-        for (SavedToken savedToken: _savedTokenList) {
+        for (SavedToken savedToken : _savedTokenList) {
             if (savedToken.getInstance().getAuthorizationType() == authorizationType) {
                 result.add(savedToken);
             }
@@ -207,13 +215,13 @@ public class HistoryService {
     /**
      * Removes the access token(s) which have the given base URI.
      *
-     * @param sanitizedBaseURI The sanitized base URI of the provider.
+     * @param instance The instance the access token will be saved for.
      */
-    public void removeAccessTokens(@NonNull String sanitizedBaseURI) {
+    public void removeAccessTokens(@NonNull Instance instance) {
         Iterator<SavedToken> savedTokenIterator = _savedTokenList.iterator();
         while (savedTokenIterator.hasNext()) {
             SavedToken savedToken = savedTokenIterator.next();
-            if (savedToken.getInstance().getSanitizedBaseURI().equals(sanitizedBaseURI)) {
+            if (savedToken.getInstance().getSanitizedBaseURI().equals(instance.getBaseURI()) && instance.getAuthorizationType() == savedToken.getInstance().getAuthorizationType()) {
                 savedTokenIterator.remove();
             }
         }
@@ -257,6 +265,7 @@ public class HistoryService {
 
     /**
      * Returns a saved token for a given sanitized base URI.
+     *
      * @param sanitizedBaseURI The base URI of the provider.
      * @return The token if available, otherwise null.
      */
