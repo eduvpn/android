@@ -25,6 +25,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Observable;
 
 import nl.eduvpn.app.entity.AuthorizationType;
 import nl.eduvpn.app.entity.DiscoveredAPI;
@@ -40,7 +41,7 @@ import nl.eduvpn.app.utils.TTLCache;
  * This allows us to skip some steps, which will make the user experience more fluid.
  * Created by Daniel Zolnai on 2016-10-20.
  */
-public class HistoryService {
+public class HistoryService extends Observable {
     private static final String TAG = HistoryService.class.getName();
 
     private static final Long DISCOVERED_API_CACHE_TTL_SECONDS = 30 * 24 * 3600L; // 30 days
@@ -51,6 +52,9 @@ public class HistoryService {
     private List<SavedKeyPair> _savedKeyPairList;
 
     private final PreferencesService _preferencesService;
+
+    public static final Integer NOTIFICATION_TOKENS_CHANGED = 1;
+    public static final Integer NOTIFICATION_PROFILES_CHANGED = 2;
 
     /**
      * Constructor.
@@ -152,6 +156,9 @@ public class HistoryService {
         removeAccessTokens(instance);
         _savedTokenList.add(new SavedToken(instance, accessToken));
         _save();
+        setChanged();
+        notifyObservers(NOTIFICATION_TOKENS_CHANGED);
+        clearChanged();
     }
 
     /**
@@ -190,6 +197,9 @@ public class HistoryService {
     public void cacheSavedProfile(@NonNull SavedProfile savedProfile) {
         _savedProfileList.add(savedProfile);
         _save();
+        setChanged();
+        notifyObservers(NOTIFICATION_PROFILES_CHANGED);
+        clearChanged();
     }
 
     /**
@@ -218,6 +228,9 @@ public class HistoryService {
     public void removeSavedProfile(@NonNull SavedProfile savedProfile) {
         _savedProfileList.remove(savedProfile);
         _save();
+        setChanged();
+        notifyObservers(NOTIFICATION_PROFILES_CHANGED);
+        clearChanged();
     }
 
     /**
@@ -234,6 +247,9 @@ public class HistoryService {
             }
         }
         _save();
+        setChanged();
+        notifyObservers(NOTIFICATION_TOKENS_CHANGED);
+        clearChanged();
     }
 
     /**
@@ -269,6 +285,9 @@ public class HistoryService {
             }
         }
         _save();
+        setChanged();
+        notifyObservers(NOTIFICATION_PROFILES_CHANGED);
+        clearChanged();
     }
 
     /**

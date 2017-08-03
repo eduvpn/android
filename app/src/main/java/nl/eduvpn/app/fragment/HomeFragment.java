@@ -39,6 +39,8 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Observable;
+import java.util.Observer;
 
 import javax.inject.Inject;
 
@@ -134,6 +136,7 @@ public class HomeFragment extends Fragment {
 
     private int _pendingInstanceCount;
     private List<Instance> _problematicInstances;
+    private Observer _newServerObserver;
 
     @Nullable
     @Override
@@ -148,6 +151,13 @@ public class HomeFragment extends Fragment {
         _secureInternetList.setLayoutManager(new LinearLayoutManager(view.getContext(), LinearLayoutManager.VERTICAL, false));
         _instituteAccessList.setLayoutManager(new LinearLayoutManager(view.getContext(), LinearLayoutManager.VERTICAL, false));
 
+        // Add the adapters
+        ProfileAdapter instituteAccessAdapter = new ProfileAdapter(_historyService, null);
+        _instituteAccessList.setAdapter(instituteAccessAdapter);
+
+        ProfileAdapter secureInternetAdapter = new ProfileAdapter(_historyService, null);
+        _secureInternetList.setAdapter(secureInternetAdapter);
+
         // Swipe to delete
         ItemTouchHelper instituteSwipeHelper = new ItemTouchHelper(new SwipeToDeleteHelper(getContext()));
         instituteSwipeHelper.attachToRecyclerView(_instituteAccessList);
@@ -156,6 +166,98 @@ public class HomeFragment extends Fragment {
         secureInternetSwipeHelper.attachToRecyclerView(_secureInternetList);
         _secureInternetList.addItemDecoration(new SwipeToDeleteAnimator(getContext()));
 
+        // Add click listeners
+        ItemClickSupport.OnItemClickListener clickListener = new ItemClickSupport.OnItemClickListener() {
+            @Override
+            public void onItemClicked(RecyclerView recyclerView, int position, View v) {
+                _onItemClicked(recyclerView, position);
+            }
+        };
+        ItemClickSupport.addTo(_instituteAccessList).setOnItemClickListener(clickListener);
+        ItemClickSupport.addTo(_secureInternetList).setOnItemClickListener(clickListener);
+        ItemClickSupport.OnItemLongClickListener longClickListener = new ItemClickSupport.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClicked(RecyclerView recyclerView, int position, View v) {
+                return _onItemLongClicked(recyclerView, position);
+            }
+        };
+        ItemClickSupport.addTo(_instituteAccessList).setOnItemLongClickListener(longClickListener);
+        ItemClickSupport.addTo(_secureInternetList).setOnItemLongClickListener(longClickListener);
+
+        // Fill the lists with data
+        _updateLists();
+        // Add listener on the history service, so we get notified if there is a new server available
+        _historyService.addObserver(_newServerObserver = new Observer() {
+            @Override
+            public void update(Observable observable, Object o) {
+                if (o instanceof Integer) {
+                    Integer notificationType = (Integer)o;
+                    if (HistoryService.NOTIFICATION_PROFILES_CHANGED.equals(notificationType) || HistoryService.NOTIFICATION_TOKENS_CHANGED.equals(notificationType)) {
+                        _updateLists();
+                    }
+                } else {
+                    Log.e(TAG, "Unexpected notification type! Live reload might not be working correctly.");
+                }
+            }
+        } );
+        return view;
+    }
+
+    private boolean _onItemLongClicked(RecyclerView recyclerView, int position) {
+        // On long click we show the full name in a toast
+        // Is useful when the names don't fit too well.
+        ProfileAdapter adapter = (ProfileAdapter)recyclerView.getAdapter();
+        if (adapter.isPendingRemoval(position)) {
+            return true;
+        }
+        Pair<Instance, Profile> instanceProfilePair = adapter.getItem(position);
+        Toast.makeText(
+                getContext(),
+                FormattingUtils.formatProfileName(getContext(), instanceProfilePair.first, instanceProfilePair.second),
+                Toast.LENGTH_SHORT).show();
+        return true;
+    }
+
+    private void _onItemClicked(RecyclerView recyclerView, int position) {
+        ProfileAdapter adapter = (ProfileAdapter)recyclerView.getAdapter();
+        if (adapter.isPendingRemoval(position)) {
+            return;
+        }
+        Pair<Instance, Profile> instanceProfilePair = adapter.getItem(position);
+        // We surely have a discovered API and access token, since we just loaded the list with them
+        Instance instance = instanceProfilePair.first;
+        Profile profile = instanceProfilePair.second;
+        DiscoveredAPI discoveredAPI = _historyService.getCachedDiscoveredAPI(instance.getSanitizedBaseURI());
+        String accessToken = _historyService.getCachedAccessToken(instance);
+        if (discoveredAPI == null || accessToken == null) {
+            ErrorDialog.show(getContext(), R.string.error_dialog_title, R.string.cant_connect_application_state_missing);
+            return;
+        }
+        _preferencesService.currentInstance(instance);
+        _preferencesService.storeCurrentDiscoveredAPI(discoveredAPI);
+        _preferencesService.storeCurrentProfile(profile);
+        _connectionService.setAccessToken(accessToken);
+        // In case we already have a downloaded profile, connect to it right away.
+        SavedProfile savedProfile = _historyService.getCachedSavedProfile(instance.getSanitizedBaseURI(), profile.getProfileId());
+        if (savedProfile != null) {
+            String profileUUID = savedProfile.getProfileUUID();
+            VpnProfile vpnProfile = _vpnService.getProfileWithUUID(profileUUID);
+            if (vpnProfile != null) {
+                // Profile found, connecting
+                _vpnService.connect(getActivity(), vpnProfile);
+                ((MainActivity)getActivity()).openFragment(new ConnectionStatusFragment(), false);
+                return;
+            } else {
+                Log.e(TAG, "Profile is not saved even it was marked as one!");
+                _historyService.removeSavedProfile(savedProfile);
+                // Continue with downloading the profile
+            }
+        }
+        // Ok so we don't have a downloaded profile, we need to download one
+        _downloadKeyPairIfNeeded(instance, discoveredAPI, profile);
+    }
+
+    private void _updateLists() {
         // Fill with data
         List<SavedToken> savedInstituteAccessTokens = _historyService.getSavedTokensForAuthorizationType(AuthorizationType.LOCAL);
         List<SavedToken> savedSecureInternetTokens = _historyService.getSavedTokensForAuthorizationType(AuthorizationType.DISTRIBUTED);
@@ -173,9 +275,7 @@ public class HomeFragment extends Fragment {
             _noProvidersYet.setVisibility(View.GONE);
             // There are some saved institute access tokens
             if (!savedInstituteAccessTokens.isEmpty()) {
-                ProfileAdapter adapter = new ProfileAdapter(_historyService, null);
-                _instituteAccessList.setAdapter(adapter);
-                _fillList(adapter, savedInstituteAccessTokens);
+                _fillList((ProfileAdapter)_instituteAccessList.getAdapter(), savedInstituteAccessTokens);
                 _instituteAccessContainer.setVisibility(View.VISIBLE);
             } else {
                 _instituteAccessContainer.setVisibility(View.GONE);
@@ -183,78 +283,12 @@ public class HomeFragment extends Fragment {
 
             // There are some saved secure internet tokens
             if (!savedSecureInternetTokens.isEmpty()) {
-                ProfileAdapter adapter = new ProfileAdapter(_historyService, null);
-                _fillList(adapter, savedSecureInternetTokens);
-                _secureInternetList.setAdapter(adapter);
+                _fillList((ProfileAdapter)_secureInternetList.getAdapter(), savedSecureInternetTokens);
                 _secureInternetContainer.setVisibility(View.VISIBLE);
             } else {
                 _secureInternetContainer.setVisibility(View.GONE);
             }
         }
-        ItemClickSupport.OnItemClickListener clickListener = new ItemClickSupport.OnItemClickListener() {
-            @Override
-            public void onItemClicked(RecyclerView recyclerView, int position, View v) {
-                ProfileAdapter adapter = (ProfileAdapter)recyclerView.getAdapter();
-                if (adapter.isPendingRemoval(position)) {
-                    return;
-                }
-                Pair<Instance, Profile> instanceProfilePair = adapter.getItem(position);
-                // We surely have a discovered API and access token, since we just loaded the list with them
-                Instance instance = instanceProfilePair.first;
-                Profile profile = instanceProfilePair.second;
-                DiscoveredAPI discoveredAPI = _historyService.getCachedDiscoveredAPI(instance.getSanitizedBaseURI());
-                String accessToken = _historyService.getCachedAccessToken(instance);
-                if (discoveredAPI == null || accessToken == null) {
-                    ErrorDialog.show(getContext(), R.string.error_dialog_title, R.string.cant_connect_application_state_missing);
-                    return;
-                }
-                _preferencesService.currentInstance(instance);
-                _preferencesService.storeCurrentDiscoveredAPI(discoveredAPI);
-                _preferencesService.storeCurrentProfile(profile);
-                _connectionService.setAccessToken(accessToken);
-                // In case we already have a downloaded profile, connect to it right away.
-                SavedProfile savedProfile = _historyService.getCachedSavedProfile(instance.getSanitizedBaseURI(), profile.getProfileId());
-                if (savedProfile != null) {
-                    String profileUUID = savedProfile.getProfileUUID();
-                    VpnProfile vpnProfile = _vpnService.getProfileWithUUID(profileUUID);
-                    if (vpnProfile != null) {
-                        // Profile found, connecting
-                        _vpnService.connect(getActivity(), vpnProfile);
-                        ((MainActivity)getActivity()).openFragment(new ConnectionStatusFragment(), false);
-                        return;
-                    } else {
-                        Log.e(TAG, "Profile is not saved even it was marked as one!");
-                        _historyService.removeSavedProfile(savedProfile);
-                        // Continue with downloading the profile
-                    }
-                }
-                // Ok so we don't have a downloaded profile, we need to download one
-                _downloadKeyPairIfNeeded(instance, discoveredAPI, profile);
-            }
-        };
-        ItemClickSupport.addTo(_instituteAccessList).setOnItemClickListener(clickListener);
-        ItemClickSupport.addTo(_secureInternetList).setOnItemClickListener(clickListener);
-        ItemClickSupport.OnItemLongClickListener longClickListener = new ItemClickSupport.OnItemLongClickListener() {
-            @Override
-            public boolean onItemLongClicked(RecyclerView recyclerView, int position, View v) {
-                // On long click we show the full name in a toast
-                // Is useful when the names don't fit too well.
-                ProfileAdapter adapter = (ProfileAdapter)recyclerView.getAdapter();
-                if (adapter.isPendingRemoval(position)) {
-                    return true;
-                }
-                Pair<Instance, Profile> instanceProfilePair = adapter.getItem(position);
-                Toast.makeText(
-                        getContext(),
-                        FormattingUtils.formatProfileName(getContext(), instanceProfilePair.first, instanceProfilePair.second),
-                        Toast.LENGTH_SHORT).show();
-                return true;
-            }
-        };
-        ItemClickSupport.addTo(_instituteAccessList).setOnItemLongClickListener(longClickListener);
-        ItemClickSupport.addTo(_secureInternetList).setOnItemLongClickListener(longClickListener);
-
-        return view;
     }
 
     /**
@@ -281,6 +315,9 @@ public class HomeFragment extends Fragment {
     @Override
     public void onDestroyView() {
         super.onDestroyView();
+        if (_newServerObserver != null) {
+            _historyService.deleteObserver(_newServerObserver);
+        }
         _unbinder.unbind();
     }
 
