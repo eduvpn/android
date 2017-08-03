@@ -137,7 +137,6 @@ public class ConnectionService {
                 }, new Consumer<Throwable>() {
                     @Override
                     public void accept(Throwable throwable) throws Exception {
-                        throwable.printStackTrace();
                         ErrorDialog.show(activity, R.string.error_dialog_title, throwable.getMessage());
                     }
                 });
