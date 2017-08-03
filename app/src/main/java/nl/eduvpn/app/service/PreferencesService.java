@@ -31,6 +31,7 @@ import nl.eduvpn.app.entity.DiscoveredAPI;
 import nl.eduvpn.app.entity.Instance;
 import nl.eduvpn.app.entity.InstanceList;
 import nl.eduvpn.app.entity.Profile;
+import nl.eduvpn.app.entity.SavedKeyPair;
 import nl.eduvpn.app.entity.SavedProfile;
 import nl.eduvpn.app.entity.SavedToken;
 import nl.eduvpn.app.entity.Settings;
@@ -44,8 +45,6 @@ import nl.eduvpn.app.utils.TTLCache;
 
 public class PreferencesService {
     private static final String TAG = PreferencesService.class.getName();
-
-    private static final String PREFERENCES_NAME = "preferences_service";
 
     private static final String KEY_STATE = "state";
     private static final String KEY_ACCESS_TOKEN = "access_token";
@@ -62,6 +61,7 @@ public class PreferencesService {
     private static final String KEY_SAVED_PROFILES = "saved_profiles";
     private static final String KEY_SAVED_TOKENS = "saved_tokens";
     private static final String KEY_DISCOVERED_API_CACHE = "discovered_api_cache";
+    private static final String KEY_SAVED_KEY_PAIRS = "saved_key_pairs";
 
     private SerializerService _serializerService;
     private SharedPreferences _sharedPreferences;
@@ -394,6 +394,20 @@ public class PreferencesService {
         }
     }
 
+    @Nullable
+    public List<SavedKeyPair> getSavedKeyPairList() {
+        try {
+            String serializedKeyPairList = _getSharedPreferences().getString(KEY_SAVED_KEY_PAIRS, null);
+            if (serializedKeyPairList == null) {
+                return null;
+            }
+            return _serializerService.deserializeSavedKeyPairList(new JSONObject(serializedKeyPairList));
+        } catch (SerializerService.UnknownFormatException | JSONException ex) {
+            Log.e(TAG, "Cannot retrieve saved key pair list.", ex);
+            return null;
+        }
+    }
+
     /**
      * Stores the instance list for a specific authorization type
      */
@@ -416,6 +430,19 @@ public class PreferencesService {
         } catch (SerializerService.UnknownFormatException | JSONException ex) {
             Log.e(TAG, "Cannot deserialize previously saved instance list of authorization type: " + authorizationType, ex);
             return null;
+        }
+    }
+
+    /*
+     * Stores the list of saved key pairs.
+     * @param savedKeyPairs The list of saved key pairs to store.
+     */
+    public void storeSavedKeyPairList(@NonNull List<SavedKeyPair> savedKeyPairs) {
+        try {
+            String serializedKeyPairList = _serializerService.serializeSavedKeyPairList(savedKeyPairs).toString();
+            _getSharedPreferences().edit().putString(KEY_SAVED_KEY_PAIRS, serializedKeyPairList).apply();
+        } catch (SerializerService.UnknownFormatException ex) {
+            Log.e(TAG, "Cannot store saved key pair list.", ex);
         }
     }
 }

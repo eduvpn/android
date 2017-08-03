@@ -35,7 +35,9 @@ import java.util.Random;
 import nl.eduvpn.app.entity.AuthorizationType;
 import nl.eduvpn.app.entity.DiscoveredAPI;
 import nl.eduvpn.app.entity.Instance;
+import nl.eduvpn.app.entity.KeyPair;
 import nl.eduvpn.app.entity.Profile;
+import nl.eduvpn.app.entity.SavedKeyPair;
 import nl.eduvpn.app.entity.SavedProfile;
 
 import static org.junit.Assert.assertEquals;
@@ -90,12 +92,12 @@ public class HistoryServiceTest {
         // Should be still fast.
         String baseURI = "http://example.com/baseURI";
         for (int i = 0; i < 10; ++i) {
-            DiscoveredAPI discoveredAPI = new DiscoveredAPI("http://example.com/", "http://example.com/create_config",
-                    "http://example.com/profile_list", "http://example.com/system_messages", "http://example.com/user_messages");
+            DiscoveredAPI discoveredAPI =  new DiscoveredAPI("http://example.com/", "http://example.com/auth_endpoint",
+                    "http://example.com/token_endpoint");
             _historyService.cacheDiscoveredAPI(baseURI + i, discoveredAPI);
             String profileId = "vpn_profile";
             String profileUUID = "ABCD-1234-DEFG-5678";
-            Instance instance = new Instance(baseURI + i, "displayName", null, AuthorizationType.SECURE_INTERNET, true);
+            Instance instance = new Instance(baseURI + i, "displayName", null, AuthorizationType.DISTRIBUTED, true);
             Profile profile = new Profile("displayName", profileId, false);
             SavedProfile savedProfile = new SavedProfile(instance, profile, profileUUID);
             _historyService.cacheSavedProfile(savedProfile);
@@ -104,7 +106,7 @@ public class HistoryServiceTest {
         _reloadHistoryService(false);
         assertEquals(10, _historyService.getSavedProfileList().size());
         for (int i = 0; i < 10; ++i) {
-            assertNotNull(_historyService.getCachedAccessToken(baseURI + i));
+            assertNotNull(_historyService.getCachedAccessToken(new Instance(baseURI + i, "displayName", null, AuthorizationType.DISTRIBUTED, true)));
             assertNotNull(_historyService.getCachedDiscoveredAPI(baseURI + i));
         }
 
@@ -113,8 +115,8 @@ public class HistoryServiceTest {
     @Test
     public void testCacheDiscoveredAPI() {
         String baseUri = "http://example.com";
-        DiscoveredAPI discoveredAPI = new DiscoveredAPI("http://example.com/", "http://example.com/create_config",
-                "http://example.com/profile_list", "http://example.com/system_messages", "http://example.com/user_messages");
+        DiscoveredAPI discoveredAPI = new DiscoveredAPI("http://example.com/", "http://example.com/auth_endpoint",
+                "http://example.com/token_endpoint");
         _historyService.cacheDiscoveredAPI(baseUri, discoveredAPI);
         _reloadHistoryService(false);
         DiscoveredAPI restoredDiscoveredAPI = _historyService.getCachedDiscoveredAPI(baseUri);
@@ -127,9 +129,10 @@ public class HistoryServiceTest {
     public void testCacheAccessToken() {
         String exampleToken = "abcd1234defghthisisatoken";
         String baseURI = "http://example.com";
-        _historyService.cacheAccessToken(new Instance(baseURI, "displayName", null, AuthorizationType.SECURE_INTERNET, true), exampleToken);
+        Instance instance = new Instance(baseURI, "displayName", null, AuthorizationType.DISTRIBUTED, true);
+        _historyService.cacheAccessToken(instance, exampleToken);
         _reloadHistoryService(false);
-        String restoredToken = _historyService.getCachedAccessToken(baseURI);
+        String restoredToken = _historyService.getCachedAccessToken(instance);
         assertEquals(exampleToken, restoredToken);
     }
 
@@ -138,7 +141,7 @@ public class HistoryServiceTest {
         String baseURI = "http://example.com/baseURI";
         String profileId = "vpn_profile";
         String profileUUID = "ABCD-1234-DEFG-5678";
-        Instance instance = new Instance(baseURI, "displayName", null, AuthorizationType.SECURE_INTERNET, true);
+        Instance instance = new Instance(baseURI, "displayName", null, AuthorizationType.DISTRIBUTED, true);
         Profile profile = new Profile("displayName", profileId, false);
         SavedProfile savedProfile = new SavedProfile(instance, profile, profileUUID);
         _historyService.cacheSavedProfile(savedProfile);
@@ -155,5 +158,26 @@ public class HistoryServiceTest {
         _reloadHistoryService(false);
         removedProfile = _historyService.getCachedSavedProfile(instance.getSanitizedBaseURI(), profileId);
         assertNull(removedProfile);
+    }
+
+    @Test
+    public void testStoreSavedKeyPair() {
+        KeyPair keyPair1 = new KeyPair(false, "cert1", "pk1");
+        SavedKeyPair savedKeyPair1 = new SavedKeyPair("http://example.com/whatever/", keyPair1);
+        KeyPair keyPair2 = new KeyPair(true, "example certificate", "example private key");
+        SavedKeyPair savedKeyPair2 = new SavedKeyPair("http://something.else/", keyPair2);
+        _historyService.storeSavedKeyPair(savedKeyPair1);
+        _historyService.storeSavedKeyPair(savedKeyPair2);
+        _reloadHistoryService(false);
+        SavedKeyPair retrieved1 = _historyService.getSavedKeyPairForAPI(new DiscoveredAPI(savedKeyPair1.getApiBaseUri(), "", ""));
+        SavedKeyPair retrieved2 = _historyService.getSavedKeyPairForAPI(new DiscoveredAPI(savedKeyPair2.getApiBaseUri(), "", ""));
+        assertNotNull(retrieved1);
+        assertNotNull(retrieved2);
+        assertEquals(keyPair1.isOK(), retrieved1.getKeyPair().isOK());
+        assertEquals(keyPair1.getCertificate(), retrieved1.getKeyPair().getCertificate());
+        assertEquals(keyPair1.getPrivateKey(), retrieved1.getKeyPair().getPrivateKey());
+        assertEquals(keyPair2.isOK(), retrieved2.getKeyPair().isOK());
+        assertEquals(keyPair2.getCertificate(), retrieved2.getKeyPair().getCertificate());
+        assertEquals(keyPair2.getPrivateKey(), retrieved2.getKeyPair().getPrivateKey());
     }
 }

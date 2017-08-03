@@ -3,7 +3,7 @@
     <item android:state_pressed="true" >
         <shape>
             <solid
-                android:color="#D0D0D0"/>
+                android:color="@color/backgroundPressedColor"/>
             <corners
                 android:bottomLeftRadius="@dimen/error_dialog_radius"
                 android:bottomRightRadius="@dimen/error_dialog_radius" />
@@ -12,7 +12,7 @@
     <item>
         <shape>
             <solid
-                android:color="#FFFFFF"/>
+                android:color="@color/backgroundColor"/>
             <corners
                 android:bottomLeftRadius="@dimen/error_dialog_radius"
                 android:bottomRightRadius="@dimen/error_dialog_radius" />

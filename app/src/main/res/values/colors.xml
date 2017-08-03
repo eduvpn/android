@@ -10,6 +10,7 @@
     <color name="disabledColor">#E0E0E0</color>
     <color name="pressedColor">#00A2C8</color>
     <color name="backgroundColor">#FFFFFF</color>
+    <color name="backgroundPressedColor">#D0D0D0</color>
     <color name="hintColor">#C0C0C0</color>
     <color name="settingsDescriptionTextColor">#909090</color>
     <color name="swipeBackgroundColor">#00A2C8</color>

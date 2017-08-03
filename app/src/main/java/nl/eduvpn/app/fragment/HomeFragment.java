@@ -55,7 +55,9 @@ import nl.eduvpn.app.adapter.ProfileAdapter;
 import nl.eduvpn.app.entity.AuthorizationType;
 import nl.eduvpn.app.entity.DiscoveredAPI;
 import nl.eduvpn.app.entity.Instance;
+import nl.eduvpn.app.entity.KeyPair;
 import nl.eduvpn.app.entity.Profile;
+import nl.eduvpn.app.entity.SavedKeyPair;
 import nl.eduvpn.app.entity.SavedProfile;
 import nl.eduvpn.app.entity.SavedToken;
 import nl.eduvpn.app.service.APIService;
@@ -227,7 +229,7 @@ public class HomeFragment extends Fragment {
                     }
                 }
                 // Ok so we don't have a downloaded profile, we need to download one
-                _downloadProfileAndConnect(instance, discoveredAPI, profile);
+                _downloadKeyPairIfNeeded(instance, discoveredAPI, profile);
             }
         };
         ItemClickSupport.addTo(_instituteAccessList).setOnItemClickListener(clickListener);
@@ -342,7 +344,7 @@ public class HomeFragment extends Fragment {
     private void _fetchProfileList(@NonNull final ProfileAdapter adapter, @NonNull final Instance instance,
                                    @NonNull DiscoveredAPI discoveredAPI, @NonNull String accessToken) {
         _connectionService.setAccessToken(accessToken);
-        _apiService.getJSON(discoveredAPI.getProfileListAPI(), true, new APIService.Callback<JSONObject>() {
+        _apiService.getJSON(discoveredAPI.getProfileListEndpoint(), true, new APIService.Callback<JSONObject>() {
             @Override
             public void onSuccess(JSONObject result) {
                 try {
@@ -484,26 +486,73 @@ public class HomeFragment extends Fragment {
     }
 
     /**
-     * Downloads a VPN profile and connects to it if all went well.
+     * Downloads the key pair if no cached one found. After that it downloads the profile and connects to it.
      *
      * @param instance      The VPN provider.
      * @param discoveredAPI The discovered API.
      * @param profile       The profile to download.
      */
-    private void _downloadProfileAndConnect(@NonNull final Instance instance, @NonNull DiscoveredAPI discoveredAPI, @NonNull final Profile profile) {
+    private void _downloadKeyPairIfNeeded(@NonNull final Instance instance, @NonNull final DiscoveredAPI discoveredAPI, @NonNull final Profile profile) {
+        // First we create a keypair, if there is no saved one yet.
+        SavedKeyPair savedKeyPair = _historyService.getSavedKeyPairForAPI(discoveredAPI);
+        int dialogMessageRes = savedKeyPair != null ? R.string.vpn_profile_download_message : R.string.vpn_profile_creating_keypair;
         final ProgressDialog dialog = ProgressDialog.show(getContext(),
                 getString(R.string.progress_dialog_title),
-                getString(R.string.vpn_profile_download_message),
+                getString(dialogMessageRes),
                 true,
                 false);
-        String requestData = "display_name=eduVPN%20for%20Android&profile_id=" + profile.getProfileId();
-        String url = discoveredAPI.getCreateConfigAPI();
-        _apiService.postResource(url, requestData, true, new APIService.Callback<String>() {
+        if (savedKeyPair != null) {
+            _downloadProfileWithKeyPair(instance, discoveredAPI, savedKeyPair, profile, dialog);
+        }
+        String requestData = "display_name=" + Constants.PROFILE_DISPLAY_NAME;
+        String createKeyPairEndpoint = discoveredAPI.getCreateKeyPairEndpoint();
+        _apiService.postResource(createKeyPairEndpoint, requestData, true, new APIService.Callback<String>() {
 
             @Override
+            public void onSuccess(String keyPairJson) {
+                try {
+                    KeyPair keyPair = _serializerService.deserializeKeyPair(new JSONObject(keyPairJson));
+                    Log.i(TAG, "Created key pair, is it successful: " + keyPair.isOK());
+                    // Save it for later
+                    SavedKeyPair savedKeyPair = new SavedKeyPair(discoveredAPI.getApiBaseUri(), keyPair);
+                    _historyService.storeSavedKeyPair(savedKeyPair);
+                    _downloadProfileWithKeyPair(instance, discoveredAPI, savedKeyPair, profile, dialog);
+                } catch (Exception ex) {
+                    dialog.dismiss();
+                    ErrorDialog.show(getContext(), R.string.error_dialog_title, getString(R.string.error_parsing_keypair, ex.getMessage()));
+                    Log.e(TAG, "Unable to parse keypair data", ex);
+                }
+            }
+
+            @Override
+            public void onError(String errorMessage) {
+                dialog.dismiss();
+                ErrorDialog.show(getContext(), R.string.error_dialog_title, getString(R.string.error_creating_keypair, errorMessage));
+                Log.e(TAG, "Error creating keypair: " + errorMessage);
+            }
+        });
+    }
+
+    /**
+     * Now that we have the key pair, we can download the profile.
+     *
+     * @param instance      The API instance definition.
+     * @param discoveredAPI The discovered API URLs.
+     * @param savedKeyPair  The private key and certificate used to generate the profile.
+     * @param profile       The profile to create.
+     * @param dialog        Loading dialog which should be dismissed when finished.
+     */
+    private void _downloadProfileWithKeyPair(final Instance instance, DiscoveredAPI discoveredAPI,
+                                             final SavedKeyPair savedKeyPair, final Profile profile,
+                                             final ProgressDialog dialog) {
+        dialog.setMessage(getString(R.string.vpn_profile_download_message));
+        String requestData = "?display_name=" + Constants.PROFILE_DISPLAY_NAME + "&profile_id=" + profile.getProfileId();
+        _apiService.getString(discoveredAPI.getProfileConfigEndpoint() + requestData, true, new APIService.Callback<String>() {
+            @Override
             public void onSuccess(String vpnConfig) {
+                // The downloaded profile misses the <cert> and <key> fields. We will insert that via the saved key pair.
                 String configName = FormattingUtils.formatProfileName(getContext(), instance, profile);
-                VpnProfile vpnProfile = _vpnService.importConfig(vpnConfig, configName);
+                VpnProfile vpnProfile = _vpnService.importConfig(vpnConfig, configName, savedKeyPair);
                 if (vpnProfile != null && getActivity() != null) {
                     // Cache the profile
                     SavedProfile savedProfile = new SavedProfile(instance, profile, vpnProfile.getUUIDString());

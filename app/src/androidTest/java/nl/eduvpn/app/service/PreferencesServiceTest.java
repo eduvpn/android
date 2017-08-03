@@ -59,7 +59,7 @@ public class PreferencesServiceTest {
 
     @Test
     public void testInstanceSave() {
-        Instance instance = new Instance("http://example.com", "Example", "http://example.com/image.jpg", AuthorizationType.SECURE_INTERNET, true);
+        Instance instance = new Instance("http://example.com", "Example", "http://example.com/image.jpg", AuthorizationType.DISTRIBUTED, true);
         _preferencesService.currentInstance(instance);
         Instance retrievedInstance = _preferencesService.getCurrentInstance();
         assertNotNull(retrievedInstance);
@@ -70,16 +70,12 @@ public class PreferencesServiceTest {
     }
     @Test
     public void testDiscoveredAPISave() {
-        DiscoveredAPI discoveredAPI = new DiscoveredAPI("http://example.com/", "http://example.com/create_config",
-                "http://example.com/profile_list", "http://example.com/system_messages", "http://example.com/user_messages");
+        DiscoveredAPI discoveredAPI = new DiscoveredAPI("http://example.com/", "http://example.com/auth_endpoint", "http://example.com/token_endpoint");
         _preferencesService.storeCurrentDiscoveredAPI(discoveredAPI);
         DiscoveredAPI retrievedDiscoveredAPI = _preferencesService.getCurrentDiscoveredAPI();
         //noinspection ConstantConditions
         assertEquals(discoveredAPI.getAuthorizationEndpoint(), retrievedDiscoveredAPI.getAuthorizationEndpoint());
-        assertEquals(discoveredAPI.getCreateConfigAPI(), retrievedDiscoveredAPI.getCreateConfigAPI());
-        assertEquals(discoveredAPI.getProfileListAPI(), retrievedDiscoveredAPI.getProfileListAPI());
-        assertEquals(discoveredAPI.getSystemMessagesAPI(), retrievedDiscoveredAPI.getSystemMessagesAPI());
-        assertEquals(discoveredAPI.getUserMessagesAPI(), retrievedDiscoveredAPI.getUserMessagesAPI());
-    }
+        assertEquals(discoveredAPI.getApiBaseUri(), retrievedDiscoveredAPI.getApiBaseUri());
+        assertEquals(discoveredAPI.getTokenEndpoint(), retrievedDiscoveredAPI.getTokenEndpoint());}
 
 }

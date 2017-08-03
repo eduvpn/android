@@ -25,4 +25,12 @@ public class Constants {
     public static final boolean DEBUG = BuildConfig.BUILD_TYPE.equalsIgnoreCase("debug");
 
     public static final String API_DISCOVERY_POSTFIX = "/info.json";
+
+    public static final String PROFILE_DISPLAY_NAME = "eduVPN%20for%20Android";
+
+    public static final String API_SYSTEM_MESSAGES_PATH = "system_messages";
+    public static final String API_USER_MESSAGES_PATH = "user_messages";
+    public static final String API_PROFILE_LIST_PATH = "profile_list";
+    public static final String API_CREATE_KEYPAIR = "create_keypair";
+    public static final String API_PROFILE_CONFIG = "profile_config";
 }
