@@ -31,7 +31,7 @@
         android:gravity="left"
         android:textColor="@color/textColor"
         android:textSize="15sp"
-        tools:text="The VPN service will be under maintanence beginning from 2016.10.21 12:00 until 2016.10.30 16:00. Connecting to the VPN may still be possible, but the service will not be guaranteed."/>
+        tools:text="The VPN service will be under maintenance beginning from 2016.10.21 12:00 until 2016.10.30 16:00. Connecting to the VPN may still be possible, but the service will not be guaranteed."/>
 
     <View
         android:layout_width="wrap_content"

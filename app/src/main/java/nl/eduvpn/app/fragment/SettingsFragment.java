@@ -27,17 +27,16 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.Toast;
 
-import nl.eduvpn.app.EduVPNApplication;
-import nl.eduvpn.app.R;
-import nl.eduvpn.app.entity.Settings;
-import nl.eduvpn.app.service.PreferencesService;
-
 import javax.inject.Inject;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import butterknife.Unbinder;
+import nl.eduvpn.app.EduVPNApplication;
+import nl.eduvpn.app.R;
+import nl.eduvpn.app.entity.Settings;
+import nl.eduvpn.app.service.PreferencesService;
 
 /**
  * Fragment which displays the available settings to the user.
@@ -48,10 +47,10 @@ public class SettingsFragment extends Fragment {
     @Inject
     protected PreferencesService _preferencesService;
 
-    @BindView(R.id.forceTcpCheckbox)
+    @BindView(R.id.forceTcpSwitch)
     protected SwitchCompat _forceTcpSwitch;
 
-    @BindView(R.id.useCustomTabsCheckbox)
+    @BindView(R.id.useCustomTabsSwitch)
     protected SwitchCompat _customTabsSwitch;
 
     @BindView(R.id.saveButton)
@@ -73,7 +72,7 @@ public class SettingsFragment extends Fragment {
         return view;
     }
 
-    @OnClick({R.id.forceTcpCheckbox, R.id.useCustomTabsCheckbox })
+    @OnClick({R.id.forceTcpSwitch, R.id.useCustomTabsSwitch })
     public void onSettingChanged() {
         boolean useCustomTabs = _customTabsSwitch.isChecked();
         boolean forceTcp = _forceTcpSwitch.isChecked();
@@ -91,7 +90,7 @@ public class SettingsFragment extends Fragment {
     protected void onSaveButtonClicked() {
         boolean useCustomTabs = _customTabsSwitch.isChecked();
         boolean forceTcp = _forceTcpSwitch.isChecked();
-        _preferencesService.saveAppSettings(new Settings(useCustomTabs, forceTcp));
+        _preferencesService.storeAppSettings(new Settings(useCustomTabs, forceTcp));
         Toast.makeText(getContext(), R.string.settings_saved, Toast.LENGTH_LONG).show();
         getActivity().finish();
     }

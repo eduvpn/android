@@ -52,7 +52,7 @@ public class PreferencesServiceTest {
     @Test
     public void testConnectionStateSave() {
         String state = "abc2141defghijkl";
-        _preferencesService.currentConnectionState(state);
+        _preferencesService.storeCurrentConnectionState(state);
         String retrievedState = _preferencesService.getCurrentConnectionState();
         assertEquals(state, retrievedState);
     }
@@ -72,8 +72,9 @@ public class PreferencesServiceTest {
     public void testDiscoveredAPISave() {
         DiscoveredAPI discoveredAPI = new DiscoveredAPI("http://example.com/", "http://example.com/create_config",
                 "http://example.com/profile_list", "http://example.com/system_messages", "http://example.com/user_messages");
-        _preferencesService.currentDiscoveredAPI(discoveredAPI);
+        _preferencesService.storeCurrentDiscoveredAPI(discoveredAPI);
         DiscoveredAPI retrievedDiscoveredAPI = _preferencesService.getCurrentDiscoveredAPI();
+        //noinspection ConstantConditions
         assertEquals(discoveredAPI.getAuthorizationEndpoint(), retrievedDiscoveredAPI.getAuthorizationEndpoint());
         assertEquals(discoveredAPI.getCreateConfigAPI(), retrievedDiscoveredAPI.getCreateConfigAPI());
         assertEquals(discoveredAPI.getProfileListAPI(), retrievedDiscoveredAPI.getProfileListAPI());

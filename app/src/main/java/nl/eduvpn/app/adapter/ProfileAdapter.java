@@ -18,7 +18,6 @@
 package nl.eduvpn.app.adapter;
 
 import android.content.Context;
-import android.graphics.Color;
 import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
@@ -30,17 +29,17 @@ import android.view.ViewGroup;
 
 import com.squareup.picasso.Picasso;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import nl.eduvpn.app.R;
 import nl.eduvpn.app.adapter.viewholder.ProfileViewHolder;
 import nl.eduvpn.app.entity.Instance;
 import nl.eduvpn.app.entity.Profile;
 import nl.eduvpn.app.service.HistoryService;
 import nl.eduvpn.app.utils.FormattingUtils;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Adapter for the profile list.

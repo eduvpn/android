@@ -132,7 +132,11 @@ public class ConnectionStatusFragment extends Fragment implements VPNService.Con
         _unbinder = ButterKnife.bind(this, view);
         EduVPNApplication.get(view.getContext()).component().inject(this);
         Profile savedProfile = _preferencesService.getCurrentProfile();
-        _profileName.setText(savedProfile.getDisplayName());
+        if (savedProfile != null) {
+            _profileName.setText(savedProfile.getDisplayName());
+        } else {
+            _profileName.setText(R.string.profile_name_not_found);
+        }
         _messagesList.setLayoutManager(new LinearLayoutManager(view.getContext(), LinearLayoutManager.VERTICAL, false));
         _messagesList.setAdapter(new MessagesAdapter());
         return view;
@@ -151,42 +155,46 @@ public class ConnectionStatusFragment extends Fragment implements VPNService.Con
         // Load the user and system messages asynchronously.
         DiscoveredAPI discoveredAPI = _preferencesService.getCurrentDiscoveredAPI();
         final MessagesAdapter messagesAdapter = (MessagesAdapter)_messagesList.getAdapter();
-        _apiService.getJSON(discoveredAPI.getSystemMessagesAPI(), true, new APIService.Callback<JSONObject>() {
-            @Override
-            public void onSuccess(JSONObject result) {
-                try {
-                    List<Message> systemMessagesList = _serializerService.deserializeMessageList(result, "system_messages");
-                    messagesAdapter.setSystemMessages(systemMessagesList);
-                } catch (SerializerService.UnknownFormatException ex) {
-                    ErrorDialog.show(getContext(), R.string.error_dialog_title, ex.toString());
+        if (discoveredAPI != null && discoveredAPI.getSystemMessagesAPI() != null) {
+            _apiService.getJSON(discoveredAPI.getSystemMessagesAPI(), true, new APIService.Callback<JSONObject>() {
+                @Override
+                public void onSuccess(JSONObject result) {
+                    try {
+                        List<Message> systemMessagesList = _serializerService.deserializeMessageList(result, "system_messages");
+                        messagesAdapter.setSystemMessages(systemMessagesList);
+                    } catch (SerializerService.UnknownFormatException ex) {
+                        ErrorDialog.show(getContext(), R.string.error_dialog_title, ex.toString());
+                    }
                 }
-            }
 
-            @Override
-            public void onError(String errorMessage) {
-                Toast.makeText(getContext(),
-                        getString(R.string.error_loading_system_messages, errorMessage),
-                        Toast.LENGTH_SHORT).show();
-            }
-        });
-        _apiService.getJSON(discoveredAPI.getUserMessagesAPI(), true, new APIService.Callback<JSONObject>() {
-            @Override
-            public void onSuccess(JSONObject result) {
-                try {
-                    List<Message> userMessagesList = _serializerService.deserializeMessageList(result, "user_messages");
-                    messagesAdapter.setUserMessages(userMessagesList);
-                } catch (SerializerService.UnknownFormatException ex) {
-                    ErrorDialog.show(getContext(), R.string.error_dialog_title, ex.toString());
+                @Override
+                public void onError(String errorMessage) {
+                    Toast.makeText(getContext(),
+                            getString(R.string.error_loading_system_messages, errorMessage),
+                            Toast.LENGTH_SHORT).show();
                 }
-            }
+            });
+        }
+        if (discoveredAPI != null && discoveredAPI.getUserMessagesAPI() != null) {
+            _apiService.getJSON(discoveredAPI.getUserMessagesAPI(), true, new APIService.Callback<JSONObject>() {
+                @Override
+                public void onSuccess(JSONObject result) {
+                    try {
+                        List<Message> userMessagesList = _serializerService.deserializeMessageList(result, "user_messages");
+                        messagesAdapter.setUserMessages(userMessagesList);
+                    } catch (SerializerService.UnknownFormatException ex) {
+                        ErrorDialog.show(getContext(), R.string.error_dialog_title, ex.toString());
+                    }
+                }
 
-            @Override
-            public void onError(String errorMessage) {
-                Toast.makeText(getContext(),
-                        getString(R.string.error_loading_user_messages, errorMessage),
-                        Toast.LENGTH_SHORT).show();
-            }
-        });
+                @Override
+                public void onError(String errorMessage) {
+                    Toast.makeText(getContext(),
+                            getString(R.string.error_loading_user_messages, errorMessage),
+                            Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
         _viewSwitcher.setDisplayedChild(0);
     }
 

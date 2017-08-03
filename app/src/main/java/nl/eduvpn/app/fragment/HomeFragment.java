@@ -205,8 +205,8 @@ public class HomeFragment extends Fragment {
                     return;
                 }
                 _preferencesService.currentInstance(instance);
-                _preferencesService.currentDiscoveredAPI(discoveredAPI);
-                _preferencesService.currentProfile(profile);
+                _preferencesService.storeCurrentDiscoveredAPI(discoveredAPI);
+                _preferencesService.storeCurrentProfile(profile);
                 _connectionService.setAccessToken(accessToken);
                 // In case we already have a downloaded profile, connect to it right away.
                 SavedProfile savedProfile = _historyService.getCachedSavedProfile(instance.getSanitizedBaseURI(), profile.getProfileId());
@@ -349,7 +349,8 @@ public class HomeFragment extends Fragment {
      * Checks if the loading has finished.
      * If yes, it hides the loading animation.
      * If there were any errors, it will display a warning bar as well.
-     * @param adapter
+     *
+     * @param adapter The adapter which the items are being loaded into.
      */
     private synchronized void _checkLoadingFinished(final ProfileAdapter adapter) {
         _pendingInstanceCount--;

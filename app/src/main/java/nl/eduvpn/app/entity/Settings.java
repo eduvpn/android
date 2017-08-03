@@ -22,6 +22,10 @@ package nl.eduvpn.app.entity;
  * Created by Daniel Zolnai on 2016-10-22.
  */
 public class Settings {
+
+    public static final boolean USE_CUSTOM_TABS_DEFAULT_VALUE = true;
+    public static final boolean FORCE_TCP_DEFAULT_VALUE = false;
+
     private boolean _useCustomTabs;
     private boolean _forceTcp;
 
@@ -37,4 +41,5 @@ public class Settings {
     public boolean forceTcp() {
         return _forceTcp;
     }
+
 }

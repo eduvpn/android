@@ -19,11 +19,15 @@ package nl.eduvpn.app.entity;
 
 import android.support.annotation.IntDef;
 
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+
 /**
  * The type of the VPN which the user will connect to.
  * Created by Daniel Zolnai on 2017-07-31.
  */
 @IntDef({ ConnectionType.INSTITUTE_ACCESS, ConnectionType.SECURE_INTERNET })
+@Retention(RetentionPolicy.SOURCE)
 public @interface ConnectionType {
     int INSTITUTE_ACCESS = 0;
     int SECURE_INTERNET = 1;

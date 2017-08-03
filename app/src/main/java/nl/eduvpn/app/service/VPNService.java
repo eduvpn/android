@@ -118,14 +118,27 @@ public class VPNService extends Observable implements VpnStatus.StateListener {
     }
 
 
+    /**
+     * Call this when your activity is starting up.
+     *
+     * @param activity The current activity to bind the service with.
+     */
     public void onCreate(@NonNull Activity activity) {
         OpenVPNService.setNotificationActivityClass(activity.getClass());
         VpnStatus.addStateListener(this);
         Intent intent = new Intent(activity, OpenVPNService.class);
+        intent.putExtra(OpenVPNService.ALWAYS_SHOW_NOTIFICATION, true);
         intent.setAction(OpenVPNService.START_SERVICE);
         activity.bindService(intent, _serviceConnection, Context.BIND_AUTO_CREATE);
     }
 
+    /**
+     * Call this when the activity is being destroyed.
+     * This does not shut down the VPN connection, only removes the listeners from it. The listeners will be reattached
+     * on the next startup.
+     *
+     * @param activity The activity being destroyed.
+     */
     public void onDestroy(@NonNull Activity activity) {
         activity.unbindService(_serviceConnection);
         VpnStatus.removeStateListener(this);
@@ -318,7 +331,7 @@ public class VPNService extends Observable implements VpnStatus.StateListener {
     }
 
     @Override
-    public void updateState(String state, String logmessage, int localizedResId, ConnectionStatus level) {
+    public void updateState(String state, String logMessage, int localizedResId, ConnectionStatus level) {
         ConnectionStatus oldStatus = _connectionStatus;
         _connectionStatus = level;
         if (_connectionStatus == oldStatus) {
@@ -334,7 +347,7 @@ public class VPNService extends Observable implements VpnStatus.StateListener {
                 _serverIpV6 = ips.second;
             } else {
                 Log.i(TAG, "Unable to determine IP addresses from network interface lookup, using log message instead.");
-                ips = _parseVpnIpAddressesFromLogMessage(logmessage);
+                ips = _parseVpnIpAddressesFromLogMessage(logMessage);
                 if (ips != null) {
                     _serverIpV4 = ips.first;
                     _serverIpV6 = ips.second;

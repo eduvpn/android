@@ -70,7 +70,12 @@ public class SerializerServiceTest {
         JSONObject jsonObject = _serializerService.serializeAppSettings(settings);
         Settings deserializedSettings = _serializerService.deserializeAppSettings(jsonObject);
         assertEquals(settings.forceTcp(), deserializedSettings.forceTcp());
-        assertEquals(settings.useCustomTabs(), settings.useCustomTabs());
+        assertEquals(settings.useCustomTabs(), deserializedSettings.useCustomTabs());
+        settings = new Settings(false, false);
+        jsonObject = _serializerService.serializeAppSettings(settings);
+        deserializedSettings = _serializerService.deserializeAppSettings(jsonObject);
+        assertEquals(settings.forceTcp(), deserializedSettings.forceTcp());
+        assertEquals(settings.useCustomTabs(), deserializedSettings.useCustomTabs());
     }
 
     @Test

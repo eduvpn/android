@@ -17,7 +17,6 @@
 
 package nl.eduvpn.app;
 
-import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
@@ -26,6 +25,11 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.widget.Toast;
 
+import javax.inject.Inject;
+
+import butterknife.BindView;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
 import nl.eduvpn.app.fragment.ConnectionStatusFragment;
 import nl.eduvpn.app.fragment.HomeFragment;
 import nl.eduvpn.app.fragment.TypeSelectorFragment;
@@ -33,17 +37,12 @@ import nl.eduvpn.app.service.ConnectionService;
 import nl.eduvpn.app.service.HistoryService;
 import nl.eduvpn.app.service.VPNService;
 import nl.eduvpn.app.utils.ErrorDialog;
-
-import javax.inject.Inject;
-
-import butterknife.BindView;
-import butterknife.ButterKnife;
-import butterknife.OnClick;
 import nl.eduvpn.app.utils.Log;
 
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = MainActivity.class.getName();
+
 
     @Inject
     protected ConnectionService _connectionService;
@@ -87,7 +86,7 @@ public class MainActivity extends AppCompatActivity {
             // Not a callback intent.
             return;
         } else {
-            // TODO remove these because this is sensitive information
+            // Although this is sensitive info, we only log in this in debug builds.
             Log.i(TAG, "Activity opened with URL: " + intent.getData());
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP_MR1) {
                 if (getReferrer() != null) {

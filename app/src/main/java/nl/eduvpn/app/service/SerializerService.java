@@ -19,20 +19,6 @@ package nl.eduvpn.app.service;
 
 import android.util.Pair;
 
-import nl.eduvpn.app.entity.ConnectionType;
-import nl.eduvpn.app.entity.DiscoveredAPI;
-import nl.eduvpn.app.entity.Instance;
-import nl.eduvpn.app.entity.InstanceList;
-import nl.eduvpn.app.entity.Profile;
-import nl.eduvpn.app.entity.SavedProfile;
-import nl.eduvpn.app.entity.SavedToken;
-import nl.eduvpn.app.entity.Settings;
-import nl.eduvpn.app.entity.message.Maintenance;
-import nl.eduvpn.app.entity.message.Message;
-import nl.eduvpn.app.entity.message.Notification;
-import nl.eduvpn.app.utils.Log;
-import nl.eduvpn.app.utils.TTLCache;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -47,6 +33,20 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
+
+import nl.eduvpn.app.entity.ConnectionType;
+import nl.eduvpn.app.entity.DiscoveredAPI;
+import nl.eduvpn.app.entity.Instance;
+import nl.eduvpn.app.entity.InstanceList;
+import nl.eduvpn.app.entity.Profile;
+import nl.eduvpn.app.entity.SavedProfile;
+import nl.eduvpn.app.entity.SavedToken;
+import nl.eduvpn.app.entity.Settings;
+import nl.eduvpn.app.entity.message.Maintenance;
+import nl.eduvpn.app.entity.message.Message;
+import nl.eduvpn.app.entity.message.Notification;
+import nl.eduvpn.app.utils.Log;
+import nl.eduvpn.app.utils.TTLCache;
 
 /**
  * This service is responsible for (de)serializing objects used in the app.
@@ -534,8 +534,14 @@ public class SerializerService {
      */
     public Settings deserializeAppSettings(JSONObject jsonObject) throws UnknownFormatException {
         try {
-            boolean useCustomTabs = jsonObject.getBoolean("use_custom_tabs");
-            boolean forceTcp = jsonObject.getBoolean("force_tcp");
+            boolean useCustomTabs = Settings.USE_CUSTOM_TABS_DEFAULT_VALUE;
+            if (jsonObject.has("use_custom_tabs")) {
+                useCustomTabs = jsonObject.getBoolean("use_custom_tabs");
+            }
+            boolean forceTcp = Settings.FORCE_TCP_DEFAULT_VALUE;
+            if (jsonObject.has("force_tcp")) {
+                forceTcp = jsonObject.getBoolean("force_tcp");
+            }
             return new Settings(useCustomTabs, forceTcp);
         } catch (JSONException ex) {
             throw new UnknownFormatException(ex);
