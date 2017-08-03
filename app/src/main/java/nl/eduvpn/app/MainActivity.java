@@ -25,6 +25,9 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.widget.Toast;
 
+import net.openid.appauth.AuthorizationException;
+import net.openid.appauth.AuthorizationResponse;
+
 import javax.inject.Inject;
 
 import butterknife.BindView;
@@ -82,7 +85,10 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
-        if (intent.getData() == null) {
+        AuthorizationResponse authorizationResponse = AuthorizationResponse.fromIntent(intent);
+        //noinspection ThrowableResultOfMethodCallIgnored
+        AuthorizationException authorizationException = AuthorizationException.fromIntent(intent);
+        if (authorizationResponse == null && authorizationException == null) {
             // Not a callback intent.
             return;
         } else {
@@ -100,17 +106,18 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(this, R.string.already_connected_please_disconnect, Toast.LENGTH_LONG).show();
             return;
         }
-        try {
-            _connectionService.parseCallbackIntent(intent);
+        if (authorizationException != null) {
+            ErrorDialog.show(this, R.string.authorization_error_title, getString(R.string.authorization_error_message,
+                    authorizationException.error,
+                    authorizationException.code,
+                    authorizationException.getMessage()));
+        } else {
+            _connectionService.parseAuthorizationResponse(authorizationResponse, this);
             // Remove it so we don't parse it again.
             intent.setData(null);
             // Show the home fragment, so the user can select his new config(s)
             openFragment(new HomeFragment(), false);
-            Toast.makeText(this, R.string.provider_added_new_configs_available, Toast.LENGTH_LONG).show();
-        } catch (ConnectionService.InvalidConnectionAttemptException ex) {
-            ErrorDialog.show(this, R.string.error_dialog_title, ex.getMessage());
         }
-
     }
 
     @Override

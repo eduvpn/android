@@ -52,7 +52,6 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:gravity="center"
-                android:contentDescription="@string/content_description_institute_access"
                 android:text="@string/vpn_option_label_secure_internet"
                 android:textColor="@color/textColor"
                 android:textSize="@dimen/vpn_option_label_size"/>
@@ -72,6 +71,7 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:layout_marginBottom="12dp"
+                android:contentDescription="@string/content_description_institute_access"
                 android:adjustViewBounds="true"
                 android:padding="8dp"
                 android:tint="@color/iconColor"

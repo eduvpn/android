@@ -96,8 +96,8 @@ public class ConfigurationService extends java.util.Observable {
     private void _loadSavedLists() {
         // Loads the saved configuration from the storage.
         // If none found, it will default to the one in the app.
-        _secureInternetList = _preferencesService.getInstanceList(AuthorizationType.LOCAL);
-        _instituteAccessList = _preferencesService.getInstanceList(AuthorizationType.DISTRIBUTED);
+        _secureInternetList = _preferencesService.getInstanceList(AuthorizationType.DISTRIBUTED);
+        _instituteAccessList = _preferencesService.getInstanceList(AuthorizationType.LOCAL);
     }
 
     private void _saveListIfChanged(@NonNull InstanceList instanceList, @AuthorizationType int authorizationType) {
@@ -158,7 +158,7 @@ public class ConfigurationService extends java.util.Observable {
                 .subscribe(new Consumer<InstanceList>() {
                     @Override
                     public void accept(InstanceList instanceList) throws Exception {
-                        if (authorizationType == AuthorizationType.LOCAL) {
+                        if (authorizationType == AuthorizationType.DISTRIBUTED) {
                             _secureInternetList = instanceList;
                         } else {
                             _instituteAccessList = instanceList;

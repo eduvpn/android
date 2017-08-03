@@ -15,6 +15,9 @@ android {
         buildConfigField "String", "SIGNATURE_URL_POSTFIX", "\".sig\""
         buildConfigField "String", "SIGNATURE_VALIDATION_PUBLIC_KEY", "\"E5On0JTtyUVZmcWd+I/FXRm32nSq8R2ioyW7dcu/U88=\""
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        manifestPlaceholders = [
+                'appAuthRedirectScheme': 'org.eduvpn.app'
+        ]
     }
 
     buildTypes {
@@ -50,6 +53,8 @@ dependencies {
     compile "com.android.support:design:$supportLibVersion"
     compile "com.android.support:recyclerview-v7:$supportLibVersion"
     compile "com.android.support:customtabs:$supportLibVersion"
+    // OAuth client
+    compile 'net.openid:appauth:0.6.1'
     // Secure preferences
     compile 'com.scottyab:secure-preferences-lib:0.1.4'
     // HTTP client

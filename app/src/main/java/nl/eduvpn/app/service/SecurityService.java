@@ -19,8 +19,7 @@ package nl.eduvpn.app.service;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.security.keystore.KeyGenParameterSpec;
-import android.security.keystore.KeyProperties;
+import android.support.annotation.Nullable;
 import android.util.Base64;
 
 import com.securepreferences.SecurePreferences;
@@ -29,11 +28,8 @@ import org.libsodium.jni.NaCl;
 import org.libsodium.jni.Sodium;
 
 import java.nio.charset.Charset;
-import java.security.KeyStore;
-
-import javax.crypto.Cipher;
-import javax.crypto.KeyGenerator;
-import javax.crypto.SecretKey;
+import java.security.SecureRandom;
+import java.util.regex.Pattern;
 
 import nl.eduvpn.app.BuildConfig;
 import nl.eduvpn.app.utils.Log;
@@ -62,6 +58,7 @@ public class SecurityService {
     public SharedPreferences getSecurePreferences() {
         return new SecurePreferences(_context);
     }
+
     public boolean isValidSignature(String message, String signatureBase64) {
         byte[] signatureBytes = Base64.decode(signatureBase64, Base64.DEFAULT);
         byte[] messageBytes = message.getBytes(Charset.forName("UTF-8"));
@@ -71,5 +68,23 @@ public class SecurityService {
             return false;
         }
         return true;
+    }
+
+    /**
+     * Generates a cryptograhically secure random string using Java's SecureRandom class.
+     *
+     * @return A string containing Base64 encoded random bytes.
+     */
+    public String generateSecureRandomString(@Nullable Integer maxLength) {
+        SecureRandom random = new SecureRandom();
+        byte randomBytes[] = new byte[128];
+        random.nextBytes(randomBytes);
+        // We use Base64 to convert random bytes into a string representation, NOT for encryption
+        String base64 = Base64.encodeToString(randomBytes, Base64.DEFAULT);
+        base64 = base64.replaceAll("\n ", ""); // Strip all newlines and spaces (note: the first param is Regexp)
+        if (maxLength != null && maxLength > 0) {
+            base64 = base64.substring(0, Math.min(maxLength, base64.length()));
+        }
+        return base64;
     }
 }

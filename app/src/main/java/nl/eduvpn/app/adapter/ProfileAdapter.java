@@ -31,7 +31,9 @@ import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
 
 import nl.eduvpn.app.R;
@@ -53,6 +55,8 @@ public class ProfileAdapter extends RecyclerView.Adapter<ProfileViewHolder> {
     private List<Pair<Instance, Profile>> _profileList;
     private List<Pair<Instance, Profile>> _itemsPendingRemoval;
     private Map<Pair<Instance, Profile>, Runnable> _pendingRunnables = new HashMap<>();
+
+    private final Object _profileListLock = new Object();
 
     private Handler _handler = new Handler();
 
@@ -79,10 +83,28 @@ public class ProfileAdapter extends RecyclerView.Adapter<ProfileViewHolder> {
      *
      * @param profiles The list of profiles to add to the list of current items.
      */
-    public synchronized void addItems(List<Pair<Instance, Profile>> profiles) {
-        _profileList.addAll(profiles);
+    public void addItemsIfNotAdded(List<Pair<Instance, Profile>> profiles) {
+        synchronized (_profileListLock) {
+            for (Pair<Instance, Profile> newPair : profiles) {
+                ListIterator<Pair<Instance, Profile>> existingItemIterator = _profileList.listIterator();
+                boolean replacedItem = false;
+                while(existingItemIterator.hasNext() && !replacedItem) {
+                    Pair<Instance, Profile> existingPair = existingItemIterator.next();
+                    if (existingPair.first.getBaseURI().equals(newPair.first.getBaseURI())) {
+                        // Replace the item
+                        replacedItem = true;
+                        existingItemIterator.set(newPair);
+                    }
+                }
+                if (!replacedItem) {
+                    _profileList.add(newPair);
+                }
+            }
+        }
         notifyDataSetChanged();
+
     }
+
 
     /**
      * Returns the item at the given position.
@@ -158,7 +180,9 @@ public class ProfileAdapter extends RecyclerView.Adapter<ProfileViewHolder> {
 
     @Override
     public int getItemCount() {
-        return _profileList != null ? _profileList.size() : 0;
+        synchronized (_profileListLock) {
+            return _profileList != null ? _profileList.size() : 0;
+        }
     }
 
 
@@ -177,7 +201,10 @@ public class ProfileAdapter extends RecyclerView.Adapter<ProfileViewHolder> {
      * @param position The position of the item.
      */
     public void pendingRemoval(int position) {
-        final Pair<Instance, Profile> item = _profileList.get(position);
+        final Pair<Instance, Profile> item;
+        synchronized (_profileListLock) {
+            item = _profileList.get(position);
+        }
         if (!_itemsPendingRemoval.contains(item)) {
             _itemsPendingRemoval.add(item);
             // This will redraw row in "undo" state
@@ -205,13 +232,16 @@ public class ProfileAdapter extends RecyclerView.Adapter<ProfileViewHolder> {
         if (_itemsPendingRemoval.contains(item)) {
             _itemsPendingRemoval.remove(item);
         }
-        if (_profileList.contains(item)) {
+        synchronized (_profileListLock) {
+            if (!_profileList.contains(item)) {
+                return; // Already removed
+            }
             _profileList.remove(position);
-            _historyService.removeDiscoveredAPI(item.first.getSanitizedBaseURI());
-            _historyService.removeSavedProfilesForInstance(item.first.getSanitizedBaseURI());
-            _historyService.removeAccessTokens(item.first);
-            notifyItemRemoved(position);
         }
+        _historyService.removeDiscoveredAPI(item.first.getSanitizedBaseURI());
+        _historyService.removeSavedProfilesForInstance(item.first.getSanitizedBaseURI());
+        _historyService.removeAccessTokens(item.first);
+        notifyItemRemoved(position);
     }
 
     /**
@@ -221,7 +251,10 @@ public class ProfileAdapter extends RecyclerView.Adapter<ProfileViewHolder> {
      * @return True if removal is pending. Otherwise false.
      */
     public boolean isPendingRemoval(int position) {
-        Pair<Instance, Profile> item = _profileList.get(position);
+        Pair<Instance, Profile> item;
+        synchronized (_profileListLock) {
+            item = _profileList.get(position);
+        }
         return _itemsPendingRemoval.contains(item);
     }
 }

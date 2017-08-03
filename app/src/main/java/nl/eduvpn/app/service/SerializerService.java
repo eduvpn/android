@@ -661,7 +661,6 @@ public class SerializerService {
             result.put("items", serialized);
             return result;
         } catch (JSONException ex) {
-            ex.printStackTrace();
             throw new UnknownFormatException(ex);
         }
     }
