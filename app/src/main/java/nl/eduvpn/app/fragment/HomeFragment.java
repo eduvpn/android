@@ -428,7 +428,7 @@ public class HomeFragment extends Fragment {
                                     _warningIcon.setVisibility(View.GONE);
                                     _progressBar.setVisibility(View.VISIBLE);
                                     _displayText.setText(R.string.loading_available_profiles);
-                                    SavedToken savedToken = _historyService.getSavedToken(instance.getSanitizedBaseURI());
+                                    SavedToken savedToken = _historyService.getSavedToken(instance);
                                     if (savedToken == null) {
                                         // Should never happen
                                         ErrorDialog.show(getContext(), R.string.error_dialog_title, R.string.data_removed);
