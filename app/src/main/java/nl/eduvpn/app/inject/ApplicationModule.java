@@ -78,8 +78,9 @@ public class ApplicationModule {
 
     @Provides
     @Singleton
-    protected ConnectionService provideConnectionService(Context context, PreferencesService preferencesService, HistoryService historyService) {
-        return new ConnectionService(context, preferencesService, historyService);
+    protected ConnectionService provideConnectionService(Context context, PreferencesService preferencesService, HistoryService historyService,
+                                                         SecurityService securityService) {
+        return new ConnectionService(context, preferencesService, historyService, securityService);
     }
 
     @Provides

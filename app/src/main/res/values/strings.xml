@@ -88,4 +88,8 @@
     <string name="vpn_profile_creating_keypair">Creating keypair...</string>
     <string name="error_creating_keypair">Error creating keypair. Details: %s</string>
     <string name="error_parsing_keypair">Error parsing keypair. Details: %s</string>
+    <string name="authorization_error_title">Authorization error</string>
+    <string name="authorization_error_message">Error: %1$s, code: %2$d, message: %3$s</string>
+    <string name="connecting_to_api_title">Connecting</string>
+    <string name="connecting_to_api_message">Connecting to %s…</string>
 </resources>

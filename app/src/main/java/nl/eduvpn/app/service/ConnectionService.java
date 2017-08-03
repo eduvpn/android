@@ -18,20 +18,33 @@
 package nl.eduvpn.app.service;
 
 import android.app.Activity;
+import android.app.PendingIntent;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.support.annotation.NonNull;
-import android.support.customtabs.CustomTabsClient;
-import android.support.customtabs.CustomTabsIntent;
-import android.support.v4.content.ContextCompat;
 
+import net.openid.appauth.AuthorizationRequest;
+import net.openid.appauth.AuthorizationResponse;
+import net.openid.appauth.AuthorizationService;
+import net.openid.appauth.AuthorizationServiceConfiguration;
+import net.openid.appauth.CodeVerifierUtil;
+import net.openid.appauth.ResponseTypeValues;
+
+import java.util.concurrent.Callable;
+
+import io.reactivex.Observable;
+import io.reactivex.ObservableSource;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.functions.Consumer;
+import io.reactivex.schedulers.Schedulers;
+import nl.eduvpn.app.MainActivity;
 import nl.eduvpn.app.R;
 import nl.eduvpn.app.entity.DiscoveredAPI;
 import nl.eduvpn.app.entity.Instance;
+import nl.eduvpn.app.utils.ErrorDialog;
 import nl.eduvpn.app.utils.Log;
-
-import java.util.UUID;
 
 /**
  * The connection service takes care of building up the URLs and validating the result.
@@ -48,15 +61,17 @@ public class ConnectionService {
     private static final String TAG = ConnectionService.class.getName();
 
     private static final String SCOPE = "config";
-    private static final String RESPONSE_TYPE = "token";
-    private static final String REDIRECT_URI = "nl.eduvpn.app://import/callback";
-    private static final String CLIENT_ID = "nl.eduvpn.app";
-    private static final String CUSTOM_TAB_PACKAGE_NAME = "com.android.chrome"; // This might change later,
-    // as of now, this is the only browser which has Custom Tabs support.
+    private static final String RESPONSE_TYPE = "code";
+    private static final String REDIRECT_URI = "org.eduvpn.app:/api/callback";
+    private static final String CLIENT_ID = "org.eduvpn.app";
+
+    private static final int REQUEST_CODE_APP_AUTH = 100; // This is not used, since we only get one type of request for the redirect URL.
 
 
     private final PreferencesService _preferencesService;
     private final HistoryService _historyService;
+    private final SecurityService _securityService;
+    private AuthorizationService _authorizationService;
     private final Context _context;
     private String _accessToken;
 
@@ -66,49 +81,19 @@ public class ConnectionService {
      * @param context            The application or activity context.
      * @param preferencesService The preferences service used to store temporary data.
      */
-    public ConnectionService(Context context, PreferencesService preferencesService, HistoryService historyService) {
+    public ConnectionService(Context context, PreferencesService preferencesService, HistoryService historyService,
+                             SecurityService securityService) {
         _context = context;
         _preferencesService = preferencesService;
+        _securityService = securityService;
         _historyService = historyService;
         _accessToken = preferencesService.getCurrentAccessToken();
     }
 
-    /**
-     * Builds up the connection URL from the base URL and the random state.
-     *
-     * @param authorizationEndpoint The base URL of the VPN provider.
-     * @param state   The random state.
-     * @return The connection URL which should be opened in the browser.
-     */
-    private String _buildConnectionUrl(@NonNull String authorizationEndpoint, @NonNull String state) {
-        String sanitizedURL = authorizationEndpoint;
-        if (sanitizedURL.endsWith("/")) {
-            sanitizedURL = sanitizedURL.substring(0, sanitizedURL.length() - 1);
-        }
-        return sanitizedURL + "?client_id=" + CLIENT_ID +
-                "&redirect_uri=" + REDIRECT_URI +
-                "&response_type=" + RESPONSE_TYPE +
-                "&scope=" + SCOPE +
-                "&state=" + state;
+    public void warmUp(Activity activity) {
+        _authorizationService = new AuthorizationService(activity);
     }
 
-    /**
-     * Generates a new random state.
-     *
-     * @return A new random state string.
-     */
-    private String _generateState() {
-        return UUID.randomUUID().toString();
-    }
-
-    /**
-     * Warms up the Custom Tabs service, allowing it to load even more faster.
-     */
-    public void warmUp() {
-        if (_preferencesService.getAppSettings().useCustomTabs()) {
-            CustomTabsClient.connectAndInitialize(_context, CUSTOM_TAB_PACKAGE_NAME);
-        }
-    }
 
     /**
      * Initiates a connection to the VPN provider instance.
@@ -117,25 +102,52 @@ public class ConnectionService {
      * @param instance      The instance to connect to.
      * @param discoveredAPI The discovered API which has the URL.
      */
-    public void initiateConnection(@NonNull Activity activity, @NonNull Instance instance, @NonNull DiscoveredAPI discoveredAPI) {
-        String authorizationUrl = discoveredAPI.getAuthorizationEndpoint();
-        String state = _generateState();
-        String connectionUrl = _buildConnectionUrl(authorizationUrl, state);
+    public void initiateConnection(@NonNull final Activity activity, @NonNull final Instance instance, @NonNull final DiscoveredAPI discoveredAPI) {
+        Observable.defer(new Callable<ObservableSource<AuthorizationRequest>>() {
+            @Override
+            public ObservableSource<AuthorizationRequest> call() throws Exception {
+                String stateString = _securityService.generateSecureRandomString(32);
+                _preferencesService.currentInstance(instance);
+                _preferencesService.storeCurrentDiscoveredAPI(discoveredAPI);
+                _preferencesService.storeCurrentConnectionState(stateString);
+                AuthorizationServiceConfiguration serviceConfig =
+                        new AuthorizationServiceConfiguration(
+                                Uri.parse(discoveredAPI.getAuthorizationEndpoint()),
+                                Uri.parse(discoveredAPI.getTokenEndpoint()),
+                                null);
+                AuthorizationRequest.Builder authRequestBuilder =
+                        new AuthorizationRequest.Builder(
+                                serviceConfig, // the authorization service configuration
+                                CLIENT_ID, // the client ID, typically pre-registered and static
+                                ResponseTypeValues.CODE, // the response_type value: we want a code
+                                Uri.parse(REDIRECT_URI)) // the redirect URI to which the auth response is sent
+                                .setScope(SCOPE)
+                                .setCodeVerifier(CodeVerifierUtil.generateRandomCodeVerifier()) // Use S256 challenge method if possible
+                                .setResponseType(RESPONSE_TYPE)
+                                .setState(stateString);
+                return Observable.just(authRequestBuilder.build());
+            }
+        }).subscribeOn(Schedulers.computation())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Consumer<AuthorizationRequest>() {
+                    @Override
+                    public void accept(AuthorizationRequest authorizationRequest) throws Exception {
+                        if (_authorizationService == null) {
+                            _authorizationService = new AuthorizationService(activity);
+                            Log.w(TAG, "WARNING: You did not call warmUp() on the service before making your first call! You might see increased waiting times before opening the browser.");
+                        }
+                        _authorizationService.performAuthorizationRequest(
+                                authorizationRequest,
+                                PendingIntent.getActivity(activity, REQUEST_CODE_APP_AUTH, new Intent(activity, MainActivity.class), 0));
 
-        _preferencesService.storeCurrentConnectionState(state);
-        _preferencesService.currentInstance(instance);
-        _preferencesService.storeCurrentDiscoveredAPI(discoveredAPI);
-        if (!_preferencesService.getAppSettings().useCustomTabs()) {
-            Intent viewUrlIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(connectionUrl));
-            activity.startActivity(viewUrlIntent);
-        } else {
-            CustomTabsIntent.Builder builder = new CustomTabsIntent.Builder();
-            builder.setToolbarColor(ContextCompat.getColor(_context, R.color.mainColor));
-            builder.setInstantAppsEnabled(false);
-            builder.setShowTitle(true);
-            CustomTabsIntent customTabsIntent = builder.build();
-            customTabsIntent.launchUrl(activity, Uri.parse(connectionUrl));
-        }
+                    }
+                }, new Consumer<Throwable>() {
+                    @Override
+                    public void accept(Throwable throwable) throws Exception {
+                        throwable.printStackTrace();
+                        ErrorDialog.show(activity, R.string.error_dialog_title, throwable.getMessage());
+                    }
+                });
     }
 
     /**
@@ -150,31 +162,15 @@ public class ConnectionService {
     }
 
     /**
-     * Parses the callback intent and retrieves the access token.
+     * Parses the authorization response and retrieves the access token.
      *
-     * @param intent The intent to parse.
+     * @param authorizationResponse The auth response to process.
      * @throws InvalidConnectionAttemptException Thrown if there's a problem with the callback.
      */
-    public void parseCallbackIntent(@NonNull Intent intent) throws InvalidConnectionAttemptException {
-        Uri callbackUri = intent.getData();
-        if (callbackUri == null) {
-            // Not a callback intent. Check before calling this method.
-            throw new RuntimeException("Intent is not a callback intent!");
-        }
-        Log.i(TAG, "Got callback URL: " + callbackUri.toString());
-        // Modify it so the URI parser can parse the params.
-        callbackUri = Uri.parse(callbackUri.toString().replace("callback#", "callback?"));
-
-        String accessToken = callbackUri.getQueryParameter("access_token");
-        String state = callbackUri.getQueryParameter("state");
-        String error = callbackUri.getQueryParameter("error");
-        if (error != null) {
-            if ("access_denied".equals(error)) {
-                throw new InvalidConnectionAttemptException(_context.getString(R.string.rejected_permission));
-            } else {
-                throw new InvalidConnectionAttemptException(_context.getString(R.string.callback_error, error));
-            }
-        }
+    public void parseAuthorizationResponse(@NonNull AuthorizationResponse authorizationResponse) throws InvalidConnectionAttemptException {
+        Log.i(TAG, "Got auth response: " + authorizationResponse.jsonSerializeString());
+        String accessToken = authorizationResponse.accessToken;
+        String state = authorizationResponse.state;
         if (accessToken == null || accessToken.isEmpty()) {
             throw new InvalidConnectionAttemptException(_context.getString(R.string.error_access_token_missing));
         }
