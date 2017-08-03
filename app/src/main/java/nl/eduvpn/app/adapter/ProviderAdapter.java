@@ -30,7 +30,7 @@ import java.util.Observer;
 
 import nl.eduvpn.app.R;
 import nl.eduvpn.app.adapter.viewholder.ProviderViewHolder;
-import nl.eduvpn.app.entity.ConnectionType;
+import nl.eduvpn.app.entity.AuthorizationType;
 import nl.eduvpn.app.entity.Instance;
 import nl.eduvpn.app.service.ConfigurationService;
 
@@ -42,22 +42,23 @@ public class ProviderAdapter extends RecyclerView.Adapter<ProviderViewHolder> {
 
     private List<Instance> _instanceList;
     private LayoutInflater _layoutInflater;
-    private @ConnectionType int _connectionType;
+    private @AuthorizationType
+    int _authorizationType;
 
-    public ProviderAdapter(final ConfigurationService configurationService, @ConnectionType final int connectionType) {
-        _connectionType = connectionType;
-        if (connectionType == ConnectionType.SECURE_INTERNET) {
-            _instanceList = configurationService.getInstanceList();
+    public ProviderAdapter(final ConfigurationService configurationService, @AuthorizationType final int authorizationType) {
+        _authorizationType = authorizationType;
+        if (authorizationType == AuthorizationType.LOCAL) {
+            _instanceList = configurationService.getSecureInternetList();
         } else {
-            _instanceList = configurationService.getFederationList();
+            _instanceList = configurationService.getInstituteAccessList();
         }
         configurationService.addObserver(new Observer() {
             @Override
             public void update(Observable o, Object arg) {
-                if (_connectionType == ConnectionType.SECURE_INTERNET) {
-                    _instanceList = configurationService.getInstanceList();
+                if (_authorizationType == AuthorizationType.LOCAL) {
+                    _instanceList = configurationService.getSecureInternetList();
                 } else {
-                    _instanceList = configurationService.getFederationList();
+                    _instanceList = configurationService.getInstituteAccessList();
                 }
                 notifyDataSetChanged();
             }

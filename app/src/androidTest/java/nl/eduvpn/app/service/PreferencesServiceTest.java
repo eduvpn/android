@@ -22,7 +22,7 @@ import android.support.test.InstrumentationRegistry;
 import android.support.test.filters.LargeTest;
 import android.support.test.runner.AndroidJUnit4;
 
-import nl.eduvpn.app.entity.ConnectionType;
+import nl.eduvpn.app.entity.AuthorizationType;
 import nl.eduvpn.app.entity.DiscoveredAPI;
 import nl.eduvpn.app.entity.Instance;
 
@@ -46,7 +46,7 @@ public class PreferencesServiceTest {
     public void before() {
         SerializerService serializerService = new SerializerService();
         Context context = InstrumentationRegistry.getContext();
-        _preferencesService = new PreferencesService(context, serializerService);
+        _preferencesService = new PreferencesService(serializerService, new SecurityService(context).getSecurePreferences());
     }
 
     @Test
@@ -59,7 +59,7 @@ public class PreferencesServiceTest {
 
     @Test
     public void testInstanceSave() {
-        Instance instance = new Instance("http://example.com", "Example", "http://example.com/image.jpg", ConnectionType.SECURE_INTERNET, true);
+        Instance instance = new Instance("http://example.com", "Example", "http://example.com/image.jpg", AuthorizationType.SECURE_INTERNET, true);
         _preferencesService.currentInstance(instance);
         Instance retrievedInstance = _preferencesService.getCurrentInstance();
         assertNotNull(retrievedInstance);

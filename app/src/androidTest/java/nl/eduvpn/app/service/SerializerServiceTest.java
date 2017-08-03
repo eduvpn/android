@@ -21,7 +21,7 @@ import android.support.test.filters.LargeTest;
 import android.support.test.runner.AndroidJUnit4;
 import android.util.Pair;
 
-import nl.eduvpn.app.entity.ConnectionType;
+import nl.eduvpn.app.entity.AuthorizationType;
 import nl.eduvpn.app.entity.DiscoveredAPI;
 import nl.eduvpn.app.entity.Instance;
 import nl.eduvpn.app.entity.InstanceList;
@@ -90,13 +90,13 @@ public class SerializerServiceTest {
 
     @Test
     public void testInstanceSerialization() throws SerializerService.UnknownFormatException {
-        Instance instance = new Instance("baseUri", "displayName", "logoUri", ConnectionType.SECURE_INTERNET, true);
+        Instance instance = new Instance("baseUri", "displayName", "logoUri", AuthorizationType.SECURE_INTERNET, true);
         JSONObject serializedInstance = _serializerService.serializeInstance(instance);
         Instance deserializedInstance = _serializerService.deserializeInstance(serializedInstance);
         assertEquals(instance.getDisplayName(), deserializedInstance.getDisplayName());
         assertEquals(instance.getBaseURI(), deserializedInstance.getBaseURI());
         assertEquals(instance.getLogoUri(), deserializedInstance.getLogoUri());
-        assertEquals(instance.getConnectionType(), deserializedInstance.getConnectionType());
+        assertEquals(instance.getAuthorizationType(), deserializedInstance.getAuthorizationType());
         assertEquals(instance.isCustom(), deserializedInstance.isCustom());
     }
 
@@ -115,12 +115,13 @@ public class SerializerServiceTest {
 
     @Test
     public void testInstanceListSerialization() throws SerializerService.UnknownFormatException {
-        Instance instance1 = new Instance("baseUri", "displayName", "logoUri", ConnectionType.SECURE_INTERNET, true);
-        Instance instance2 = new Instance("baseUri2", "displayName2", "logoUri2", ConnectionType.SECURE_INTERNET, true);
-        InstanceList instanceList = new InstanceList(1, Arrays.asList(instance1, instance2));
+        Instance instance1 = new Instance("baseUri", "displayName", "logoUri", AuthorizationType.SECURE_INTERNET, true);
+        Instance instance2 = new Instance("baseUri2", "displayName2", "logoUri2", AuthorizationType.SECURE_INTERNET, true);
+        InstanceList instanceList = new InstanceList(1, Arrays.asList(instance1, instance2), 231);
         JSONObject serializedInstanceList = _serializerService.serializeInstanceList(instanceList);
         InstanceList deserializedInstanceList = _serializerService.deserializeInstanceList(serializedInstanceList);
         assertEquals(instanceList.getVersion(), deserializedInstanceList.getVersion());
+        assertEquals(instanceList.getSequenceNumber(), deserializedInstanceList.getSequenceNumber());
         assertEquals(instanceList.getInstanceList().size(), deserializedInstanceList.getInstanceList().size());
         assertEquals(instanceList.getInstanceList().get(0).getDisplayName(), deserializedInstanceList.getInstanceList().get(0).getDisplayName());
         assertEquals(instanceList.getInstanceList().get(0).getBaseURI(), deserializedInstanceList.getInstanceList().get(0).getBaseURI());
@@ -176,8 +177,8 @@ public class SerializerServiceTest {
 
     @Test
     public void testSavedTokenListSerialization() throws SerializerService.UnknownFormatException {
-        Instance instance1 = new Instance("baseUri1", "displayName1", null, ConnectionType.SECURE_INTERNET,  true);
-        Instance instance2 = new Instance("baseUri2", "displayName2", null, ConnectionType.SECURE_INTERNET, true);
+        Instance instance1 = new Instance("baseUri1", "displayName1", null, AuthorizationType.SECURE_INTERNET,  true);
+        Instance instance2 = new Instance("baseUri2", "displayName2", null, AuthorizationType.SECURE_INTERNET, true);
         SavedToken token1 = new SavedToken(instance1, "accessToken1");
         SavedToken token2 = new SavedToken(instance2, "accessToken2");
         List<SavedToken> list = Arrays.asList(token1, token2);
@@ -192,8 +193,8 @@ public class SerializerServiceTest {
 
     @Test
     public void testSavedProfileListSerialization() throws SerializerService.UnknownFormatException {
-        Instance instance1 = new Instance("baseUri1", "displayName1", "logoUri1", ConnectionType.SECURE_INTERNET, true);
-        Instance instance2 = new Instance("baseUri2", "displayName2", "logoUri2", ConnectionType.INSTITUTE_ACCESS, true);
+        Instance instance1 = new Instance("baseUri1", "displayName1", "logoUri1", AuthorizationType.SECURE_INTERNET, true);
+        Instance instance2 = new Instance("baseUri2", "displayName2", "logoUri2", AuthorizationType.INSTITUTE_ACCESS, true);
         Profile profile1 = new Profile("displayName1", "profileId1", false);
         Profile profile2 = new Profile("displayName2", "profileId2", true);
         SavedProfile savedProfile1 = new SavedProfile(instance1, profile1, "profileUUID1");
@@ -207,7 +208,7 @@ public class SerializerServiceTest {
             assertEquals(list.get(i).getInstance().getDisplayName(), deserializedList.get(i).getInstance().getDisplayName());
             assertEquals(list.get(i).getInstance().getLogoUri(), deserializedList.get(i).getInstance().getLogoUri());
             assertEquals(list.get(i).getInstance().isCustom(), deserializedList.get(i).getInstance().isCustom());
-            assertEquals(list.get(i).getInstance().getConnectionType(), deserializedList.get(i).getInstance().getConnectionType());
+            assertEquals(list.get(i).getInstance().getAuthorizationType(), deserializedList.get(i).getInstance().getAuthorizationType());
 
             assertEquals(list.get(i).getProfile().getDisplayName(), deserializedList.get(i).getProfile().getDisplayName());
             assertEquals(list.get(i).getProfile().getProfileId(), deserializedList.get(i).getProfile().getProfileId());

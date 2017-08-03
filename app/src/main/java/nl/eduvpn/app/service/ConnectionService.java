@@ -104,7 +104,7 @@ public class ConnectionService {
     /**
      * Warms up the Custom Tabs service, allowing it to load even more faster.
      */
-    public void warmup() {
+    public void warmUp() {
         if (_preferencesService.getAppSettings().useCustomTabs()) {
             CustomTabsClient.connectAndInitialize(_context, CUSTOM_TAB_PACKAGE_NAME);
         }

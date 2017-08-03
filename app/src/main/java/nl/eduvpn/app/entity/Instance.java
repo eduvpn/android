@@ -26,19 +26,19 @@ import android.support.annotation.Nullable;
  */
 public class Instance {
 
-    private final String _baseUri;
-    private final String _displayName;
-    private final String _logoUri;
-    private final boolean _isCustom;
-    private final @ConnectionType int _connectionType;
+    private String _baseUri;
+    private String _displayName;
+    private String _logoUri;
+    private boolean _isCustom;
+    private @AuthorizationType int _authorizationType;
 
     public Instance(@NonNull String baseUri, @NonNull String displayName, @Nullable String logoUri,
-                    @ConnectionType int connectionType, boolean isCustom) {
+                    @AuthorizationType int authorizationType, boolean isCustom) {
         _baseUri = baseUri;
         _displayName = displayName;
         _logoUri = logoUri;
         _isCustom = isCustom;
-        _connectionType = connectionType;
+        _authorizationType = authorizationType;
     }
 
     @NonNull
@@ -64,12 +64,16 @@ public class Instance {
         return _logoUri;
     }
 
-    @ConnectionType
-    public int getConnectionType() {
-        return _connectionType;
+    @AuthorizationType
+    public int getAuthorizationType() {
+        return _authorizationType;
     }
 
     public boolean isCustom() {
         return _isCustom;
+    }
+
+    public void setAuthorizationType(@AuthorizationType int authorizationType) {
+        _authorizationType = authorizationType;
     }
 }

@@ -30,7 +30,7 @@ import android.widget.EditText;
 
 import nl.eduvpn.app.EduVPNApplication;
 import nl.eduvpn.app.R;
-import nl.eduvpn.app.entity.ConnectionType;
+import nl.eduvpn.app.entity.AuthorizationType;
 import nl.eduvpn.app.entity.DiscoveredAPI;
 import nl.eduvpn.app.entity.Instance;
 import nl.eduvpn.app.service.APIService;
@@ -57,7 +57,7 @@ import static nl.eduvpn.app.Constants.API_DISCOVERY_POSTFIX;
 public class CustomProviderFragment extends Fragment {
 
     private static final String TAG = CustomProviderFragment.class.getName();
-    public static final String EXTRA_CONNECTION_TYPE = "extra_connection_type";
+    public static final String EXTRA_AUTHORIZATION_TYPE = "extra_authorization_type";
 
     private Unbinder _unbinder;
 
@@ -73,19 +73,19 @@ public class CustomProviderFragment extends Fragment {
     @Inject
     protected SerializerService _serializerService;
 
-    private @ConnectionType Integer _connectionType;
+    private @AuthorizationType Integer _authorizationType;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if (savedInstanceState != null && savedInstanceState.containsKey(EXTRA_CONNECTION_TYPE)) {
+        if (savedInstanceState != null && savedInstanceState.containsKey(EXTRA_AUTHORIZATION_TYPE)) {
             //noinspection WrongConstant
-            _connectionType = savedInstanceState.getInt(EXTRA_CONNECTION_TYPE);
-        } else if (getArguments() != null && getArguments().containsKey(EXTRA_CONNECTION_TYPE)) {
+            _authorizationType = savedInstanceState.getInt(EXTRA_AUTHORIZATION_TYPE);
+        } else if (getArguments() != null && getArguments().containsKey(EXTRA_AUTHORIZATION_TYPE)) {
             //noinspection WrongConstant
-            _connectionType = getArguments().getInt(EXTRA_CONNECTION_TYPE);
+            _authorizationType = getArguments().getInt(EXTRA_AUTHORIZATION_TYPE);
         }
-        if (_connectionType == null) {
+        if (_authorizationType == null) {
             throw new RuntimeException("Connection type not provided!");
         }
     }
@@ -93,7 +93,7 @@ public class CustomProviderFragment extends Fragment {
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putInt(EXTRA_CONNECTION_TYPE, _connectionType);
+        outState.putInt(EXTRA_AUTHORIZATION_TYPE, _authorizationType);
     }
 
     @Nullable
@@ -120,7 +120,7 @@ public class CustomProviderFragment extends Fragment {
         String postfix = _customProviderUrl.getText().toString();
         String url = prefix + postfix;
         if (getActivity() != null) {
-            final Instance customProviderInstance = _createCustomProviderInstance(url, _connectionType);
+            final Instance customProviderInstance = _createCustomProviderInstance(url, _authorizationType);
             final ProgressDialog dialog = ProgressDialog.show(getContext(), getString(R.string.progress_dialog_title), getString(R.string.api_discovery_message), true);
             // Discover the API
             _apiService.getJSON(customProviderInstance.getSanitizedBaseURI() + API_DISCOVERY_POSTFIX, false, new APIService.Callback<JSONObject>() {
@@ -153,8 +153,8 @@ public class CustomProviderFragment extends Fragment {
      * @param baseUri The base URI of the instance.
      * @return A new instance.
      */
-    private Instance _createCustomProviderInstance(String baseUri, @ConnectionType int connectionType) {
-        return new Instance(baseUri, getString(R.string.custom_provider_display_name), null, connectionType, true);
+    private Instance _createCustomProviderInstance(String baseUri, @AuthorizationType int authorizationType) {
+        return new Instance(baseUri, getString(R.string.custom_provider_display_name), null, authorizationType, true);
     }
 
     @Override

@@ -17,24 +17,25 @@
 
 package nl.eduvpn.app.service;
 
-import android.content.Context;
 import android.content.SharedPreferences;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.List;
+
+import nl.eduvpn.app.entity.AuthorizationType;
 import nl.eduvpn.app.entity.DiscoveredAPI;
 import nl.eduvpn.app.entity.Instance;
+import nl.eduvpn.app.entity.InstanceList;
 import nl.eduvpn.app.entity.Profile;
 import nl.eduvpn.app.entity.SavedProfile;
 import nl.eduvpn.app.entity.SavedToken;
 import nl.eduvpn.app.entity.Settings;
 import nl.eduvpn.app.utils.Log;
 import nl.eduvpn.app.utils.TTLCache;
-
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.util.List;
 
 /**
  * This service is used to save temporary data
@@ -54,21 +55,25 @@ public class PreferencesService {
     private static final String KEY_PROFILE = "profile";
     private static final String KEY_DISCOVERED_API = "discovered_api";
 
+    private static final String KEY_INSTANCE_LIST_PREFIX = "instance_list_";
+    private static final String KEY_INSTANCE_LIST_SECURE_INTERNET = KEY_INSTANCE_LIST_PREFIX + "secure_internet";
+    private static final String KEY_INSTANCE_LIST_INSTITUTE_ACCESS = KEY_INSTANCE_LIST_PREFIX + "institute_access";
+
     private static final String KEY_SAVED_PROFILES = "saved_profiles";
     private static final String KEY_SAVED_TOKENS = "saved_tokens";
     private static final String KEY_DISCOVERED_API_CACHE = "discovered_api_cache";
 
-    private Context _context;
     private SerializerService _serializerService;
+    private SharedPreferences _sharedPreferences;
 
     /**
      * Constructor.
      *
-     * @param context           The application or activity context.
      * @param serializerService The serializer service used to serialize and deserialize objects.
+     * @param sharedPreferences The secured shared preferences where the data will be stored.
      */
-    public PreferencesService(Context context, SerializerService serializerService) {
-        _context = context;
+    public PreferencesService(SerializerService serializerService, SharedPreferences sharedPreferences) {
+        _sharedPreferences = sharedPreferences;
         _serializerService = serializerService;
     }
 
@@ -78,7 +83,7 @@ public class PreferencesService {
      * @return The preferences to be used.
      */
     SharedPreferences _getSharedPreferences() {
-        return _context.getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE);
+        return _sharedPreferences;
     }
 
     /**
@@ -366,6 +371,51 @@ public class PreferencesService {
             _getSharedPreferences().edit().putString(KEY_DISCOVERED_API_CACHE, serializedCache).apply();
         } catch (SerializerService.UnknownFormatException ex) {
             Log.e(TAG, "Can not save discovered API cache.", ex);
+        }
+    }
+
+    /**
+     * Stores the instance list for a specific connection type
+     */
+    public void storeInstanceList(@AuthorizationType int authorizationType, InstanceList instanceListToSave) {
+        String key;
+        if (authorizationType == AuthorizationType.DISTRIBUTED) {
+            key = KEY_INSTANCE_LIST_INSTITUTE_ACCESS;
+        } else if (authorizationType == AuthorizationType.LOCAL) {
+            key = KEY_INSTANCE_LIST_SECURE_INTERNET;
+        } else {
+            throw new RuntimeException("Unexpected connection type!");
+        }
+        try {
+            String serializedInstanceList = _serializerService.serializeInstanceList(instanceListToSave).toString();
+            _getSharedPreferences().edit().putString(key, serializedInstanceList).apply();
+        } catch (SerializerService.UnknownFormatException ex) {
+            Log.e(TAG, "Cannot save instance list for connection type: " + authorizationType, ex);
+        }
+    }
+
+    /**
+     * Stores the instance list for a specific authorization type
+     */
+    @Nullable
+    public InstanceList getInstanceList(@AuthorizationType int authorizationType) {
+        String key;
+        if (authorizationType == AuthorizationType.DISTRIBUTED) {
+            key = KEY_INSTANCE_LIST_INSTITUTE_ACCESS;
+        } else if (authorizationType == AuthorizationType.LOCAL) {
+            key = KEY_INSTANCE_LIST_SECURE_INTERNET;
+        } else {
+            throw new RuntimeException("Unexpected connection type!");
+        }
+        try {
+            String serializedInstanceList = _getSharedPreferences().getString(key, null);
+            if (serializedInstanceList == null) {
+                return null;
+            }
+            return _serializerService.deserializeInstanceList(new JSONObject(serializedInstanceList));
+        } catch (SerializerService.UnknownFormatException | JSONException ex) {
+            Log.e(TAG, "Cannot deserialize previously saved instance list of authorization type: " + authorizationType, ex);
+            return null;
         }
     }
 }

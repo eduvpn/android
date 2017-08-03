@@ -52,7 +52,7 @@ import nl.eduvpn.app.EduVPNApplication;
 import nl.eduvpn.app.MainActivity;
 import nl.eduvpn.app.R;
 import nl.eduvpn.app.adapter.ProfileAdapter;
-import nl.eduvpn.app.entity.ConnectionType;
+import nl.eduvpn.app.entity.AuthorizationType;
 import nl.eduvpn.app.entity.DiscoveredAPI;
 import nl.eduvpn.app.entity.Instance;
 import nl.eduvpn.app.entity.Profile;
@@ -155,8 +155,10 @@ public class HomeFragment extends Fragment {
         _secureInternetList.addItemDecoration(new SwipeToDeleteAnimator(getContext()));
 
         // Fill with data
-        List<SavedToken> savedInstituteAccessTokens = _historyService.getSavedTokensForConnectionType(ConnectionType.INSTITUTE_ACCESS);
-        List<SavedToken> savedSecureInternetTokens = _historyService.getSavedTokensForConnectionType(ConnectionType.SECURE_INTERNET);
+        List<SavedToken> savedInstituteAccessTokens = _historyService.getSavedTokensForAuthorizationType(AuthorizationType.LOCAL);
+        List<SavedToken> savedSecureInternetTokens = _historyService.getSavedTokensForAuthorizationType(AuthorizationType.DISTRIBUTED);
+        // Secure internet tokens are valid for all other instances.
+        savedSecureInternetTokens = enhanceSecureInternetTokensList(savedSecureInternetTokens);
         if (savedInstituteAccessTokens.isEmpty() && savedSecureInternetTokens.isEmpty()) {
             // No saved tokens
             _loadingBar.setVisibility(View.GONE);
@@ -180,8 +182,8 @@ public class HomeFragment extends Fragment {
             // There are some saved secure internet tokens
             if (!savedSecureInternetTokens.isEmpty()) {
                 ProfileAdapter adapter = new ProfileAdapter(_historyService, null);
-                _secureInternetList.setAdapter(adapter);
                 _fillList(adapter, savedSecureInternetTokens);
+                _secureInternetList.setAdapter(adapter);
                 _secureInternetContainer.setVisibility(View.VISIBLE);
             } else {
                 _secureInternetContainer.setVisibility(View.GONE);
@@ -199,7 +201,7 @@ public class HomeFragment extends Fragment {
                 Instance instance = instanceProfilePair.first;
                 Profile profile = instanceProfilePair.second;
                 DiscoveredAPI discoveredAPI = _historyService.getCachedDiscoveredAPI(instance.getSanitizedBaseURI());
-                String accessToken = _historyService.getCachedAccessToken(instance.getSanitizedBaseURI());
+                String accessToken = _historyService.getCachedAccessToken(instance);
                 if (discoveredAPI == null || accessToken == null) {
                     ErrorDialog.show(getContext(), R.string.error_dialog_title, R.string.cant_connect_application_state_missing);
                     return;
@@ -251,6 +253,27 @@ public class HomeFragment extends Fragment {
         ItemClickSupport.addTo(_secureInternetList).setOnItemLongClickListener(longClickListener);
 
         return view;
+    }
+
+    /**
+     * Creates a list with all distributed auth instances, using the same token.
+     *
+     * @return The list of all distributed auth instances.
+     */
+    private List<SavedToken> enhanceSecureInternetTokensList(List<SavedToken> savedSecureInternetTokens) {
+        if (savedSecureInternetTokens == null) {
+            return null;
+        }
+        if (savedSecureInternetTokens.size() == 0) {
+            return savedSecureInternetTokens;
+        }
+        String savedAccessToken = savedSecureInternetTokens.get(0).getAccessToken();
+        List<Instance> instanceList = _configurationService.getSecureInternetList();
+        List<SavedToken> result = new ArrayList<>();
+        for (Instance instance : instanceList) {
+            result.add(new SavedToken(instance, savedAccessToken));
+        }
+        return result;
     }
 
     @Override
@@ -443,7 +466,7 @@ public class HomeFragment extends Fragment {
 
                                 @Override
                                 public void removeInstance(Instance instance) {
-                                    _historyService.removeAccessTokens(instance.getSanitizedBaseURI());
+                                    _historyService.removeAccessTokens(instance);
                                     _historyService.removeDiscoveredAPI(instance.getSanitizedBaseURI());
                                     _historyService.removeSavedProfilesForInstance(instance.getSanitizedBaseURI());
                                     _problematicInstances.remove(instance);

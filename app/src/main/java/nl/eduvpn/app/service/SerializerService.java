@@ -34,7 +34,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
 
-import nl.eduvpn.app.entity.ConnectionType;
+import nl.eduvpn.app.entity.AuthorizationType;
 import nl.eduvpn.app.entity.DiscoveredAPI;
 import nl.eduvpn.app.entity.Instance;
 import nl.eduvpn.app.entity.InstanceList;
@@ -143,6 +143,12 @@ public class SerializerService {
     public InstanceList deserializeInstanceList(JSONObject json) throws UnknownFormatException {
         try {
             Integer version = json.getInt("version");
+            Integer sequenceNumber;
+            if (json.has("seq")) {
+                sequenceNumber = json.getInt("seq");
+            } else {
+                sequenceNumber = -1; // This will make sure that the new one will surely have a greater number.
+            }
             if (version != 1) {
                 throw new UnknownFormatException("Unknown version property: " + version);
             }
@@ -152,7 +158,7 @@ public class SerializerService {
                 JSONObject instanceObject = instanceArray.getJSONObject(i);
                 instances.add(deserializeInstance(instanceObject));
             }
-            return new InstanceList(version, instances);
+            return new InstanceList(version, instances, sequenceNumber);
         } catch (JSONException ex) {
             throw new UnknownFormatException(ex);
         }
@@ -172,7 +178,7 @@ public class SerializerService {
             result.put("display_name", instance.getDisplayName());
             result.put("logo_uri", instance.getLogoUri());
             result.put("is_custom", instance.isCustom());
-            result.put("connection_type", instance.getConnectionType());
+            result.put("authorization_type", instance.getAuthorizationType());
         } catch (JSONException ex) {
             throw new UnknownFormatException(ex);
         }
@@ -198,12 +204,12 @@ public class SerializerService {
             if (jsonObject.has("is_custom")) {
                 isCustom = jsonObject.getBoolean("is_custom");
             }
-            @ConnectionType int connectionType = ConnectionType.SECURE_INTERNET;
-            if (jsonObject.has("connection_type")) {
+            @AuthorizationType int authorizationType = AuthorizationType.LOCAL;
+            if (jsonObject.has("authorization_type")) {
                 //noinspection WrongConstant
-                connectionType = jsonObject.getInt("connection_type");
+                authorizationType = jsonObject.getInt("authorization_type");
             }
-            return new Instance(baseUri, displayName, logoUri, connectionType, isCustom);
+            return new Instance(baseUri, displayName, logoUri, authorizationType, isCustom);
         } catch (JSONException ex) {
             throw new UnknownFormatException(ex);
         }
@@ -221,6 +227,7 @@ public class SerializerService {
         try {
             JSONObject serialized = new JSONObject();
             serialized.put("version", instanceList.getVersion());
+            serialized.put("seq", instanceList.getSequenceNumber());
             JSONArray serializedInstances = new JSONArray();
             for (Instance instance : instanceList.getInstanceList()) {
                 JSONObject serializedInstance = serializeInstance(instance);

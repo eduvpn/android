@@ -29,7 +29,7 @@ import butterknife.OnClick;
 import butterknife.Unbinder;
 import nl.eduvpn.app.MainActivity;
 import nl.eduvpn.app.R;
-import nl.eduvpn.app.entity.ConnectionType;
+import nl.eduvpn.app.entity.AuthorizationType;
 
 /**
  * Fragment where the user can select the VPN type he wants to connect to.
@@ -57,7 +57,7 @@ public class TypeSelectorFragment extends Fragment {
     protected void _onInstituteAccessClicked() {
         ProviderSelectionFragment providerSelectionFragment = new ProviderSelectionFragment();
         Bundle fragmentParameters = new Bundle();
-        fragmentParameters.putInt(ProviderSelectionFragment.EXTRA_CONNECTION_TYPE, ConnectionType.INSTITUTE_ACCESS);
+        fragmentParameters.putInt(ProviderSelectionFragment.EXTRA_AUTHORIZATION_TYPE, AuthorizationType.LOCAL);
         providerSelectionFragment.setArguments(fragmentParameters);
         ((MainActivity)getActivity()).openFragment(providerSelectionFragment, true);
     }
@@ -66,7 +66,7 @@ public class TypeSelectorFragment extends Fragment {
     protected void _onSecureInternetClicked() {
         ProviderSelectionFragment providerSelectionFragment = new ProviderSelectionFragment();
         Bundle fragmentParameters = new Bundle();
-        fragmentParameters.putInt(ProviderSelectionFragment.EXTRA_CONNECTION_TYPE, ConnectionType.SECURE_INTERNET);
+        fragmentParameters.putInt(ProviderSelectionFragment.EXTRA_AUTHORIZATION_TYPE, AuthorizationType.DISTRIBUTED);
         providerSelectionFragment.setArguments(fragmentParameters);
         ((MainActivity)getActivity()).openFragment(providerSelectionFragment, true);
     }

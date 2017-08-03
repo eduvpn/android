@@ -40,7 +40,7 @@ import nl.eduvpn.app.EduVPNApplication;
 import nl.eduvpn.app.MainActivity;
 import nl.eduvpn.app.R;
 import nl.eduvpn.app.adapter.ProviderAdapter;
-import nl.eduvpn.app.entity.ConnectionType;
+import nl.eduvpn.app.entity.AuthorizationType;
 import nl.eduvpn.app.entity.DiscoveredAPI;
 import nl.eduvpn.app.entity.Instance;
 import nl.eduvpn.app.service.APIService;
@@ -60,7 +60,7 @@ import nl.eduvpn.app.utils.Log;
 public class ProviderSelectionFragment extends Fragment {
 
     private static final String TAG = ProviderSelectionFragment.class.getName();
-    public static final String EXTRA_CONNECTION_TYPE = "extra_connection_type";
+    public static final String EXTRA_AUTHORIZATION_TYPE = "extra_authorization_type";
 
     @BindView(R.id.providersList)
     protected RecyclerView _providersList;
@@ -85,22 +85,22 @@ public class ProviderSelectionFragment extends Fragment {
 
     private Unbinder _unbinder;
 
-    @ConnectionType
-    private int _selectedConnectionType;
+    @AuthorizationType
+    private int _authorizationType;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (savedInstanceState != null) {
             //noinspection WrongConstant
-            _selectedConnectionType = savedInstanceState.getInt(EXTRA_CONNECTION_TYPE, -1);
-            if (_selectedConnectionType < 0) {
+            _authorizationType = savedInstanceState.getInt(EXTRA_AUTHORIZATION_TYPE, -1);
+            if (_authorizationType < 0) {
                 throw new RuntimeException("Selected connection type was not saved into instance state!");
             }
         } else {
             //noinspection WrongConstant
-            _selectedConnectionType = getArguments().getInt(EXTRA_CONNECTION_TYPE, -1);
-            if (_selectedConnectionType < 0) {
+            _authorizationType = getArguments().getInt(EXTRA_AUTHORIZATION_TYPE, -1);
+            if (_authorizationType < 0) {
                 throw new RuntimeException("Selected connection type was not provided via arguments!");
             }
         }
@@ -109,7 +109,7 @@ public class ProviderSelectionFragment extends Fragment {
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putInt(EXTRA_CONNECTION_TYPE, _selectedConnectionType);
+        outState.putInt(EXTRA_AUTHORIZATION_TYPE, _authorizationType);
     }
 
     @Nullable
@@ -120,7 +120,7 @@ public class ProviderSelectionFragment extends Fragment {
         EduVPNApplication.get(view.getContext()).component().inject(this);
         _providersList.setHasFixedSize(true);
         _providersList.setLayoutManager(new LinearLayoutManager(view.getContext(), LinearLayoutManager.VERTICAL, false));
-        _providersList.setAdapter(new ProviderAdapter(_configurationService, _selectedConnectionType));
+        _providersList.setAdapter(new ProviderAdapter(_configurationService, _authorizationType));
         ItemClickSupport.addTo(_providersList).setOnItemClickListener(new ItemClickSupport.OnItemClickListener() {
             @Override
             public void onItemClicked(RecyclerView recyclerView, int position, View v) {
@@ -130,7 +130,7 @@ public class ProviderSelectionFragment extends Fragment {
                         MainActivity activity = (MainActivity)getActivity();
                         Fragment customProviderFragment = new CustomProviderFragment();
                         Bundle fragmentParameters = new Bundle();
-                        fragmentParameters.putInt(CustomProviderFragment.EXTRA_CONNECTION_TYPE, _selectedConnectionType);
+                        fragmentParameters.putInt(CustomProviderFragment.EXTRA_AUTHORIZATION_TYPE, _authorizationType);
                         customProviderFragment.setArguments(fragmentParameters);
                         activity.openFragment(customProviderFragment, true);
                     }
@@ -197,7 +197,7 @@ public class ProviderSelectionFragment extends Fragment {
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        _connectionService.warmup();
+        _connectionService.warmUp();
     }
 
     @Override

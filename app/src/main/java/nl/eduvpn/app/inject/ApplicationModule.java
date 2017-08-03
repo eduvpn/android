@@ -18,6 +18,7 @@
 package nl.eduvpn.app.inject;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 
 import java.util.concurrent.TimeUnit;
 
@@ -27,6 +28,7 @@ import nl.eduvpn.app.service.ConfigurationService;
 import nl.eduvpn.app.service.ConnectionService;
 import nl.eduvpn.app.service.HistoryService;
 import nl.eduvpn.app.service.PreferencesService;
+import nl.eduvpn.app.service.SecurityService;
 import nl.eduvpn.app.service.SerializerService;
 import nl.eduvpn.app.service.VPNService;
 
@@ -57,14 +59,21 @@ public class ApplicationModule {
 
     @Provides
     @Singleton
-    protected ConfigurationService provideConfigurationService(Context context, SerializerService serializerService, OkHttpClient okHttpClient) {
-        return new ConfigurationService(context, serializerService, okHttpClient);
+    protected ConfigurationService provideConfigurationService(PreferencesService preferencesService, SerializerService serializerService,
+                                                               SecurityService securityService, OkHttpClient okHttpClient) {
+        return new ConfigurationService(preferencesService, serializerService, securityService, okHttpClient);
     }
 
     @Provides
     @Singleton
-    protected PreferencesService providePreferencesService(Context context, SerializerService serializerService) {
-        return new PreferencesService(context, serializerService);
+    protected SharedPreferences provideSecurePreferences(SecurityService securityService) {
+        return securityService.getSecurePreferences();
+    }
+
+    @Provides
+    @Singleton
+    protected PreferencesService providePreferencesService(SerializerService serializerService, SharedPreferences sharedPreferences) {
+        return new PreferencesService(serializerService, sharedPreferences);
     }
 
     @Provides
@@ -95,6 +104,12 @@ public class ApplicationModule {
     @Singleton
     protected HistoryService provideHistoryService(PreferencesService preferencesService) {
         return new HistoryService(preferencesService);
+    }
+
+    @Provides
+    @Singleton
+    protected SecurityService provideSecurityService(Context context) {
+        return new SecurityService(context);
     }
 
     @Provides
