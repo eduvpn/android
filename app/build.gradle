@@ -14,6 +14,7 @@ android {
         buildConfigField "String", "FEDERATION_LIST_URL", "\"https://static.eduvpn.nl/federation.json\""
         buildConfigField "String", "SIGNATURE_URL_POSTFIX", "\".sig\""
         buildConfigField "String", "SIGNATURE_VALIDATION_PUBLIC_KEY", "\"E5On0JTtyUVZmcWd+I/FXRm32nSq8R2ioyW7dcu/U88=\""
+        buildConfigField "boolean", "API_DISCOVERY_ENABLED", "true"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         manifestPlaceholders = [
                 'appAuthRedirectScheme': 'org.eduvpn.app'
@@ -32,9 +33,15 @@ android {
         basic {
         }
         dev {
+            applicationId "nl.eduvpn.app.dev"
             // Override the URLs for fetching the configs
             buildConfigField "String", "INSTANCE_LIST_URL", "\"https://static.eduvpn.nl/instances-dev.json\""
             buildConfigField "String", "FEDERATION_LIST_URL", "\"https://static.eduvpn.nl/federation-dev.json\""
+        }
+        home {
+            applicationId "nl.eduvpn.app.home"
+            // API discovery is disabled, and only custom URLs can be entered.
+            buildConfigField "boolean", "API_DISCOVERY_ENABLED", "false"
         }
     }
 
