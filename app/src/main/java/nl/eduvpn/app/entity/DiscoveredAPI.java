@@ -53,22 +53,27 @@ public class DiscoveredAPI {
         return _tokenEndpoint;
     }
 
+    @NonNull
     public String getSystemMessagesEndpoint() {
         return Uri.parse(_apiBaseUri).buildUpon().appendPath(Constants.API_SYSTEM_MESSAGES_PATH).build().toString();
     }
 
+    @NonNull
     public String getUserMessagesEndpoint() {
         return Uri.parse(_apiBaseUri).buildUpon().appendPath(Constants.API_USER_MESSAGES_PATH).build().toString();
     }
 
+    @NonNull
     public String getProfileListEndpoint() {
         return Uri.parse(_apiBaseUri).buildUpon().appendPath(Constants.API_PROFILE_LIST_PATH).build().toString();
     }
 
+    @NonNull
     public String getCreateKeyPairEndpoint() {
         return Uri.parse(_apiBaseUri).buildUpon().appendPath(Constants.API_CREATE_KEYPAIR).build().toString();
     }
 
+    @NonNull
     public String getProfileConfigEndpoint() {
         return Uri.parse(_apiBaseUri).buildUpon().appendPath(Constants.API_PROFILE_CONFIG).build().toString();
     }
