@@ -136,7 +136,7 @@ public class HistoryService extends Observable {
     @Nullable
     public String getCachedAccessToken(@NonNull Instance instance) {
         for (SavedToken savedToken : _savedTokenList) {
-            if (savedToken.getInstance().getSanitizedBaseURI().equals(instance.getBaseURI())) {
+            if (savedToken.getInstance().getSanitizedBaseURI().equals(instance.getSanitizedBaseURI())) {
                 return savedToken.getAccessToken();
             } else if (instance.getAuthorizationType() == AuthorizationType.DISTRIBUTED || savedToken.getInstance().getAuthorizationType() == AuthorizationType.DISTRIBUTED) {
                 return savedToken.getAccessToken();

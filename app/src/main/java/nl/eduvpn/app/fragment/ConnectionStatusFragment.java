@@ -19,6 +19,7 @@ package nl.eduvpn.app.fragment;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
@@ -61,12 +62,16 @@ import nl.eduvpn.app.service.SerializerService;
 import nl.eduvpn.app.service.VPNService;
 import nl.eduvpn.app.utils.ErrorDialog;
 import nl.eduvpn.app.utils.FormattingUtils;
+import nl.eduvpn.app.utils.Log;
 
 /**
  * The fragment which displays the status of the current connection.
  * Created by Daniel Zolnai on 2016-10-07.
  */
 public class ConnectionStatusFragment extends Fragment implements VPNService.ConnectionInfoCallback {
+
+    private static final int WAIT_FOR_DISCONNECT_UNTIL_MS = 3000;
+    private static final String TAG = ConnectionStatusFragment.class.getName();
 
     @Inject
     protected VPNService _vpnService;
@@ -124,6 +129,8 @@ public class ConnectionStatusFragment extends Fragment implements VPNService.Con
 
     private boolean _userInitiatedDisconnect = false;
     private boolean _userNavigation = false;
+
+    private Handler _gracefulDisconnectHandler = new Handler();
 
     @Nullable
     @Override
@@ -201,6 +208,7 @@ public class ConnectionStatusFragment extends Fragment implements VPNService.Con
             @Override
             public void update(Observable o, Object arg) {
                 VPNService.VPNStatus status = (VPNService.VPNStatus)arg;
+                System.out.println("Received status: " + status.name());
                 if (_currentStatusIcon != null) {
                     switch (status) {
                         case CONNECTED:
@@ -219,6 +227,7 @@ public class ConnectionStatusFragment extends Fragment implements VPNService.Con
                             if (_userInitiatedDisconnect) {
                                 // Go back to the home screen.
                                 _disconnectButton.setEnabled(false);
+                                _gracefulDisconnectHandler.removeCallbacksAndMessages(null);
                                 ((MainActivity)getActivity()).openFragment(new HomeFragment(), false);
                             } else {
                                 _currentStatusIcon.setImageResource(R.drawable.connection_status_disconnected);
@@ -279,10 +288,28 @@ public class ConnectionStatusFragment extends Fragment implements VPNService.Con
         if (_userNavigation) {
             ((MainActivity)getActivity()).openFragment(new HomeFragment(), false);
         } else {
+            boolean isConnecting = _vpnService.getStatus() == VPNService.VPNStatus.CONNECTING;
             _userInitiatedDisconnect = true;
             _currentStatusIcon.setImageResource(R.drawable.connection_status_disconnected);
             _disconnectButton.setEnabled(false);
             _vpnService.disconnect();
+            if (isConnecting) {
+                // In this case, if we call disconnect, the process can be killed.
+                // That means we won't get any notification from the disconnect event.
+                // So we add a timer which waits for the disconnect event. If not received, we assume the process was killed.
+                _gracefulDisconnectHandler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (getActivity() == null || getActivity().isFinishing()) {
+                            Log.i(TAG, "Cannot close connection status fragment, because activity was already finished. User probably left the app.");
+                            return;
+                        }
+                        Log.i(TAG, "No disconnect event received from VPN within " + WAIT_FOR_DISCONNECT_UNTIL_MS + " milliseconds. Assuming process died.");
+                        ((MainActivity)getActivity()).openFragment(new HomeFragment(), false);
+                    }
+                }, WAIT_FOR_DISCONNECT_UNTIL_MS);
+
+            }
         }
     }
 

@@ -540,6 +540,7 @@ public class HomeFragment extends Fragment {
                 false);
         if (savedKeyPair != null) {
             _downloadProfileWithKeyPair(instance, discoveredAPI, savedKeyPair, profile, dialog);
+            return;
         }
         String requestData = "display_name=" + Constants.PROFILE_DISPLAY_NAME;
         String createKeyPairEndpoint = discoveredAPI.getCreateKeyPairEndpoint();

@@ -67,7 +67,9 @@ public class ConfigurationService extends java.util.Observable {
         _securityService = securityService;
         _okHttpClient = okHttpClient;
         _loadSavedLists();
-        _fetchLatestConfiguration();
+        if (BuildConfig.API_DISCOVERY_ENABLED) {
+            _fetchLatestConfiguration();
+        } // Otherwise the user can only enter custom URLs.
     }
 
     /**
