@@ -25,13 +25,13 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 
-import java.util.concurrent.Callable;
-
 import io.reactivex.Observable;
 import io.reactivex.ObservableSource;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.functions.Consumer;
+import io.reactivex.functions.Function;
 import io.reactivex.schedulers.Schedulers;
+import io.reactivex.subjects.PublishSubject;
 import nl.eduvpn.app.utils.Log;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
@@ -81,10 +81,6 @@ public class APIService {
         _okHttpClient = okHttpClient;
     }
 
-    private String _getAccessToken() {
-        return _connectionService.getAccessToken();
-    }
-
     /**
      * Retrieves a JSON object from a URL, and returns it in the callback
      *
@@ -117,26 +113,20 @@ public class APIService {
      * @param callback The callback where the result is returned.
      */
     public void getString(final String url, final boolean useToken, final Callback<String> callback) {
-        String accessToken = _getAccessToken();
-        if (!useToken) {
-            accessToken = null;
-        }
-        final String finalToken = accessToken;
-        Observable.defer(new Callable<ObservableSource<String>>() {
+        //noinspection unchecked
+        _createNetworkCall(useToken, new Function<String, ObservableSource<?>>() {
             @Override
-            public Observable<String> call() {
+            public ObservableSource<?> apply(@io.reactivex.annotations.NonNull String accessToken) throws Exception {
                 try {
-                    return Observable.just(_fetchString(url, finalToken));
+                    return Observable.just(_fetchString(url, accessToken));
                 } catch (IOException ex) {
                     return Observable.error(ex);
                 } catch (JSONException ex) {
                     return Observable.error(ex);
                 } catch (UserNotAuthorizedException ex) {
                     return Observable.error(ex);
-
                 }
             }
-
         }).observeOn(AndroidSchedulers.mainThread())
                 .subscribeOn(Schedulers.io())
                 .subscribe(new Consumer<String>() {
@@ -165,16 +155,12 @@ public class APIService {
      * @param callback The callback for notifying about the result.
      */
     public void postResource(@NonNull final String url, @Nullable final String data, final boolean useToken, final Callback<String> callback) {
-        String accessToken = _getAccessToken();
-        if (!useToken) {
-            accessToken = null;
-        }
-        final String finalToken = accessToken;
-        Observable.defer(new Callable<ObservableSource<String>>() {
+        //noinspection unchecked
+        _createNetworkCall(useToken, new Function<String, ObservableSource<?>>() {
             @Override
-            public Observable<String> call() {
+            public ObservableSource<?> apply(@io.reactivex.annotations.NonNull String accessToken) throws Exception {
                 try {
-                    return Observable.just(_fetchByteResource(url, data, finalToken));
+                    return Observable.just(_fetchByteResource(url, data, accessToken));
                 } catch (IOException ex) {
                     return Observable.error(ex);
                 } catch (UserNotAuthorizedException ex) {
@@ -241,7 +227,7 @@ public class APIService {
      */
     private Request.Builder _createRequestBuilder(@NonNull String urlString, @Nullable String accessToken) {
         Request.Builder builder = new Request.Builder().get().url(urlString);
-        if (accessToken != null) {
+        if (accessToken != null && accessToken.length() > 0) {
             builder = builder.header(HEADER_AUTHORIZATION, "Bearer " + accessToken);
         }
         return builder;
@@ -270,5 +256,20 @@ public class APIService {
         }
         Log.d(TAG, "GET " + url + ": " + responseString);
         return responseString;
+    }
+
+    private Observable _createNetworkCall(boolean useToken, Function<String, ObservableSource<?>> networkFunction) {
+        Observable networkCall;
+        if (useToken) {
+            networkCall = _connectionService.getFreshAccessToken()
+                    .observeOn(Schedulers.io())
+                    .flatMap(networkFunction);
+        } else {
+            PublishSubject<String> emptySubject = PublishSubject.create();
+            emptySubject.startWith("");
+            networkCall = emptySubject.observeOn(Schedulers.io())
+                    .flatMap(networkFunction);
+        }
+        return networkCall;
     }
 }

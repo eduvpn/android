@@ -10,8 +10,8 @@ android {
         targetSdkVersion 26
         versionCode 2
         versionName "1.0.1"
-        buildConfigField "String", "INSTANCE_LIST_URL", "\"https://static.eduvpn.nl/instances.json\""
-        buildConfigField "String", "FEDERATION_LIST_URL", "\"https://static.eduvpn.nl/federation.json\""
+        buildConfigField "String", "SECURE_INTERNET_DISCOVERY_URL", "\"https://static.eduvpn.nl/disco/secure_internet.json\""
+        buildConfigField "String", "INSTITUTE_ACCESS_DISCOVERY_URL", "\"https://static.eduvpn.nl/disco/institute_access.json\""
         buildConfigField "String", "SIGNATURE_URL_POSTFIX", "\".sig\""
         buildConfigField "String", "SIGNATURE_VALIDATION_PUBLIC_KEY", "\"E5On0JTtyUVZmcWd+I/FXRm32nSq8R2ioyW7dcu/U88=\""
         buildConfigField "boolean", "API_DISCOVERY_ENABLED", "true"
@@ -35,8 +35,8 @@ android {
         dev {
             applicationId "nl.eduvpn.app.dev"
             // Override the URLs for fetching the configs
-            buildConfigField "String", "INSTANCE_LIST_URL", "\"https://static.eduvpn.nl/instances-dev.json\""
-            buildConfigField "String", "FEDERATION_LIST_URL", "\"https://static.eduvpn.nl/federation-dev.json\""
+            buildConfigField "String", "SECURE_INTERNET_DISCOVERY_URL", "\"https://static.eduvpn.nl/disco/secure_internet_dev.json\""
+            buildConfigField "String", "INSTITUTE_ACCESS_DISCOVERY_URL", "\"https://static.eduvpn.nl/disco/institute_access_dev.json\""
         }
         home {
             applicationId "nl.eduvpn.app.home"

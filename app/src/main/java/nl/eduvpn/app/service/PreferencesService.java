@@ -21,6 +21,8 @@ import android.content.SharedPreferences;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
+import net.openid.appauth.AuthState;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -33,7 +35,7 @@ import nl.eduvpn.app.entity.InstanceList;
 import nl.eduvpn.app.entity.Profile;
 import nl.eduvpn.app.entity.SavedKeyPair;
 import nl.eduvpn.app.entity.SavedProfile;
-import nl.eduvpn.app.entity.SavedToken;
+import nl.eduvpn.app.entity.SavedAuthState;
 import nl.eduvpn.app.entity.Settings;
 import nl.eduvpn.app.utils.Log;
 import nl.eduvpn.app.utils.TTLCache;
@@ -46,7 +48,7 @@ import nl.eduvpn.app.utils.TTLCache;
 public class PreferencesService {
     private static final String TAG = PreferencesService.class.getName();
 
-    private static final String KEY_ACCESS_TOKEN = "access_token";
+    private static final String KEY_AUTH_STATE = "auth_state";
     private static final String KEY_APP_SETTINGS = "app_settings";
 
     private static final String KEY_INSTANCE = "instance";
@@ -58,7 +60,7 @@ public class PreferencesService {
     private static final String KEY_INSTANCE_LIST_INSTITUTE_ACCESS = KEY_INSTANCE_LIST_PREFIX + "institute_access";
 
     private static final String KEY_SAVED_PROFILES = "saved_profiles";
-    private static final String KEY_SAVED_TOKENS = "saved_tokens";
+    private static final String KEY_SAVED_AUTH_STATES = "saved_auth_state";
     private static final String KEY_DISCOVERED_API_CACHE = "discovered_api_cache";
     private static final String KEY_SAVED_KEY_PAIRS = "saved_key_pairs";
 
@@ -153,12 +155,12 @@ public class PreferencesService {
     }
 
     /**
-     * Saves the access token for further usage.
+     * Saves the authentication state for further usage.
      *
-     * @param accessToken The access token to use for the VPN provider API.
+     * @param authState The access token and refresh token to use for the VPN provider API.
      */
-    void storeCurrentAccessToken(@NonNull String accessToken) {
-        _getSharedPreferences().edit().putString(KEY_ACCESS_TOKEN, accessToken).apply();
+    void storeCurrentAuthState(@NonNull AuthState authState) {
+        _getSharedPreferences().edit().putString(KEY_AUTH_STATE, authState.jsonSerializeString()).apply();
     }
 
     /**
@@ -167,8 +169,17 @@ public class PreferencesService {
      * @return The lastly saved access token.
      */
     @Nullable
-    public String getCurrentAccessToken() {
-        return _getSharedPreferences().getString(KEY_ACCESS_TOKEN, null);
+    public AuthState getCurrentAuthState() {
+        if (!_getSharedPreferences().contains(KEY_AUTH_STATE)) {
+            return null;
+        }
+        try {
+            //noinspection ConstantConditions
+            return AuthState.jsonDeserialize(_getSharedPreferences().getString(KEY_AUTH_STATE, null));
+        } catch (JSONException ex) {
+            Log.e(TAG, "Could not deserialize saved authentication state", ex);
+            return null;
+        }
     }
 
     /**
@@ -279,20 +290,20 @@ public class PreferencesService {
 
 
     /**
-     * Returns a previously saved list of saved tokens.
+     * Returns a previously saved list of saved authentication states.
      *
      * @return The saved list, or null if not exists.
      */
     @Nullable
-    public List<SavedToken> getSavedTokenList() {
-        String serializedSavedTokenList = _getSharedPreferences().getString(KEY_SAVED_TOKENS, null);
-        if (serializedSavedTokenList == null) {
+    public List<SavedAuthState> getSavedAuthStateList() {
+        String serializedSavedAuthStateList = _getSharedPreferences().getString(KEY_SAVED_AUTH_STATES, null);
+        if (serializedSavedAuthStateList == null) {
             return null;
         }
         try {
-            return _serializerService.deserializeSavedTokenList(new JSONObject(serializedSavedTokenList));
+            return _serializerService.deserializeSavedAuthStateList(new JSONObject(serializedSavedAuthStateList));
         } catch (SerializerService.UnknownFormatException | JSONException ex) {
-            Log.e(TAG, "Unable to deserialize saved token list", ex);
+            Log.e(TAG, "Unable to deserialize saved auth state list", ex);
             return null;
         }
     }
@@ -300,12 +311,12 @@ public class PreferencesService {
     /**
      * Stores a saved token list.
      *
-     * @param savedTokenList The list to save.
+     * @param savedAuthStateList The list to save.
      */
-    public void storeSavedTokenList(@NonNull List<SavedToken> savedTokenList) {
+    public void storeSavedAuthStateList(@NonNull List<SavedAuthState> savedAuthStateList) {
         try {
-            String serializedSavedTokenList = _serializerService.serializeSavedTokenList(savedTokenList).toString();
-            _getSharedPreferences().edit().putString(KEY_SAVED_TOKENS, serializedSavedTokenList).apply();
+            String serializedSavedAuthStateList = _serializerService.serializeSavedAuthStateList(savedAuthStateList).toString();
+            _getSharedPreferences().edit().putString(KEY_SAVED_AUTH_STATES, serializedSavedAuthStateList).apply();
         } catch (SerializerService.UnknownFormatException ex) {
             Log.e(TAG, "Can not save saved token list.", ex);
         }

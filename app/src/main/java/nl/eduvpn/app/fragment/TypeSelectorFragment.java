@@ -70,4 +70,9 @@ public class TypeSelectorFragment extends Fragment {
         providerSelectionFragment.setArguments(fragmentParameters);
         ((MainActivity)getActivity()).openFragment(providerSelectionFragment, true);
     }
+
+    @OnClick(R.id.other_address)
+    protected void _onOtherAddressClicked() {
+        ((MainActivity)getActivity()).openFragment(new CustomProviderFragment(), true);
+    }
 }

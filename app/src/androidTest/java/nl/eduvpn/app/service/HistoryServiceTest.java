@@ -101,7 +101,7 @@ public class HistoryServiceTest {
             Profile profile = new Profile("displayName", profileId, false);
             SavedProfile savedProfile = new SavedProfile(instance, profile, profileUUID);
             _historyService.cacheSavedProfile(savedProfile);
-            _historyService.cacheAccessToken(instance, "averylongaccesstoken1234567890somemoretextthatitisevenmorelonger");
+            _historyService.cacheAuthenticationState(instance, "averylongaccesstoken1234567890somemoretextthatitisevenmorelonger");
         }
         _reloadHistoryService(false);
         assertEquals(10, _historyService.getSavedProfileList().size());
@@ -130,7 +130,7 @@ public class HistoryServiceTest {
         String exampleToken = "abcd1234defghthisisatoken";
         String baseURI = "http://example.com";
         Instance instance = new Instance(baseURI, "displayName", null, AuthorizationType.DISTRIBUTED, true);
-        _historyService.cacheAccessToken(instance, exampleToken);
+        _historyService.cacheAuthenticationState(instance, exampleToken);
         _reloadHistoryService(false);
         String restoredToken = _historyService.getCachedAccessToken(instance);
         assertEquals(exampleToken, restoredToken);

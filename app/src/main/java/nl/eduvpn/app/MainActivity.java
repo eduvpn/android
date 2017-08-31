@@ -46,15 +46,14 @@ public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = MainActivity.class.getName();
 
-
-    @Inject
-    protected ConnectionService _connectionService;
-
     @Inject
     protected HistoryService _historyService;
 
     @Inject
     protected VPNService _vpnService;
+
+    @Inject
+    protected ConnectionService _connectionService;
 
     @BindView(R.id.toolbar)
     protected Toolbar _toolbar;
@@ -71,7 +70,7 @@ public class MainActivity extends AppCompatActivity {
             // If there's an ongoing VPN connection, open the status screen.
             if (_vpnService.getStatus() != VPNService.VPNStatus.DISCONNECTED) {
                 openFragment(new ConnectionStatusFragment(), false);
-            } else if (!_historyService.getSavedTokenList().isEmpty()) {
+            } else if (!_historyService.getSavedAuthStateList().isEmpty()) {
                 openFragment(new HomeFragment(), false);
             } else {
                 // User has no previously saved profiles. Show the type selector.
@@ -80,6 +79,18 @@ public class MainActivity extends AppCompatActivity {
         } // else the activity will automatically restore everything.
         // The app might have been reopened from a URL.
         onNewIntent(getIntent());
+    }
+
+    @Override
+    protected void onStart() {
+        _connectionService.onStart(this);
+        super.onStart();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        _connectionService.onStop();
     }
 
     @Override

@@ -42,7 +42,7 @@ import nl.eduvpn.app.entity.KeyPair;
 import nl.eduvpn.app.entity.Profile;
 import nl.eduvpn.app.entity.SavedKeyPair;
 import nl.eduvpn.app.entity.SavedProfile;
-import nl.eduvpn.app.entity.SavedToken;
+import nl.eduvpn.app.entity.SavedAuthState;
 import nl.eduvpn.app.entity.Settings;
 import nl.eduvpn.app.entity.message.Maintenance;
 import nl.eduvpn.app.entity.message.Message;
@@ -174,11 +174,11 @@ public class SerializerServiceTest {
     public void testSavedTokenListSerialization() throws SerializerService.UnknownFormatException {
         Instance instance1 = new Instance("baseUri1", "displayName1", null, AuthorizationType.DISTRIBUTED,  true);
         Instance instance2 = new Instance("baseUri2", "displayName2", null, AuthorizationType.LOCAL, true);
-        SavedToken token1 = new SavedToken(instance1, "accessToken1");
-        SavedToken token2 = new SavedToken(instance2, "accessToken2");
-        List<SavedToken> list = Arrays.asList(token1, token2);
-        JSONObject serializedList = _serializerService.serializeSavedTokenList(list);
-        List<SavedToken> deserializedList = _serializerService.deserializeSavedTokenList(serializedList);
+        SavedAuthState token1 = new SavedAuthState(instance1, "accessToken1");
+        SavedAuthState token2 = new SavedAuthState(instance2, "accessToken2");
+        List<SavedAuthState> list = Arrays.asList(token1, token2);
+        JSONObject serializedList = _serializerService.serializeSavedAuthStateList(list);
+        List<SavedAuthState> deserializedList = _serializerService.deserializeSavedAuthStateList(serializedList);
         assertEquals(list.size(), deserializedList.size());
         for (int i = 0; i < list.size(); ++i) {
             assertEquals(list.get(i).getInstance().getSanitizedBaseURI(), deserializedList.get(i).getInstance().getSanitizedBaseURI());

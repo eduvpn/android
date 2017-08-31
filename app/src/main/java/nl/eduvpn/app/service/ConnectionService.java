@@ -22,9 +22,11 @@ import android.app.PendingIntent;
 import android.content.Intent;
 import android.net.Uri;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.widget.Toast;
 
 import net.openid.appauth.AppAuthConfiguration;
+import net.openid.appauth.AuthState;
 import net.openid.appauth.AuthorizationException;
 import net.openid.appauth.AuthorizationRequest;
 import net.openid.appauth.AuthorizationResponse;
@@ -43,6 +45,7 @@ import io.reactivex.ObservableSource;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
+import io.reactivex.subjects.PublishSubject;
 import nl.eduvpn.app.MainActivity;
 import nl.eduvpn.app.R;
 import nl.eduvpn.app.entity.DiscoveredAPI;
@@ -70,7 +73,7 @@ public class ConnectionService {
     private final HistoryService _historyService;
     private final SecurityService _securityService;
     private AuthorizationService _authorizationService;
-    private String _accessToken;
+    private AuthState _authState;
 
     /**
      * Constructor.
@@ -84,10 +87,10 @@ public class ConnectionService {
         _preferencesService = preferencesService;
         _securityService = securityService;
         _historyService = historyService;
-        _accessToken = preferencesService.getCurrentAccessToken();
+        _authState = preferencesService.getCurrentAuthState();
     }
 
-    public void warmUp(Activity activity) {
+    public void onStart(Activity activity) {
         if (!_preferencesService.getAppSettings().useCustomTabs()) {
             // We do not allow any custom tab implementation.
             _authorizationService = new AuthorizationService(activity, new AppAuthConfiguration.Builder()
@@ -99,6 +102,13 @@ public class ConnectionService {
         } else {
             // Default behavior
             _authorizationService = new AuthorizationService(activity);
+        }
+    }
+
+    public void onStop() {
+        if (_authorizationService != null) {
+            _authorizationService.dispose();
+            _authorizationService = null;
         }
     }
 
@@ -117,11 +127,8 @@ public class ConnectionService {
                 String stateString = _securityService.generateSecureRandomString(32);
                 _preferencesService.currentInstance(instance);
                 _preferencesService.storeCurrentDiscoveredAPI(discoveredAPI);
-                AuthorizationServiceConfiguration serviceConfig =
-                        new AuthorizationServiceConfiguration(
-                                Uri.parse(discoveredAPI.getAuthorizationEndpoint()),
-                                Uri.parse(discoveredAPI.getTokenEndpoint()),
-                                null);
+                AuthorizationServiceConfiguration serviceConfig = _buildAuthConfiguration(discoveredAPI);
+
                 AuthorizationRequest.Builder authRequestBuilder =
                         new AuthorizationRequest.Builder(
                                 serviceConfig, // the authorization service configuration
@@ -140,8 +147,7 @@ public class ConnectionService {
                     @Override
                     public void accept(AuthorizationRequest authorizationRequest) throws Exception {
                         if (_authorizationService == null) {
-                            warmUp(activity);
-                            Log.w(TAG, "WARNING: You did not call warmUp() on the service before making your first call! You might see increased waiting times before opening the browser.");
+                            throw new RuntimeException("Please call onStart() on this service from your activity!");
                         }
                         _authorizationService.performAuthorizationRequest(
                                 authorizationRequest,
@@ -162,7 +168,7 @@ public class ConnectionService {
      * @param authorizationResponse The auth response to process.
      * @param activity              The current activity.
      */
-    public void parseAuthorizationResponse(@NonNull AuthorizationResponse authorizationResponse, final Activity activity) {
+    public void parseAuthorizationResponse(@NonNull final AuthorizationResponse authorizationResponse, final Activity activity) {
         Log.i(TAG, "Got auth response: " + authorizationResponse.jsonSerializeString());
         _authorizationService.performTokenRequest(
                 authorizationResponse.createTokenExchangeRequest(),
@@ -171,15 +177,13 @@ public class ConnectionService {
                     public void onTokenRequestCompleted(TokenResponse tokenResponse, AuthorizationException ex) {
                         if (tokenResponse != null) {
                             // exchange succeeded
-                            _processTokenExchangeResponse(tokenResponse, activity);
+                            _processTokenExchangeResponse(authorizationResponse, tokenResponse, activity);
                         } else {
                             // authorization failed, check ex for more details
                             ErrorDialog.show(activity,
                                     R.string.authorization_error_title,
                                     activity.getString(R.string.authorization_error_message, ex.error, ex.code, ex.getMessage()));
                         }
-                        _authorizationService.dispose();
-                        _authorizationService = null;
                     }
                 });
 
@@ -188,39 +192,70 @@ public class ConnectionService {
     /**
      * Process the the exchanged token.
      *
-     * @param tokenResponse The response from the token exchange.
-     * @param activity      The current activity.
+     * @param authorizationResponse The authorization response.
+     * @param tokenResponse         The response from the token exchange updated into the authentication state
+     * @param activity              The current activity.
      */
-    private void _processTokenExchangeResponse(TokenResponse tokenResponse, Activity activity) {
-        String accessToken = tokenResponse.accessToken;
+    private void _processTokenExchangeResponse(AuthorizationResponse authorizationResponse, TokenResponse tokenResponse, Activity activity) {
+        AuthState authState = new AuthState(authorizationResponse, tokenResponse, null);
+        String accessToken = authState.getAccessToken();
         if (accessToken == null || accessToken.isEmpty()) {
             ErrorDialog.show(activity, R.string.error_dialog_title, R.string.error_access_token_missing);
             return;
         }
-        // Save the access token
-        _accessToken = accessToken;
-        _preferencesService.storeCurrentAccessToken(accessToken);
+        // Save the authentication state.
+        _preferencesService.storeCurrentAuthState(authState);
         // Save the access token for later use.
-        _historyService.cacheAccessToken(_preferencesService.getCurrentInstance(), _accessToken);
+        _historyService.cacheAuthenticationState(_preferencesService.getCurrentInstance(), authState);
         Toast.makeText(activity, R.string.provider_added_new_configs_available, Toast.LENGTH_LONG).show();
     }
 
     /**
-     * Returns the access token which authenticates against the current API.
+     * Returns a single which emits a fresh access token which is to be used with the API.
      *
-     * @return The access token used to authenticate.
+     * @return The access token used to authenticate in an emitter.
      */
-    public String getAccessToken() {
-        return _accessToken;
+    public PublishSubject<String> getFreshAccessToken() {
+        final PublishSubject<String> publishSubject = PublishSubject.create();
+        if (!_authState.getNeedsTokenRefresh() && _authState.getAccessToken() != null) {
+            publishSubject.startWith(_authState.getAccessToken());
+            return publishSubject;
+        }
+        _authState.performActionWithFreshTokens(_authorizationService, new AuthState.AuthStateAction() {
+            @Override
+            public void execute(@Nullable String accessToken, @Nullable String idToken, @Nullable AuthorizationException ex) {
+                if (accessToken != null) {
+                    _preferencesService.storeCurrentAuthState(_authState);
+                    _historyService.refreshAuthState(_authState);
+                    publishSubject.onNext(accessToken);
+                } else {
+                    publishSubject.onError(ex);
+                }
+            }
+        });
+        return publishSubject;
     }
 
     /**
      * Sets and saved the current access token to use with the requests.
      *
-     * @param accessToken The access token to use for getting resources.
+     * @param authState The access token and its refresh token to use for getting resources.
      */
-    public void setAccessToken(String accessToken) {
-        _accessToken = accessToken;
-        _preferencesService.storeCurrentAccessToken(accessToken);
+    public void setAuthState(AuthState authState) {
+        _authState = authState;
+        _preferencesService.storeCurrentAuthState(authState);
+    }
+
+    /**
+     * Builds the authorization service configuration.
+     *
+     * @param discoveredAPI The discovered API URLs.
+     * @return The configuration for the authorization service.
+     */
+    private AuthorizationServiceConfiguration _buildAuthConfiguration(DiscoveredAPI discoveredAPI) {
+        return new AuthorizationServiceConfiguration(
+                Uri.parse(discoveredAPI.getAuthorizationEndpoint()),
+                Uri.parse(discoveredAPI.getTokenEndpoint()),
+                null);
     }
 }

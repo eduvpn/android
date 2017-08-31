@@ -60,6 +60,9 @@ public class ConfigurationService extends java.util.Observable {
     private InstanceList _secureInternetList;
     private InstanceList _instituteAccessList;
 
+    private boolean _secureInternetPendingDiscovery = true;
+    private boolean _instituteAccessPendingDiscovery = true;
+
     public ConfigurationService(PreferencesService preferencesService, SerializerService serializerService,
                                 SecurityService securityService, OkHttpClient okHttpClient) {
         _preferencesService = preferencesService;
@@ -69,7 +72,12 @@ public class ConfigurationService extends java.util.Observable {
         _loadSavedLists();
         if (BuildConfig.API_DISCOVERY_ENABLED) {
             _fetchLatestConfiguration();
-        } // Otherwise the user can only enter custom URLs.
+        } else {
+            // Otherwise the user can only enter custom URLs.
+            _secureInternetPendingDiscovery = false;
+            _instituteAccessPendingDiscovery = false;
+        }
+
     }
 
     /**
@@ -138,6 +146,8 @@ public class ConfigurationService extends java.util.Observable {
      * Downloads, parses, and saves the latest configuration retrieved from the URL defined in the build configuration.
      */
     private void _fetchLatestConfiguration() {
+        _secureInternetPendingDiscovery = true;
+        _instituteAccessPendingDiscovery = true;
         _fetchConfigurationForAuthorizationType(AuthorizationType.DISTRIBUTED);
         _fetchConfigurationForAuthorizationType(AuthorizationType.LOCAL);
     }
@@ -162,8 +172,10 @@ public class ConfigurationService extends java.util.Observable {
                     public void accept(InstanceList instanceList) throws Exception {
                         if (authorizationType == AuthorizationType.DISTRIBUTED) {
                             _secureInternetList = instanceList;
+                            _secureInternetPendingDiscovery = false;
                         } else {
                             _instituteAccessList = instanceList;
+                            _instituteAccessPendingDiscovery = false;
                         }
                         _saveListIfChanged(instanceList, authorizationType);
                         Log.i(TAG, "Successfully refreshed instance list for authorization type: " + authorizationType);
@@ -171,6 +183,14 @@ public class ConfigurationService extends java.util.Observable {
                 }, new Consumer<Throwable>() {
                     @Override
                     public void accept(Throwable throwable) throws Exception {
+                        if (authorizationType == AuthorizationType.DISTRIBUTED) {
+                            _secureInternetPendingDiscovery = false;
+                        } else {
+                            _instituteAccessPendingDiscovery = false;
+                        }
+                        setChanged();
+                        notifyObservers();
+                        clearChanged();
                         Log.e(TAG, "Error encountered while fetching instance list for authorization type: " + authorizationType, throwable);
                     }
                 });
@@ -180,7 +200,7 @@ public class ConfigurationService extends java.util.Observable {
         return Observable.defer(new Callable<ObservableSource<String>>() {
             @Override
             public ObservableSource<String> call() throws Exception {
-                String signatureRequestUrl = authorizationType == AuthorizationType.LOCAL ? BuildConfig.INSTANCE_LIST_URL : BuildConfig.FEDERATION_LIST_URL;
+                String signatureRequestUrl = authorizationType == AuthorizationType.LOCAL ? BuildConfig.INSTITUTE_ACCESS_DISCOVERY_URL : BuildConfig.SECURE_INTERNET_DISCOVERY_URL;
                 signatureRequestUrl = signatureRequestUrl + BuildConfig.SIGNATURE_URL_POSTFIX;
                 Request request = new Request.Builder().url(signatureRequestUrl).build();
                 Response response = _okHttpClient.newCall(request).execute();
@@ -199,7 +219,7 @@ public class ConfigurationService extends java.util.Observable {
         return Observable.defer(new Callable<ObservableSource<String>>() {
             @Override
             public ObservableSource<String> call() throws Exception {
-                String listRequestUrl = authorizationType == AuthorizationType.LOCAL ? BuildConfig.INSTANCE_LIST_URL : BuildConfig.FEDERATION_LIST_URL;
+                String listRequestUrl = authorizationType == AuthorizationType.LOCAL ? BuildConfig.INSTITUTE_ACCESS_DISCOVERY_URL : BuildConfig.SECURE_INTERNET_DISCOVERY_URL;
                 Request request = new Request.Builder().url(listRequestUrl).build();
                 Response response = _okHttpClient.newCall(request).execute();
                 ResponseBody responseBody = response.body();
@@ -211,5 +231,18 @@ public class ConfigurationService extends java.util.Observable {
                 }
             }
         }).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread());
+    }
+
+    /**
+     * Returns if provider discovery is still pending for a given authorization type.
+     * @param authorizationType The authorization type.
+     * @return True if discovery is still not completed, and that's why the list is not complete.
+     */
+    public boolean isPendingDiscovery(@AuthorizationType int authorizationType) {
+        if (authorizationType == AuthorizationType.LOCAL) {
+            return _instituteAccessPendingDiscovery;
+        } else {
+            return _secureInternetPendingDiscovery;
+        }
     }
 }

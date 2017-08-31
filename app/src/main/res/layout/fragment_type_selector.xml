@@ -16,76 +16,70 @@
   ~     along with eduVPN.  If not, see <http://www.gnu.org/licenses/>.
   -->
 
-<FrameLayout
+<LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/backgroundColor">
+    android:layout_gravity="center"
+    android:background="@color/backgroundColor"
+    android:orientation="vertical"
+    android:padding="16dp">
 
-    <LinearLayout
+    <TextView
+        android:text="@string/title_choose_your_profile"
+        style="@style/Header"/>
+
+    <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:layout_marginLeft="16dp"
-        android:layout_marginRight="16dp"
-        android:orientation="vertical">
+        android:layout_marginTop="8dp"
+        android:gravity="center"
+        android:text="@string/description_choose_your_profile"
+        android:textColor="@color/textColor"
+        android:textSize="16sp"/>
 
-        <LinearLayout
-            android:id="@+id/vpn_option_container_secure_internet"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="?attr/selectableItemBackground"
-            android:orientation="vertical"
-            android:padding="12dp">
+    <LinearLayout
+        android:id="@+id/vpn_option_container_secure_internet"
+        style="@style/ProfileTypeContainer"
 
-            <ImageView
-                android:layout_width="@dimen/vpn_option_width"
-                android:contentDescription="@string/content_description_secure_internet"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:layout_marginBottom="12dp"
-                android:adjustViewBounds="true"
-                android:src="@drawable/option_secure_internet"/>
+        android:layout_marginTop="24dp">
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:gravity="center"
-                android:text="@string/vpn_option_label_secure_internet"
-                android:textColor="@color/textColor"
-                android:textSize="@dimen/vpn_option_label_size"/>
-        </LinearLayout>
+        <ImageView
+            style="@style/ProfileTypeIcon"
+            android:contentDescription="@string/content_description_secure_internet"
+            android:src="@drawable/icon_shield_internet_white_full"/>
 
-        <LinearLayout
-            android:id="@+id/vpn_option_container_institute_access"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:background="?attr/selectableItemBackground"
-            android:orientation="vertical"
-            android:padding="12dp">
-
-            <ImageView
-                android:layout_width="@dimen/vpn_option_width"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:layout_marginBottom="12dp"
-                android:contentDescription="@string/content_description_institute_access"
-                android:adjustViewBounds="true"
-                android:padding="8dp"
-                android:tint="@color/iconColor"
-                android:src="@drawable/option_institute_access"/>
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:gravity="center"
-                android:text="@string/vpn_option_label_institute_access"
-                android:textColor="@color/textColor"
-                android:textSize="@dimen/vpn_option_label_size"/>
-        </LinearLayout>
+        <TextView
+            style="@style/ProfileTypeText"
+            android:text="@string/vpn_option_label_secure_internet"/>
     </LinearLayout>
 
-</FrameLayout>
+    <LinearLayout
+        android:id="@+id/vpn_option_container_institute_access"
+        style="@style/ProfileTypeContainer"
+        android:layout_marginTop="12dp">
+
+        <ImageView
+            style="@style/ProfileTypeIcon"
+            android:contentDescription="@string/content_description_institute_access"
+            android:src="@drawable/icon_shield_access_white_full"/>
+
+        <TextView
+            style="@style/ProfileTypeText"
+            android:text="@string/vpn_option_label_institute_access"/>
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/other_address"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="18sp"
+        android:layout_gravity="center"
+        android:background="?attr/selectableItemBackground"
+        android:gravity="center"
+        android:layout_marginTop="8dp"
+        android:padding="16dp"
+        android:text="@string/add_other_address"
+        android:textColor="@color/mainColor"/>
+</LinearLayout>

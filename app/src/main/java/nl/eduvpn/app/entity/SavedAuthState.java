@@ -17,30 +17,36 @@
 
 package nl.eduvpn.app.entity;
 
+import net.openid.appauth.AuthState;
+
 /**
- * Stores the mapping between the base URI and the access token.
+ * Stores the mapping between the base URI and the authentication state containing the current and refresh tokens.
  * Created by Daniel Zolnai on 2016-10-20.
  */
-public class SavedToken {
+public class SavedAuthState {
     private Instance _instance;
-    private String _accessToken;
+    private AuthState _authState;
 
     /**
      * Constructor.
      *
-     * @param instance    The VPN provider the token is valid for.
-     * @param accessToken The access token which we can use to fetch data.
+     * @param instance  The VPN provider the token is valid for.
+     * @param authState The authentication state with the tokens..
      */
-    public SavedToken(Instance instance, String accessToken) {
+    public SavedAuthState(Instance instance, AuthState authState) {
         _instance = instance;
-        _accessToken = accessToken;
+        _authState = authState;
     }
 
     public Instance getInstance() {
         return _instance;
     }
 
-    public String getAccessToken() {
-        return _accessToken;
+    public AuthState getAuthState() {
+        return _authState;
+    }
+
+    public void setAuthState(AuthState authState) {
+        _authState = authState;
     }
 }

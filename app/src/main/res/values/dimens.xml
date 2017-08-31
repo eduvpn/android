@@ -20,6 +20,6 @@
     <dimen name="error_dialog_radius">4dp</dimen>
     <dimen name="button_margin_bottom">12dp</dimen>
     <dimen name="swipe_to_delete_margin">16dp</dimen>
-    <dimen name="vpn_option_width">180dp</dimen>
-    <dimen name="vpn_option_label_size">18sp</dimen>
+    <dimen name="vpn_option_width">40dp</dimen>
+    <dimen name="vpn_option_label_size">15sp</dimen>
 </resources>

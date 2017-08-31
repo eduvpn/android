@@ -19,6 +19,9 @@ package nl.eduvpn.app.service;
 
 import android.util.Pair;
 
+import net.openid.appauth.AuthState;
+import net.openid.appauth.TokenResponse;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -42,7 +45,7 @@ import nl.eduvpn.app.entity.KeyPair;
 import nl.eduvpn.app.entity.Profile;
 import nl.eduvpn.app.entity.SavedKeyPair;
 import nl.eduvpn.app.entity.SavedProfile;
-import nl.eduvpn.app.entity.SavedToken;
+import nl.eduvpn.app.entity.SavedAuthState;
 import nl.eduvpn.app.entity.Settings;
 import nl.eduvpn.app.entity.message.Maintenance;
 import nl.eduvpn.app.entity.message.Message;
@@ -145,15 +148,11 @@ public class SerializerService {
      */
     public InstanceList deserializeInstanceList(JSONObject json) throws UnknownFormatException {
         try {
-            Integer version = json.getInt("version");
             Integer sequenceNumber;
             if (json.has("seq")) {
                 sequenceNumber = json.getInt("seq");
             } else {
                 sequenceNumber = -1; // This will make sure that the new one will surely have a greater number.
-            }
-            if (version != 1) {
-                throw new UnknownFormatException("Unknown version property: " + version);
             }
             JSONArray instanceArray = json.getJSONArray("instances");
             List<Instance> instances = new ArrayList<>();
@@ -161,7 +160,7 @@ public class SerializerService {
                 JSONObject instanceObject = instanceArray.getJSONObject(i);
                 instances.add(deserializeInstance(instanceObject));
             }
-            return new InstanceList(version, instances, sequenceNumber);
+            return new InstanceList(instances, sequenceNumber);
         } catch (JSONException ex) {
             throw new UnknownFormatException(ex);
         }
@@ -179,7 +178,7 @@ public class SerializerService {
         try {
             result.put("base_uri", instance.getBaseURI());
             result.put("display_name", instance.getDisplayName());
-            result.put("logo_uri", instance.getLogoUri());
+            result.put("logo", instance.getLogoUri());
             result.put("is_custom", instance.isCustom());
             result.put("authorization_type", instance.getAuthorizationType());
         } catch (JSONException ex) {
@@ -198,10 +197,24 @@ public class SerializerService {
     public Instance deserializeInstance(JSONObject jsonObject) throws UnknownFormatException {
         try {
             String baseUri = jsonObject.getString("base_uri");
-            String displayName = jsonObject.getString("display_name");
+            String displayName;
+            if (jsonObject.get("display_name") instanceof String) {
+                displayName = jsonObject.getString("display_name");
+            } else {
+                JSONObject translatedNames = jsonObject.getJSONObject("display_name");
+                String userLanguage = _getUserLanguage();
+                if (translatedNames.has(userLanguage)) {
+                    displayName = translatedNames.getString(userLanguage);
+                } else if (translatedNames.has("en-US")) {
+                    displayName = translatedNames.getString("en-US");
+                } else {
+                    String firstKey = translatedNames.keys().next();
+                    displayName = translatedNames.getString(firstKey);
+                }
+            }
             String logoUri = null;
-            if (jsonObject.has("logo_uri")) {
-                logoUri = jsonObject.getString("logo_uri");
+            if (jsonObject.has("logo")) {
+                logoUri = jsonObject.getString("logo");
             }
             boolean isCustom = false;
             if (jsonObject.has("is_custom")) {
@@ -229,7 +242,6 @@ public class SerializerService {
     public JSONObject serializeInstanceList(InstanceList instanceList) throws UnknownFormatException {
         try {
             JSONObject serialized = new JSONObject();
-            serialized.put("version", instanceList.getVersion());
             serialized.put("seq", instanceList.getSequenceNumber());
             JSONArray serializedInstances = new JSONArray();
             for (Instance instance : instanceList.getInstanceList()) {
@@ -376,21 +388,21 @@ public class SerializerService {
     }
 
     /**
-     * Serializes a list of saved access tokens.
+     * Serializes a list of saved authentication states.
      *
-     * @param savedTokenList The list with the saved access tokens.
+     * @param savedAuthStateList The list with the saved authentication states.
      * @return The parsed list in a JSON format.
      * @throws UnknownFormatException Thrown if there was an unexpected error.
      */
-    public JSONObject serializeSavedTokenList(List<SavedToken> savedTokenList) throws UnknownFormatException {
+    public JSONObject serializeSavedAuthStateList(List<SavedAuthState> savedAuthStateList) throws UnknownFormatException {
         try {
             JSONObject result = new JSONObject();
             JSONArray array = new JSONArray();
-            for (SavedToken savedToken : savedTokenList) {
-                JSONObject tokenJson = new JSONObject();
-                tokenJson.put("instance", serializeInstance(savedToken.getInstance()));
-                tokenJson.put("access_token", savedToken.getAccessToken());
-                array.put(tokenJson);
+            for (SavedAuthState savedAuthState : savedAuthStateList) {
+                JSONObject authStateJson = new JSONObject();
+                authStateJson.put("instance", serializeInstance(savedAuthState.getInstance()));
+                authStateJson.put("auth_state", savedAuthState.getAuthState().jsonSerializeString());
+                array.put(authStateJson);
             }
             result.put("data", array);
             return result;
@@ -406,15 +418,16 @@ public class SerializerService {
      * @return The list as a POJO.
      * @throws UnknownFormatException Thrown if there was an error while deserializing.
      */
-    public List<SavedToken> deserializeSavedTokenList(JSONObject jsonObject) throws UnknownFormatException {
+    public List<SavedAuthState> deserializeSavedAuthStateList(JSONObject jsonObject) throws UnknownFormatException {
         try {
-            List<SavedToken> result = new ArrayList<>();
+            List<SavedAuthState> result = new ArrayList<>();
             JSONArray dataArray = jsonObject.getJSONArray("data");
             for (int i = 0; i < dataArray.length(); ++i) {
                 JSONObject tokenObject = dataArray.getJSONObject(i);
                 Instance instance = deserializeInstance(tokenObject.getJSONObject("instance"));
-                String accessToken = tokenObject.getString("access_token");
-                result.add(new SavedToken(instance, accessToken));
+                String authStateString = tokenObject.getString("auth_state");
+                AuthState authState = AuthState.jsonDeserialize(authStateString);
+                result.add(new SavedAuthState(instance, authState));
             }
             return result;
         } catch (JSONException ex) {
@@ -688,4 +701,14 @@ public class SerializerService {
         }
     }
 
+
+    /**
+     * Returns the language of the user in a specific "country-language" format.
+
+     * @return The current language of the user.
+     */
+    private String _getUserLanguage() {
+        // Converts 'en_US' to 'en-US'
+        return Locale.getDefault().toString().replace('_', '-');
+    }
 }

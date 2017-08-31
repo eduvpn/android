@@ -63,7 +63,7 @@
                 android:layout_toRightOf="@+id/actionbarLogo"
                 android:paddingLeft="8dp"
                 android:text="@string/actionbar_title"
-                android:textColor="@color/textColor"
+                android:textColor="@color/textColorInverted"
                 android:textSize="24sp"/>
 
             <ImageView
@@ -73,7 +73,7 @@
                 android:layout_alignParentRight="true"
                 android:layout_centerVertical="true"
                 android:layout_marginRight="16dp"
-                android:tint="@color/iconColor"
+                android:tint="@color/iconColorInverted"
                 android:contentDescription="@string/content_description_settings_button"
                 android:padding="8dp"
                 android:src="@drawable/settings"/>

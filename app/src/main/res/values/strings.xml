@@ -10,8 +10,7 @@
     <string name="button_disconnect">Disconnect</string>
     <string name="actionbar_title">eduVPN</string>
     <string name="choose_your_provider_title">Choose your provider</string>
-    <string name="provider_other_display_name">Other</string>
-    <string name="custom_provider_title">Provide the URL to your provider</string>
+    <string name="custom_provider_title">Type the URL of your provider</string>
     <string name="custom_provider_prefix">https://</string>
     <string name="custom_provider_connect">Connect</string>
     <string name="home_title">Connect to VPN</string>
@@ -80,8 +79,8 @@
     <string name="data_removed">The provider data was already removed.</string>
     <string name="provider_not_found_retry">Could not find the provider metadata.</string>
     <string name="provider_incorrect_format">Data returned by the provider has an incorrect format</string>
-    <string name="vpn_option_label_secure_internet">Connect to the internet securely, for example when using WiFi</string>
-    <string name="vpn_option_label_institute_access">Institute Access</string>
+    <string name="vpn_option_label_secure_internet">Connect to the internet securely, for example when using WiFi.</string>
+    <string name="vpn_option_label_institute_access">Access your institute\'s network from outside the institution.</string>
     <string name="header_institute_access">Institute Access</string>
     <string name="header_secure_internet">Secure Internet</string>
     <string name="profile_name_not_found">Unknown profile</string>
@@ -92,4 +91,10 @@
     <string name="authorization_error_message">Error: %1$s, code: %2$d, message: %3$s</string>
     <string name="connecting_to_api_title">Connecting</string>
     <string name="connecting_to_api_message">Connecting to %s…</string>
+    <string name="title_choose_your_profile">Choose your profile</string>
+    <string name="description_choose_your_profile">Select the profile type you want to use below. You will be redirected to the browser for your credentials.</string>
+    <string name="add_other_address">Add other address</string>
+    <string name="error_selected_instance_not_found">Selected instance not found.</string>
+    <string name="no_provider_found">No provider found.</string>
+    <string name="discovering_providers">Discovering providers...</string>
 </resources>
