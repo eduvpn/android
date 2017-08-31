@@ -17,9 +17,13 @@
 
 package nl.eduvpn.app.service;
 
+import android.net.Uri;
 import android.support.test.filters.LargeTest;
 import android.support.test.runner.AndroidJUnit4;
 import android.util.Pair;
+
+import net.openid.appauth.AuthState;
+import net.openid.appauth.AuthorizationServiceConfiguration;
 
 import nl.eduvpn.app.entity.AuthorizationType;
 import org.json.JSONObject;
@@ -116,10 +120,9 @@ public class SerializerServiceTest {
     public void testInstanceListSerialization() throws SerializerService.UnknownFormatException {
         Instance instance1 = new Instance("baseUri", "displayName", "logoUri", AuthorizationType.DISTRIBUTED, true);
         Instance instance2 = new Instance("baseUri2", "displayName2", "logoUri2", AuthorizationType.DISTRIBUTED, true);
-        InstanceList instanceList = new InstanceList(1, Arrays.asList(instance1, instance2), 231);
+        InstanceList instanceList = new InstanceList(Arrays.asList(instance1, instance2), 231);
         JSONObject serializedInstanceList = _serializerService.serializeInstanceList(instanceList);
         InstanceList deserializedInstanceList = _serializerService.deserializeInstanceList(serializedInstanceList);
-        assertEquals(instanceList.getVersion(), deserializedInstanceList.getVersion());
         assertEquals(instanceList.getSequenceNumber(), deserializedInstanceList.getSequenceNumber());
         assertEquals(instanceList.getInstanceList().size(), deserializedInstanceList.getInstanceList().size());
         assertEquals(instanceList.getInstanceList().get(0).getDisplayName(), deserializedInstanceList.getInstanceList().get(0).getDisplayName());
@@ -170,19 +173,23 @@ public class SerializerServiceTest {
         }
     }
 
+    @SuppressWarnings("ConstantConditions")
     @Test
     public void testSavedTokenListSerialization() throws SerializerService.UnknownFormatException {
         Instance instance1 = new Instance("baseUri1", "displayName1", null, AuthorizationType.DISTRIBUTED,  true);
         Instance instance2 = new Instance("baseUri2", "displayName2", null, AuthorizationType.LOCAL, true);
-        SavedAuthState token1 = new SavedAuthState(instance1, "accessToken1");
-        SavedAuthState token2 = new SavedAuthState(instance2, "accessToken2");
+        AuthState state1 = new AuthState(new AuthorizationServiceConfiguration(Uri.parse("http://eduvpn.org/auth"), Uri.parse("http://eduvpn.org/token"), null));
+        AuthState state2 = new AuthState(new AuthorizationServiceConfiguration(Uri.parse("http://example.com/auth"), Uri.parse("http://example.com/token"), null));
+        SavedAuthState token1 = new SavedAuthState(instance1, state1);
+        SavedAuthState token2 = new SavedAuthState(instance2, state2);
         List<SavedAuthState> list = Arrays.asList(token1, token2);
         JSONObject serializedList = _serializerService.serializeSavedAuthStateList(list);
         List<SavedAuthState> deserializedList = _serializerService.deserializeSavedAuthStateList(serializedList);
         assertEquals(list.size(), deserializedList.size());
         for (int i = 0; i < list.size(); ++i) {
             assertEquals(list.get(i).getInstance().getSanitizedBaseURI(), deserializedList.get(i).getInstance().getSanitizedBaseURI());
-            assertEquals(list.get(i).getAccessToken(), deserializedList.get(i).getAccessToken());
+            assertEquals(list.get(i).getAuthState().getAuthorizationServiceConfiguration().authorizationEndpoint, deserializedList.get(i).getAuthState().getAuthorizationServiceConfiguration().authorizationEndpoint);
+            assertEquals(list.get(i).getAuthState().getAuthorizationServiceConfiguration().tokenEndpoint, deserializedList.get(i).getAuthState().getAuthorizationServiceConfiguration().tokenEndpoint);
         }
     }
 
