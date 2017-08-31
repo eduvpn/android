@@ -69,6 +69,12 @@ public class ProviderSelectionFragment extends Fragment {
     @BindView(R.id.provider_status)
     protected TextView _providerStatus;
 
+    @BindView(R.id.header)
+    protected TextView _header;
+
+    @BindView(R.id.description)
+    protected TextView _description;
+
     @Inject
     protected ConfigurationService _configurationService;
 
@@ -124,6 +130,13 @@ public class ProviderSelectionFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_provider_selection, container, false);
         _unbinder = ButterKnife.bind(this, view);
         EduVPNApplication.get(view.getContext()).component().inject(this);
+        if (_authorizationType == AuthorizationType.LOCAL) {
+            _header.setText(R.string.select_your_institution_title);
+            _description.setVisibility(View.GONE);
+        } else {
+            _header.setText(R.string.select_your_country_title);
+            _description.setVisibility(View.VISIBLE);
+        }
         _providerList.setHasFixedSize(true);
         _providerList.setLayoutManager(new LinearLayoutManager(view.getContext(), LinearLayoutManager.VERTICAL, false));
         final ProviderAdapter adapter = new ProviderAdapter(_configurationService, _authorizationType);

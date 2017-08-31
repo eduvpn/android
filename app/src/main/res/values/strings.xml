@@ -9,7 +9,8 @@
     <string name="error_state_mismatch">Error: state mismatch!</string>
     <string name="button_disconnect">Disconnect</string>
     <string name="actionbar_title">eduVPN</string>
-    <string name="choose_your_provider_title">Choose your provider</string>
+    <string name="select_your_country_title">Select your Country</string>
+    <string name="select_your_institution_title">Select your Institution</string>
     <string name="custom_provider_title">Type the URL of your provider</string>
     <string name="custom_provider_prefix">https://</string>
     <string name="custom_provider_connect">Connect</string>
@@ -97,4 +98,5 @@
     <string name="error_selected_instance_not_found">Selected instance not found.</string>
     <string name="no_provider_found">No provider found.</string>
     <string name="discovering_providers">Discovering providers...</string>
+    <string name="description_secure_internet_provider">Select your institution\'s country here. You can select VPN endpoints in other countries after signing in with your institution credentials.</string>
 </resources>
