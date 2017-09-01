@@ -22,6 +22,7 @@ import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.RecyclerView;
+import android.text.TextUtils;
 import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -159,7 +160,7 @@ public class ProfileAdapter extends RecyclerView.Adapter<ProfileViewHolder> {
             holder.undoButton.setVisibility(View.GONE);
             holder.profileName.setText(instanceProfilePair.second.getDisplayName());
             holder.profileProvider.setText(FormattingUtils.formatInstanceUrl(instanceProfilePair.first));
-            if (instanceProfilePair.first.getLogoUri() != null) {
+            if (!TextUtils.isEmpty(instanceProfilePair.first.getLogoUri())) {
                 Picasso.with(holder.providerIcon.getContext())
                         .load(instanceProfilePair.first.getLogoUri())
                         .fit()

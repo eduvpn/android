@@ -18,6 +18,7 @@
 package nl.eduvpn.app.adapter;
 
 import android.support.v7.widget.RecyclerView;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -101,7 +102,7 @@ public class ProviderAdapter extends RecyclerView.Adapter<ProviderViewHolder> {
     public void onBindViewHolder(ProviderViewHolder holder, int position) {
         Instance instance = getItem(position);
         holder.providerDisplayName.setText(instance.getDisplayName());
-        if (instance.getLogoUri() != null) {
+        if (!TextUtils.isEmpty(instance.getLogoUri())) {
             Picasso.with(holder.providerIcon.getContext())
                     .load(instance.getLogoUri())
                     .fit()

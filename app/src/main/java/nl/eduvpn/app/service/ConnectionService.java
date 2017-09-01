@@ -42,10 +42,12 @@ import java.util.concurrent.Callable;
 
 import io.reactivex.Observable;
 import io.reactivex.ObservableSource;
+import io.reactivex.Single;
+import io.reactivex.SingleEmitter;
+import io.reactivex.SingleOnSubscribe;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
-import io.reactivex.subjects.PublishSubject;
 import nl.eduvpn.app.MainActivity;
 import nl.eduvpn.app.R;
 import nl.eduvpn.app.entity.DiscoveredAPI;
@@ -215,24 +217,30 @@ public class ConnectionService {
      *
      * @return The access token used to authenticate in an emitter.
      */
-    public PublishSubject<String> getFreshAccessToken() {
-        final PublishSubject<String> publishSubject = PublishSubject.create();
+    public Single<String> getFreshAccessToken() {
+        final Single<String> publishSubject;
         if (!_authState.getNeedsTokenRefresh() && _authState.getAccessToken() != null) {
-            publishSubject.startWith(_authState.getAccessToken());
+            publishSubject = Single.just(_authState.getAccessToken());
             return publishSubject;
         }
-        _authState.performActionWithFreshTokens(_authorizationService, new AuthState.AuthStateAction() {
+        publishSubject = Single.create(new SingleOnSubscribe<String>() {
             @Override
-            public void execute(@Nullable String accessToken, @Nullable String idToken, @Nullable AuthorizationException ex) {
-                if (accessToken != null) {
-                    _preferencesService.storeCurrentAuthState(_authState);
-                    _historyService.refreshAuthState(_authState);
-                    publishSubject.onNext(accessToken);
-                } else {
-                    publishSubject.onError(ex);
-                }
+            public void subscribe(@io.reactivex.annotations.NonNull final SingleEmitter<String> singleEmitter) throws Exception {
+                _authState.performActionWithFreshTokens(_authorizationService, new AuthState.AuthStateAction() {
+                    @Override
+                    public void execute(@Nullable String accessToken, @Nullable String idToken, @Nullable AuthorizationException ex) {
+                        if (accessToken != null) {
+                            _preferencesService.storeCurrentAuthState(_authState);
+                            _historyService.refreshAuthState(_authState);
+                            singleEmitter.onSuccess(accessToken);
+                        } else {
+                            singleEmitter.onError(ex);
+                        }
+                    }
+                });
             }
         });
+
         return publishSubject;
     }
 

@@ -24,6 +24,7 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -153,7 +154,7 @@ public class ConnectionStatusFragment extends Fragment implements VPNService.Con
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         Instance provider = _preferencesService.getCurrentInstance();
-        if (provider.getLogoUri() != null) {
+        if (!TextUtils.isEmpty(provider.getLogoUri())) {
             Picasso.with(view.getContext())
                     .load(provider.getLogoUri())
                     .fit()

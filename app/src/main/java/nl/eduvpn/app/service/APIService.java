@@ -27,6 +27,8 @@ import java.io.IOException;
 
 import io.reactivex.Observable;
 import io.reactivex.ObservableSource;
+import io.reactivex.Single;
+import io.reactivex.SingleSource;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function;
@@ -114,25 +116,30 @@ public class APIService {
      */
     public void getString(final String url, final boolean useToken, final Callback<String> callback) {
         //noinspection unchecked
-        _createNetworkCall(useToken, new Function<String, ObservableSource<?>>() {
+        _createNetworkCall(useToken, new Function<String, SingleSource<?>>() {
             @Override
-            public ObservableSource<?> apply(@io.reactivex.annotations.NonNull String accessToken) throws Exception {
+            public SingleSource<?> apply(@io.reactivex.annotations.NonNull String accessToken) throws Exception {
                 try {
-                    return Observable.just(_fetchString(url, accessToken));
+                    return Single.just(_fetchString(url, accessToken));
                 } catch (IOException ex) {
-                    return Observable.error(ex);
+                    return Single.error(ex);
                 } catch (JSONException ex) {
-                    return Observable.error(ex);
+                    return Single.error(ex);
                 } catch (UserNotAuthorizedException ex) {
-                    return Observable.error(ex);
+                    return Single.error(ex);
                 }
             }
         }).observeOn(AndroidSchedulers.mainThread())
                 .subscribeOn(Schedulers.io())
-                .subscribe(new Consumer<String>() {
+                .subscribe(new Consumer<Object>() {
                     @Override
-                    public void accept(String string) throws Exception {
-                        callback.onSuccess(string);
+                    public void accept(Object object) throws Exception {
+                        if (object instanceof String) {
+                            callback.onSuccess((String)object);
+                        } else {
+                            throw new RuntimeException("Unexpected result type!");
+
+                        }
                     }
                 }, new Consumer<Throwable>() {
                     @Override
@@ -156,23 +163,27 @@ public class APIService {
      */
     public void postResource(@NonNull final String url, @Nullable final String data, final boolean useToken, final Callback<String> callback) {
         //noinspection unchecked
-        _createNetworkCall(useToken, new Function<String, ObservableSource<?>>() {
+        _createNetworkCall(useToken, new Function<String, SingleSource<?>>() {
             @Override
-            public ObservableSource<?> apply(@io.reactivex.annotations.NonNull String accessToken) throws Exception {
+            public SingleSource<?> apply(@io.reactivex.annotations.NonNull String accessToken) throws Exception {
                 try {
-                    return Observable.just(_fetchByteResource(url, data, accessToken));
+                    return Single.just(_fetchByteResource(url, data, accessToken));
                 } catch (IOException ex) {
-                    return Observable.error(ex);
+                    return Single.error(ex);
                 } catch (UserNotAuthorizedException ex) {
-                    return Observable.error(ex);
+                    return Single.error(ex);
                 }
             }
         }).observeOn(AndroidSchedulers.mainThread())
                 .subscribeOn(Schedulers.io())
-                .subscribe(new Consumer<String>() {
+                .subscribe(new Consumer<Object>() {
                     @Override
-                    public void accept(String string) throws Exception {
-                        callback.onSuccess(string);
+                    public void accept(Object object) throws Exception {
+                        if (object instanceof String) {
+                            callback.onSuccess((String)object);
+                        } else {
+                            throw new RuntimeException("Unexpected result type!");
+                        }
                     }
                 }, new Consumer<Throwable>() {
                     @Override
@@ -258,16 +269,15 @@ public class APIService {
         return responseString;
     }
 
-    private Observable _createNetworkCall(boolean useToken, Function<String, ObservableSource<?>> networkFunction) {
-        Observable networkCall;
+    private Single<Object> _createNetworkCall(boolean useToken, Function<String, SingleSource<?>> networkFunction) {
+        Single<Object> networkCall;
         if (useToken) {
             networkCall = _connectionService.getFreshAccessToken()
                     .observeOn(Schedulers.io())
                     .flatMap(networkFunction);
         } else {
-            PublishSubject<String> emptySubject = PublishSubject.create();
-            emptySubject.startWith("");
-            networkCall = emptySubject.observeOn(Schedulers.io())
+            networkCall = Single.just("")
+                    .observeOn(Schedulers.io())
                     .flatMap(networkFunction);
         }
         return networkCall;
