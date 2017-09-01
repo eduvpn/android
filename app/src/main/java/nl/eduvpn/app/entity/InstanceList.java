@@ -27,19 +27,12 @@ import java.util.List;
  */
 public class InstanceList {
 
-    private Integer _version;
     private Integer _sequenceNumber;
     private List<Instance> _instanceList;
 
-    public InstanceList(@NonNull Integer version, @NonNull List<Instance> instanceList, @NonNull Integer sequenceNumber) {
-        _version = version;
+    public InstanceList(@NonNull List<Instance> instanceList, @NonNull Integer sequenceNumber) {
         _instanceList = instanceList;
         _sequenceNumber = sequenceNumber;
-    }
-
-    @NonNull
-    public Integer getVersion() {
-        return _version;
     }
 
     @NonNull

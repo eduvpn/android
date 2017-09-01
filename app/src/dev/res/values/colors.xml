@@ -17,9 +17,9 @@
   -->
 
 <resources>
-    <color name="mainColor">#505050</color>
-    <color name="colorPrimary">#505050</color>
-    <color name="colorPrimaryDark">#202020</color>
+    <color name="mainColor">#A0A0A0</color>
+    <color name="colorPrimary">#A0A0A0</color>
+    <color name="colorPrimaryDark">#808080</color>
     <color name="colorAccent">#FF9800</color>
     <color name="colorSwitchThumbNormal">#D0D0D0</color>
     <color name="textColor">#FFFFFF</color>

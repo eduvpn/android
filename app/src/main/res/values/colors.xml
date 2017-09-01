@@ -6,6 +6,7 @@
     <color name="colorAccent">#00A2C8</color>
     <color name="colorSwitchThumbNormal">#808080</color>
     <color name="textColor">#101010</color>
+    <color name="textColorInverted">#FFFFFF</color>
     <color name="buttonTextColor">#101010</color>
     <color name="disabledColor">#E0E0E0</color>
     <color name="pressedColor">#00A2C8</color>
@@ -15,11 +16,13 @@
     <color name="settingsDescriptionTextColor">#909090</color>
     <color name="swipeBackgroundColor">#00A2C8</color>
     <color name="iconColor">#000000</color>
+    <color name="iconColorInverted">#FFFFFF</color>
     <color name="transparentGradientColor">#00FFFFFF</color>
     <color name="gradientColor">#FFFFFF</color>
     <color name="buttonBackgroundColor">#00B3D0</color>
     <color name="switcherInactiveBackground">#FFFFFF</color>
     <color name="switcherActiveBackground">#00B3D0</color>
     <color name="switcherStrokeColor">#000000</color>
+    <color name="rippleColor">#F0F0F0</color>
 
 </resources>

@@ -20,6 +20,9 @@ package nl.eduvpn.app.service;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
+import net.openid.appauth.AuthState;
+import net.openid.appauth.AuthorizationServiceConfiguration;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -30,9 +33,9 @@ import java.util.Observable;
 import nl.eduvpn.app.entity.AuthorizationType;
 import nl.eduvpn.app.entity.DiscoveredAPI;
 import nl.eduvpn.app.entity.Instance;
+import nl.eduvpn.app.entity.SavedAuthState;
 import nl.eduvpn.app.entity.SavedKeyPair;
 import nl.eduvpn.app.entity.SavedProfile;
-import nl.eduvpn.app.entity.SavedToken;
 import nl.eduvpn.app.utils.Log;
 import nl.eduvpn.app.utils.TTLCache;
 
@@ -48,7 +51,7 @@ public class HistoryService extends Observable {
 
     private TTLCache<DiscoveredAPI> _discoveredAPICache;
     private List<SavedProfile> _savedProfileList;
-    private List<SavedToken> _savedTokenList;
+    private List<SavedAuthState> _savedAuthStateList;
     private List<SavedKeyPair> _savedKeyPairList;
 
     private final PreferencesService _preferencesService;
@@ -79,9 +82,9 @@ public class HistoryService extends Observable {
             _savedProfileList = new ArrayList<>();
             Log.i(TAG, "No saved profiles found.");
         }
-        _savedTokenList = _preferencesService.getSavedTokenList();
-        if (_savedTokenList == null) {
-            _savedTokenList = new ArrayList<>();
+        _savedAuthStateList = _preferencesService.getSavedAuthStateList();
+        if (_savedAuthStateList == null) {
+            _savedAuthStateList = new ArrayList<>();
             Log.i(TAG, "No saved tokens found.");
         }
         _discoveredAPICache = _preferencesService.getDiscoveredAPICache();
@@ -102,7 +105,7 @@ public class HistoryService extends Observable {
     private void _save() {
         _preferencesService.storeDiscoveredAPICache(_discoveredAPICache);
         _preferencesService.storeSavedProfileList(_savedProfileList);
-        _preferencesService.storeSavedTokenList(_savedTokenList);
+        _preferencesService.storeSavedAuthStateList(_savedAuthStateList);
     }
 
     /**
@@ -128,18 +131,18 @@ public class HistoryService extends Observable {
     }
 
     /**
-     * Returns a cached access token for an API.
+     * Returns a cached authentication state for an API.
      *
      * @param instance The instance to get the access token for.
-     * @return The access token if found. Null if not found.
+     * @return The authentication state if found. Null if not found.
      */
     @Nullable
-    public String getCachedAccessToken(@NonNull Instance instance) {
-        for (SavedToken savedToken : _savedTokenList) {
-            if (savedToken.getInstance().getSanitizedBaseURI().equals(instance.getSanitizedBaseURI())) {
-                return savedToken.getAccessToken();
-            } else if (instance.getAuthorizationType() == AuthorizationType.DISTRIBUTED || savedToken.getInstance().getAuthorizationType() == AuthorizationType.DISTRIBUTED) {
-                return savedToken.getAccessToken();
+    public AuthState getCachedAuthState(@NonNull Instance instance) {
+        for (SavedAuthState savedAuthState : _savedAuthStateList) {
+            if (savedAuthState.getInstance().getSanitizedBaseURI().equals(instance.getSanitizedBaseURI())) {
+                return savedAuthState.getAuthState();
+            } else if (instance.getAuthorizationType() == AuthorizationType.DISTRIBUTED || savedAuthState.getInstance().getAuthorizationType() == AuthorizationType.DISTRIBUTED) {
+                return savedAuthState.getAuthState();
             }
         }
         return null;
@@ -148,13 +151,13 @@ public class HistoryService extends Observable {
     /**
      * Caches an access token for an API.
      *
-     * @param instance    The VPN provider the token is stored for.
-     * @param accessToken The access token to save.
+     * @param instance  The VPN provider the token is stored for.
+     * @param authState The authentication state which contains the access and refresh tokens.
      */
-    public void cacheAccessToken(@NonNull Instance instance, @NonNull String accessToken) {
+    public void cacheAuthenticationState(@NonNull Instance instance, @NonNull AuthState authState) {
         // Remove all previous entries
         removeAccessTokens(instance);
-        _savedTokenList.add(new SavedToken(instance, accessToken));
+        _savedAuthStateList.add(new SavedAuthState(instance, authState));
         _save();
         setChanged();
         notifyObservers(NOTIFICATION_TOKENS_CHANGED);
@@ -178,11 +181,11 @@ public class HistoryService extends Observable {
      * @return The list of saved tokens for specific instances.
      */
     @NonNull
-    public List<SavedToken> getSavedTokensForAuthorizationType(@AuthorizationType int authorizationType) {
-        List<SavedToken> result = new ArrayList<>();
-        for (SavedToken savedToken : _savedTokenList) {
-            if (savedToken.getInstance().getAuthorizationType() == authorizationType) {
-                result.add(savedToken);
+    public List<SavedAuthState> getSavedTokensForAuthorizationType(@AuthorizationType int authorizationType) {
+        List<SavedAuthState> result = new ArrayList<>();
+        for (SavedAuthState savedAuthState : _savedAuthStateList) {
+            if (savedAuthState.getInstance().getAuthorizationType() == authorizationType) {
+                result.add(savedAuthState);
             }
         }
         return Collections.unmodifiableList(result);
@@ -239,10 +242,10 @@ public class HistoryService extends Observable {
      * @param instance The instance the access token will be saved for.
      */
     public void removeAccessTokens(@NonNull Instance instance) {
-        Iterator<SavedToken> savedTokenIterator = _savedTokenList.iterator();
+        Iterator<SavedAuthState> savedTokenIterator = _savedAuthStateList.iterator();
         while (savedTokenIterator.hasNext()) {
-            SavedToken savedToken = savedTokenIterator.next();
-            if (savedToken.getInstance().getSanitizedBaseURI().equals(instance.getBaseURI()) && instance.getAuthorizationType() == savedToken.getInstance().getAuthorizationType()) {
+            SavedAuthState savedAuthState = savedTokenIterator.next();
+            if (savedAuthState.getInstance().getSanitizedBaseURI().equals(instance.getBaseURI()) && instance.getAuthorizationType() == savedAuthState.getInstance().getAuthorizationType()) {
                 savedTokenIterator.remove();
             }
         }
@@ -267,8 +270,8 @@ public class HistoryService extends Observable {
      *
      * @return The list of all saved access tokens and instances.
      */
-    public List<SavedToken> getSavedTokenList() {
-        return Collections.unmodifiableList(_savedTokenList);
+    public List<SavedAuthState> getSavedAuthStateList() {
+        return Collections.unmodifiableList(_savedAuthStateList);
     }
 
     /**
@@ -297,18 +300,18 @@ public class HistoryService extends Observable {
      * @return The token if available, otherwise null.
      */
     @Nullable
-    public SavedToken getSavedToken(Instance instance) {
+    public SavedAuthState getSavedToken(Instance instance) {
         // First we prioritize tokens which belong to the same instance
-        for (SavedToken savedToken : _savedTokenList) {
-            if (instance.getSanitizedBaseURI().equals(savedToken.getInstance().getSanitizedBaseURI())) {
-                return savedToken;
+        for (SavedAuthState savedAuthState : _savedAuthStateList) {
+            if (instance.getSanitizedBaseURI().equals(savedAuthState.getInstance().getSanitizedBaseURI())) {
+                return savedAuthState;
             }
         }
         // Second pass: if distributed auth instance, any other instance with distributed auth is fine as well
         if (instance.getAuthorizationType() == AuthorizationType.DISTRIBUTED) {
-            for (SavedToken savedToken : _savedTokenList) {
-                if (savedToken.getInstance().getAuthorizationType() == AuthorizationType.DISTRIBUTED) {
-                    return savedToken;
+            for (SavedAuthState savedAuthState : _savedAuthStateList) {
+                if (savedAuthState.getInstance().getAuthorizationType() == AuthorizationType.DISTRIBUTED) {
+                    return savedAuthState;
                 }
             }
         }
@@ -356,5 +359,40 @@ public class HistoryService extends Observable {
             _savedKeyPairList.add(savedKeyPair);
         }
         _preferencesService.storeSavedKeyPairList(_savedKeyPairList);
+    }
+
+    /**
+     * Refreshes an auth state in the list.
+     *
+     * @param authState The auth state to refresh.
+     */
+    public void refreshAuthState(AuthState authState) {
+        if (_savedAuthStateList == null) {
+            Log.w(TAG, "No saved auth states found. Nothing to refresh?");
+            return;
+        }
+        // Two auth states are for the same API if their configuration is the same.
+        AuthorizationServiceConfiguration currentConfig = authState.getAuthorizationServiceConfiguration();
+        for (SavedAuthState savedAuthState : _savedAuthStateList) {
+            if (_authConfigsEqual(currentConfig, savedAuthState.getAuthState().getAuthorizationServiceConfiguration())) {
+                savedAuthState.setAuthState(authState);
+                Log.d(TAG, "Auth state found and replaced");
+                break;
+            }
+        }
+        _preferencesService.storeSavedAuthStateList(_savedAuthStateList);
+    }
+
+    /**
+     * Checks if two authorization service configs are equal
+     *
+     * @param left  The first operand.
+     * @param right The second operand.
+     * @return True if they have the same URLs, false if not.
+     */
+    private boolean _authConfigsEqual(AuthorizationServiceConfiguration left, AuthorizationServiceConfiguration right) {
+        return left.tokenEndpoint.toString().equals(right.tokenEndpoint.toString()) &&
+                left.authorizationEndpoint.toString().equals(right.authorizationEndpoint.toString());
+
     }
 }

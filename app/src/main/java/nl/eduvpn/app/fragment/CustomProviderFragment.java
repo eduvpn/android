@@ -57,7 +57,6 @@ import static nl.eduvpn.app.Constants.API_DISCOVERY_POSTFIX;
 public class CustomProviderFragment extends Fragment {
 
     private static final String TAG = CustomProviderFragment.class.getName();
-    public static final String EXTRA_AUTHORIZATION_TYPE = "extra_authorization_type";
 
     private Unbinder _unbinder;
 
@@ -73,28 +72,6 @@ public class CustomProviderFragment extends Fragment {
     @Inject
     protected SerializerService _serializerService;
 
-    private @AuthorizationType Integer _authorizationType;
-
-    @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        if (savedInstanceState != null && savedInstanceState.containsKey(EXTRA_AUTHORIZATION_TYPE)) {
-            //noinspection WrongConstant
-            _authorizationType = savedInstanceState.getInt(EXTRA_AUTHORIZATION_TYPE);
-        } else if (getArguments() != null && getArguments().containsKey(EXTRA_AUTHORIZATION_TYPE)) {
-            //noinspection WrongConstant
-            _authorizationType = getArguments().getInt(EXTRA_AUTHORIZATION_TYPE);
-        }
-        if (_authorizationType == null) {
-            throw new RuntimeException("Connection type not provided!");
-        }
-    }
-
-    @Override
-    public void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-        outState.putInt(EXTRA_AUTHORIZATION_TYPE, _authorizationType);
-    }
 
     @Nullable
     @Override
@@ -120,7 +97,7 @@ public class CustomProviderFragment extends Fragment {
         String postfix = _customProviderUrl.getText().toString();
         String url = prefix + postfix;
         if (getActivity() != null) {
-            final Instance customProviderInstance = _createCustomProviderInstance(url, _authorizationType);
+            final Instance customProviderInstance = _createCustomProviderInstance(url, AuthorizationType.LOCAL);
             final ProgressDialog dialog = ProgressDialog.show(getContext(), getString(R.string.progress_dialog_title), getString(R.string.api_discovery_message), true);
             // Discover the API
             _apiService.getJSON(customProviderInstance.getSanitizedBaseURI() + API_DISCOVERY_POSTFIX, false, new APIService.Callback<JSONObject>() {

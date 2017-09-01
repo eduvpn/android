@@ -50,14 +50,6 @@ public class PreferencesServiceTest {
     }
 
     @Test
-    public void testConnectionStateSave() {
-        String state = "abc2141defghijkl";
-        _preferencesService.storeCurrentConnectionState(state);
-        String retrievedState = _preferencesService.getCurrentConnectionState();
-        assertEquals(state, retrievedState);
-    }
-
-    @Test
     public void testInstanceSave() {
         Instance instance = new Instance("http://example.com", "Example", "http://example.com/image.jpg", AuthorizationType.DISTRIBUTED, true);
         _preferencesService.currentInstance(instance);

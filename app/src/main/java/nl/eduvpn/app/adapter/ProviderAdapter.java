@@ -18,6 +18,7 @@
 package nl.eduvpn.app.adapter;
 
 import android.support.v7.widget.RecyclerView;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -42,9 +43,12 @@ public class ProviderAdapter extends RecyclerView.Adapter<ProviderViewHolder> {
 
     private List<Instance> _instanceList;
     private LayoutInflater _layoutInflater;
-    private @AuthorizationType int _authorizationType;
+    @AuthorizationType
+    private int _authorizationType;
+    private ConfigurationService _configurationService;
 
     public ProviderAdapter(final ConfigurationService configurationService, @AuthorizationType final int authorizationType) {
+        _configurationService = configurationService;
         _authorizationType = authorizationType;
         if (authorizationType == AuthorizationType.LOCAL) {
             _instanceList = configurationService.getInstituteAccessList();
@@ -62,6 +66,10 @@ public class ProviderAdapter extends RecyclerView.Adapter<ProviderViewHolder> {
                 notifyDataSetChanged();
             }
         });
+    }
+
+    public boolean isDiscoveryPending() {
+        return _configurationService.isPendingDiscovery(_authorizationType);
     }
 
     /**
@@ -92,29 +100,20 @@ public class ProviderAdapter extends RecyclerView.Adapter<ProviderViewHolder> {
 
     @Override
     public void onBindViewHolder(ProviderViewHolder holder, int position) {
-        if (_instanceList == null || position == _instanceList.size()) {
-            // Other item
-            holder.providerDisplayName.setText(R.string.provider_other_display_name);
-            holder.providerIcon.setImageResource(R.drawable.external_provider);
+        Instance instance = getItem(position);
+        holder.providerDisplayName.setText(instance.getDisplayName());
+        if (!TextUtils.isEmpty(instance.getLogoUri())) {
+            Picasso.with(holder.providerIcon.getContext())
+                    .load(instance.getLogoUri())
+                    .fit()
+                    .into(holder.providerIcon);
         } else {
-            // Usual item
-            Instance instance = getItem(position);
-            holder.providerDisplayName.setText(instance.getDisplayName());
-
-            if (instance.getLogoUri() != null) {
-                Picasso.with(holder.providerIcon.getContext())
-                        .load(instance.getLogoUri())
-                        .fit()
-                        .into(holder.providerIcon);
-            } else {
-                holder.providerIcon.setImageResource(R.drawable.external_provider);
-            }
+            holder.providerIcon.setImageResource(R.drawable.external_provider);
         }
     }
 
     @Override
     public int getItemCount() {
-        // Add one extra item which will be the 'Other...'
-        return _instanceList == null ? 1 : _instanceList.size() + 1;
+        return _instanceList == null ? 0 : _instanceList.size();
     }
 }

@@ -34,6 +34,8 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import net.openid.appauth.AuthState;
+
 import org.json.JSONObject;
 
 import java.util.ArrayList;
@@ -59,9 +61,9 @@ import nl.eduvpn.app.entity.DiscoveredAPI;
 import nl.eduvpn.app.entity.Instance;
 import nl.eduvpn.app.entity.KeyPair;
 import nl.eduvpn.app.entity.Profile;
+import nl.eduvpn.app.entity.SavedAuthState;
 import nl.eduvpn.app.entity.SavedKeyPair;
 import nl.eduvpn.app.entity.SavedProfile;
-import nl.eduvpn.app.entity.SavedToken;
 import nl.eduvpn.app.service.APIService;
 import nl.eduvpn.app.service.ConfigurationService;
 import nl.eduvpn.app.service.ConnectionService;
@@ -199,7 +201,7 @@ public class HomeFragment extends Fragment {
                     Log.e(TAG, "Unexpected notification type! Live reload might not be working correctly.");
                 }
             }
-        } );
+        });
         return view;
     }
 
@@ -228,15 +230,15 @@ public class HomeFragment extends Fragment {
         Instance instance = instanceProfilePair.first;
         Profile profile = instanceProfilePair.second;
         DiscoveredAPI discoveredAPI = _historyService.getCachedDiscoveredAPI(instance.getSanitizedBaseURI());
-        String accessToken = _historyService.getCachedAccessToken(instance);
-        if (discoveredAPI == null || accessToken == null) {
+        AuthState authState = _historyService.getCachedAuthState(instance);
+        if (discoveredAPI == null || authState == null) {
             ErrorDialog.show(getContext(), R.string.error_dialog_title, R.string.cant_connect_application_state_missing);
             return;
         }
         _preferencesService.currentInstance(instance);
         _preferencesService.storeCurrentDiscoveredAPI(discoveredAPI);
         _preferencesService.storeCurrentProfile(profile);
-        _connectionService.setAccessToken(accessToken);
+        _connectionService.setAuthState(authState);
         // In case we already have a downloaded profile, connect to it right away.
         SavedProfile savedProfile = _historyService.getCachedSavedProfile(instance.getSanitizedBaseURI(), profile.getProfileId());
         if (savedProfile != null) {
@@ -259,8 +261,8 @@ public class HomeFragment extends Fragment {
 
     private void _updateLists() {
         // Fill with data
-        List<SavedToken> savedInstituteAccessTokens = _historyService.getSavedTokensForAuthorizationType(AuthorizationType.LOCAL);
-        List<SavedToken> savedSecureInternetTokens = _historyService.getSavedTokensForAuthorizationType(AuthorizationType.DISTRIBUTED);
+        List<SavedAuthState> savedInstituteAccessTokens = _historyService.getSavedTokensForAuthorizationType(AuthorizationType.LOCAL);
+        List<SavedAuthState> savedSecureInternetTokens = _historyService.getSavedTokensForAuthorizationType(AuthorizationType.DISTRIBUTED);
         // Secure internet tokens are valid for all other instances.
         savedSecureInternetTokens = enhanceSecureInternetTokensList(savedSecureInternetTokens);
         if (savedInstituteAccessTokens.isEmpty() && savedSecureInternetTokens.isEmpty()) {
@@ -296,18 +298,18 @@ public class HomeFragment extends Fragment {
      *
      * @return The list of all distributed auth instances.
      */
-    private List<SavedToken> enhanceSecureInternetTokensList(List<SavedToken> savedSecureInternetTokens) {
+    private List<SavedAuthState> enhanceSecureInternetTokensList(List<SavedAuthState> savedSecureInternetTokens) {
         if (savedSecureInternetTokens == null) {
             return null;
         }
         if (savedSecureInternetTokens.size() == 0) {
             return savedSecureInternetTokens;
         }
-        String savedAccessToken = savedSecureInternetTokens.get(0).getAccessToken();
+        AuthState authState = savedSecureInternetTokens.get(0).getAuthState();
         List<Instance> instanceList = _configurationService.getSecureInternetList();
-        List<SavedToken> result = new ArrayList<>();
+        List<SavedAuthState> result = new ArrayList<>();
         for (Instance instance : instanceList) {
-            result.add(new SavedToken(instance, savedAccessToken));
+            result.add(new SavedAuthState(instance, authState));
         }
         return result;
     }
@@ -331,16 +333,16 @@ public class HomeFragment extends Fragment {
      * @param adapter                  The adapter to show the profiles in.
      * @param instanceAccessTokenPairs Each instance & access token pair.
      */
-    private void _fillList(final ProfileAdapter adapter, List<SavedToken> instanceAccessTokenPairs) {
+    private void _fillList(final ProfileAdapter adapter, List<SavedAuthState> instanceAccessTokenPairs) {
         _pendingInstanceCount = instanceAccessTokenPairs.size();
         _problematicInstances = new ArrayList<>();
-        for (SavedToken savedToken : instanceAccessTokenPairs) {
-            final Instance instance = savedToken.getInstance();
-            final String accessToken = savedToken.getAccessToken();
+        for (SavedAuthState savedAuthState : instanceAccessTokenPairs) {
+            final Instance instance = savedAuthState.getInstance();
+            final AuthState authState = savedAuthState.getAuthState();
             DiscoveredAPI discoveredAPI = _historyService.getCachedDiscoveredAPI(instance.getSanitizedBaseURI());
             if (discoveredAPI != null) {
                 // We got everything, fetch the available profiles.
-                _fetchProfileList(adapter, instance, discoveredAPI, accessToken);
+                _fetchProfileList(adapter, instance, discoveredAPI, authState);
             } else {
                 _apiService.getJSON(instance.getSanitizedBaseURI() + Constants.API_DISCOVERY_POSTFIX,
                         false,
@@ -351,7 +353,7 @@ public class HomeFragment extends Fragment {
                                     DiscoveredAPI discoveredAPI = _serializerService.deserializeDiscoveredAPI(result);
                                     // Cache the result
                                     _historyService.cacheDiscoveredAPI(instance.getSanitizedBaseURI(), discoveredAPI);
-                                    _fetchProfileList(adapter, instance, discoveredAPI, accessToken);
+                                    _fetchProfileList(adapter, instance, discoveredAPI, authState);
                                 } catch (SerializerService.UnknownFormatException ex) {
                                     Log.e(TAG, "Error parsing discovered API!", ex);
                                     _problematicInstances.add(instance);
@@ -376,11 +378,11 @@ public class HomeFragment extends Fragment {
      * @param adapter       The adapter to download the data into.
      * @param instance      The VPN provider instance.
      * @param discoveredAPI The discovered API containing the URLs.
-     * @param accessToken   The access token for the API.
+     * @param authState The access and refresh token for the API.
      */
     private void _fetchProfileList(@NonNull final ProfileAdapter adapter, @NonNull final Instance instance,
-                                   @NonNull DiscoveredAPI discoveredAPI, @NonNull String accessToken) {
-        _connectionService.setAccessToken(accessToken);
+                                   @NonNull DiscoveredAPI discoveredAPI, @NonNull AuthState authState) {
+        _connectionService.setAuthState(authState);
         _apiService.getJSON(discoveredAPI.getProfileListEndpoint(), true, new APIService.Callback<JSONObject>() {
             @Override
             public void onSuccess(JSONObject result) {
@@ -465,14 +467,14 @@ public class HomeFragment extends Fragment {
                                     _warningIcon.setVisibility(View.GONE);
                                     _progressBar.setVisibility(View.VISIBLE);
                                     _displayText.setText(R.string.loading_available_profiles);
-                                    SavedToken savedToken = _historyService.getSavedToken(instance);
-                                    if (savedToken == null) {
+                                    SavedAuthState savedAuthState = _historyService.getSavedToken(instance);
+                                    if (savedAuthState == null) {
                                         // Should never happen
                                         ErrorDialog.show(getContext(), R.string.error_dialog_title, R.string.data_removed);
                                     } else {
                                         // Retry
                                         _problematicInstances.remove(instance);
-                                        _fillList(adapter, Collections.singletonList(savedToken));
+                                        _fillList(adapter, Collections.singletonList(savedAuthState));
                                     }
                                 }
 

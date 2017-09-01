@@ -20,9 +20,13 @@ package nl.eduvpn.app.service;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.net.Uri;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.filters.LargeTest;
 import android.support.test.runner.AndroidJUnit4;
+
+import net.openid.appauth.AuthState;
+import net.openid.appauth.AuthorizationServiceConfiguration;
 
 import org.junit.After;
 import org.junit.Before;
@@ -101,12 +105,12 @@ public class HistoryServiceTest {
             Profile profile = new Profile("displayName", profileId, false);
             SavedProfile savedProfile = new SavedProfile(instance, profile, profileUUID);
             _historyService.cacheSavedProfile(savedProfile);
-            _historyService.cacheAccessToken(instance, "averylongaccesstoken1234567890somemoretextthatitisevenmorelonger");
+            _historyService.cacheAuthenticationState(instance, new AuthState());
         }
         _reloadHistoryService(false);
         assertEquals(10, _historyService.getSavedProfileList().size());
         for (int i = 0; i < 10; ++i) {
-            assertNotNull(_historyService.getCachedAccessToken(new Instance(baseURI + i, "displayName", null, AuthorizationType.DISTRIBUTED, true)));
+            assertNotNull(_historyService.getCachedAuthState(new Instance(baseURI + i, "displayName", null, AuthorizationType.DISTRIBUTED, true)));
             assertNotNull(_historyService.getCachedDiscoveredAPI(baseURI + i));
         }
 
@@ -127,13 +131,15 @@ public class HistoryServiceTest {
 
     @Test
     public void testCacheAccessToken() {
-        String exampleToken = "abcd1234defghthisisatoken";
         String baseURI = "http://example.com";
+        AuthState exampleAuthState = new AuthState(new AuthorizationServiceConfiguration(Uri.parse("http://example.com/auth"), Uri.parse("http://example.com/token"), null));
         Instance instance = new Instance(baseURI, "displayName", null, AuthorizationType.DISTRIBUTED, true);
-        _historyService.cacheAccessToken(instance, exampleToken);
+        _historyService.cacheAuthenticationState(instance, exampleAuthState);
         _reloadHistoryService(false);
-        String restoredToken = _historyService.getCachedAccessToken(instance);
-        assertEquals(exampleToken, restoredToken);
+        AuthState restoredAuthState = _historyService.getCachedAuthState(instance);
+        //noinspection ConstantConditions
+        assertEquals(exampleAuthState.getAuthorizationServiceConfiguration().authorizationEndpoint, restoredAuthState.getAuthorizationServiceConfiguration().authorizationEndpoint);
+        assertEquals(exampleAuthState.getAuthorizationServiceConfiguration().tokenEndpoint, restoredAuthState.getAuthorizationServiceConfiguration().tokenEndpoint);
     }
 
     @Test
