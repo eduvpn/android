@@ -507,7 +507,7 @@ public class HomeFragment extends Fragment {
 
                                 @Override
                                 public void removeInstance(Instance instance) {
-                                    _historyService.removeAccessTokens(instance);
+                                    _historyService.removeAuthentications(instance);
                                     _historyService.removeDiscoveredAPI(instance.getSanitizedBaseURI());
                                     _historyService.removeSavedProfilesForInstance(instance.getSanitizedBaseURI());
                                     _problematicInstances.remove(instance);

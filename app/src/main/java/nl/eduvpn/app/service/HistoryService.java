@@ -141,7 +141,7 @@ public class HistoryService extends Observable {
         for (SavedAuthState savedAuthState : _savedAuthStateList) {
             if (savedAuthState.getInstance().getSanitizedBaseURI().equals(instance.getSanitizedBaseURI())) {
                 return savedAuthState.getAuthState();
-            } else if (instance.getAuthorizationType() == AuthorizationType.DISTRIBUTED || savedAuthState.getInstance().getAuthorizationType() == AuthorizationType.DISTRIBUTED) {
+            } else if (instance.getAuthorizationType() == AuthorizationType.DISTRIBUTED && savedAuthState.getInstance().getAuthorizationType() == AuthorizationType.DISTRIBUTED) {
                 return savedAuthState.getAuthState();
             }
         }
@@ -156,7 +156,7 @@ public class HistoryService extends Observable {
      */
     public void cacheAuthenticationState(@NonNull Instance instance, @NonNull AuthState authState) {
         // Remove all previous entries
-        removeAccessTokens(instance);
+        removeAuthentications(instance);
         _savedAuthStateList.add(new SavedAuthState(instance, authState));
         _save();
         setChanged();
@@ -241,11 +241,11 @@ public class HistoryService extends Observable {
      *
      * @param instance The instance the access token will be saved for.
      */
-    public void removeAccessTokens(@NonNull Instance instance) {
+    public void removeAuthentications(@NonNull Instance instance) {
         Iterator<SavedAuthState> savedTokenIterator = _savedAuthStateList.iterator();
         while (savedTokenIterator.hasNext()) {
             SavedAuthState savedAuthState = savedTokenIterator.next();
-            if (savedAuthState.getInstance().getSanitizedBaseURI().equals(instance.getBaseURI()) && instance.getAuthorizationType() == savedAuthState.getInstance().getAuthorizationType()) {
+            if (savedAuthState.getInstance().getSanitizedBaseURI().equals(instance.getSanitizedBaseURI()) && instance.getAuthorizationType() == savedAuthState.getInstance().getAuthorizationType()) {
                 savedTokenIterator.remove();
             }
         }
