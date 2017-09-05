@@ -32,7 +32,6 @@ import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
@@ -241,7 +240,7 @@ public class ProfileAdapter extends RecyclerView.Adapter<ProfileViewHolder> {
         }
         _historyService.removeDiscoveredAPI(item.first.getSanitizedBaseURI());
         _historyService.removeSavedProfilesForInstance(item.first.getSanitizedBaseURI());
-        _historyService.removeAccessTokens(item.first);
+        _historyService.removeAuthentications(item.first);
         notifyItemRemoved(position);
     }
 
