@@ -8,8 +8,8 @@ curl -o ics-openvpn.apk http://plai.de/android/ics-openvpn-${VERSION}.apk
 jarsigner -verify ics-openvpn.apk
 #jarsigner -verify -verbose:all -certs ics-openvpn.apk
 
-unzip -q -o ics-openvpn.apk -d ics-openvpn
-keytool -printcert -file ics-openvpn/META-INF/CERT.RSA
+unzip -q -o ics-openvpn.apk -d openvpn-apk
+keytool -printcert -file openvpn-apk/META-INF/CERT.RSA
 
 # ***NOTE*** manually verify the output of the script with this output, 
 # especially the SHA256 hash.
@@ -27,3 +27,10 @@ keytool -printcert -file ics-openvpn/META-INF/CERT.RSA
 #	 SHA256: B2:64:83:EA:68:FB:0A:B6:CD:51:42:0C:7E:5E:84:BB:28:B9:80:D8:70:36:22:2F:69:27:B3:61:C7:CB:A9:02
 #	 Signature algorithm name: SHA1withRSA
 #	 Version: 3
+
+rm -rf ics-openvpn/main/ovpnlibs/*
+mkdir -p ics-openvpn/main/ovpnlibs/assets/
+mv openvpn-apk/assets/* ics-openvpn/main/ovpnlibs/assets/
+mkdir -p ics-openvpn/main/ovpnlibs/jniLibs/
+mv openvpn-apk/lib/* ics-openvpn/main/ovpnlibs/jniLibs/
+rm -rf openvpn-apk
