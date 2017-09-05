@@ -24,9 +24,11 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import butterknife.Unbinder;
+import nl.eduvpn.app.BuildConfig;
 import nl.eduvpn.app.MainActivity;
 import nl.eduvpn.app.R;
 import nl.eduvpn.app.entity.AuthorizationType;
@@ -37,6 +39,12 @@ import nl.eduvpn.app.entity.AuthorizationType;
  */
 public class TypeSelectorFragment extends Fragment {
 
+    @BindView(R.id.vpn_option_container_secure_internet)
+    protected View _secureInternetView;
+
+    @BindView(R.id.vpn_option_container_institute_access)
+    protected View _instituteAccessView;
+
     private Unbinder _unbinder;
 
     @Nullable
@@ -44,6 +52,10 @@ public class TypeSelectorFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_type_selector, container, false);
         _unbinder = ButterKnife.bind(this, view);
+        if (!BuildConfig.API_DISCOVERY_ENABLED) {
+            _secureInternetView.setVisibility(View.GONE);
+            _instituteAccessView.setVisibility(View.GONE);
+        }
         return view;
     }
 
