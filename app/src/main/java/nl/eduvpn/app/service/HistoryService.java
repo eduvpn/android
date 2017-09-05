@@ -141,7 +141,7 @@ public class HistoryService extends Observable {
         for (SavedAuthState savedAuthState : _savedAuthStateList) {
             if (savedAuthState.getInstance().getSanitizedBaseURI().equals(instance.getSanitizedBaseURI())) {
                 return savedAuthState.getAuthState();
-            } else if (instance.getAuthorizationType() == AuthorizationType.DISTRIBUTED || savedAuthState.getInstance().getAuthorizationType() == AuthorizationType.DISTRIBUTED) {
+            } else if (instance.getAuthorizationType() == AuthorizationType.DISTRIBUTED && savedAuthState.getInstance().getAuthorizationType() == AuthorizationType.DISTRIBUTED) {
                 return savedAuthState.getAuthState();
             }
         }
