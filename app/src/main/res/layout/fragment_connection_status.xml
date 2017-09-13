@@ -44,7 +44,7 @@
                 android:layout_height="@dimen/connection_status_details_row_height"
                 android:adjustViewBounds="true"
                 android:contentDescription="@string/content_description_connection_status_icon"
-                android:scaleType="fitStart"
+                android:scaleType="fitCenter"
                 android:src="@drawable/connection_status_disconnected"/>
         </LinearLayout>
 
@@ -65,6 +65,7 @@
                 android:id="@+id/providerIcon"
                 android:layout_width="64dp"
                 android:layout_height="@dimen/connection_status_details_row_height"
+                android:scaleType="fitCenter"
                 android:adjustViewBounds="true"
                 android:contentDescription="@string/content_description_provider_icon"
                 android:src="@drawable/external_provider"/>

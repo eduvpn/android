@@ -22,4 +22,5 @@
     <dimen name="swipe_to_delete_margin">16dp</dimen>
     <dimen name="vpn_option_width">40dp</dimen>
     <dimen name="vpn_option_label_size">15sp</dimen>
+    <dimen name="connect_header_icon_size">24dp</dimen>
 </resources>

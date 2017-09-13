@@ -66,13 +66,4 @@
         android:textColor="@android:color/white"
         android:textSize="15sp"
         android:visibility="gone"/>
-
-    <View
-        android:layout_width="wrap_content"
-        android:layout_height="1dp"
-        android:layout_alignParentBottom="true"
-        android:layout_marginLeft="8dp"
-        android:layout_marginRight="8dp"
-        android:background="@color/mainColor"
-        />
 </RelativeLayout>
