@@ -156,11 +156,11 @@
     <style name="AuthorizationTypeHeader">
         <item name="android:textSize">18sp</item>
         <item name="android:textStyle">bold</item>
-        <item name="android:layout_gravity">center</item>
+        <item name="android:layout_gravity">left|center_vertical</item>
         <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_marginLeft">8dp</item>
         <item name="android:layout_height">wrap_content</item>
-        <item name="android:textColor">@color/textColor</item>
-        <item name="android:layout_marginBottom">8dp</item>
+        <item name="android:textColor">@color/mainColor</item>
     </style>
 
     <style name="ProfileTypeIcon">

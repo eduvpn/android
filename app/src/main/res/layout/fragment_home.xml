@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:tools="http://schemas.android.com/tools"
     android:background="@color/backgroundColor"
     android:clickable="true"
     android:orientation="vertical"
@@ -28,7 +28,8 @@
         android:gravity="center"
         android:text="@string/no_providers_yet_click_on_add_provider"
         android:textColor="@color/hintColor"
-        android:textSize="15sp"/>
+        android:textSize="15sp"
+        tools:visibility="gone"/>
 
     <FrameLayout
         android:id="@+id/loadingBar"
@@ -58,11 +59,11 @@
         <ImageView
             android:id="@+id/warningIcon"
             android:layout_width="32dp"
-            android:tint="@color/iconColor"
             android:layout_height="32dp"
             android:layout_marginLeft="24dp"
             android:contentDescription="@string/content_description_warning_icon"
             android:src="@drawable/maintenance_icon"
+            android:tint="@color/iconColor"
             android:visibility="gone"/>
     </FrameLayout>
 
@@ -100,17 +101,41 @@
             android:layout_weight="1"
             android:orientation="vertical">
 
-            <TextView
-                style="@style/AuthorizationTypeHeader"
-                android:text="@string/header_secure_internet"/>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:paddingEnd="8dp"
+                android:paddingStart="8dp"
+                android:paddingTop="8dp"
+                android:layout_marginBottom="4dp">
+
+                <ImageView
+                    android:layout_width="@dimen/connect_header_icon_size"
+                    android:layout_height="@dimen/connect_header_icon_size"
+                    android:adjustViewBounds="true"
+                    android:tint="@color/mainColor"
+                    android:src="@drawable/icon_shield_internet_white_full"/>
+
+                <TextView
+                    style="@style/AuthorizationTypeHeader"
+                    android:text="@string/header_secure_internet"/>
+
+            </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginBottom="4dp"
+                android:background="@color/mainColor"/>
 
             <android.support.v7.widget.RecyclerView
                 android:id="@+id/secureInternetList"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                tools:listitem="@layout/list_item_config"
                 android:layout_gravity="center_horizontal"
-                android:layout_marginBottom="8dp"/>
+                android:layout_marginBottom="8dp"
+                tools:listitem="@layout/list_item_config"/>
         </LinearLayout>
 
         <LinearLayout
@@ -120,17 +145,41 @@
             android:layout_weight="1"
             android:orientation="vertical">
 
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:paddingEnd="8dp"
+                android:paddingStart="8dp"
+                android:paddingTop="8dp"
+                android:layout_marginBottom="4dp">
+
+                <ImageView
+                    android:layout_width="@dimen/connect_header_icon_size"
+                    android:layout_height="@dimen/connect_header_icon_size"
+                    android:adjustViewBounds="true"
+                    android:tint="@color/mainColor"
+                    android:src="@drawable/icon_shield_access_white_full"/>
+
             <TextView
                 style="@style/AuthorizationTypeHeader"
                 android:text="@string/header_institute_access"/>
+
+            </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginBottom="4dp"
+                android:background="@color/mainColor"/>
 
             <android.support.v7.widget.RecyclerView
                 android:id="@+id/instituteAccessList"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                tools:listitem="@layout/list_item_config"
                 android:layout_gravity="center_horizontal"
-                android:layout_marginBottom="8dp"/>
+                android:layout_marginBottom="8dp"
+                tools:listitem="@layout/list_item_config"/>
         </LinearLayout>
 
 
