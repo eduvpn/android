@@ -104,18 +104,18 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginBottom="4dp"
                 android:orientation="horizontal"
                 android:paddingEnd="8dp"
                 android:paddingStart="8dp"
-                android:paddingTop="8dp"
-                android:layout_marginBottom="4dp">
+                android:paddingTop="8dp">
 
                 <ImageView
                     android:layout_width="@dimen/connect_header_icon_size"
                     android:layout_height="@dimen/connect_header_icon_size"
                     android:adjustViewBounds="true"
-                    android:tint="@color/mainColor"
-                    android:src="@drawable/icon_shield_internet_white_full"/>
+                    android:src="@drawable/icon_shield_internet_white_full"
+                    android:tint="@color/mainColor"/>
 
                 <TextView
                     style="@style/AuthorizationTypeHeader"
@@ -135,6 +135,10 @@
                 android:layout_height="match_parent"
                 android:layout_gravity="center_horizontal"
                 android:layout_marginBottom="8dp"
+                android:fadeScrollbars="false"
+                android:scrollbarThumbVertical="@drawable/scrollbar_thumb"
+                android:scrollbars="vertical"
+                android:scrollbarSize="4dp"
                 tools:listitem="@layout/list_item_config"/>
         </LinearLayout>
 
@@ -148,22 +152,23 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginBottom="4dp"
                 android:orientation="horizontal"
                 android:paddingEnd="8dp"
                 android:paddingStart="8dp"
                 android:paddingTop="8dp"
-                android:layout_marginBottom="4dp">
+                >
 
                 <ImageView
                     android:layout_width="@dimen/connect_header_icon_size"
                     android:layout_height="@dimen/connect_header_icon_size"
                     android:adjustViewBounds="true"
-                    android:tint="@color/mainColor"
-                    android:src="@drawable/icon_shield_access_white_full"/>
+                    android:src="@drawable/icon_shield_access_white_full"
+                    android:tint="@color/mainColor"/>
 
-            <TextView
-                style="@style/AuthorizationTypeHeader"
-                android:text="@string/header_institute_access"/>
+                <TextView
+                    style="@style/AuthorizationTypeHeader"
+                    android:text="@string/header_institute_access"/>
 
             </LinearLayout>
 
@@ -179,6 +184,10 @@
                 android:layout_height="match_parent"
                 android:layout_gravity="center_horizontal"
                 android:layout_marginBottom="8dp"
+                android:fadeScrollbars="false"
+                android:scrollbarSize="4dp"
+                android:scrollbarThumbVertical="@drawable/scrollbar_thumb"
+                android:scrollbars="vertical"
                 tools:listitem="@layout/list_item_config"/>
         </LinearLayout>
 
