@@ -53,7 +53,7 @@ android {
     }
 }
 
-def supportLibVersion = "25.4.0" // Please try to stay in sync with the version used in the ics-openvpn module
+def supportLibVersion = "26.0.0" // Please try to stay in sync with the version used in the ics-openvpn module
 
 dependencies {
     compile "com.android.support:appcompat-v7:$supportLibVersion"
