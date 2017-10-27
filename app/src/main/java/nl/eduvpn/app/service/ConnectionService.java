@@ -75,7 +75,6 @@ public class ConnectionService {
     private final HistoryService _historyService;
     private final SecurityService _securityService;
     private AuthorizationService _authorizationService;
-    private AuthState _authState;
 
     /**
      * Constructor.
@@ -89,7 +88,6 @@ public class ConnectionService {
         _preferencesService = preferencesService;
         _securityService = securityService;
         _historyService = historyService;
-        _authState = preferencesService.getCurrentAuthState();
     }
 
     public void onStart(Activity activity) {
@@ -217,21 +215,21 @@ public class ConnectionService {
      *
      * @return The access token used to authenticate in an emitter.
      */
-    public Single<String> getFreshAccessToken() {
+    public Single<String> getFreshAccessToken(final AuthState authState) {
         final Single<String> publishSubject;
-        if (!_authState.getNeedsTokenRefresh() && _authState.getAccessToken() != null) {
-            publishSubject = Single.just(_authState.getAccessToken());
+        if (!authState.getNeedsTokenRefresh() && authState.getAccessToken() != null) {
+            publishSubject = Single.just(authState.getAccessToken());
             return publishSubject;
         }
         publishSubject = Single.create(new SingleOnSubscribe<String>() {
             @Override
             public void subscribe(@io.reactivex.annotations.NonNull final SingleEmitter<String> singleEmitter) throws Exception {
-                _authState.performActionWithFreshTokens(_authorizationService, new AuthState.AuthStateAction() {
+                authState.performActionWithFreshTokens(_authorizationService, new AuthState.AuthStateAction() {
                     @Override
                     public void execute(@Nullable String accessToken, @Nullable String idToken, @Nullable AuthorizationException ex) {
                         if (accessToken != null) {
-                            _preferencesService.storeCurrentAuthState(_authState);
-                            _historyService.refreshAuthState(_authState);
+                            _preferencesService.storeCurrentAuthState(authState);
+                            _historyService.refreshAuthState(authState);
                             singleEmitter.onSuccess(accessToken);
                         } else {
                             singleEmitter.onError(ex);
@@ -244,15 +242,6 @@ public class ConnectionService {
         return publishSubject;
     }
 
-    /**
-     * Sets and saved the current access token to use with the requests.
-     *
-     * @param authState The access token and its refresh token to use for getting resources.
-     */
-    public void setAuthState(AuthState authState) {
-        _authState = authState;
-        _preferencesService.storeCurrentAuthState(authState);
-    }
 
     /**
      * Builds the authorization service configuration.

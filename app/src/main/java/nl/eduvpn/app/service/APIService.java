@@ -20,6 +20,8 @@ package nl.eduvpn.app.service;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
+import net.openid.appauth.AuthState;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -89,8 +91,8 @@ public class APIService {
      * @param url      The URL to fetch the JSON from.
      * @param callback The callback for returning the result or notifying about an error.
      */
-    public void getJSON(final String url, final boolean useToken, final Callback<JSONObject> callback) {
-        getString(url, useToken, new Callback<String>() {
+    public void getJSON(@NonNull final String url, @Nullable final AuthState authState, @NonNull final Callback<JSONObject> callback) {
+        getString(url, authState, new Callback<String>() {
             @Override
             public void onSuccess(String result) {
                 try {
@@ -111,12 +113,12 @@ public class APIService {
      * Retrieves a resource as a string.
      *
      * @param url      The URL to get the resource from.
-     * @param useToken If the access token should be used.
+     * @param authState If the access token should be used, provide a previous authentication state.
      * @param callback The callback where the result is returned.
      */
-    public void getString(final String url, final boolean useToken, final Callback<String> callback) {
+    public void getString(final String url, @Nullable AuthState authState, final Callback<String> callback) {
         //noinspection unchecked
-        _createNetworkCall(useToken, new Function<String, SingleSource<?>>() {
+        _createNetworkCall(authState, new Function<String, SingleSource<?>>() {
             @Override
             public SingleSource<?> apply(@io.reactivex.annotations.NonNull String accessToken) throws Exception {
                 try {
@@ -157,13 +159,13 @@ public class APIService {
      * Downloads a byte array resource.
      *
      * @param url      The URL as a string.
-     * @param useToken If the authentication should be included.
+     * @param authState If an auth token should be sent, include an auth state.
      * @param data     The request data.
      * @param callback The callback for notifying about the result.
      */
-    public void postResource(@NonNull final String url, @Nullable final String data, final boolean useToken, final Callback<String> callback) {
+    public void postResource(@NonNull final String url, @Nullable final String data, @Nullable AuthState authState, final Callback<String> callback) {
         //noinspection unchecked
-        _createNetworkCall(useToken, new Function<String, SingleSource<?>>() {
+        _createNetworkCall(authState, new Function<String, SingleSource<?>>() {
             @Override
             public SingleSource<?> apply(@io.reactivex.annotations.NonNull String accessToken) throws Exception {
                 try {
@@ -269,10 +271,10 @@ public class APIService {
         return responseString;
     }
 
-    private Single<Object> _createNetworkCall(boolean useToken, Function<String, SingleSource<?>> networkFunction) {
+    private Single<Object> _createNetworkCall(@Nullable AuthState authState, Function<String, SingleSource<?>> networkFunction) {
         Single<Object> networkCall;
-        if (useToken) {
-            networkCall = _connectionService.getFreshAccessToken()
+        if (authState != null) {
+            networkCall = _connectionService.getFreshAccessToken(authState)
                     .observeOn(Schedulers.io())
                     .flatMap(networkFunction);
         } else {

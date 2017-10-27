@@ -238,7 +238,7 @@ public class HomeFragment extends Fragment {
         _preferencesService.currentInstance(instance);
         _preferencesService.storeCurrentDiscoveredAPI(discoveredAPI);
         _preferencesService.storeCurrentProfile(profile);
-        _connectionService.setAuthState(authState);
+        _preferencesService.storeCurrentAuthState(authState);
         // In case we already have a downloaded profile, connect to it right away.
         SavedProfile savedProfile = _historyService.getCachedSavedProfile(instance.getSanitizedBaseURI(), profile.getProfileId());
         if (savedProfile != null) {
@@ -256,7 +256,7 @@ public class HomeFragment extends Fragment {
             }
         }
         // Ok so we don't have a downloaded profile, we need to download one
-        _downloadKeyPairIfNeeded(instance, discoveredAPI, profile);
+        _downloadKeyPairIfNeeded(instance, discoveredAPI, profile, authState);
     }
 
     private void _updateLists() {
@@ -345,7 +345,7 @@ public class HomeFragment extends Fragment {
                 _fetchProfileList(adapter, instance, discoveredAPI, authState);
             } else {
                 _apiService.getJSON(instance.getSanitizedBaseURI() + Constants.API_DISCOVERY_POSTFIX,
-                        false,
+                        authState,
                         new APIService.Callback<JSONObject>() {
                             @Override
                             public void onSuccess(JSONObject result) {
@@ -378,12 +378,11 @@ public class HomeFragment extends Fragment {
      * @param adapter       The adapter to download the data into.
      * @param instance      The VPN provider instance.
      * @param discoveredAPI The discovered API containing the URLs.
-     * @param authState The access and refresh token for the API.
+     * @param authState     The access and refresh token for the API.
      */
     private void _fetchProfileList(@NonNull final ProfileAdapter adapter, @NonNull final Instance instance,
                                    @NonNull DiscoveredAPI discoveredAPI, @NonNull AuthState authState) {
-        _connectionService.setAuthState(authState);
-        _apiService.getJSON(discoveredAPI.getProfileListEndpoint(), true, new APIService.Callback<JSONObject>() {
+        _apiService.getJSON(discoveredAPI.getProfileListEndpoint(), authState, new APIService.Callback<JSONObject>() {
             @Override
             public void onSuccess(JSONObject result) {
                 try {
@@ -480,8 +479,10 @@ public class HomeFragment extends Fragment {
 
                                 @Override
                                 public void loginInstance(final Instance instance) {
+                                    // Find the auth state for the instance and then retry
+                                    AuthState authState = _historyService.getCachedAuthState(instance);
                                     _apiService.getJSON(instance.getSanitizedBaseURI() + Constants.API_DISCOVERY_POSTFIX,
-                                            false,
+                                            authState,
                                             new APIService.Callback<JSONObject>() {
                                                 @Override
                                                 public void onSuccess(JSONObject result) {
@@ -531,7 +532,8 @@ public class HomeFragment extends Fragment {
      * @param discoveredAPI The discovered API.
      * @param profile       The profile to download.
      */
-    private void _downloadKeyPairIfNeeded(@NonNull final Instance instance, @NonNull final DiscoveredAPI discoveredAPI, @NonNull final Profile profile) {
+    private void _downloadKeyPairIfNeeded(@NonNull final Instance instance, @NonNull final DiscoveredAPI discoveredAPI,
+                                          @NonNull final Profile profile, @NonNull final AuthState authState) {
         // First we create a keypair, if there is no saved one yet.
         SavedKeyPair savedKeyPair = _historyService.getSavedKeyPairForAPI(discoveredAPI);
         int dialogMessageRes = savedKeyPair != null ? R.string.vpn_profile_download_message : R.string.vpn_profile_creating_keypair;
@@ -541,12 +543,12 @@ public class HomeFragment extends Fragment {
                 true,
                 false);
         if (savedKeyPair != null) {
-            _downloadProfileWithKeyPair(instance, discoveredAPI, savedKeyPair, profile, dialog);
+            _downloadProfileWithKeyPair(instance, discoveredAPI, savedKeyPair, profile, authState, dialog);
             return;
         }
         String requestData = "display_name=" + Constants.PROFILE_DISPLAY_NAME;
         String createKeyPairEndpoint = discoveredAPI.getCreateKeyPairEndpoint();
-        _apiService.postResource(createKeyPairEndpoint, requestData, true, new APIService.Callback<String>() {
+        _apiService.postResource(createKeyPairEndpoint, requestData, authState, new APIService.Callback<String>() {
 
             @Override
             public void onSuccess(String keyPairJson) {
@@ -556,7 +558,7 @@ public class HomeFragment extends Fragment {
                     // Save it for later
                     SavedKeyPair savedKeyPair = new SavedKeyPair(discoveredAPI.getApiBaseUri(), keyPair);
                     _historyService.storeSavedKeyPair(savedKeyPair);
-                    _downloadProfileWithKeyPair(instance, discoveredAPI, savedKeyPair, profile, dialog);
+                    _downloadProfileWithKeyPair(instance, discoveredAPI, savedKeyPair, profile, authState, dialog);
                 } catch (Exception ex) {
                     dialog.dismiss();
                     if (getActivity() != null) {
@@ -586,10 +588,11 @@ public class HomeFragment extends Fragment {
      */
     private void _downloadProfileWithKeyPair(final Instance instance, DiscoveredAPI discoveredAPI,
                                              final SavedKeyPair savedKeyPair, final Profile profile,
+                                             final AuthState authState,
                                              final ProgressDialog dialog) {
         dialog.setMessage(getString(R.string.vpn_profile_download_message));
         String requestData = "?display_name=" + Constants.PROFILE_DISPLAY_NAME + "&profile_id=" + profile.getProfileId();
-        _apiService.getString(discoveredAPI.getProfileConfigEndpoint() + requestData, true, new APIService.Callback<String>() {
+        _apiService.getString(discoveredAPI.getProfileConfigEndpoint() + requestData, authState, new APIService.Callback<String>() {
             @Override
             public void onSuccess(String vpnConfig) {
                 // The downloaded profile misses the <cert> and <key> fields. We will insert that via the saved key pair.

@@ -90,7 +90,8 @@ public class ProfileAdapter extends RecyclerView.Adapter<ProfileViewHolder> {
                 boolean replacedItem = false;
                 while(existingItemIterator.hasNext() && !replacedItem) {
                     Pair<Instance, Profile> existingPair = existingItemIterator.next();
-                    if (existingPair.first.getBaseURI().equals(newPair.first.getBaseURI())) {
+                    if (existingPair.first.getBaseURI().equals(newPair.first.getBaseURI()) &&
+                            existingPair.second.getDisplayName().equals(newPair.second.getDisplayName())) {
                         // Replace the item
                         replacedItem = true;
                         existingItemIterator.set(newPair);
