@@ -159,7 +159,7 @@ public class PreferencesService {
      *
      * @param authState The access token and refresh token to use for the VPN provider API.
      */
-    void storeCurrentAuthState(@NonNull AuthState authState) {
+    public void storeCurrentAuthState(@NonNull AuthState authState) {
         _getSharedPreferences().edit().putString(KEY_AUTH_STATE, authState.jsonSerializeString()).apply();
     }
 

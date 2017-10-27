@@ -376,7 +376,7 @@ public class HistoryService extends Observable {
         for (SavedAuthState savedAuthState : _savedAuthStateList) {
             if (_authConfigsEqual(currentConfig, savedAuthState.getAuthState().getAuthorizationServiceConfiguration())) {
                 savedAuthState.setAuthState(authState);
-                Log.d(TAG, "Auth state found and replaced");
+                Log.d(TAG, "Auth state found and replaced for " + savedAuthState.getInstance().getBaseURI());
                 break;
             }
         }

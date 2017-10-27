@@ -87,8 +87,10 @@ public class CustomProviderFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
         // Put the cursor in the field and show the keyboard automatically.
         _customProviderUrl.requestFocus();
-        InputMethodManager imm = (InputMethodManager)getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
-        imm.showSoftInput(_customProviderUrl, InputMethodManager.SHOW_IMPLICIT);
+        InputMethodManager inputMethodManager = (InputMethodManager)getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+        if (inputMethodManager != null) {
+            inputMethodManager.showSoftInput(_customProviderUrl, InputMethodManager.SHOW_IMPLICIT);
+        }
     }
 
     @OnClick(R.id.custom_provider_connect)
@@ -100,7 +102,7 @@ public class CustomProviderFragment extends Fragment {
             final Instance customProviderInstance = _createCustomProviderInstance(url, AuthorizationType.LOCAL);
             final ProgressDialog dialog = ProgressDialog.show(getContext(), getString(R.string.progress_dialog_title), getString(R.string.api_discovery_message), true);
             // Discover the API
-            _apiService.getJSON(customProviderInstance.getSanitizedBaseURI() + API_DISCOVERY_POSTFIX, false, new APIService.Callback<JSONObject>() {
+            _apiService.getJSON(customProviderInstance.getSanitizedBaseURI() + API_DISCOVERY_POSTFIX, null, new APIService.Callback<JSONObject>() {
                 @Override
                 public void onSuccess(JSONObject result) {
                     try {

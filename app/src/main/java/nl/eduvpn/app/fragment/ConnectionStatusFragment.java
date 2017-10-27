@@ -36,6 +36,8 @@ import android.widget.ViewSwitcher;
 
 import com.squareup.picasso.Picasso;
 
+import net.openid.appauth.AuthState;
+
 import org.json.JSONObject;
 
 import java.util.List;
@@ -162,8 +164,9 @@ public class ConnectionStatusFragment extends Fragment implements VPNService.Con
         }
         // Load the user and system messages asynchronously.
         DiscoveredAPI discoveredAPI = _preferencesService.getCurrentDiscoveredAPI();
+        AuthState authState = _preferencesService.getCurrentAuthState();
         final MessagesAdapter messagesAdapter = (MessagesAdapter)_messagesList.getAdapter();
-        _apiService.getJSON(discoveredAPI.getSystemMessagesEndpoint(), true, new APIService.Callback<JSONObject>() {
+        _apiService.getJSON(discoveredAPI.getSystemMessagesEndpoint(), authState, new APIService.Callback<JSONObject>() {
             @Override
             public void onSuccess(JSONObject result) {
                 try {
@@ -181,7 +184,7 @@ public class ConnectionStatusFragment extends Fragment implements VPNService.Con
                         Toast.LENGTH_SHORT).show();
             }
         });
-        _apiService.getJSON(discoveredAPI.getUserMessagesEndpoint(), true, new APIService.Callback<JSONObject>() {
+        _apiService.getJSON(discoveredAPI.getUserMessagesEndpoint(), authState, new APIService.Callback<JSONObject>() {
             @Override
             public void onSuccess(JSONObject result) {
                 try {
@@ -209,7 +212,6 @@ public class ConnectionStatusFragment extends Fragment implements VPNService.Con
             @Override
             public void update(Observable o, Object arg) {
                 VPNService.VPNStatus status = (VPNService.VPNStatus)arg;
-                System.out.println("Received status: " + status.name());
                 if (_currentStatusIcon != null) {
                     switch (status) {
                         case CONNECTED:
