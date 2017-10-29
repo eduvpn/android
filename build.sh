@@ -1,9 +1,12 @@
 #!/bin/sh
 
 # TODO: determine exact versions of the SDK/NDK required
-export ANDROID_HOME=${HOME}/Downloads/android-sdk-linux
-export ANDROID_NDK=${HOME}/Downloads/android-ndk-r12
-export PATH=$PATH:${ANDROID_HOME}/build-tools/24.0.3:${ANDROID_NDK}
+    export ANDROID_HOME="/opt/android-sdk" 
+    export PATH="$ANDROID_HOME/tools:$ANDROID_HOME/platform-tools:/opt/android-ndk:$PATH"
+    export ANDROID_NDK=/opt/android-ndk
+    export ANDROID_NDK_HOME=/opt/android-ndk
+    #java home for openjdk
+    export JAVA_HOME=/usr/lib/jvm/default-java
 
 # generate a keystore
 #keytool -genkey -v -keystore ~/my-release-key.jks
@@ -21,9 +24,9 @@ cd ics-openvpn/main
 ./misc/build-native.sh
 )
 
-#./gradlew clean assembleRelease
-./gradlew clean assembleDebug
+./gradlew clean assembleRelease
+#./gradlew clean assembleDebug
 
-apksigner sign --ks ~/my-release-key.jks app/build/outputs/apk/app-debug.apk
+#apksigner sign --ks ~/my-release-key.jks app/build/outputs/apk/app-debug.apk
 
 #sudo cp app/build/outputs/apk/app-debug.apk /var/www/html/
