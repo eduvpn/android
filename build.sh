@@ -6,7 +6,8 @@
     export ANDROID_NDK=/opt/android-ndk
     export ANDROID_NDK_HOME=/opt/android-ndk
     #java home for openjdk
-    export JAVA_HOME=/usr/lib/jvm/default-java
+    export JAVA_HOME=$(readlink -f /usr/bin/java | sed "s:bin/java::")
+
 
 # generate a keystore
 #keytool -genkey -v -keystore ~/my-release-key.jks
