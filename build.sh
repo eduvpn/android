@@ -1,49 +1,51 @@
 #!/bin/sh
 # script created for CentOS 7
 # dependency: sudo
-# expected username: eduvpn
 
-    export ANDROID_HOME="/opt/android-sdk" 
-    export PATH="$ANDROID_HOME/tools:$ANDROID_HOME/platform-tools:/opt/android-ndk:$PATH"
-    export ANDROID_NDK=/opt/android-ndk
-    export ANDROID_NDK_HOME=/opt/android-ndk
-    #java home for openjdk
-    export JAVA_HOME=$(readlink -f /usr/bin/java | sed "s:bin/java::")
+export ANDROID_HOME="/opt/android/sdk" 
+export PATH="$ANDROID_HOME/tools:$ANDROID_HOME/platform-tools:/opt/android/ndk:$PATH"
+export ANDROID_NDK=/opt/android/ndk
+export ANDROID_NDK_HOME=/opt/android/ndk
+#java home for openjdk
+export JAVA_HOME=$(readlink -f /usr/bin/java | sed "s:bin/java::")
 
-yes | sudo yum install java-1.8.0-openjdk-devel.x86_64 git
+sudo yum -y install java-1.8.0-openjdk-devel.x86_64 git wget unzip
+
 #for Debian:
-#yes | sudo apt install openjdk-8-jdk git
-#Download Android SDK tools command-line
-mkdir ~/sdk-tools-linux-3859397; cd sdk-tools-linux-3859397
+#sudo apt -y install openjdk-8-jdk git
+
+# Prepare /opt
+sudo mkdir -p /opt/android
+sudo chown "$(id -un).$(id -gn)" /opt/android
+
+# SDK
+mkdir -p /opt/android/sdk
+cd /opt/android/sdk || exit
 wget https://dl.google.com/android/repository/sdk-tools-linux-3859397.zip
-unzip sdk-tools-linux-3859397.zip
-sudo mv ~/sdk-tools-linux-3859397 /opt
-cd /opt; sudo ln -s sdk-tools-linux-3859397 android-sdk
-sudo chown -R root.eduvpn sdk-tools-linux-3859397
-sudo chmod g+w sdk-tools-linux-3859397/
-#all licenses accept
-yes | sudo /opt/android-sdk/tools/bin/sdkmanager --licenses
-#Install Android NDK
-cd ~;wget https://dl.google.com/android/repository/android-ndk-r15c-linux-x86_64.zip
-unzip android-ndk-r15c-linux-x86_64.zip
-sudo mv ./android-ndk-r15c /opt
-cd /opt
-sudo chown -R root.eduvpn android-ndk-r15c
-sudo ln -s android-ndk-r15c android-ndk
+unzip -q sdk-tools-linux-3859397.zip
+ln -s sdk-tools-linux-3859397 sdk
+
+yes | /opt/android/sdk/tools/bin/sdkmanager --licenses
+
+# NDK
+cd /opt/android || exit
+wget https://dl.google.com/android/repository/android-ndk-r15c-linux-x86_64.zip
+unzip -q android-ndk-r15c-linux-x86_64.zip
+ln -s android-ndk-r15c ndk
 
 # generate a keystore
 #keytool -genkey -v -keystore ~/my-release-key.jks
 
-cd "${HOME}"
 rm -rf "${HOME}/eduvpn-app"
+cd "${HOME}" || exit
 git clone https://github.com/eduvpn/android.git eduvpn-app
 
-cd eduvpn-app
+cd eduvpn-app || exit
 git submodule update --init --recursive
 
 # build the library using the NDK
 (
-cd ics-openvpn/main
+cd ics-openvpn/main || exit
 ./misc/build-native.sh
 )
 
