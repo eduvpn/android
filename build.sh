@@ -2,7 +2,9 @@
 # script created for CentOS 7
 # dependency: sudo
 
+# https://developer.android.com/studio/index.html
 SDK_VERSION=3859397
+# https://developer.android.com/ndk/downloads/index.html
 NDK_VERSION=r15c
 
 export ANDROID_HOME="/opt/android/sdk" 
