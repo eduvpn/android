@@ -22,16 +22,16 @@ package nl.eduvpn.app.entity;
  * Created by Daniel Zolnai on 2017-08-01.
  */
 public class SavedKeyPair {
-    private String _apiBaseUri;
+    private Instance _instance;
     private KeyPair _keyPair;
 
-    public SavedKeyPair(String apiBaseUri, KeyPair keyPair) {
-        _apiBaseUri = apiBaseUri;
+    public SavedKeyPair(Instance instance, KeyPair keyPair) {
+        _instance = instance;
         _keyPair = keyPair;
     }
 
-    public String getApiBaseUri() {
-        return _apiBaseUri;
+    public Instance getInstance() {
+        return _instance;
     }
 
     public KeyPair getKeyPair() {

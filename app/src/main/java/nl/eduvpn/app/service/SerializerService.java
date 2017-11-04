@@ -20,7 +20,6 @@ package nl.eduvpn.app.service;
 import android.util.Pair;
 
 import net.openid.appauth.AuthState;
-import net.openid.appauth.TokenResponse;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -43,9 +42,9 @@ import nl.eduvpn.app.entity.Instance;
 import nl.eduvpn.app.entity.InstanceList;
 import nl.eduvpn.app.entity.KeyPair;
 import nl.eduvpn.app.entity.Profile;
+import nl.eduvpn.app.entity.SavedAuthState;
 import nl.eduvpn.app.entity.SavedKeyPair;
 import nl.eduvpn.app.entity.SavedProfile;
-import nl.eduvpn.app.entity.SavedAuthState;
 import nl.eduvpn.app.entity.Settings;
 import nl.eduvpn.app.entity.message.Maintenance;
 import nl.eduvpn.app.entity.message.Message;
@@ -631,7 +630,7 @@ public class SerializerService {
     public JSONObject serializeSavedKeyPair(SavedKeyPair savedKeyPair) throws UnknownFormatException {
         JSONObject result = new JSONObject();
         try {
-            result.put("api_base_uri", savedKeyPair.getApiBaseUri());
+            result.put("instance", serializeInstance(savedKeyPair.getInstance()));
             result.put("key_pair", serializeKeyPair(savedKeyPair.getKeyPair()));
             return result;
         } catch (JSONException ex) {
@@ -648,9 +647,9 @@ public class SerializerService {
      */
     public SavedKeyPair deserializeSavedKeyPair(JSONObject jsonObject) throws UnknownFormatException {
         try {
-            String apiBaseUri = jsonObject.getString("api_base_uri");
+            Instance instance = deserializeInstance(jsonObject.getJSONObject("instance"));
             KeyPair keyPair = deserializeKeyPair(jsonObject.getJSONObject("key_pair"));
-            return new SavedKeyPair(apiBaseUri, keyPair);
+            return new SavedKeyPair(instance, keyPair);
         } catch (JSONException ex) {
             throw new UnknownFormatException(ex);
         }

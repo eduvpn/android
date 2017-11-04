@@ -169,14 +169,16 @@ public class HistoryServiceTest {
     @Test
     public void testStoreSavedKeyPair() {
         KeyPair keyPair1 = new KeyPair(false, "cert1", "pk1");
-        SavedKeyPair savedKeyPair1 = new SavedKeyPair("http://example.com/whatever/", keyPair1);
+        Instance instance1 = new Instance("http://example.com/", "example.com", null, AuthorizationType.DISTRIBUTED, false);
+        SavedKeyPair savedKeyPair1 = new SavedKeyPair(instance1, keyPair1);
+        Instance instance2 = new Instance("http://something.else/", "something.else", null, AuthorizationType.DISTRIBUTED, false);
         KeyPair keyPair2 = new KeyPair(true, "example certificate", "example private key");
-        SavedKeyPair savedKeyPair2 = new SavedKeyPair("http://something.else/", keyPair2);
+        SavedKeyPair savedKeyPair2 = new SavedKeyPair(instance2, keyPair2);
         _historyService.storeSavedKeyPair(savedKeyPair1);
         _historyService.storeSavedKeyPair(savedKeyPair2);
         _reloadHistoryService(false);
-        SavedKeyPair retrieved1 = _historyService.getSavedKeyPairForAPI(new DiscoveredAPI(savedKeyPair1.getApiBaseUri(), "", ""));
-        SavedKeyPair retrieved2 = _historyService.getSavedKeyPairForAPI(new DiscoveredAPI(savedKeyPair2.getApiBaseUri(), "", ""));
+        SavedKeyPair retrieved1 = _historyService.getSavedKeyPairForInstance(instance1);
+        SavedKeyPair retrieved2 = _historyService.getSavedKeyPairForInstance(instance2);
         assertNotNull(retrieved1);
         assertNotNull(retrieved2);
         assertEquals(keyPair1.isOK(), retrieved1.getKeyPair().isOK());

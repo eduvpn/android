@@ -39,6 +39,7 @@
             android:layout_alignBaseline="@+id/custom_provider_prefix"
             android:layout_toRightOf="@+id/custom_provider_prefix"
             android:inputType="textUri"
+            android:textColor="@color/textColor"
             android:textSize="@dimen/custom_provider_text_size"
             />
     </RelativeLayout>

@@ -26,10 +26,13 @@ import android.graphics.drawable.Drawable;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
+import android.util.Pair;
 import android.view.View;
 
 import nl.eduvpn.app.R;
 import nl.eduvpn.app.adapter.ProfileAdapter;
+import nl.eduvpn.app.entity.Instance;
+import nl.eduvpn.app.entity.Profile;
 
 /**
  * Swipe to delete helper based on: https://github.com/nemanja-kovacevic/recycler-view-swipe-to-delete
@@ -73,7 +76,8 @@ public class SwipeToDeleteHelper extends ItemTouchHelper.SimpleCallback {
         if (undoOn) {
             _profileAdapter.pendingRemoval(swipedPosition);
         } else {
-            _profileAdapter.remove(swipedPosition);
+            Pair<Instance, Profile> item = _profileAdapter.getItem(swipedPosition);
+            _profileAdapter.remove(item);
         }
     }
 
