@@ -56,9 +56,9 @@ public class FormattingUtilsTest {
     @Test
     public void testByteFormatting() {
         assertEquals("N/A", FormattingUtils.formatBytesTraffic(_context, null));
-        assertEquals("0.00 KB", FormattingUtils.formatBytesTraffic(_context, 0L));
-        assertEquals("0.50 KB", FormattingUtils.formatBytesTraffic(_context, 512L));
-        assertEquals("1.00 KB", FormattingUtils.formatBytesTraffic(_context, 1024L));
+        assertEquals("0.00 kB", FormattingUtils.formatBytesTraffic(_context, 0L));
+        assertEquals("0.50 kB", FormattingUtils.formatBytesTraffic(_context, 512L));
+        assertEquals("1.00 kB", FormattingUtils.formatBytesTraffic(_context, 1024L));
         assertEquals("1.00 MB", FormattingUtils.formatBytesTraffic(_context, 1024*1024L));
         assertEquals("5.00 MB", FormattingUtils.formatBytesTraffic(_context, 5*1024*1024L));
         assertEquals("1.00 GB", FormattingUtils.formatBytesTraffic(_context, 1024*1024*1024L));
