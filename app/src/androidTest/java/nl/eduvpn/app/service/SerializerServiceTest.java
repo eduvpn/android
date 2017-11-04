@@ -25,7 +25,6 @@ import android.util.Pair;
 import net.openid.appauth.AuthState;
 import net.openid.appauth.AuthorizationServiceConfiguration;
 
-import nl.eduvpn.app.entity.AuthorizationType;
 import org.json.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
@@ -39,14 +38,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
 
+import nl.eduvpn.app.entity.AuthorizationType;
 import nl.eduvpn.app.entity.DiscoveredAPI;
 import nl.eduvpn.app.entity.Instance;
 import nl.eduvpn.app.entity.InstanceList;
 import nl.eduvpn.app.entity.KeyPair;
 import nl.eduvpn.app.entity.Profile;
+import nl.eduvpn.app.entity.SavedAuthState;
 import nl.eduvpn.app.entity.SavedKeyPair;
 import nl.eduvpn.app.entity.SavedProfile;
-import nl.eduvpn.app.entity.SavedAuthState;
 import nl.eduvpn.app.entity.Settings;
 import nl.eduvpn.app.entity.message.Maintenance;
 import nl.eduvpn.app.entity.message.Message;
@@ -176,7 +176,7 @@ public class SerializerServiceTest {
     @SuppressWarnings("ConstantConditions")
     @Test
     public void testSavedTokenListSerialization() throws SerializerService.UnknownFormatException {
-        Instance instance1 = new Instance("baseUri1", "displayName1", null, AuthorizationType.DISTRIBUTED,  true);
+        Instance instance1 = new Instance("baseUri1", "displayName1", null, AuthorizationType.DISTRIBUTED, true);
         Instance instance2 = new Instance("baseUri2", "displayName2", null, AuthorizationType.LOCAL, true);
         AuthState state1 = new AuthState(new AuthorizationServiceConfiguration(Uri.parse("http://eduvpn.org/auth"), Uri.parse("http://eduvpn.org/token"), null));
         AuthState state2 = new AuthState(new AuthorizationServiceConfiguration(Uri.parse("http://example.com/auth"), Uri.parse("http://example.com/token"), null));
@@ -237,29 +237,42 @@ public class SerializerServiceTest {
     @Test
     public void testSavedKeyPairSerialization() throws SerializerService.UnknownFormatException {
         KeyPair keyPair = new KeyPair(false, "cert1", "pk1");
-        SavedKeyPair savedKeyPair = new SavedKeyPair("http://example.com/whatever/", keyPair);
+        Instance instance = new Instance("http://example.com/", "example.com", null, AuthorizationType.DISTRIBUTED, false);
+
+        SavedKeyPair savedKeyPair = new SavedKeyPair(instance, keyPair);
         JSONObject serializedSavedKeyPair = _serializerService.serializeSavedKeyPair(savedKeyPair);
         SavedKeyPair deserializedSavedKeyPair = _serializerService.deserializeSavedKeyPair(serializedSavedKeyPair);
         assertEquals(keyPair.isOK(), deserializedSavedKeyPair.getKeyPair().isOK());
         assertEquals(keyPair.getCertificate(), deserializedSavedKeyPair.getKeyPair().getCertificate());
         assertEquals(keyPair.getPrivateKey(), deserializedSavedKeyPair.getKeyPair().getPrivateKey());
-        assertEquals(savedKeyPair.getApiBaseUri(), deserializedSavedKeyPair.getApiBaseUri());
+        assertEquals(savedKeyPair.getInstance().getAuthorizationType(), deserializedSavedKeyPair.getInstance().getAuthorizationType());
+        assertEquals(savedKeyPair.getInstance().getBaseURI(), deserializedSavedKeyPair.getInstance().getBaseURI());
+        assertEquals(savedKeyPair.getInstance().getDisplayName(), deserializedSavedKeyPair.getInstance().getDisplayName());
+        assertEquals(savedKeyPair.getInstance().getLogoUri(), deserializedSavedKeyPair.getInstance().getLogoUri());
+        assertEquals(savedKeyPair.getInstance().isCustom(), deserializedSavedKeyPair.getInstance().isCustom());
         keyPair = new KeyPair(true, "example certificate", "example private key");
-        savedKeyPair = new SavedKeyPair("http://something.else/", keyPair);
+        instance = new Instance("http://something.else/", "something.else", "http://www.example.com/logo", AuthorizationType.LOCAL, true);
+        savedKeyPair = new SavedKeyPair(instance, keyPair);
         serializedSavedKeyPair = _serializerService.serializeSavedKeyPair(savedKeyPair);
         deserializedSavedKeyPair = _serializerService.deserializeSavedKeyPair(serializedSavedKeyPair);
         assertEquals(keyPair.isOK(), deserializedSavedKeyPair.getKeyPair().isOK());
         assertEquals(keyPair.getCertificate(), deserializedSavedKeyPair.getKeyPair().getCertificate());
         assertEquals(keyPair.getPrivateKey(), deserializedSavedKeyPair.getKeyPair().getPrivateKey());
-        assertEquals(savedKeyPair.getApiBaseUri(), deserializedSavedKeyPair.getApiBaseUri());
+        assertEquals(savedKeyPair.getInstance().getAuthorizationType(), deserializedSavedKeyPair.getInstance().getAuthorizationType());
+        assertEquals(savedKeyPair.getInstance().getBaseURI(), deserializedSavedKeyPair.getInstance().getBaseURI());
+        assertEquals(savedKeyPair.getInstance().getDisplayName(), deserializedSavedKeyPair.getInstance().getDisplayName());
+        assertEquals(savedKeyPair.getInstance().getLogoUri(), deserializedSavedKeyPair.getInstance().getLogoUri());
+        assertEquals(savedKeyPair.getInstance().isCustom(), deserializedSavedKeyPair.getInstance().isCustom());
     }
 
     @Test
     public void testSavedKeyPairListSerialization() throws SerializerService.UnknownFormatException {
         KeyPair keyPair1 = new KeyPair(false, "cert1", "pk1");
-        SavedKeyPair savedKeyPair1 = new SavedKeyPair("http://example.com/whatever/", keyPair1);
+        Instance instance1 = new Instance("http://example.com/", "example.com", null, AuthorizationType.DISTRIBUTED, false);
+        SavedKeyPair savedKeyPair1 = new SavedKeyPair(instance1, keyPair1);
         KeyPair keyPair2 = new KeyPair(true, "example certificate", "example private key");
-        SavedKeyPair savedKeyPair2 = new SavedKeyPair("http://something.else/", keyPair2);
+        Instance instance2 = new Instance("http://something.else/", "something.else", "http://www.example.com/logo", AuthorizationType.LOCAL, true);
+        SavedKeyPair savedKeyPair2 = new SavedKeyPair(instance2, keyPair2);
         List<SavedKeyPair> savedKeyPairList = Arrays.asList(savedKeyPair1, savedKeyPair2);
         JSONObject serializedSavedKeyPairList = _serializerService.serializeSavedKeyPairList(savedKeyPairList);
         List<SavedKeyPair> deserializedSavedKeyPairList = _serializerService.deserializeSavedKeyPairList(serializedSavedKeyPairList);
@@ -268,7 +281,11 @@ public class SerializerServiceTest {
             assertEquals(savedKeyPairList.get(i).getKeyPair().isOK(), deserializedSavedKeyPairList.get(i).getKeyPair().isOK());
             assertEquals(savedKeyPairList.get(i).getKeyPair().getCertificate(), deserializedSavedKeyPairList.get(i).getKeyPair().getCertificate());
             assertEquals(savedKeyPairList.get(i).getKeyPair().getPrivateKey(), deserializedSavedKeyPairList.get(i).getKeyPair().getPrivateKey());
-            assertEquals(savedKeyPairList.get(i).getApiBaseUri(), deserializedSavedKeyPairList.get(i).getApiBaseUri());
+            assertEquals(savedKeyPairList.get(i).getInstance().getAuthorizationType(), deserializedSavedKeyPairList.get(i).getInstance().getAuthorizationType());
+            assertEquals(savedKeyPairList.get(i).getInstance().getBaseURI(), deserializedSavedKeyPairList.get(i).getInstance().getBaseURI());
+            assertEquals(savedKeyPairList.get(i).getInstance().getDisplayName(), deserializedSavedKeyPairList.get(i).getInstance().getDisplayName());
+            assertEquals(savedKeyPairList.get(i).getInstance().getLogoUri(), deserializedSavedKeyPairList.get(i).getInstance().getLogoUri());
+            assertEquals(savedKeyPairList.get(i).getInstance().isCustom(), deserializedSavedKeyPairList.get(i).getInstance().isCustom());
         }
     }
 

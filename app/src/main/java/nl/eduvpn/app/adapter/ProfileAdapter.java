@@ -88,7 +88,7 @@ public class ProfileAdapter extends RecyclerView.Adapter<ProfileViewHolder> {
             for (Pair<Instance, Profile> newPair : profiles) {
                 ListIterator<Pair<Instance, Profile>> existingItemIterator = _profileList.listIterator();
                 boolean replacedItem = false;
-                while(existingItemIterator.hasNext() && !replacedItem) {
+                while (existingItemIterator.hasNext() && !replacedItem) {
                     Pair<Instance, Profile> existingPair = existingItemIterator.next();
                     if (existingPair.first.getBaseURI().equals(newPair.first.getBaseURI()) &&
                             existingPair.second.getDisplayName().equals(newPair.second.getDisplayName())) {
@@ -136,6 +136,8 @@ public class ProfileAdapter extends RecyclerView.Adapter<ProfileViewHolder> {
             holder.itemView.setBackgroundColor(ContextCompat.getColor(context, R.color.swipeBackgroundColor));
             holder.profileName.setVisibility(View.GONE);
             holder.providerIcon.setVisibility(View.GONE);
+            holder.profileProvider.setText(FormattingUtils.formatInstanceUrl(instanceProfilePair.first));
+            holder.profileProvider.setVisibility(View.VISIBLE);
             holder.undoButton.setVisibility(View.VISIBLE);
             holder.undoButton.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -214,7 +216,7 @@ public class ProfileAdapter extends RecyclerView.Adapter<ProfileViewHolder> {
             Runnable pendingRemovalRunnable = new Runnable() {
                 @Override
                 public void run() {
-                    remove(_profileList.indexOf(item));
+                    remove(item);
                 }
             };
             _handler.postDelayed(pendingRemovalRunnable, PENDING_REMOVAL_TIMEOUT);
@@ -226,23 +228,24 @@ public class ProfileAdapter extends RecyclerView.Adapter<ProfileViewHolder> {
     /**
      * Removes the item at the given position.
      *
-     * @param position The position of the item.
+     * @param item The item to remove
      */
-    public void remove(int position) {
-        Pair<Instance, Profile> item = _profileList.get(position);
+    public void remove(Pair<Instance, Profile> item) {
         if (_itemsPendingRemoval.contains(item)) {
             _itemsPendingRemoval.remove(item);
         }
+        int indexInList;
         synchronized (_profileListLock) {
-            if (!_profileList.contains(item)) {
+            indexInList = _profileList.indexOf(item);
+            if (indexInList < 0) {
                 return; // Already removed
             }
-            _profileList.remove(position);
+            _profileList.remove(indexInList);
         }
-        _historyService.removeDiscoveredAPI(item.first.getSanitizedBaseURI());
-        _historyService.removeSavedProfilesForInstance(item.first.getSanitizedBaseURI());
+        _historyService.removeDiscoveredAPI(item.first);
+        _historyService.removeSavedProfilesForInstance(item.first);
         _historyService.removeAuthentications(item.first);
-        notifyItemRemoved(position);
+        // The service will notify the list that it changed.
     }
 
     /**

@@ -509,8 +509,9 @@ public class HomeFragment extends Fragment {
                                 @Override
                                 public void removeInstance(Instance instance) {
                                     _historyService.removeAuthentications(instance);
-                                    _historyService.removeDiscoveredAPI(instance.getSanitizedBaseURI());
-                                    _historyService.removeSavedProfilesForInstance(instance.getSanitizedBaseURI());
+                                    _historyService.removeDiscoveredAPI(instance);
+                                    _historyService.removeSavedKeyPairs(instance);
+                                    _historyService.removeSavedProfilesForInstance(instance);
                                     _problematicInstances.remove(instance);
                                     getActivity().runOnUiThread(new Runnable() {
                                         @Override
@@ -535,7 +536,7 @@ public class HomeFragment extends Fragment {
     private void _downloadKeyPairIfNeeded(@NonNull final Instance instance, @NonNull final DiscoveredAPI discoveredAPI,
                                           @NonNull final Profile profile, @NonNull final AuthState authState) {
         // First we create a keypair, if there is no saved one yet.
-        SavedKeyPair savedKeyPair = _historyService.getSavedKeyPairForAPI(discoveredAPI);
+        SavedKeyPair savedKeyPair = _historyService.getSavedKeyPairForInstance(instance);
         int dialogMessageRes = savedKeyPair != null ? R.string.vpn_profile_download_message : R.string.vpn_profile_creating_keypair;
         final ProgressDialog dialog = ProgressDialog.show(getContext(),
                 getString(R.string.progress_dialog_title),
@@ -556,7 +557,7 @@ public class HomeFragment extends Fragment {
                     KeyPair keyPair = _serializerService.deserializeKeyPair(new JSONObject(keyPairJson));
                     Log.i(TAG, "Created key pair, is it successful: " + keyPair.isOK());
                     // Save it for later
-                    SavedKeyPair savedKeyPair = new SavedKeyPair(discoveredAPI.getApiBaseUri(), keyPair);
+                    SavedKeyPair savedKeyPair = new SavedKeyPair(instance, keyPair);
                     _historyService.storeSavedKeyPair(savedKeyPair);
                     _downloadProfileWithKeyPair(instance, discoveredAPI, savedKeyPair, profile, authState, dialog);
                 } catch (Exception ex) {
