@@ -242,9 +242,7 @@ public class ProfileAdapter extends RecyclerView.Adapter<ProfileViewHolder> {
             }
             _profileList.remove(indexInList);
         }
-        _historyService.removeDiscoveredAPI(item.first);
-        _historyService.removeSavedProfilesForInstance(item.first);
-        _historyService.removeAuthentications(item.first);
+        _historyService.removeAllDataForInstance(item.first);
         // The service will notify the list that it changed.
     }
 

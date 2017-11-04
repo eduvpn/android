@@ -434,4 +434,16 @@ public class HistoryService extends Observable {
         }
         _save();
     }
+
+    /**
+     * Removes all saved data for an instance.
+     *
+     * @param instance The instance to remove the data for.
+     */
+    public void removeAllDataForInstance(Instance instance) {
+        removeDiscoveredAPI(instance);
+        removeSavedProfilesForInstance(instance);
+        removeSavedKeyPairs(instance);
+        removeAuthentications(instance);
+    }
 }

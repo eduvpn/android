@@ -508,10 +508,7 @@ public class HomeFragment extends Fragment {
 
                                 @Override
                                 public void removeInstance(Instance instance) {
-                                    _historyService.removeAuthentications(instance);
-                                    _historyService.removeDiscoveredAPI(instance);
-                                    _historyService.removeSavedKeyPairs(instance);
-                                    _historyService.removeSavedProfilesForInstance(instance);
+                                    _historyService.removeAllDataForInstance(instance);
                                     _problematicInstances.remove(instance);
                                     getActivity().runOnUiThread(new Runnable() {
                                         @Override
@@ -592,7 +589,7 @@ public class HomeFragment extends Fragment {
                                              final AuthState authState,
                                              final ProgressDialog dialog) {
         dialog.setMessage(getString(R.string.vpn_profile_download_message));
-        String requestData = "?display_name=" + Constants.PROFILE_DISPLAY_NAME + "&profile_id=" + profile.getProfileId();
+        String requestData = "profile_id=" + profile.getProfileId();
         _apiService.getString(discoveredAPI.getProfileConfigEndpoint() + requestData, authState, new APIService.Callback<String>() {
             @Override
             public void onSuccess(String vpnConfig) {
