@@ -508,10 +508,7 @@ public class HomeFragment extends Fragment {
 
                                 @Override
                                 public void removeInstance(Instance instance) {
-                                    _historyService.removeAuthentications(instance);
-                                    _historyService.removeDiscoveredAPI(instance);
-                                    _historyService.removeSavedKeyPairs(instance);
-                                    _historyService.removeSavedProfilesForInstance(instance);
+                                    _historyService.removeAllDataForInstance(instance);
                                     _problematicInstances.remove(instance);
                                     getActivity().runOnUiThread(new Runnable() {
                                         @Override
