@@ -290,7 +290,7 @@ public class VPNService extends Observable implements VpnStatus.StateListener {
                             ipV4 = ip;
                         } else {
                             int delimiter = ip.indexOf('%');
-                            ipV6 = delimiter < 0 ? ip.toUpperCase() : ip.substring(0, delimiter).toUpperCase();
+                            ipV6 = delimiter < 0 ? ip.toLowerCase() : ip.substring(0, delimiter).toLowerCase();
                         }
                     }
                     if (ipV4 != null || ipV6 != null) {
