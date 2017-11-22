@@ -8,8 +8,8 @@ android {
         applicationId "nl.eduvpn.app"
         minSdkVersion 21
         targetSdkVersion 26
-        versionCode 3
-        versionName "1.1.0"
+        versionCode 4
+        versionName "1.1.1"
         buildConfigField "String", "SECURE_INTERNET_DISCOVERY_URL", "\"https://static.eduvpn.nl/disco/secure_internet.json\""
         buildConfigField "String", "INSTITUTE_ACCESS_DISCOVERY_URL", "\"https://static.eduvpn.nl/disco/institute_access.json\""
         buildConfigField "String", "SIGNATURE_URL_POSTFIX", "\".sig\""
