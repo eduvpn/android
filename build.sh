@@ -64,4 +64,5 @@ git submodule update --init --recursive
 
 # generate a keystore
 #keytool -genkey -v -keystore ~/my-release-key.jks
-#apksigner sign --ks ~/my-release-key.jks app/build/outputs/apk/app-debug.apk
+#/opt/android/sdk/build-tools/$(cat ~/eduvpn-app/app/build.gradle|grep buildToolsVersion|awk -F'"' '{print $2}')/apksigner sign --ks ~/my-release-key.jks ~/eduvpn-app/app/build/outputs/apk/app-basic-release-unsigned.apk
+#basic-release is eduVPN app, home-release is let's connect VPN version
