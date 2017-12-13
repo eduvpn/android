@@ -66,7 +66,7 @@ public class ConnectionService {
     private static final String SCOPE = "config";
     private static final String RESPONSE_TYPE = ResponseTypeValues.CODE;
     private static final String REDIRECT_URI = "org.eduvpn.app:/api/callback";
-    private static final String CLIENT_ID = "org.eduvpn.app";
+    private static final String CLIENT_ID = "org.eduvpn.app.android";
 
     private static final int REQUEST_CODE_APP_AUTH = 100; // This is not used, since we only get one type of request for the redirect URL.
 
