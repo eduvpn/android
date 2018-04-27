@@ -75,6 +75,10 @@
                 android:value="false"/>
         </service>
 
+        <service
+            android:name="de.blinkt.openvpn.core.OpenVPNStatusService"
+            android:exported="false" />
+
 
         <activity
             android:name="de.blinkt.openvpn.api.GrantPermissionsActivity"
