@@ -33,4 +33,5 @@ public class Constants {
     public static final String API_PROFILE_LIST_PATH = "profile_list";
     public static final String API_CREATE_KEYPAIR = "create_keypair";
     public static final String API_PROFILE_CONFIG = "profile_config";
+    public static final String API_CHECK_CERTIFICATE = "check_certificate";
 }

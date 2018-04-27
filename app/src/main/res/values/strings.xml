@@ -18,6 +18,7 @@
     <string name="custom_provider_display_name">Custom provider</string>
     <string name="error_importing_profile">Error importing profile.</string>
     <string name="error_fetching_profile">Error fetching profile. Details: %s</string>
+    <string name="error_checking_certificate">Unable to check certificate. Details: %s</string>
     <string name="vpn_connection_status_title">VPN connection</string>
     <string name="connection_label_status">Status</string>
     <string name="connection_label_provider">Provider</string>
@@ -99,4 +100,6 @@
     <string name="no_provider_found">No provider found.</string>
     <string name="discovering_providers">Discovering providers...</string>
     <string name="description_secure_internet_provider">Select your institution\'s country here. You can select VPN endpoints in other countries after signing in with your institution credentials.</string>
+    <string name="vpn_profile_checking_certificate">Checking certificate validity...</string>
+    <string name="error_parsing_certificate">Unexpected certificate check response from API.</string>
 </resources>

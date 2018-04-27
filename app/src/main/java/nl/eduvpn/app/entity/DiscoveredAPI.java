@@ -77,4 +77,13 @@ public class DiscoveredAPI {
     public String getProfileConfigEndpoint() {
         return Uri.parse(_apiBaseUri).buildUpon().appendPath(Constants.API_PROFILE_CONFIG).build().toString();
     }
+
+    @NonNull
+    public String getCheckCertificateEndpoint(String certCommonName) {
+        return Uri.parse(_apiBaseUri).buildUpon()
+                .appendPath(Constants.API_CHECK_CERTIFICATE)
+                .appendQueryParameter("common_name", certCommonName)
+                .build()
+                .toString();
+    }
 }

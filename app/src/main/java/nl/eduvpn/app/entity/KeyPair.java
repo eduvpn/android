@@ -17,11 +17,19 @@
 
 package nl.eduvpn.app.entity;
 
+import android.util.Base64;
+
+import javax.security.cert.X509Certificate;
+
+import nl.eduvpn.app.utils.Log;
+
 /**
  * Keypair which is created by the API and sent to the user.
  * Created by Daniel Zolnai on 2017-08-01.
  */
 public class KeyPair {
+
+    private static final String TAG = KeyPair.class.getName();
 
     private boolean _isOK;
     private String _certificate;
@@ -44,5 +52,24 @@ public class KeyPair {
 
     public String getPrivateKey() {
         return _privateKey;
+    }
+
+    public String getCertificateCommonName() {
+        try {
+            // Remove header and footer
+            String base64Encoded =_certificate
+                    .replace("-----BEGIN CERTIFICATE-----\n", "")
+                    .replace("-----END CERTIFICATE-----", "");
+            byte[] certificateData = Base64.decode(base64Encoded, Base64.DEFAULT);
+            String commonName = X509Certificate.getInstance(certificateData).getSubjectDN().getName();
+            if (commonName.startsWith("CN=")) {
+                return commonName.replace("CN=", "");
+            } else {
+                return commonName;
+            }
+        } catch (Exception ex) {
+            Log.e(TAG, "Exception while parsing certicificate", ex);
+            return null;
+        }
     }
 }

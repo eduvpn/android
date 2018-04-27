@@ -146,7 +146,7 @@ public class MainActivity extends AppCompatActivity {
         } else {
             getSupportFragmentManager().beginTransaction()
                     .replace(R.id.contentFrame, fragment)
-                    .commit();
+                    .commitAllowingStateLoss();
         }
     }
 
