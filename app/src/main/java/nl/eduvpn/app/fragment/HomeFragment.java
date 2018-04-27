@@ -623,12 +623,22 @@ public class HomeFragment extends Fragment {
                                 Log.i(TAG, "Certificate appears to be valid.");
                                 _downloadProfileWithKeyPair(instance, discoveredAPI, savedKeyPair, profile, authState, dialog);
                             } else {
-                                Log.i(TAG, "Certificate is not valid anymore.");
                                 // Remove stored keypair.
                                 _historyService.removeSavedKeyPairs(instance);
-                                // Try downloading it again.
                                 dialog.dismiss();
-                                _downloadKeyPairIfNeeded(instance, discoveredAPI, profile, authState);
+                                String reason = result.getJSONObject("check_certificate").getJSONObject("data").getString("reason");
+                                if ("user_disabled".equals(reason) || "certificate_disabled".equals(reason)) {
+                                    int errorStringId = R.string.error_certificate_disabled;
+                                    if ("user_disabled".equals(reason)) {
+                                        errorStringId = R.string.error_user_disabled;
+                                    }
+                                    ErrorDialog.show(getContext(), R.string.error_dialog_title, getString(errorStringId));
+                                } else {
+                                    Log.i(TAG, "Certificate is invalid. Fetching new one. Reason: " + reason);
+                                    // Try downloading it again.
+                                    _downloadKeyPairIfNeeded(instance, discoveredAPI, profile, authState);
+                                }
+
                             }
                         } catch (Exception ex) {
                             dialog.dismiss();

@@ -373,12 +373,9 @@ public class VPNService extends Observable implements VpnStatus.StateListener {
             _onDisconnect();
         }
         // Notify the observers.
-        _updatesHandler.post(new Runnable() {
-            @Override
-            public void run() {
-                setChanged();
-                notifyObservers(getStatus());
-            }
+        _updatesHandler.post(() -> {
+            setChanged();
+            notifyObservers(getStatus());
         });
     }
 

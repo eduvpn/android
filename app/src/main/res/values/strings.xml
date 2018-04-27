@@ -102,4 +102,6 @@
     <string name="description_secure_internet_provider">Select your institution\'s country here. You can select VPN endpoints in other countries after signing in with your institution credentials.</string>
     <string name="vpn_profile_checking_certificate">Checking certificate validity...</string>
     <string name="error_parsing_certificate">Unexpected certificate check response from API.</string>
+    <string name="error_certificate_disabled">Connection process aborted because certificate has been disabled.</string>
+    <string name="error_user_disabled">Connection process has been aborted because the user has been disabled on the server.</string>
 </resources>
