@@ -239,23 +239,7 @@ public class HomeFragment extends Fragment {
         _preferencesService.storeCurrentDiscoveredAPI(discoveredAPI);
         _preferencesService.storeCurrentProfile(profile);
         _preferencesService.storeCurrentAuthState(authState);
-        // In case we already have a downloaded profile, connect to it right away.
-        SavedProfile savedProfile = _historyService.getCachedSavedProfile(instance.getSanitizedBaseURI(), profile.getProfileId());
-        if (savedProfile != null) {
-            String profileUUID = savedProfile.getProfileUUID();
-            VpnProfile vpnProfile = _vpnService.getProfileWithUUID(profileUUID);
-            if (vpnProfile != null) {
-                // Profile found, connecting
-                _vpnService.connect(getActivity(), vpnProfile);
-                ((MainActivity)getActivity()).openFragment(new ConnectionStatusFragment(), false);
-                return;
-            } else {
-                Log.e(TAG, "Profile is not saved even it was marked as one!");
-                _historyService.removeSavedProfile(savedProfile);
-                // Continue with downloading the profile
-            }
-        }
-        // Ok so we don't have a downloaded profile, we need to download one
+        // Always download a new profile.
         _downloadKeyPairIfNeeded(instance, discoveredAPI, profile, authState);
     }
 
@@ -534,14 +518,14 @@ public class HomeFragment extends Fragment {
                                           @NonNull final Profile profile, @NonNull final AuthState authState) {
         // First we create a keypair, if there is no saved one yet.
         SavedKeyPair savedKeyPair = _historyService.getSavedKeyPairForInstance(instance);
-        int dialogMessageRes = savedKeyPair != null ? R.string.vpn_profile_download_message : R.string.vpn_profile_creating_keypair;
+        int dialogMessageRes = savedKeyPair != null ? R.string.vpn_profile_checking_certificate : R.string.vpn_profile_creating_keypair;
         final ProgressDialog dialog = ProgressDialog.show(getContext(),
                 getString(R.string.progress_dialog_title),
                 getString(dialogMessageRes),
                 true,
                 false);
         if (savedKeyPair != null) {
-            _downloadProfileWithKeyPair(instance, discoveredAPI, savedKeyPair, profile, authState, dialog);
+            _checkCertificateValidity(instance, discoveredAPI, savedKeyPair, profile, authState, dialog);
             return;
         }
         String requestData = "display_name=" + Constants.PROFILE_DISPLAY_NAME;
@@ -617,6 +601,60 @@ public class HomeFragment extends Fragment {
                 Log.e(TAG, "Error fetching profile: " + errorMessage);
             }
         });
+    }
+
+    private void _checkCertificateValidity(Instance instance, DiscoveredAPI discoveredAPI, SavedKeyPair savedKeyPair, Profile profile, AuthState authState, ProgressDialog dialog) {
+        String commonName = savedKeyPair.getKeyPair().getCertificateCommonName();
+        if (commonName == null) {
+            // Unable to check, better download it again.
+            _historyService.removeSavedKeyPairs(instance);
+            // Try downloading it again.
+            dialog.dismiss();
+            _downloadKeyPairIfNeeded(instance, discoveredAPI, profile, authState);
+            Log.w(TAG, "Could not check if certificate is valid. Downloading again.");
+        }
+        _apiService.getJSON(discoveredAPI.getCheckCertificateEndpoint(commonName), authState, new APIService.Callback<JSONObject>() {
+
+                    @Override
+                    public void onSuccess(JSONObject result) {
+                        try {
+                            Boolean isValid = result.getJSONObject("check_certificate").getJSONObject("data").getBoolean("is_valid");
+                            if (isValid) {
+                                Log.i(TAG, "Certificate appears to be valid.");
+                                _downloadProfileWithKeyPair(instance, discoveredAPI, savedKeyPair, profile, authState, dialog);
+                            } else {
+                                // Remove stored keypair.
+                                _historyService.removeSavedKeyPairs(instance);
+                                dialog.dismiss();
+                                String reason = result.getJSONObject("check_certificate").getJSONObject("data").getString("reason");
+                                if ("user_disabled".equals(reason) || "certificate_disabled".equals(reason)) {
+                                    int errorStringId = R.string.error_certificate_disabled;
+                                    if ("user_disabled".equals(reason)) {
+                                        errorStringId = R.string.error_user_disabled;
+                                    }
+                                    ErrorDialog.show(getContext(), R.string.error_dialog_title, getString(errorStringId));
+                                } else {
+                                    Log.i(TAG, "Certificate is invalid. Fetching new one. Reason: " + reason);
+                                    // Try downloading it again.
+                                    _downloadKeyPairIfNeeded(instance, discoveredAPI, profile, authState);
+                                }
+
+                            }
+                        } catch (Exception ex) {
+                            dialog.dismiss();
+                            ErrorDialog.show(getContext(), R.string.error_dialog_title, getString(R.string.error_parsing_certificate));
+                            Log.e(TAG, "Unexpected certificate call response!", ex);
+                        }
+                    }
+
+                    @Override
+                    public void onError(String errorMessage) {
+                        dialog.dismiss();
+                        ErrorDialog.show(getContext(), R.string.error_dialog_title, getString(R.string.error_checking_certificate, errorMessage));
+                        Log.e(TAG, "Error checking certificate: " + errorMessage);
+
+                    }
+                });
     }
 
     /**
