@@ -37,6 +37,7 @@ android {
             // Override the URLs for fetching the configs
             buildConfigField "String", "SECURE_INTERNET_DISCOVERY_URL", "\"https://static.eduvpn.nl/disco/secure_internet_dev.json\""
             buildConfigField "String", "INSTITUTE_ACCESS_DISCOVERY_URL", "\"https://static.eduvpn.nl/disco/institute_access_dev.json\""
+            buildConfigField "String", "SIGNATURE_VALIDATION_PUBLIC_KEY", "\"zzls4TZTXHEyV3yxaxag1DZw3tSpIdBoaaOjUGH/Rwg=\""
         }
         home {
             applicationId "nl.eduvpn.app.home"
