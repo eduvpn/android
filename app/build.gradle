@@ -1,13 +1,13 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 26
-    buildToolsVersion "26.0.1"
+    compileSdkVersion 27
+    buildToolsVersion "27.0.3"
 
     defaultConfig {
         applicationId "nl.eduvpn.app"
         minSdkVersion 21
-        targetSdkVersion 26
+        targetSdkVersion 27
         versionCode 4
         versionName "1.1.1"
         buildConfigField "String", "SECURE_INTERNET_DISCOVERY_URL", "\"https://static.eduvpn.nl/disco/secure_internet.json\""
@@ -19,6 +19,7 @@ android {
         manifestPlaceholders = [
                 'appAuthRedirectScheme': 'org.eduvpn.app'
         ]
+        missingDimensionStrategy 'implementation', 'noovpn3'
     }
 
     buildTypes {
@@ -28,11 +29,15 @@ android {
         }
     }
 
+    flavorDimensions "product"
+
     productFlavors {
         // Android Studio uses the alphabetically first flavor as the default, so I selected a name which would precede "dev" (sadly, "default" is a reserved keyword)
         basic {
+            dimension "product"
         }
         dev {
+            dimension "product"
             applicationId "nl.eduvpn.app.dev"
             // Override the URLs for fetching the configs
             buildConfigField "String", "SECURE_INTERNET_DISCOVERY_URL", "\"https://static.eduvpn.nl/disco/secure_internet_dev.json\""
@@ -40,6 +45,7 @@ android {
             buildConfigField "String", "SIGNATURE_VALIDATION_PUBLIC_KEY", "\"zzls4TZTXHEyV3yxaxag1DZw3tSpIdBoaaOjUGH/Rwg=\""
         }
         home {
+            dimension "product"
             applicationId "nl.eduvpn.app.home"
             // API discovery is disabled, and only custom URLs can be entered.
             buildConfigField "boolean", "API_DISCOVERY_ENABLED", "false"
@@ -52,41 +58,48 @@ android {
                 'RtlSymmetry', 'RtlHardcoded', // No support for RTL as of now
                 'MissingTranslation' // The OpenVPN library contains translations for a lot off languages. This app only has english, so it complains that we are missing translations for the other languages
     }
+
+    compileOptions {
+        sourceCompatibility 1.8
+        targetCompatibility 1.8
+    }
 }
 
-def supportLibVersion = "26.0.0" // Please try to stay in sync with the version used in the ics-openvpn module
+def supportLibVersion = "27.1.0" // Please try to stay in sync with the version used in the ics-openvpn module
+def butterknifeVersion = "8.8.1"
+def daggerVersion = "2.15"
 
 dependencies {
-    compile "com.android.support:appcompat-v7:$supportLibVersion"
-    compile "com.android.support:design:$supportLibVersion"
-    compile "com.android.support:recyclerview-v7:$supportLibVersion"
-    compile "com.android.support:customtabs:$supportLibVersion"
-    // OAuth client
-    compile 'net.openid:appauth:0.6.1'
-    // Secure preferences
-    compile 'com.scottyab:secure-preferences-lib:0.1.4'
-    // HTTP client
-    compile 'com.squareup.okhttp3:okhttp:3.8.1'
-    // View injection
-    compile 'com.jakewharton:butterknife:8.7.0'
-    annotationProcessor 'com.jakewharton:butterknife-compiler:8.7.0'
-    // Dependency injection
-    compile 'com.google.dagger:dagger:2.11'
-    annotationProcessor 'com.google.dagger:dagger-compiler:2.11'
-    // Image loader
-    compile 'com.squareup.picasso:picasso:2.5.2'
-
     // The VPN library
-    compile project(':ics-openvpn-main')
+    implementation project(path: ':ics-openvpn-main')
+
+    implementation "com.android.support:appcompat-v7:$supportLibVersion"
+    implementation "com.android.support:design:$supportLibVersion"
+    implementation "com.android.support:recyclerview-v7:$supportLibVersion"
+    implementation "com.android.support:customtabs:$supportLibVersion"
+    // OAuth client
+    implementation 'net.openid:appauth:0.6.1'
+    // Secure preferences
+    implementation 'com.scottyab:secure-preferences-lib:0.1.4'
+    // HTTP client
+    implementation 'com.squareup.okhttp3:okhttp:3.8.1'
+    // View injection
+    implementation "com.jakewharton:butterknife:$butterknifeVersion"
+    annotationProcessor "com.jakewharton:butterknife-compiler:$butterknifeVersion"
+    // Dependency injection
+    implementation "com.google.dagger:dagger:$daggerVersion"
+    annotationProcessor "com.google.dagger:dagger-compiler:$daggerVersion"
+    // Image loader
+    implementation 'com.squareup.picasso:picasso:2.5.2'
     // Public key verification
-    compile "com.github.joshjdevl.libsodiumjni:libsodium-jni-aar:1.0.6@aar"
+    implementation "com.github.joshjdevl.libsodiumjni:libsodium-jni-aar:1.0.6@aar"
     // Reactive extensions for asynchronous events
-    compile 'io.reactivex.rxjava2:rxandroid:2.0.1'
-    compile 'io.reactivex.rxjava2:rxjava:2.1.2'
+    implementation 'io.reactivex.rxjava2:rxandroid:2.0.1'
+    implementation 'io.reactivex.rxjava2:rxjava:2.1.2'
 
     // All testing related libraries
-    testCompile 'junit:junit:4.12'
-    androidTestCompile "com.android.support:support-annotations:$supportLibVersion"
-    androidTestCompile 'com.android.support.test:runner:0.5'
-    androidTestCompile 'com.android.support.test:rules:0.5'
+    testImplementation 'junit:junit:4.12'
+    androidTestImplementation "com.android.support:support-annotations:$supportLibVersion"
+    androidTestImplementation 'com.android.support.test:runner:0.5'
+    androidTestImplementation 'com.android.support.test:rules:0.5'
 }
