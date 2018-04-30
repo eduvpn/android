@@ -20,6 +20,7 @@ package nl.eduvpn.app.fragment;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
@@ -41,7 +42,6 @@ import net.openid.appauth.AuthState;
 import org.json.JSONObject;
 
 import java.util.List;
-import java.util.Observable;
 import java.util.Observer;
 
 import javax.inject.Inject;
@@ -153,7 +153,7 @@ public class ConnectionStatusFragment extends Fragment implements VPNService.Con
     }
 
     @Override
-    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         Instance provider = _preferencesService.getCurrentInstance();
         if (!TextUtils.isEmpty(provider.getLogoUri())) {
@@ -165,7 +165,7 @@ public class ConnectionStatusFragment extends Fragment implements VPNService.Con
         // Load the user and system messages asynchronously.
         DiscoveredAPI discoveredAPI = _preferencesService.getCurrentDiscoveredAPI();
         AuthState authState = _preferencesService.getCurrentAuthState();
-        final MessagesAdapter messagesAdapter = (MessagesAdapter)_messagesList.getAdapter();
+        final MessagesAdapter messagesAdapter = (MessagesAdapter) _messagesList.getAdapter();
         _apiService.getJSON(discoveredAPI.getSystemMessagesEndpoint(), authState, new APIService.Callback<JSONObject>() {
             @Override
             public void onSuccess(JSONObject result) {
@@ -206,47 +206,47 @@ public class ConnectionStatusFragment extends Fragment implements VPNService.Con
     }
 
     @Override
-    public void onResume() {
-        super.onResume();
-        _vpnStatusObserver = new Observer() {
-            @Override
-            public void update(Observable o, Object arg) {
-                VPNService.VPNStatus status = (VPNService.VPNStatus)arg;
-                if (_currentStatusIcon != null) {
-                    switch (status) {
-                        case CONNECTED:
-                            _disconnectButton.setEnabled(true);
-                            _currentStatusIcon.setImageResource(R.drawable.connection_status_connected);
-                            break;
-                        case CONNECTING:
-                            _currentStatusIcon.setImageResource(R.drawable.connection_status_connecting);
-                            _disconnectButton.setEnabled(true);
-                            break;
-                        case PAUSED:
-                            _disconnectButton.setEnabled(true);
-                            _currentStatusIcon.setImageResource(R.drawable.connection_status_paused);
-                            break;
-                        case DISCONNECTED:
-                            if (_userInitiatedDisconnect) {
-                                // Go back to the home screen.
-                                _disconnectButton.setEnabled(false);
-                                _gracefulDisconnectHandler.removeCallbacksAndMessages(null);
-                                ((MainActivity)getActivity()).openFragment(new HomeFragment(), false);
-                            } else {
-                                _currentStatusIcon.setImageResource(R.drawable.connection_status_disconnected);
-                                _disconnectButton.setEnabled(true);
-                                _disconnectButton.setText(R.string.go_back);
-                                _userNavigation = true;
-                            }
-                            break;
-                        case FAILED:
-                            String message = getString(R.string.error_while_connecting, _vpnService.getErrorString());
-                            ErrorDialog.show(getContext(), R.string.error_dialog_title_unable_to_connect, message);
+    public void onStart() {
+        super.onStart();
+        _vpnStatusObserver = (o, arg) -> {
+            VPNService.VPNStatus status = (VPNService.VPNStatus) arg;
+            if (_currentStatusIcon != null) {
+                switch (status) {
+                    case CONNECTED:
+                        _disconnectButton.setText(R.string.button_disconnect);
+                        _disconnectButton.setEnabled(true);
+                        _currentStatusIcon.setImageResource(R.drawable.connection_status_connected);
+                        break;
+                    case CONNECTING:
+                        _currentStatusIcon.setImageResource(R.drawable.connection_status_connecting);
+                        _disconnectButton.setText(R.string.button_disconnect);
+                        _disconnectButton.setEnabled(true);
+                        break;
+                    case PAUSED:
+                        _disconnectButton.setText(R.string.button_disconnect);
+                        _disconnectButton.setEnabled(true);
+                        _currentStatusIcon.setImageResource(R.drawable.connection_status_paused);
+                        break;
+                    case DISCONNECTED:
+                        if (_userInitiatedDisconnect) {
+                            // Go back to the home screen.
+                            _disconnectButton.setEnabled(false);
+                            _gracefulDisconnectHandler.removeCallbacksAndMessages(null);
+                            ((MainActivity) getActivity()).openFragment(new HomeFragment(), false);
+                        } else {
                             _currentStatusIcon.setImageResource(R.drawable.connection_status_disconnected);
-                            break;
-                        default:
-                            throw new RuntimeException("Unhandled VPN status!");
-                    }
+                            _disconnectButton.setEnabled(true);
+                            _disconnectButton.setText(R.string.go_back);
+                            _userNavigation = true;
+                        }
+                        break;
+                    case FAILED:
+                        String message = getString(R.string.error_while_connecting, _vpnService.getErrorString());
+                        ErrorDialog.show(getContext(), R.string.error_dialog_title_unable_to_connect, message);
+                        _currentStatusIcon.setImageResource(R.drawable.connection_status_disconnected);
+                        break;
+                    default:
+                        throw new RuntimeException("Unhandled VPN status!");
                 }
             }
         };
@@ -257,8 +257,8 @@ public class ConnectionStatusFragment extends Fragment implements VPNService.Con
     }
 
     @Override
-    public void onPause() {
-        super.onPause();
+    public void onStop() {
+        super.onStop();
         if (_vpnStatusObserver != null) {
             _vpnService.deleteObserver(_vpnStatusObserver);
         }
@@ -271,7 +271,7 @@ public class ConnectionStatusFragment extends Fragment implements VPNService.Con
         _unbinder.unbind();
     }
 
-    @OnClick({ R.id.notificationsSwitchButton, R.id.connectionInfoSwitchButton })
+    @OnClick({R.id.notificationsSwitchButton, R.id.connectionInfoSwitchButton})
     public void onSwitcherButtonClicked(View view) {
         int selectedBg = R.drawable.switcher_button_bg_selected;
         int defaultBg = R.drawable.switcher_button_bg;
@@ -289,7 +289,7 @@ public class ConnectionStatusFragment extends Fragment implements VPNService.Con
     @OnClick(R.id.disconnectButton)
     protected void onDisconnectButtonClicked() {
         if (_userNavigation) {
-            ((MainActivity)getActivity()).openFragment(new HomeFragment(), false);
+            ((MainActivity) getActivity()).openFragment(new HomeFragment(), false);
         } else {
             boolean isConnecting = _vpnService.getStatus() == VPNService.VPNStatus.CONNECTING;
             _userInitiatedDisconnect = true;
@@ -308,7 +308,7 @@ public class ConnectionStatusFragment extends Fragment implements VPNService.Con
                             return;
                         }
                         Log.i(TAG, "No disconnect event received from VPN within " + WAIT_FOR_DISCONNECT_UNTIL_MS + " milliseconds. Assuming process died.");
-                        ((MainActivity)getActivity()).openFragment(new HomeFragment(), false);
+                        ((MainActivity) getActivity()).openFragment(new HomeFragment(), false);
                     }
                 }, WAIT_FOR_DISCONNECT_UNTIL_MS);
 
