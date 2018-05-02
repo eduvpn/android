@@ -18,6 +18,7 @@
 package nl.eduvpn.app.fragment;
 
 import android.animation.ValueAnimator;
+import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -41,7 +42,6 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Observable;
 import java.util.Observer;
 
 import javax.inject.Inject;
@@ -140,9 +140,11 @@ public class HomeFragment extends Fragment {
     private List<Instance> _problematicInstances;
     private Observer _newServerObserver;
 
+    private Dialog _currentDialog;
+
     @Nullable
     @Override
-    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable final Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable final Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_home, container, false);
         _unbinder = ButterKnife.bind(this, view);
         EduVPNApplication.get(view.getContext()).component().inject(this);
@@ -169,37 +171,24 @@ public class HomeFragment extends Fragment {
         _secureInternetList.addItemDecoration(new SwipeToDeleteAnimator(getContext()));
 
         // Add click listeners
-        ItemClickSupport.OnItemClickListener clickListener = new ItemClickSupport.OnItemClickListener() {
-            @Override
-            public void onItemClicked(RecyclerView recyclerView, int position, View v) {
-                _onItemClicked(recyclerView, position);
-            }
-        };
+        ItemClickSupport.OnItemClickListener clickListener = (recyclerView, position, v) -> _onItemClicked(recyclerView, position);
         ItemClickSupport.addTo(_instituteAccessList).setOnItemClickListener(clickListener);
         ItemClickSupport.addTo(_secureInternetList).setOnItemClickListener(clickListener);
-        ItemClickSupport.OnItemLongClickListener longClickListener = new ItemClickSupport.OnItemLongClickListener() {
-            @Override
-            public boolean onItemLongClicked(RecyclerView recyclerView, int position, View v) {
-                return _onItemLongClicked(recyclerView, position);
-            }
-        };
+        ItemClickSupport.OnItemLongClickListener longClickListener = (recyclerView, position, v) -> _onItemLongClicked(recyclerView, position);
         ItemClickSupport.addTo(_instituteAccessList).setOnItemLongClickListener(longClickListener);
         ItemClickSupport.addTo(_secureInternetList).setOnItemLongClickListener(longClickListener);
 
         // Fill the lists with data
         _updateLists();
         // Add listener on the history service, so we get notified if there is a new server available
-        _historyService.addObserver(_newServerObserver = new Observer() {
-            @Override
-            public void update(Observable observable, Object o) {
-                if (o instanceof Integer) {
-                    Integer notificationType = (Integer)o;
-                    if (HistoryService.NOTIFICATION_PROFILES_CHANGED.equals(notificationType) || HistoryService.NOTIFICATION_TOKENS_CHANGED.equals(notificationType)) {
-                        _updateLists();
-                    }
-                } else {
-                    Log.e(TAG, "Unexpected notification type! Live reload might not be working correctly.");
+        _historyService.addObserver(_newServerObserver = (observable, o) -> {
+            if (o instanceof Integer) {
+                Integer notificationType = (Integer) o;
+                if (HistoryService.NOTIFICATION_PROFILES_CHANGED.equals(notificationType) || HistoryService.NOTIFICATION_TOKENS_CHANGED.equals(notificationType)) {
+                    _updateLists();
                 }
+            } else {
+                Log.e(TAG, "Unexpected notification type! Live reload might not be working correctly.");
             }
         });
         return view;
@@ -208,7 +197,7 @@ public class HomeFragment extends Fragment {
     private boolean _onItemLongClicked(RecyclerView recyclerView, int position) {
         // On long click we show the full name in a toast
         // Is useful when the names don't fit too well.
-        ProfileAdapter adapter = (ProfileAdapter)recyclerView.getAdapter();
+        ProfileAdapter adapter = (ProfileAdapter) recyclerView.getAdapter();
         if (adapter.isPendingRemoval(position)) {
             return true;
         }
@@ -221,7 +210,7 @@ public class HomeFragment extends Fragment {
     }
 
     private void _onItemClicked(RecyclerView recyclerView, int position) {
-        ProfileAdapter adapter = (ProfileAdapter)recyclerView.getAdapter();
+        ProfileAdapter adapter = (ProfileAdapter) recyclerView.getAdapter();
         if (adapter.isPendingRemoval(position)) {
             return;
         }
@@ -240,6 +229,7 @@ public class HomeFragment extends Fragment {
         _preferencesService.storeCurrentProfile(profile);
         _preferencesService.storeCurrentAuthState(authState);
         // Always download a new profile.
+        // Just to be sure,
         _downloadKeyPairIfNeeded(instance, discoveredAPI, profile, authState);
     }
 
@@ -261,7 +251,7 @@ public class HomeFragment extends Fragment {
             _noProvidersYet.setVisibility(View.GONE);
             // There are some saved institute access tokens
             if (!savedInstituteAccessTokens.isEmpty()) {
-                _fillList((ProfileAdapter)_instituteAccessList.getAdapter(), savedInstituteAccessTokens);
+                _fillList((ProfileAdapter) _instituteAccessList.getAdapter(), savedInstituteAccessTokens);
                 _instituteAccessContainer.setVisibility(View.VISIBLE);
             } else {
                 _instituteAccessContainer.setVisibility(View.GONE);
@@ -269,7 +259,7 @@ public class HomeFragment extends Fragment {
 
             // There are some saved secure internet tokens
             if (!savedSecureInternetTokens.isEmpty()) {
-                _fillList((ProfileAdapter)_secureInternetList.getAdapter(), savedSecureInternetTokens);
+                _fillList((ProfileAdapter) _secureInternetList.getAdapter(), savedSecureInternetTokens);
                 _secureInternetContainer.setVisibility(View.VISIBLE);
             } else {
                 _secureInternetContainer.setVisibility(View.GONE);
@@ -301,6 +291,10 @@ public class HomeFragment extends Fragment {
     @Override
     public void onDestroyView() {
         super.onDestroyView();
+        if (_currentDialog != null) {
+            _currentDialog.dismiss();
+            _currentDialog = null;
+        }
         if (_newServerObserver != null) {
             _historyService.deleteObserver(_newServerObserver);
         }
@@ -414,10 +408,10 @@ public class HomeFragment extends Fragment {
                 public void onAnimationUpdate(ValueAnimator animation) {
                     float fraction = animation.getAnimatedFraction();
                     float alpha = 1f - fraction;
-                    float height = (Float)animation.getAnimatedValue();
+                    float height = (Float) animation.getAnimatedValue();
                     if (_loadingBar != null) {
                         _loadingBar.setAlpha(alpha);
-                        _loadingBar.getLayoutParams().height = (int)height;
+                        _loadingBar.getLayoutParams().height = (int) height;
                         _loadingBar.requestLayout();
                     }
                 }
@@ -436,7 +430,7 @@ public class HomeFragment extends Fragment {
                 @Override
                 public void onClick(View v) {
                     // Display a dialog with all the warnings
-                    ErrorDialog.show(getContext(),
+                    _currentDialog = ErrorDialog.show(getContext(),
                             getString(R.string.warnings_list),
                             getString(R.string.instance_access_warning_message),
                             new ErrorDialog.InstanceWarningHandler() {
@@ -453,7 +447,7 @@ public class HomeFragment extends Fragment {
                                     SavedAuthState savedAuthState = _historyService.getSavedToken(instance);
                                     if (savedAuthState == null) {
                                         // Should never happen
-                                        ErrorDialog.show(getContext(), R.string.error_dialog_title, R.string.data_removed);
+                                        _currentDialog = ErrorDialog.show(getContext(), R.string.error_dialog_title, R.string.data_removed);
                                     } else {
                                         // Retry
                                         _problematicInstances.remove(instance);
@@ -478,14 +472,14 @@ public class HomeFragment extends Fragment {
                                                         _connectionService.initiateConnection(getActivity(), instance, discoveredAPI);
                                                     } catch (SerializerService.UnknownFormatException ex) {
                                                         Log.e(TAG, "Error parsing discovered API!", ex);
-                                                        ErrorDialog.show(getContext(), R.string.error_dialog_title, R.string.provider_incorrect_format);
+                                                        _currentDialog = ErrorDialog.show(getContext(), R.string.error_dialog_title, R.string.provider_incorrect_format);
                                                     }
                                                 }
 
                                                 @Override
                                                 public void onError(String errorMessage) {
                                                     Log.e(TAG, "Error while fetching discovered API: " + errorMessage);
-                                                    ErrorDialog.show(getContext(), R.string.error_dialog_title, R.string.provider_not_found_retry);
+                                                    _currentDialog = ErrorDialog.show(getContext(), R.string.error_dialog_title, R.string.provider_not_found_retry);
                                                 }
                                             });
                                 }
@@ -494,12 +488,7 @@ public class HomeFragment extends Fragment {
                                 public void removeInstance(Instance instance) {
                                     _historyService.removeAllDataForInstance(instance);
                                     _problematicInstances.remove(instance);
-                                    getActivity().runOnUiThread(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            _checkLoadingFinished(adapter);
-                                        }
-                                    });
+                                    getActivity().runOnUiThread(() -> _checkLoadingFinished(adapter));
                                 }
                             });
                 }
@@ -519,13 +508,14 @@ public class HomeFragment extends Fragment {
         // First we create a keypair, if there is no saved one yet.
         SavedKeyPair savedKeyPair = _historyService.getSavedKeyPairForInstance(instance);
         int dialogMessageRes = savedKeyPair != null ? R.string.vpn_profile_checking_certificate : R.string.vpn_profile_creating_keypair;
-        final ProgressDialog dialog = ProgressDialog.show(getContext(),
+        ProgressDialog progressDialog = ProgressDialog.show(getContext(),
                 getString(R.string.progress_dialog_title),
                 getString(dialogMessageRes),
                 true,
                 false);
+        _currentDialog = progressDialog;
         if (savedKeyPair != null) {
-            _checkCertificateValidity(instance, discoveredAPI, savedKeyPair, profile, authState, dialog);
+            _checkCertificateValidity(instance, discoveredAPI, savedKeyPair, profile, authState, progressDialog);
             return;
         }
         String requestData = "display_name=" + Constants.PROFILE_DISPLAY_NAME;
@@ -540,9 +530,9 @@ public class HomeFragment extends Fragment {
                     // Save it for later
                     SavedKeyPair savedKeyPair = new SavedKeyPair(instance, keyPair);
                     _historyService.storeSavedKeyPair(savedKeyPair);
-                    _downloadProfileWithKeyPair(instance, discoveredAPI, savedKeyPair, profile, authState, dialog);
+                    _downloadProfileWithKeyPair(instance, discoveredAPI, savedKeyPair, profile, authState, progressDialog);
                 } catch (Exception ex) {
-                    dialog.dismiss();
+                    progressDialog.dismiss();
                     if (getActivity() != null) {
                         ErrorDialog.show(getContext(), R.string.error_dialog_title, getString(R.string.error_parsing_keypair, ex.getMessage()));
                     }
@@ -552,8 +542,8 @@ public class HomeFragment extends Fragment {
 
             @Override
             public void onError(String errorMessage) {
-                dialog.dismiss();
-                ErrorDialog.show(getContext(), R.string.error_dialog_title, getString(R.string.error_creating_keypair, errorMessage));
+                progressDialog.dismiss();
+                _currentDialog = ErrorDialog.show(getContext(), R.string.error_dialog_title, getString(R.string.error_creating_keypair, errorMessage));
                 Log.e(TAG, "Error creating keypair: " + errorMessage);
             }
         });
@@ -587,17 +577,17 @@ public class HomeFragment extends Fragment {
                     // Connect with the profile
                     dialog.dismiss();
                     _vpnService.connect(getActivity(), vpnProfile);
-                    ((MainActivity)getActivity()).openFragment(new ConnectionStatusFragment(), false);
+                    ((MainActivity) getActivity()).openFragment(new ConnectionStatusFragment(), false);
                 } else {
                     dialog.dismiss();
-                    ErrorDialog.show(getContext(), R.string.error_dialog_title, R.string.error_importing_profile);
+                    _currentDialog = ErrorDialog.show(getContext(), R.string.error_dialog_title, R.string.error_importing_profile);
                 }
             }
 
             @Override
             public void onError(String errorMessage) {
                 dialog.dismiss();
-                ErrorDialog.show(getContext(), R.string.error_dialog_title, getString(R.string.error_fetching_profile, errorMessage));
+                _currentDialog = ErrorDialog.show(getContext(), R.string.error_dialog_title, getString(R.string.error_fetching_profile, errorMessage));
                 Log.e(TAG, "Error fetching profile: " + errorMessage);
             }
         });
@@ -615,46 +605,112 @@ public class HomeFragment extends Fragment {
         }
         _apiService.getJSON(discoveredAPI.getCheckCertificateEndpoint(commonName), authState, new APIService.Callback<JSONObject>() {
 
-                    @Override
-                    public void onSuccess(JSONObject result) {
-                        try {
-                            Boolean isValid = result.getJSONObject("check_certificate").getJSONObject("data").getBoolean("is_valid");
-                            if (isValid) {
-                                Log.i(TAG, "Certificate appears to be valid.");
-                                _downloadProfileWithKeyPair(instance, discoveredAPI, savedKeyPair, profile, authState, dialog);
-                            } else {
-                                // Remove stored keypair.
-                                _historyService.removeSavedKeyPairs(instance);
-                                dialog.dismiss();
-                                String reason = result.getJSONObject("check_certificate").getJSONObject("data").getString("reason");
-                                if ("user_disabled".equals(reason) || "certificate_disabled".equals(reason)) {
-                                    int errorStringId = R.string.error_certificate_disabled;
-                                    if ("user_disabled".equals(reason)) {
-                                        errorStringId = R.string.error_user_disabled;
-                                    }
-                                    ErrorDialog.show(getContext(), R.string.error_dialog_title, getString(errorStringId));
-                                } else {
-                                    Log.i(TAG, "Certificate is invalid. Fetching new one. Reason: " + reason);
-                                    // Try downloading it again.
-                                    _downloadKeyPairIfNeeded(instance, discoveredAPI, profile, authState);
+            @Override
+            public void onSuccess(JSONObject result) {
+                try {
+                    Boolean isValid = result.getJSONObject("check_certificate").getJSONObject("data").getBoolean("is_valid");
+                    if (isValid) {
+                        Log.i(TAG, "Certificate appears to be valid.");
+                        _downloadProfileWithKeyPair(instance, discoveredAPI, savedKeyPair, profile, authState, dialog);
+                    } else {
+                        // Remove stored keypair.
+                        _historyService.removeSavedKeyPairs(instance);
+                        dialog.dismiss();
+                        String reason = result.getJSONObject("check_certificate").getJSONObject("data").getString("reason");
+                        if ("user_disabled".equals(reason) || "certificate_disabled".equals(reason)) {
+                            int errorStringId = R.string.error_certificate_disabled;
+                            if ("user_disabled".equals(reason)) {
+                                errorStringId = R.string.error_user_disabled;
+                            }
+                            _currentDialog = ErrorDialog.show(getContext(), R.string.error_dialog_title, getString(errorStringId));
+                        } else {
+                            Log.i(TAG, "Certificate is invalid. Fetching new one. Reason: " + reason);
+                            // Try downloading it again.
+                            _downloadKeyPairIfNeeded(instance, discoveredAPI, profile, authState);
+                        }
+
+                    }
+                } catch (Exception ex) {
+                    dialog.dismiss();
+                    _currentDialog = ErrorDialog.show(getContext(), R.string.error_dialog_title, getString(R.string.error_parsing_certificate));
+                    Log.e(TAG, "Unexpected certificate call response!", ex);
+                }
+            }
+
+            @Override
+            public void onError(String errorMessage) {
+                dialog.dismiss();
+                if (APIService.USER_NOT_AUTHORIZED_ERROR.equals(errorMessage)) {
+                    // Display a dialog with all the warnings
+                    _currentDialog = ErrorDialog.show(getContext(),
+                            getString(R.string.warnings_list),
+                            getString(R.string.instance_access_warning_message),
+                            new ErrorDialog.InstanceWarningHandler() {
+                                @Override
+                                public List<Instance> getInstances() {
+                                    return Collections.singletonList(instance);
                                 }
 
-                            }
-                        } catch (Exception ex) {
-                            dialog.dismiss();
-                            ErrorDialog.show(getContext(), R.string.error_dialog_title, getString(R.string.error_parsing_certificate));
-                            Log.e(TAG, "Unexpected certificate call response!", ex);
-                        }
-                    }
+                                @Override
+                                public void retryInstance(Instance instance) {
+                                    SavedAuthState savedAuthState = _historyService.getSavedToken(instance);
+                                    if (savedAuthState == null) {
+                                        // Should never happen
+                                        _currentDialog = ErrorDialog.show(getContext(), R.string.error_dialog_title, R.string.data_removed);
+                                    } else {
+                                        int dialogMessageRes = R.string.vpn_profile_checking_certificate;
+                                        final ProgressDialog dialog = ProgressDialog.show(getContext(),
+                                                getString(R.string.progress_dialog_title),
+                                                getString(dialogMessageRes),
+                                                true,
+                                                false);
+                                        dialog.show();
+                                        _currentDialog = dialog;
+                                        _checkCertificateValidity(instance, discoveredAPI, savedKeyPair, profile, savedAuthState.getAuthState(), dialog);
+                                    }
+                                }
 
-                    @Override
-                    public void onError(String errorMessage) {
-                        dialog.dismiss();
-                        ErrorDialog.show(getContext(), R.string.error_dialog_title, getString(R.string.error_checking_certificate, errorMessage));
-                        Log.e(TAG, "Error checking certificate: " + errorMessage);
+                                @Override
+                                public void loginInstance(final Instance instance) {
+                                    // Find the auth state for the instance and then retry
+                                    AuthState authState = _historyService.getCachedAuthState(instance);
+                                    _apiService.getJSON(instance.getSanitizedBaseURI() + Constants.API_DISCOVERY_POSTFIX,
+                                            authState,
+                                            new APIService.Callback<JSONObject>() {
+                                                @Override
+                                                public void onSuccess(JSONObject result) {
+                                                    try {
+                                                        DiscoveredAPI discoveredAPI = _serializerService.deserializeDiscoveredAPI(result);
+                                                        // Cache the result
+                                                        _historyService.cacheDiscoveredAPI(instance.getSanitizedBaseURI(), discoveredAPI);
+                                                        _connectionService.initiateConnection(getActivity(), instance, discoveredAPI);
+                                                    } catch (SerializerService.UnknownFormatException ex) {
+                                                        Log.e(TAG, "Error parsing discovered API!", ex);
+                                                        _currentDialog = ErrorDialog.show(getContext(), R.string.error_dialog_title, R.string.provider_incorrect_format);
+                                                    }
+                                                }
 
-                    }
-                });
+                                                @Override
+                                                public void onError(String errorMessage) {
+                                                    Log.e(TAG, "Error while fetching discovered API: " + errorMessage);
+                                                    _currentDialog = ErrorDialog.show(getContext(), R.string.error_dialog_title, R.string.provider_not_found_retry);
+                                                }
+                                            });
+                                }
+
+                                @Override
+                                public void removeInstance(Instance instance) {
+                                    _historyService.removeAllDataForInstance(instance);
+                                }
+                            });
+
+                } else{
+                    _currentDialog = ErrorDialog.show(getContext(), R.string.error_dialog_title, getString(R.string.error_checking_certificate, errorMessage));
+                    Log.e(TAG, "Error checking certificate: " + errorMessage);
+                }
+
+            }
+        });
     }
 
     /**
@@ -662,6 +718,6 @@ public class HomeFragment extends Fragment {
      */
     @OnClick(R.id.addProvider)
     protected void onAddProviderClicked() {
-        ((MainActivity)getActivity()).openFragment(new TypeSelectorFragment(), true);
+        ((MainActivity) getActivity()).openFragment(new TypeSelectorFragment(), true);
     }
 }

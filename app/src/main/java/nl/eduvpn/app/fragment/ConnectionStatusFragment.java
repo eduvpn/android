@@ -215,22 +215,26 @@ public class ConnectionStatusFragment extends Fragment implements VPNService.Con
                     case CONNECTED:
                         _disconnectButton.setText(R.string.button_disconnect);
                         _disconnectButton.setEnabled(true);
+                        _userNavigation = false;
                         _currentStatusIcon.setImageResource(R.drawable.connection_status_connected);
                         break;
                     case CONNECTING:
                         _currentStatusIcon.setImageResource(R.drawable.connection_status_connecting);
                         _disconnectButton.setText(R.string.button_disconnect);
+                        _userNavigation = false;
                         _disconnectButton.setEnabled(true);
                         break;
                     case PAUSED:
                         _disconnectButton.setText(R.string.button_disconnect);
                         _disconnectButton.setEnabled(true);
+                        _userNavigation = false;
                         _currentStatusIcon.setImageResource(R.drawable.connection_status_paused);
                         break;
                     case DISCONNECTED:
                         if (_userInitiatedDisconnect) {
                             // Go back to the home screen.
                             _disconnectButton.setEnabled(false);
+                            _userNavigation = false;
                             _gracefulDisconnectHandler.removeCallbacksAndMessages(null);
                             ((MainActivity) getActivity()).openFragment(new HomeFragment(), false);
                         } else {
