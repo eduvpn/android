@@ -10,16 +10,6 @@
     android:paddingBottom="16dp">
 
     <TextView
-        android:id="@+id/header"
-        style="@style/Header"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
-        android:layout_marginBottom="16dp"
-        android:padding="16dp"
-        android:text="@string/home_title"/>
-
-    <TextView
         android:id="@+id/noProvidersYet"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

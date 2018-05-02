@@ -11,11 +11,11 @@
     <string name="actionbar_title">eduVPN</string>
     <string name="select_your_country_title">Select your Country</string>
     <string name="select_your_institution_title">Select your Institution</string>
-    <string name="custom_provider_title">Type the URL of your provider</string>
+    <string name="custom_provider_title">Provide the Domain of your Provider</string>
     <string name="custom_provider_prefix">https://</string>
     <string name="custom_provider_connect">Connect</string>
     <string name="home_title">Connect to VPN</string>
-    <string name="custom_provider_display_name">Custom provider</string>
+    <string name="custom_provider_display_name">Custom Provider</string>
     <string name="error_importing_profile">Error importing profile.</string>
     <string name="error_fetching_profile">Error fetching profile. Details: %s</string>
     <string name="error_checking_certificate">Unable to check certificate. Details: %s</string>
@@ -24,12 +24,12 @@
     <string name="connection_label_provider">Provider</string>
     <string name="connection_label_profile">Profile</string>
     <string name="notifications_switcher_default_title">Notifications</string>
-    <string name="connection_switcher_title">Connection info</string>
-    <string name="view_log_button">View log</string>
+    <string name="connection_switcher_title">Connection Info</string>
+    <string name="view_log_button">View Log</string>
 
     <string name="connection_info_duration">Duration</string>
-    <string name="connection_info_bytes_in">Bytes in</string>
-    <string name="connection_info_bytes_out">Bytes out</string>
+    <string name="connection_info_bytes_in">Bytes (in)</string>
+    <string name="connection_info_bytes_out">Bytes (out)</string>
     <string name="connection_info_ipv4">IPv4</string>
     <string name="connection_info_ipv6">IPv6</string>
     <string name="not_available">N/A</string>
@@ -45,7 +45,7 @@
     <string name="progress_dialog_title">Just a sec</string>
     <string name="api_discovery_message">Discovering API…</string>
     <string name="vpn_profile_download_message">Downloading VPN profile…</string>
-    <string name="display_other_name">Use a custom provider</string>
+    <string name="display_other_name">Use a Custom Provider</string>
     <string name="maintenance_message">The VPN service will be under maintenance starting from %1$s until %2$s.</string>
     <string name="error_loading_system_messages">Unable to load system messages: %s</string>
     <string name="error_loading_user_messages">Unable to load user messages: %s</string>
@@ -63,7 +63,7 @@
     <string name="rejected_permission">User rejected access for the app.</string>
     <string name="settings_title">Settings</string>
     <string name="settings_force_tcp_title">Force TCP</string>
-    <string name="settings_force_tcp_description"><![CDATA[Sometimes, eduVPN can\'t connect properly because of very strict firewalls. Connecting directly through TCP can make it easier in these circumstances.]]></string>
+    <string name="settings_force_tcp_description">Force VPN connection over TCP to work around network restrictions.</string>
     <string name="settings_use_custom_tabs_description">Custom Tabs are faster and use less resources. If you turn this feature off, the default browser will be used instead.</string>
     <string name="settings_custom_tabs_opt_out_title">Use Custom Tabs</string>
     <string name="settings_save">Save</string>
@@ -73,7 +73,7 @@
     <string name="error_while_connecting">An unexpected error occurred while connecting to the VPN provider: %s</string>
     <string name="error_dialog_title_unable_to_connect">Unable to connect</string>
     <string name="undo">Undo</string>
-    <string name="button_login">Log in</string>
+    <string name="button_login">Log In</string>
     <string name="button_remove">Remove</string>
     <string name="button_retry">Retry</string>
     <string name="access_rejected_instance">Access to %s has been rejected.</string>
@@ -81,8 +81,8 @@
     <string name="data_removed">The provider data was already removed.</string>
     <string name="provider_not_found_retry">Could not find the provider metadata.</string>
     <string name="provider_incorrect_format">Data returned by the provider has an incorrect format</string>
-    <string name="vpn_option_label_secure_internet">Connect to the internet securely, for example when using WiFi.</string>
-    <string name="vpn_option_label_institute_access">Access your institute\'s network from outside the institution.</string>
+    <string name="vpn_option_label_secure_internet">Safely use the Internet</string>
+    <string name="vpn_option_label_institute_access">Connect to your Institute\'s Network</string>
     <string name="header_institute_access">Institute Access</string>
     <string name="header_secure_internet">Secure Internet</string>
     <string name="profile_name_not_found">Unknown profile</string>
@@ -93,13 +93,13 @@
     <string name="authorization_error_message">Error: %1$s, code: %2$d, message: %3$s</string>
     <string name="connecting_to_api_title">Connecting</string>
     <string name="connecting_to_api_message">Connecting to %s…</string>
-    <string name="title_choose_your_profile">Choose your profile</string>
-    <string name="description_choose_your_profile">Select the profile type you want to use below. You will be redirected to the browser for your credentials.</string>
-    <string name="add_other_address">Add other address</string>
+    <string name="title_choose_your_profile">Choose a Profile</string>
+    <string name="description_choose_your_profile">Select how you want to use the VPN</string>
+    <string name="add_other_address">Add Other Provider</string>
     <string name="error_selected_instance_not_found">Selected instance not found.</string>
     <string name="no_provider_found">No provider found.</string>
     <string name="discovering_providers">Discovering providers...</string>
-    <string name="description_secure_internet_provider">Select your institution\'s country here. You can select VPN endpoints in other countries after signing in with your institution credentials.</string>
+    <string name="description_secure_internet_provider">Select your institution\'s country here. Afterwards you can use other countries.</string>
     <string name="vpn_profile_checking_certificate">Checking certificate validity...</string>
     <string name="error_parsing_certificate">Unexpected certificate check response from API.</string>
     <string name="error_certificate_disabled">Connection process aborted because certificate has been disabled.</string>
