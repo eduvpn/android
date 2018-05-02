@@ -104,4 +104,5 @@
     <string name="error_parsing_certificate">Unexpected certificate check response from API.</string>
     <string name="error_certificate_disabled">Connection process aborted because certificate has been disabled.</string>
     <string name="error_user_disabled">Connection process has been aborted because the user has been disabled on the server.</string>
+    <string name="error_dialog_title_invalid_certificate">Invalid certificate</string>
 </resources>

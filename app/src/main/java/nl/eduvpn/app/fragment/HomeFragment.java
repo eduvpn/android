@@ -534,7 +534,7 @@ public class HomeFragment extends Fragment {
                 } catch (Exception ex) {
                     progressDialog.dismiss();
                     if (getActivity() != null) {
-                        ErrorDialog.show(getContext(), R.string.error_dialog_title, getString(R.string.error_parsing_keypair, ex.getMessage()));
+                        _currentDialog = ErrorDialog.show(getContext(), R.string.error_dialog_title, getString(R.string.error_parsing_keypair, ex.getMessage()));
                     }
                     Log.e(TAG, "Unable to parse keypair data", ex);
                 }
@@ -613,8 +613,6 @@ public class HomeFragment extends Fragment {
                         Log.i(TAG, "Certificate appears to be valid.");
                         _downloadProfileWithKeyPair(instance, discoveredAPI, savedKeyPair, profile, authState, dialog);
                     } else {
-                        // Remove stored keypair.
-                        _historyService.removeSavedKeyPairs(instance);
                         dialog.dismiss();
                         String reason = result.getJSONObject("check_certificate").getJSONObject("data").getString("reason");
                         if ("user_disabled".equals(reason) || "certificate_disabled".equals(reason)) {
@@ -622,8 +620,10 @@ public class HomeFragment extends Fragment {
                             if ("user_disabled".equals(reason)) {
                                 errorStringId = R.string.error_user_disabled;
                             }
-                            _currentDialog = ErrorDialog.show(getContext(), R.string.error_dialog_title, getString(errorStringId));
+                            _currentDialog = ErrorDialog.show(getContext(), R.string.error_dialog_title_invalid_certificate, getString(errorStringId));
                         } else {
+                            // Remove stored keypair.
+                            _historyService.removeSavedKeyPairs(instance);
                             Log.i(TAG, "Certificate is invalid. Fetching new one. Reason: " + reason);
                             // Try downloading it again.
                             _downloadKeyPairIfNeeded(instance, discoveredAPI, profile, authState);
