@@ -9,13 +9,6 @@
     android:orientation="vertical"
     android:padding="@dimen/vpn_connection_fragment_padding">
 
-    <TextView
-        android:id="@+id/header"
-        style="@style/Header"
-        android:layout_marginBottom="16dp"
-        android:text="@string/vpn_connection_status_title"
-        tools:textStyle="bold"/>
-
     <LinearLayout
         android:id="@+id/detailsContainer"
         android:layout_width="match_parent"

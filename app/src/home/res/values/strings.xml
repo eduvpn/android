@@ -33,6 +33,6 @@
   -->
 
 <resources>
-    <string name="app_name">eduVPN Home</string>
-    <string name="actionbar_title">eduVPN Home</string>
+    <string name="app_name">Let\'s Connect!</string>
+    <string name="actionbar_title">Let\'s Connect!</string>
 </resources>

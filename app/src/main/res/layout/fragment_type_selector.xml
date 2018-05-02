@@ -25,20 +25,6 @@
     android:orientation="vertical"
     android:padding="16dp">
 
-    <TextView
-        android:text="@string/title_choose_your_profile"
-        style="@style/Header"/>
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:layout_marginTop="8dp"
-        android:gravity="center"
-        android:text="@string/description_choose_your_profile"
-        android:textColor="@color/textColor"
-        android:textSize="16sp"/>
-
     <LinearLayout
         android:id="@+id/vpn_option_container_secure_internet"
         style="@style/ProfileTypeContainer"

@@ -16,6 +16,6 @@
   -->
 
 <resources>
-    <string name="app_name">eduVPN DEV</string>
-    <string name="actionbar_title">eduVPN dev</string>
+    <string name="app_name">eduVPN (dev)</string>
+    <string name="actionbar_title">eduVPN (dev)</string>
 </resources>
