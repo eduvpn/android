@@ -236,7 +236,7 @@ public class ConnectionStatusFragment extends Fragment implements VPNService.Con
                             _disconnectButton.setEnabled(false);
                             _userNavigation = false;
                             _gracefulDisconnectHandler.removeCallbacksAndMessages(null);
-                            ((MainActivity) getActivity()).openFragment(new HomeFragment(), false);
+                            ((MainActivity) getActivity()).openFragment(HomeFragment.newInstance(false), false);
                         } else {
                             _currentStatusIcon.setImageResource(R.drawable.connection_status_disconnected);
                             _disconnectButton.setEnabled(true);
@@ -293,7 +293,7 @@ public class ConnectionStatusFragment extends Fragment implements VPNService.Con
     @OnClick(R.id.disconnectButton)
     protected void onDisconnectButtonClicked() {
         if (_userNavigation) {
-            ((MainActivity) getActivity()).openFragment(new HomeFragment(), false);
+            ((MainActivity) getActivity()).openFragment(HomeFragment.newInstance(false), false);
         } else {
             boolean isConnecting = _vpnService.getStatus() == VPNService.VPNStatus.CONNECTING;
             _userInitiatedDisconnect = true;
@@ -312,7 +312,7 @@ public class ConnectionStatusFragment extends Fragment implements VPNService.Con
                             return;
                         }
                         Log.i(TAG, "No disconnect event received from VPN within " + WAIT_FOR_DISCONNECT_UNTIL_MS + " milliseconds. Assuming process died.");
-                        ((MainActivity) getActivity()).openFragment(new HomeFragment(), false);
+                        ((MainActivity) getActivity()).openFragment(HomeFragment.newInstance(false), false);
                     }
                 }, WAIT_FOR_DISCONNECT_UNTIL_MS);
 
