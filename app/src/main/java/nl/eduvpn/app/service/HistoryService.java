@@ -156,7 +156,7 @@ public class HistoryService extends Observable {
      */
     public void cacheAuthenticationState(@NonNull Instance instance, @NonNull AuthState authState) {
         // Remove all previous entries
-        removeAuthentications(instance);
+        _removeAuthentications(instance, false);
         _savedAuthStateList.add(new SavedAuthState(instance, authState));
         _save();
         setChanged();
@@ -241,7 +241,7 @@ public class HistoryService extends Observable {
      *
      * @param instance The instance the access token will be saved for.
      */
-    public void removeAuthentications(@NonNull Instance instance) {
+    private void _removeAuthentications(@NonNull Instance instance, boolean notifyObservers) {
         Iterator<SavedAuthState> savedTokenIterator = _savedAuthStateList.iterator();
         while (savedTokenIterator.hasNext()) {
             SavedAuthState savedAuthState = savedTokenIterator.next();
@@ -256,9 +256,11 @@ public class HistoryService extends Observable {
             }
         }
         _save();
-        setChanged();
-        notifyObservers(NOTIFICATION_TOKENS_CHANGED);
-        clearChanged();
+        if (notifyObservers) {
+            setChanged();
+            notifyObservers(NOTIFICATION_TOKENS_CHANGED);
+            clearChanged();
+        }
     }
 
     /**
@@ -444,6 +446,6 @@ public class HistoryService extends Observable {
         removeDiscoveredAPI(instance);
         removeSavedProfilesForInstance(instance);
         removeSavedKeyPairs(instance);
-        removeAuthentications(instance);
+        _removeAuthentications(instance, true);
     }
 }
