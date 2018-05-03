@@ -18,7 +18,7 @@
     <string name="custom_provider_display_name">Custom provider</string>
     <string name="error_importing_profile">Error importing profile.</string>
     <string name="error_fetching_profile">Error fetching profile. Details: %s</string>
-    <string name="error_checking_certificate">Unable to check certificate. Details: %s</string>
+    <string name="error_checking_certificate">Certificate check failed for unexpected reasons.</string>
     <string name="vpn_connection_status_title">VPN connection</string>
     <string name="connection_label_status">Status</string>
     <string name="connection_label_provider">Provider</string>

@@ -127,7 +127,11 @@ public class MainActivity extends AppCompatActivity {
             // Remove it so we don't parse it again.
             intent.setData(null);
             // Show the home fragment, so the user can select his new config(s)
-            openFragment(new HomeFragment(), false);
+            HomeFragment fragment = new HomeFragment();
+            Bundle args = new Bundle();
+            args.putBoolean(HomeFragment.KEY_SKIP_FIRST_UPDATE, true);
+            fragment.setArguments(args);
+            openFragment(fragment, false);
         }
     }
 

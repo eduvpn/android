@@ -18,6 +18,7 @@
 package nl.eduvpn.app.fragment;
 
 import android.animation.ValueAnimator;
+import android.app.Activity;
 import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.os.Bundle;
@@ -85,6 +86,8 @@ import nl.eduvpn.app.utils.SwipeToDeleteHelper;
 public class HomeFragment extends Fragment {
 
     private static final String TAG = HomeFragment.class.getName();
+
+    public static final String KEY_SKIP_FIRST_UPDATE = "key_skip_first_update";
 
     @Inject
     protected HistoryService _historyService;
@@ -179,7 +182,10 @@ public class HomeFragment extends Fragment {
         ItemClickSupport.addTo(_secureInternetList).setOnItemLongClickListener(longClickListener);
 
         // Fill the lists with data
-        _updateLists();
+        boolean skipUpdate = getArguments() != null && getArguments().containsKey(KEY_SKIP_FIRST_UPDATE) && getArguments().getBoolean(KEY_SKIP_FIRST_UPDATE);
+        if (!skipUpdate) {
+            _updateLists();
+        }
         // Add listener on the history service, so we get notified if there is a new server available
         _historyService.addObserver(_newServerObserver = (observable, o) -> {
             if (o instanceof Integer) {
@@ -469,7 +475,10 @@ public class HomeFragment extends Fragment {
                                                         // Cache the result
                                                         _historyService.cacheDiscoveredAPI(instance.getSanitizedBaseURI(), discoveredAPI);
                                                         _problematicInstances.remove(instance);
-                                                        _connectionService.initiateConnection(getActivity(), instance, discoveredAPI);
+                                                        Activity activity = getActivity();
+                                                        if (activity != null && !activity.isFinishing()) {
+                                                            _connectionService.initiateConnection(getActivity(), instance, discoveredAPI);
+                                                        }
                                                     } catch (SerializerService.UnknownFormatException ex) {
                                                         Log.e(TAG, "Error parsing discovered API!", ex);
                                                         _currentDialog = ErrorDialog.show(getContext(), R.string.error_dialog_title, R.string.provider_incorrect_format);
@@ -479,7 +488,13 @@ public class HomeFragment extends Fragment {
                                                 @Override
                                                 public void onError(String errorMessage) {
                                                     Log.e(TAG, "Error while fetching discovered API: " + errorMessage);
-                                                    _currentDialog = ErrorDialog.show(getContext(), R.string.error_dialog_title, R.string.provider_not_found_retry);
+                                                    DiscoveredAPI discoveredAPI = _historyService.getCachedDiscoveredAPI(instance.getSanitizedBaseURI());
+                                                    Activity activity = getActivity();
+                                                    if (discoveredAPI != null && activity != null && !activity.isFinishing()) {
+                                                        _connectionService.initiateConnection(activity, instance, discoveredAPI);
+                                                    } else {
+                                                        _currentDialog = ErrorDialog.show(getContext(), R.string.error_dialog_title, R.string.provider_not_found_retry);
+                                                    }
                                                 }
                                             });
                                 }
@@ -640,7 +655,8 @@ public class HomeFragment extends Fragment {
             @Override
             public void onError(String errorMessage) {
                 dialog.dismiss();
-                if (APIService.USER_NOT_AUTHORIZED_ERROR.equals(errorMessage)) {
+                if (errorMessage != null && (APIService.USER_NOT_AUTHORIZED_ERROR.equals(errorMessage) ||
+                    errorMessage.contains("invalid_grant"))) {
                     // Display a dialog with all the warnings
                     _currentDialog = ErrorDialog.show(getContext(),
                             getString(R.string.warnings_list),
@@ -693,7 +709,13 @@ public class HomeFragment extends Fragment {
                                                 @Override
                                                 public void onError(String errorMessage) {
                                                     Log.e(TAG, "Error while fetching discovered API: " + errorMessage);
-                                                    _currentDialog = ErrorDialog.show(getContext(), R.string.error_dialog_title, R.string.provider_not_found_retry);
+                                                    DiscoveredAPI discoveredAPI = _historyService.getCachedDiscoveredAPI(instance.getSanitizedBaseURI());
+                                                    Activity activity = getActivity();
+                                                    if (discoveredAPI != null && activity != null && !activity.isFinishing()) {
+                                                        _connectionService.initiateConnection(activity, instance, discoveredAPI);
+                                                    } else {
+                                                        _currentDialog = ErrorDialog.show(getContext(), R.string.error_dialog_title, R.string.provider_not_found_retry);
+                                                    }
                                                 }
                                             });
                                 }
@@ -703,9 +725,8 @@ public class HomeFragment extends Fragment {
                                     _historyService.removeAllDataForInstance(instance);
                                 }
                             });
-
-                } else{
-                    _currentDialog = ErrorDialog.show(getContext(), R.string.error_dialog_title, getString(R.string.error_checking_certificate, errorMessage));
+                } else {
+                    _currentDialog = ErrorDialog.show(getContext(), R.string.error_dialog_title, getString(R.string.error_checking_certificate));
                     Log.e(TAG, "Error checking certificate: " + errorMessage);
                 }
 
