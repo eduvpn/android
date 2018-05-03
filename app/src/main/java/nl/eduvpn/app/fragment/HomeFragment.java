@@ -145,6 +145,14 @@ public class HomeFragment extends Fragment {
 
     private Dialog _currentDialog;
 
+    public static HomeFragment newInstance(boolean skipFirstUpdate) {
+        HomeFragment homeFragment = new HomeFragment();
+        Bundle args = new Bundle();
+        args.putBoolean(HomeFragment.KEY_SKIP_FIRST_UPDATE, skipFirstUpdate);
+        homeFragment.setArguments(args);
+        return homeFragment;
+    }
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable final Bundle savedInstanceState) {
