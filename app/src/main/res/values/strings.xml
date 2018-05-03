@@ -13,7 +13,7 @@
     <string name="select_your_institution_title">Select your Institution</string>
     <string name="custom_provider_title">Add Provider</string>
     <string name="custom_provider_prefix">https://</string>
-    <string name="custom_provider_connect">Connect</string>
+    <string name="custom_provider_connect">Sign In</string>
     <string name="home_title">Connect to VPN</string>
     <string name="custom_provider_display_name">Custom Provider</string>
     <string name="error_importing_profile">Error importing profile.</string>
