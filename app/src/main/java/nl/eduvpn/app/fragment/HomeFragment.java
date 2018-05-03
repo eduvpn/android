@@ -35,6 +35,7 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+import nl.eduvpn.app.BuildConfig;
 
 import net.openid.appauth.AuthState;
 
@@ -747,6 +748,13 @@ public class HomeFragment extends Fragment {
      */
     @OnClick(R.id.addProvider)
     protected void onAddProviderClicked() {
-        ((MainActivity) getActivity()).openFragment(new TypeSelectorFragment(), true);
+        if (BuildConfig.API_DISCOVERY_ENABLED) {
+            /* for "basic" we ask for the type of the provider to add */
+            ((MainActivity) getActivity()).openFragment(new TypeSelectorFragment(), true);
+        } else {
+            /* for "home", i.e. Let's Connect! we immediately ask for the domain */
+            ((MainActivity) getActivity()).openFragment(new CustomProviderFragment(), true);
+        }
+
     }
 }

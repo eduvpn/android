@@ -11,9 +11,9 @@
     <string name="actionbar_title">eduVPN</string>
     <string name="select_your_country_title">Select your Country</string>
     <string name="select_your_institution_title">Select your Institution</string>
-    <string name="custom_provider_title">Provide the Domain of your Provider</string>
+    <string name="custom_provider_title">Add Provider</string>
     <string name="custom_provider_prefix">https://</string>
-    <string name="custom_provider_connect">Connect</string>
+    <string name="custom_provider_connect">Sign In</string>
     <string name="home_title">Connect to VPN</string>
     <string name="custom_provider_display_name">Custom Provider</string>
     <string name="error_importing_profile">Error importing profile.</string>
@@ -63,7 +63,7 @@
     <string name="rejected_permission">User rejected access for the app.</string>
     <string name="settings_title">Settings</string>
     <string name="settings_force_tcp_title">Force TCP</string>
-    <string name="settings_force_tcp_description">Force VPN connection over TCP to work around network restrictions.</string>
+    <string name="settings_force_tcp_description">Force VPN connection over TCP to work around certain network restrictions.</string>
     <string name="settings_use_custom_tabs_description">Custom Tabs are faster and use less resources. If you turn this feature off, the default browser will be used instead.</string>
     <string name="settings_custom_tabs_opt_out_title">Use Custom Tabs</string>
     <string name="settings_save">Save</string>
@@ -105,4 +105,5 @@
     <string name="error_certificate_disabled">Connection process aborted because certificate has been disabled.</string>
     <string name="error_user_disabled">Connection process has been aborted because the user has been disabled on the server.</string>
     <string name="error_dialog_title_invalid_certificate">Invalid certificate</string>
+    <string name="example_domain">example.org</string>
 </resources>
