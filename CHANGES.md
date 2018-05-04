@@ -1,7 +1,7 @@
 # Changelog
 
 ## 1.2.1 (...)
-- update `ics-openvpn` submodule to v0.7.5
+- update `ics-openvpn` submodule to v0.7.5 (#153)
 
 ## 1.2.0 (2018-05-03)
 - update `ics-openvpn` submodule to v0.7.4 (#133)
@@ -17,9 +17,10 @@
 - update VPN connection status icon to new artwork (#148)
 
 ## 1.1.1 (2017-11-23)
-
+- N/A
 
 ## 1.0.1 (2017-02-01)
-
+- N/A
 
 ## 1.0.0 (2017-02-01)
+- initial release
