@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.2.1 (...)
+## 1.2.1 (2018-05-04)
 - update `ics-openvpn` submodule to v0.7.5 (#153)
 
 ## 1.2.0 (2018-05-03)
