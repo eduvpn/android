@@ -65,7 +65,7 @@ android {
     }
 }
 
-def supportLibVersion = "27.1.0" // Please try to stay in sync with the version used in the ics-openvpn module
+def supportLibVersion = "27.1.1" // Please try to stay in sync with the version used in the ics-openvpn module
 def butterknifeVersion = "8.8.1"
 def daggerVersion = "2.15"
 
