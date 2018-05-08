@@ -15,6 +15,12 @@ android {
         buildConfigField "String", "SIGNATURE_URL_POSTFIX", "\".sig\""
         buildConfigField "String", "SIGNATURE_VALIDATION_PUBLIC_KEY", "\"E5On0JTtyUVZmcWd+I/FXRm32nSq8R2ioyW7dcu/U88=\""
         buildConfigField "boolean", "API_DISCOVERY_ENABLED", "true"
+
+        // OAuth
+        buildConfigField "String", "OAUTH_CLIENT_ID", "\"org.eduvpn.app.android\""
+        buildConfigField "String", "OAUTH_REDIRECT_URI", "\"org.eduvpn.app:/api/callback\""
+        buildConfigField "String", "OAUTH_SCOPE", "\"config\""
+
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         manifestPlaceholders = [
                 'appAuthRedirectScheme': 'org.eduvpn.app'
@@ -46,9 +52,15 @@ android {
         }
         home {
             dimension "product"
-            applicationId "nl.eduvpn.app.home"
+            applicationId "org.letsconnect_vpn.app"
             // API discovery is disabled, and only custom URLs can be entered.
             buildConfigField "boolean", "API_DISCOVERY_ENABLED", "false"
+            buildConfigField "String", "OAUTH_CLIENT_ID", "\"org.letsconnect-vpn.app.android\""
+            buildConfigField "String", "OAUTH_REDIRECT_URI", "\"org.letsconnect-vpn.app:/api/callback\""
+
+            manifestPlaceholders = [
+                    'appAuthRedirectScheme': 'org.letsconnect-vpn.app'
+            ]
         }
     }
 
