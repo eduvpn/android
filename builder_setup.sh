@@ -7,6 +7,7 @@
 SDK_DIR=${HOME}/android-sdk
 
 # current as of 20180508
+# see https://developer.android.com/studio/#downloads "Command line tools only"
 SDK_VERSION=3859397
 
 # see app/build.gradle for "buildToolsVersion"
@@ -14,7 +15,6 @@ BUILD_TOOLS_VERSION=27.0.3
 
 # see app/build.gradle for "targetSdkVersion"
 PLATFORM_VERSION=27
-
 
 # should not require modification...
 SDK_URL=https://dl.google.com/android/repository/sdk-tools-linux-${SDK_VERSION}.zip
