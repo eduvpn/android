@@ -28,11 +28,11 @@ SIGNED_APK=${PROJECT_DIR}/eduVPN-${GIT_TAG}.apk
 ###############################################################################
 
 (
-    mkdir -p ${PROJECT_DIR}
-    cd ${PROJECT_DIR} || exit
+    mkdir -p "${PROJECT_DIR}"
+    cd "${PROJECT_DIR}" || exit
 
-    git clone -b ${GIT_TAG} ${GIT_REPO} ${APP_DIR}
-    cd ${APP_DIR}
+    git clone -b ${GIT_TAG} ${GIT_REPO} "${APP_DIR}"
+    cd "${APP_DIR}" || exit
     git submodule update --init --recursive
 )
 
@@ -42,7 +42,7 @@ SIGNED_APK=${PROJECT_DIR}/eduVPN-${GIT_TAG}.apk
 
 (
     export ANDROID_HOME=${SDK_DIR}
-    cd ${APP_DIR}
+    cd "${APP_DIR}" || exit
     ./gradlew ${GRADLE_TASK}
 )
 
@@ -51,6 +51,6 @@ SIGNED_APK=${PROJECT_DIR}/eduVPN-${GIT_TAG}.apk
 ###############################################################################
 
 (
-    ${SDK_DIR}/build-tools/*/apksigner sign --ks ${KEY_STORE} ${UNSIGNED_APK}
-    cp ${UNSIGNED_APK} ${SIGNED_APK}
+    ${SDK_DIR}/build-tools/*/apksigner sign --ks "${KEY_STORE}" "${UNSIGNED_APK}" || exit
+    cp "${UNSIGNED_APK}" "${SIGNED_APK}" || exit
 )

@@ -25,8 +25,8 @@ SDK_URL=https://dl.google.com/android/repository/sdk-tools-linux-${SDK_VERSION}.
 
 # create and populate SDK directory
 (
-    mkdir -p ${SDK_DIR}
-    cd ${SDK_DIR}
+    mkdir -p "${SDK_DIR}"
+    cd "${SDK_DIR}" || exit
     curl -L -O ${SDK_URL}
     unzip -q sdk-tools-linux-${SDK_VERSION}.zip
     rm sdk-tools-linux-${SDK_VERSION}.zip
@@ -34,13 +34,13 @@ SDK_URL=https://dl.google.com/android/repository/sdk-tools-linux-${SDK_VERSION}.
 
 # accept licenses
 (
-    cd ${SDK_DIR}
+    cd "${SDK_DIR}" || exit
     yes | tools/bin/sdkmanager --licenses
 )
 
 # install required SDK components
 (
-    cd ${SDK_DIR}
+    cd "${SDK_DIR}" || exit
     tools/bin/sdkmanager update
     tools/bin/sdkmanager ndk-bundle
     tools/bin/sdkmanager "build-tools;${BUILD_TOOLS_VERSION}"
