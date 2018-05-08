@@ -51,6 +51,6 @@ SIGNED_APK=${PROJECT_DIR}/eduVPN-${GIT_TAG}.apk
 ###############################################################################
 
 (
-    ${SDK_DIR}/build-tools/*/apksigner sign --ks ${KEY_STORE} ${OUTPUT_APK}
+    ${SDK_DIR}/build-tools/*/apksigner sign --ks ${KEY_STORE} ${UNSIGNED_APK}
     cp ${UNSIGNED_APK} ${SIGNED_APK}
 )
