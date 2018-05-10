@@ -32,3 +32,5 @@ Generate a key store for signing the Android application:
 ## Build
 
     $ ./build_app.sh
+
+You'll find the signed output APK in ${HOME}/Projects.
