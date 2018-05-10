@@ -36,5 +36,9 @@
     <string name="app_name">Let\'s Connect!</string>
     <string name="actionbar_title">Let\'s Connect!</string>
     <string name="add_other_address">Add Provider</string>
-
+    <!-- 
+         text hack to not display "Institute Access" because that has no 
+         meaning for Let's Connect!. Instead show more generic "Profiles" 
+    -->
+    <string name="header_institute_access">Profiles</string>
 </resources>
