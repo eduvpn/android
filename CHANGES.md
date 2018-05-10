@@ -2,6 +2,8 @@
 
 ## 1.2.2 (...)
 - use different OAuth client information for Let's Connect! flavor
+- immediately show "add provider" page when starting the app and no
+  providers were added before for Let's Connect! flavor
 
 ## 1.2.1 (2018-05-04)
 - update `ics-openvpn` submodule to v0.7.5 (#153)
