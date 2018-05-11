@@ -41,7 +41,7 @@ SDK_URL=https://dl.google.com/android/repository/sdk-tools-linux-${SDK_VERSION}.
 # install required SDK components
 (
     cd "${SDK_DIR}" || exit
-    tools/bin/sdkmanager update
+    tools/bin/sdkmanager --update
     tools/bin/sdkmanager ndk-bundle
     tools/bin/sdkmanager "build-tools;${BUILD_TOOLS_VERSION}"
     tools/bin/sdkmanager "platforms;android-${PLATFORM_VERSION}"
