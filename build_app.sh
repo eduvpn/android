@@ -31,9 +31,8 @@ SIGNED_APK=${PROJECT_DIR}/eduVPN-${GIT_TAG}.apk
     mkdir -p "${PROJECT_DIR}"
     cd "${PROJECT_DIR}" || exit
 
-    git clone -b ${GIT_TAG} ${GIT_REPO} "${APP_DIR}"
+    git clone --recursive -b ${GIT_TAG} ${GIT_REPO} "${APP_DIR}"
     cd "${APP_DIR}" || exit
-    git submodule update --init --recursive
 )
 
 ###############################################################################
