@@ -1,7 +1,8 @@
 # Changelog
 
-## 1.2.2 (...)
+## 1.2.2 (2018-05-14)
 - use different OAuth client information for Let's Connect! flavor
+- rewrite app build/sign scripts
 
 ## 1.2.1 (2018-05-04)
 - update `ics-openvpn` submodule to v0.7.5 (#153)
