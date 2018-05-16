@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.2.3 (...)
+- fix Gradle build (#165)
+
 ## 1.2.2 (2018-05-14)
 - use different OAuth client information for Let's Connect! flavor
 - rewrite app build/sign scripts
