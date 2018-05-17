@@ -20,7 +20,7 @@ android {
         buildConfigField "String", "OAUTH_CLIENT_ID", "\"org.eduvpn.app.android\""
         buildConfigField "String", "OAUTH_REDIRECT_URI", "\"org.eduvpn.app:/api/callback\""
         buildConfigField "String", "OAUTH_SCOPE", "\"config\""
-        buildConfigField "String", "CERTIFICATE_DISPLAY_NAME", "\"eduVPN% for Android\""
+        buildConfigField "String", "CERTIFICATE_DISPLAY_NAME", "\"eduVPN for Android\""
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         manifestPlaceholders = [
