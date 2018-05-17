@@ -542,7 +542,8 @@ public class HomeFragment extends Fragment {
             _checkCertificateValidity(instance, discoveredAPI, savedKeyPair, profile, authState, progressDialog);
             return;
         }
-        String requestData = "display_name=" + Constants.PROFILE_DISPLAY_NAME;
+        // XXX use urlencode on CERTIFICATE_DISPLAY_NAME instead of assuming it is already encoded
+        String requestData = "display_name=" + BuildConfig.CERTIFICATE_DISPLAY_NAME;
         String createKeyPairEndpoint = discoveredAPI.getCreateKeyPairEndpoint();
         _apiService.postResource(createKeyPairEndpoint, requestData, authState, new APIService.Callback<String>() {
 
