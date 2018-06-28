@@ -6,9 +6,9 @@
 
 SDK_DIR=${HOME}/android-sdk
 
-# current as of 20180508
+# current as of 20180628
 # see https://developer.android.com/studio/#downloads "Command line tools only"
-SDK_VERSION=3859397
+SDK_VERSION=4333796
 
 # see app/build.gradle for "buildToolsVersion"
 BUILD_TOOLS_VERSION=27.0.3
