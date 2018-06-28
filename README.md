@@ -23,7 +23,9 @@ This is the eduVPN / Let's Connect! for Android application.
 
 Generate a key store for signing the Android application:
 
-    $ keytool -genkey -v -keystore ${HOME}/android.jks
+    $ keytool -genkey -v -keystore ${HOME}/android.jks \
+        -keyalg RSA -keysize 4096 -sigalg SHA256withRSA \
+        -validity 10000 -alias eduVPN
 
 ## Setup
 
