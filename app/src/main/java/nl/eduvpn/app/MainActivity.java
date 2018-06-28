@@ -34,6 +34,7 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import nl.eduvpn.app.fragment.ConnectionStatusFragment;
+import nl.eduvpn.app.fragment.CustomProviderFragment;
 import nl.eduvpn.app.fragment.HomeFragment;
 import nl.eduvpn.app.fragment.TypeSelectorFragment;
 import nl.eduvpn.app.service.ConnectionService;
@@ -74,7 +75,13 @@ public class MainActivity extends AppCompatActivity {
                 openFragment(new HomeFragment(), false);
             } else {
                 // User has no previously saved profiles. Show the type selector.
-                openFragment(new TypeSelectorFragment(), false);
+                if (BuildConfig.API_DISCOVERY_ENABLED) {
+                    // eduVPN flavor
+                    openFragment(new TypeSelectorFragment(), false);
+                } else {
+                    // Let's Connect! flavor
+                    openFragment(new CustomProviderFragment(), false);
+                }
             }
         } // else the activity will automatically restore everything.
         // The app might have been reopened from a URL.
