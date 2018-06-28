@@ -27,6 +27,9 @@ Generate a key store for signing the Android application:
         -keyalg RSA -keysize 4096 -sigalg SHA256withRSA \
         -validity 10000 -alias eduVPN
 
+Additional documentation 
+[here](https://developer.android.com/studio/publish/app-signing#signing-manually).
+
 ## Setup
 
     $ ./builder_setup.sh
