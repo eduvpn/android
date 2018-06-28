@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-          xmlns:tools="http://schemas.android.com/tools"
-          package="nl.eduvpn.app">
+    xmlns:tools="http://schemas.android.com/tools"
+    package="nl.eduvpn.app">
 
 
-    <uses-permission android:name="android.permission.INTERNET"/>
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <application
         android:name=".EduVPNApplication"
@@ -22,23 +22,22 @@
             android:launchMode="singleTask"
             android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
-                <action android:name="android.intent.action.MAIN"/>
-                <category android:name="android.intent.category.LAUNCHER"/>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 
         <activity
             android:name=".SettingsActivity"
             android:launchMode="singleTask"
-            android:theme="@style/AppTheme.NoActionBar"
-            />
+            android:theme="@style/AppTheme.NoActionBar" />
 
         <!-- Activities and services inherited from the OpenVPN library. -->
         <service
             android:name="de.blinkt.openvpn.core.OpenVPNService"
             android:permission="android.permission.BIND_VPN_SERVICE">
             <intent-filter>
-                <action android:name="android.net.VpnService"/>
+                <action android:name="android.net.VpnService" />
             </intent-filter>
         </service>
 
@@ -46,7 +45,7 @@
             android:name="de.blinkt.openvpn.api.ExternalOpenVPNService"
             tools:ignore="ExportedService">
             <intent-filter>
-                <action android:name="de.blinkt.openvpn.api.IOpenVPNAPIService"/>
+                <action android:name="de.blinkt.openvpn.api.IOpenVPNAPIService" />
             </intent-filter>
         </service>
 
@@ -57,7 +56,7 @@
             android:noHistory="true"
             android:taskAffinity=".DisconnectVPN"
             android:theme="@style/StyledVpn.Dialog"
-            tools:ignore="UnusedAttribute"/>
+            tools:ignore="UnusedAttribute" />
 
 
         <service
@@ -67,12 +66,12 @@
             android:permission="android.permission.BIND_QUICK_SETTINGS_TILE"
             android:value="true">
             <intent-filter>
-                <action android:name="android.service.quicksettings.action.QS_TILE"/>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
             </intent-filter>
 
             <meta-data
                 android:name="android.service.quicksettings.ACTIVE_TILE"
-                android:value="false"/>
+                android:value="false" />
         </service>
 
         <service
@@ -84,7 +83,7 @@
             android:name="de.blinkt.openvpn.api.GrantPermissionsActivity"
             android:theme="@style/StyledVpn">
             <intent-filter>
-                <action android:name="android.intent.action.MAIN"/>
+                <action android:name="android.intent.action.MAIN" />
             </intent-filter>
         </activity>
 
@@ -92,7 +91,7 @@
             android:name="de.blinkt.openvpn.api.ConfirmDialog"
             android:theme="@style/StyledVpn">
             <intent-filter>
-                <action android:name="android.intent.action.MAIN"/>
+                <action android:name="android.intent.action.MAIN" />
             </intent-filter>
         </activity>
         <activity
@@ -105,8 +104,8 @@
             tools:ignore="ExportedActivity"
             tools:targetApi="lollipop">
             <intent-filter>
-                <action android:name="android.intent.action.MAIN"/>
-                <category android:name="android.intent.category.DEFAULT"/>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
 
@@ -122,7 +121,7 @@
             <!-- Parent activity meta-data to support 4.0 and lower -->
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".MainActivity"/>
+                android:value=".MainActivity" />
 
         </activity>
     </application>

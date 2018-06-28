@@ -41,6 +41,8 @@ import net.openid.appauth.AuthState;
 
 import org.json.JSONObject;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -542,7 +544,14 @@ public class HomeFragment extends Fragment {
             _checkCertificateValidity(instance, discoveredAPI, savedKeyPair, profile, authState, progressDialog);
             return;
         }
-        String requestData = "display_name=" + Constants.PROFILE_DISPLAY_NAME;
+
+        String requestData = "display_name=eduVPN";
+        try {
+            requestData = "display_name=" + URLEncoder.encode(BuildConfig.CERTIFICATE_DISPLAY_NAME, "UTF-8");
+        } catch(UnsupportedEncodingException e) {
+            // unable to encode the display name, use default
+        }
+
         String createKeyPairEndpoint = discoveredAPI.getCreateKeyPairEndpoint();
         _apiService.postResource(createKeyPairEndpoint, requestData, authState, new APIService.Callback<String>() {
 

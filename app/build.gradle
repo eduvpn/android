@@ -8,18 +8,19 @@ android {
         applicationId "nl.eduvpn.app"
         minSdkVersion 21
         targetSdkVersion 27
-        versionCode 6
-        versionName "1.2.1"
+        versionCode 8
+        versionName "1.2.3"
         buildConfigField "String", "SECURE_INTERNET_DISCOVERY_URL", "\"https://static.eduvpn.nl/disco/secure_internet.json\""
         buildConfigField "String", "INSTITUTE_ACCESS_DISCOVERY_URL", "\"https://static.eduvpn.nl/disco/institute_access.json\""
         buildConfigField "String", "SIGNATURE_URL_POSTFIX", "\".sig\""
         buildConfigField "String", "SIGNATURE_VALIDATION_PUBLIC_KEY", "\"E5On0JTtyUVZmcWd+I/FXRm32nSq8R2ioyW7dcu/U88=\""
         buildConfigField "boolean", "API_DISCOVERY_ENABLED", "true"
 
-        // OAuth
+        // API
         buildConfigField "String", "OAUTH_CLIENT_ID", "\"org.eduvpn.app.android\""
         buildConfigField "String", "OAUTH_REDIRECT_URI", "\"org.eduvpn.app:/api/callback\""
         buildConfigField "String", "OAUTH_SCOPE", "\"config\""
+        buildConfigField "String", "CERTIFICATE_DISPLAY_NAME", "\"eduVPN for Android\""
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         manifestPlaceholders = [
@@ -57,6 +58,7 @@ android {
             buildConfigField "boolean", "API_DISCOVERY_ENABLED", "false"
             buildConfigField "String", "OAUTH_CLIENT_ID", "\"org.letsconnect-vpn.app.android\""
             buildConfigField "String", "OAUTH_REDIRECT_URI", "\"org.letsconnect-vpn.app:/api/callback\""
+            buildConfigField "String", "CERTIFICATE_DISPLAY_NAME", "\"Let's Connect! for Android\""
 
             manifestPlaceholders = [
                     'appAuthRedirectScheme': 'org.letsconnect-vpn.app'
