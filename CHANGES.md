@@ -1,9 +1,12 @@
 # Changelog
 
-## 1.2.3 (...)
+## 1.2.3 (2018-06-28)
 - fix Gradle build (#165)
 - immediately show "add provider" page when starting the app and no
   providers were added before for Let's Connect! flavor
+- show "Profiles" instead of "Institute Access" for Let's Connect! flavor
+- use different "certificate name" through API for eduVPN / Let's Connect! 
+  flavor
 
 ## 1.2.2 (2018-05-14)
 - use different OAuth client information for Let's Connect! flavor
