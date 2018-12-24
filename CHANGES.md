@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.4 (...)
+- drop 2FA support in Android app until new server release in Q1 where 2FA 
+  moves to the browser
+
 ## 1.2.3 (2018-06-28)
 - fix Gradle build (#165)
 - immediately show "add provider" page when starting the app and no
