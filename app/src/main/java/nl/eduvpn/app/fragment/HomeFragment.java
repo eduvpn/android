@@ -384,6 +384,11 @@ public class HomeFragment extends Fragment {
                     List<Profile> profiles = _serializerService.deserializeProfileList(result);
                     List<Pair<Instance, Profile>> newItems = new ArrayList<>();
                     for (Profile profile : profiles) {
+                        // we do not want to provide access to 2FA profiles
+                        // on Android, so do not show them at all...
+                        if (profile.getTwoFactor()) {
+                            continue;
+                        }
                         newItems.add(new Pair<>(instance, profile));
                     }
                     adapter.addItemsIfNotAdded(newItems);
