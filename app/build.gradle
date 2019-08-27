@@ -78,7 +78,7 @@ dependencies {
     implementation "com.android.support:recyclerview-v7:$supportLibVersion"
     implementation "com.android.support:customtabs:$supportLibVersion"
     // OAuth client
-    implementation 'net.openid:appauth:0.6.1'
+    implementation 'net.openid:appauth:0.7.1'
     // Secure preferences
     implementation 'com.scottyab:secure-preferences-lib:0.1.4'
     // HTTP client
