@@ -1,42 +1,43 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="@dimen/list_item_height"
-    android:background="?attr/selectableItemBackground"
-    android:orientation="vertical">
+<layout>
 
-    <ImageView
-        android:id="@+id/providerIcon"
-        android:layout_width="@dimen/list_item_icon_width"
-        android:layout_height="@dimen/list_item_icon_height"
-        android:layout_centerVertical="true"
-        android:layout_marginLeft="8dp"
-        android:contentDescription="@string/content_description_provider_icon"
-        android:src="@drawable/external_provider"/>
+    <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/list_item_height"
+        android:background="?attr/selectableItemBackground"
+        android:orientation="vertical">
 
-    <TextView
-        android:id="@+id/provider_display_name"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentRight="true"
-        android:layout_centerVertical="true"
-        android:layout_marginLeft="12dp"
-        android:layout_marginRight="8dp"
-        android:layout_toRightOf="@+id/providerIcon"
-        android:ellipsize="middle"
-        android:maxLines="1"
-        android:textColor="@color/textColor"
-        android:textSize="18sp"
-        tools:text="Hogeschool van Amsterdam publieke beta / pilot"/>
+        <ImageView
+            android:id="@+id/providerIcon"
+            android:layout_width="@dimen/list_item_icon_width"
+            android:layout_height="@dimen/list_item_icon_height"
+            android:layout_centerVertical="true"
+            android:layout_marginLeft="8dp"
+            android:contentDescription="@string/content_description_provider_icon"
+            android:src="@drawable/external_provider" />
 
-    <View
-        android:layout_width="wrap_content"
-        android:layout_height="1dp"
-        android:layout_alignParentBottom="true"
-        android:layout_marginLeft="8dp"
-        android:layout_marginRight="8dp"
-        android:background="@color/mainColor"
-        />
-</RelativeLayout>
+        <TextView
+            android:id="@+id/provider_display_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:layout_centerVertical="true"
+            android:layout_marginLeft="12dp"
+            android:layout_marginRight="8dp"
+            android:layout_toRightOf="@+id/providerIcon"
+            android:ellipsize="middle"
+            android:singleLine="true"
+            android:textColor="@color/textColor"
+            android:textSize="18sp"
+            tools:text="Hogeschool van Amsterdam publieke beta / pilot" />
+
+        <View
+            android:layout_width="wrap_content"
+            android:layout_height="1dp"
+            android:layout_alignParentBottom="true"
+            android:layout_marginLeft="8dp"
+            android:layout_marginRight="8dp"
+            android:background="@color/mainColor" />
+    </RelativeLayout>
+</layout>

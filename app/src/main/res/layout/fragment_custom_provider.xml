@@ -1,57 +1,57 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="@color/backgroundColor"
-    android:clickable="true"
-    android:orientation="vertical">
+<layout>
 
-    <TextView
-        style="@style/Header"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:layout_marginBottom="24dp"
-        android:padding="16dp"
-        android:text="@string/custom_provider_title"
-        />
-
-    <RelativeLayout
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:padding="16dp">
+        android:layout_height="match_parent"
+        android:background="@color/backgroundColor"
+        android:clickable="true"
+        android:orientation="vertical">
 
         <TextView
-            android:id="@+id/custom_provider_prefix"
+            style="@style/Header"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignParentLeft="true"
-            android:layout_marginLeft="16dp"
-            android:text="@string/custom_provider_prefix"
-            android:fontFamily="serif-monospace"
-            android:textColor="@color/textColor"
-            android:textSize="@dimen/custom_provider_text_size"/>
+            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="24dp"
+            android:padding="16dp"
+            android:text="@string/custom_provider_title" />
 
-        <EditText
-            android:id="@+id/custom_provider_url"
+        <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_alignBaseline="@+id/custom_provider_prefix"
-            android:layout_toRightOf="@+id/custom_provider_prefix"
-            android:inputType="textUri"
-            android:hint="@string/example_domain"
-            android:textColor="@color/textColor"
-            android:textSize="@dimen/custom_provider_text_size"
-            />
-    </RelativeLayout>
+            android:padding="16dp">
 
-    <Button
-        android:id="@+id/custom_provider_connect"
-        style="@style/BigButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:layout_marginTop="16dp"
-        android:text="@string/custom_provider_connect"/>
-</LinearLayout>
+            <TextView
+                android:id="@+id/custom_provider_prefix"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentLeft="true"
+                android:layout_marginLeft="16dp"
+                android:fontFamily="serif-monospace"
+                android:text="@string/custom_provider_prefix"
+                android:textColor="@color/textColor"
+                android:textSize="@dimen/custom_provider_text_size" />
+
+            <EditText
+                android:id="@+id/custom_provider_url"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_alignBaseline="@+id/custom_provider_prefix"
+                android:layout_toRightOf="@+id/custom_provider_prefix"
+                android:hint="@string/example_domain"
+                android:inputType="textUri"
+                android:textColor="@color/textColor"
+                android:textSize="@dimen/custom_provider_text_size" />
+        </RelativeLayout>
+
+        <Button
+            android:id="@+id/custom_provider_connect"
+            style="@style/BigButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="16dp"
+            android:text="@string/custom_provider_connect" />
+    </LinearLayout>
+</layout>

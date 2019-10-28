@@ -17,6 +17,7 @@
 
 package nl.eduvpn.app.adapter;
 
+import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
@@ -31,6 +32,7 @@ import java.util.Observer;
 
 import nl.eduvpn.app.R;
 import nl.eduvpn.app.adapter.viewholder.ProviderViewHolder;
+import nl.eduvpn.app.databinding.ListItemProviderBinding;
 import nl.eduvpn.app.entity.AuthorizationType;
 import nl.eduvpn.app.entity.Instance;
 import nl.eduvpn.app.service.ConfigurationService;
@@ -89,13 +91,13 @@ public class ProviderAdapter extends RecyclerView.Adapter<ProviderViewHolder> {
     }
 
 
+    @NonNull
     @Override
-    public ProviderViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    public ProviderViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         if (_layoutInflater == null) {
             _layoutInflater = LayoutInflater.from(parent.getContext());
         }
-        View view = _layoutInflater.inflate(R.layout.list_item_provider, parent, false);
-        return new ProviderViewHolder(view);
+        return new ProviderViewHolder(ListItemProviderBinding.inflate(_layoutInflater, parent, false ));
     }
 
     @Override

@@ -22,18 +22,10 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.Button;
-import android.widget.ImageView;
-import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.ViewSwitcher;
 
 import com.squareup.picasso.Picasso;
 
@@ -46,15 +38,13 @@ import java.util.Observer;
 
 import javax.inject.Inject;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
-import butterknife.OnClick;
-import butterknife.Unbinder;
 import de.blinkt.openvpn.activities.LogWindow;
 import nl.eduvpn.app.EduVPNApplication;
 import nl.eduvpn.app.MainActivity;
 import nl.eduvpn.app.R;
 import nl.eduvpn.app.adapter.MessagesAdapter;
+import nl.eduvpn.app.base.BaseFragment;
+import nl.eduvpn.app.databinding.FragmentConnectionStatusBinding;
 import nl.eduvpn.app.entity.DiscoveredAPI;
 import nl.eduvpn.app.entity.Instance;
 import nl.eduvpn.app.entity.Profile;
@@ -71,7 +61,7 @@ import nl.eduvpn.app.utils.Log;
  * The fragment which displays the status of the current connection.
  * Created by Daniel Zolnai on 2016-10-07.
  */
-public class ConnectionStatusFragment extends Fragment implements VPNService.ConnectionInfoCallback {
+public class ConnectionStatusFragment extends BaseFragment<FragmentConnectionStatusBinding> implements VPNService.ConnectionInfoCallback {
 
     private static final int WAIT_FOR_DISCONNECT_UNTIL_MS = 3000;
     private static final String TAG = ConnectionStatusFragment.class.getName();
@@ -88,84 +78,49 @@ public class ConnectionStatusFragment extends Fragment implements VPNService.Con
     @Inject
     protected SerializerService _serializerService;
 
-    @BindView(R.id.messagesList)
-    protected RecyclerView _messagesList;
-
-    @BindView(R.id.profileName)
-    protected TextView _profileName;
-
-    @BindView(R.id.providerIcon)
-    protected ImageView _providerIcon;
-
-    @BindView(R.id.connectionStatusIcon)
-    protected ImageView _currentStatusIcon;
-
-    @BindView(R.id.switcher)
-    protected ViewSwitcher _viewSwitcher;
-
-    @BindView(R.id.notificationsSwitchButton)
-    protected Button _notificationsSwitchButton;
-
-    @BindView(R.id.connectionInfoSwitchButton)
-    protected Button _connectionInfoSwitchButton;
-
-    @BindView(R.id.ipV4Value)
-    protected TextView _ipV4Text;
-
-    @BindView(R.id.ipV6Value)
-    protected TextView _ipV6Text;
-
-    @BindView(R.id.durationValue)
-    protected TextView _durationText;
-
-    @BindView(R.id.bytesInValue)
-    protected TextView _bytesInText;
-
-    @BindView(R.id.bytesOutValue)
-    protected TextView _bytesOutText;
-
-    @BindView(R.id.disconnectButton)
-    protected Button _disconnectButton;
-
     private Observer _vpnStatusObserver;
-    private Unbinder _unbinder;
 
     private boolean _userInitiatedDisconnect = false;
     private boolean _userNavigation = false;
 
     private Handler _gracefulDisconnectHandler = new Handler();
 
-    @Nullable
+
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_connection_status, container, false);
-        _unbinder = ButterKnife.bind(this, view);
-        EduVPNApplication.get(view.getContext()).component().inject(this);
-        Profile savedProfile = _preferencesService.getCurrentProfile();
-        if (savedProfile != null) {
-            _profileName.setText(savedProfile.getDisplayName());
-        } else {
-            _profileName.setText(R.string.profile_name_not_found);
-        }
-        _messagesList.setLayoutManager(new LinearLayoutManager(view.getContext(), LinearLayoutManager.VERTICAL, false));
-        _messagesList.setAdapter(new MessagesAdapter());
-        return view;
+    protected int getLayout() {
+        return R.layout.fragment_connection_status;
     }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
+        EduVPNApplication.get(view.getContext()).component().inject(this);
+        Profile savedProfile = _preferencesService.getCurrentProfile();
+        if (savedProfile != null) {
+            binding.profileName.setText(savedProfile.getDisplayName());
+        } else {
+            binding.profileName.setText(R.string.profile_name_not_found);
+        }
+        binding.notifications.messagesList.setLayoutManager(new LinearLayoutManager(view.getContext(), LinearLayoutManager.VERTICAL, false));
+        binding.notifications.messagesList.setAdapter(new MessagesAdapter());
+
+        binding.connectionInfo.viewLogButton.setOnClickListener(v -> onViewLogClicked());
+        binding.disconnectButton.setOnClickListener(v -> onDisconnectButtonClicked());
+        binding.notificationsSwitchButton.setOnClickListener(this::onSwitcherButtonClicked);
+        binding.connectionInfoSwitchButton.setOnClickListener(this::onSwitcherButtonClicked);
+
         Instance provider = _preferencesService.getCurrentInstance();
         if (!TextUtils.isEmpty(provider.getLogoUri())) {
             Picasso.with(view.getContext())
                     .load(provider.getLogoUri())
                     .fit()
-                    .into(_providerIcon);
+                    .into(binding.providerIcon);
         }
         // Load the user and system messages asynchronously.
         DiscoveredAPI discoveredAPI = _preferencesService.getCurrentDiscoveredAPI();
         AuthState authState = _preferencesService.getCurrentAuthState();
-        final MessagesAdapter messagesAdapter = (MessagesAdapter) _messagesList.getAdapter();
+        final MessagesAdapter messagesAdapter = (MessagesAdapter) binding.notifications.messagesList.getAdapter();
         _apiService.getJSON(discoveredAPI.getSystemMessagesEndpoint(), authState, new APIService.Callback<JSONObject>() {
             @Override
             public void onSuccess(JSONObject result) {
@@ -202,7 +157,7 @@ public class ConnectionStatusFragment extends Fragment implements VPNService.Con
                         Toast.LENGTH_SHORT).show();
             }
         });
-        _viewSwitcher.setDisplayedChild(0);
+        binding.switcher.setDisplayedChild(0);
     }
 
     @Override
@@ -210,44 +165,44 @@ public class ConnectionStatusFragment extends Fragment implements VPNService.Con
         super.onStart();
         _vpnStatusObserver = (o, arg) -> {
             VPNService.VPNStatus status = (VPNService.VPNStatus) arg;
-            if (_currentStatusIcon != null) {
+            if (binding.connectionStatusIcon != null) {
                 switch (status) {
                     case CONNECTED:
-                        _disconnectButton.setText(R.string.button_disconnect);
-                        _disconnectButton.setEnabled(true);
+                        binding.disconnectButton.setText(R.string.button_disconnect);
+                        binding.disconnectButton.setEnabled(true);
                         _userNavigation = false;
-                        _currentStatusIcon.setImageResource(R.drawable.connection_status_connected);
+                        binding.connectionStatusIcon.setImageResource(R.drawable.connection_status_connected);
                         break;
                     case CONNECTING:
-                        _currentStatusIcon.setImageResource(R.drawable.connection_status_connecting);
-                        _disconnectButton.setText(R.string.button_disconnect);
+                        binding.connectionStatusIcon.setImageResource(R.drawable.connection_status_connecting);
+                        binding.disconnectButton.setText(R.string.button_disconnect);
                         _userNavigation = false;
-                        _disconnectButton.setEnabled(true);
+                        binding.disconnectButton.setEnabled(true);
                         break;
                     case PAUSED:
-                        _disconnectButton.setText(R.string.button_disconnect);
-                        _disconnectButton.setEnabled(true);
+                        binding.disconnectButton.setText(R.string.button_disconnect);
+                        binding.disconnectButton.setEnabled(true);
                         _userNavigation = false;
-                        _currentStatusIcon.setImageResource(R.drawable.connection_status_paused);
+                        binding.connectionStatusIcon.setImageResource(R.drawable.connection_status_paused);
                         break;
                     case DISCONNECTED:
                         if (_userInitiatedDisconnect) {
                             // Go back to the home screen.
-                            _disconnectButton.setEnabled(false);
+                            binding.disconnectButton.setEnabled(false);
                             _userNavigation = false;
                             _gracefulDisconnectHandler.removeCallbacksAndMessages(null);
                             ((MainActivity) getActivity()).openFragment(HomeFragment.newInstance(false), false);
                         } else {
-                            _currentStatusIcon.setImageResource(R.drawable.connection_status_disconnected);
-                            _disconnectButton.setEnabled(true);
-                            _disconnectButton.setText(R.string.go_back);
+                            binding.connectionStatusIcon.setImageResource(R.drawable.connection_status_disconnected);
+                            binding.disconnectButton.setEnabled(true);
+                            binding.disconnectButton.setText(R.string.go_back);
                             _userNavigation = true;
                         }
                         break;
                     case FAILED:
                         String message = getString(R.string.error_while_connecting, _vpnService.getErrorString());
                         ErrorDialog.show(getContext(), R.string.error_dialog_title_unable_to_connect, message);
-                        _currentStatusIcon.setImageResource(R.drawable.connection_status_disconnected);
+                        binding.connectionStatusIcon.setImageResource(R.drawable.connection_status_disconnected);
                         break;
                     default:
                         throw new RuntimeException("Unhandled VPN status!");
@@ -269,36 +224,28 @@ public class ConnectionStatusFragment extends Fragment implements VPNService.Con
         _vpnService.detachConnectionInfoListener();
     }
 
-    @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-        _unbinder.unbind();
-    }
-
-    @OnClick({R.id.notificationsSwitchButton, R.id.connectionInfoSwitchButton})
     public void onSwitcherButtonClicked(View view) {
         int selectedBg = R.drawable.switcher_button_bg_selected;
         int defaultBg = R.drawable.switcher_button_bg;
-        if (view == _notificationsSwitchButton) {
-            _viewSwitcher.setDisplayedChild(0);
-            _notificationsSwitchButton.setBackgroundResource(selectedBg);
-            _connectionInfoSwitchButton.setBackgroundResource(defaultBg);
+        if (view == binding.notificationsSwitchButton) {
+            binding.switcher.setDisplayedChild(0);
+            binding.notificationsSwitchButton.setBackgroundResource(selectedBg);
+            binding.connectionInfoSwitchButton.setBackgroundResource(defaultBg);
         } else {
-            _viewSwitcher.setDisplayedChild(1);
-            _notificationsSwitchButton.setBackgroundResource(defaultBg);
-            _connectionInfoSwitchButton.setBackgroundResource(selectedBg);
+            binding.switcher.setDisplayedChild(1);
+            binding.notificationsSwitchButton.setBackgroundResource(defaultBg);
+            binding.connectionInfoSwitchButton.setBackgroundResource(selectedBg);
         }
     }
 
-    @OnClick(R.id.disconnectButton)
     protected void onDisconnectButtonClicked() {
         if (_userNavigation) {
             ((MainActivity) getActivity()).openFragment(HomeFragment.newInstance(false), false);
         } else {
             boolean isConnecting = _vpnService.getStatus() == VPNService.VPNStatus.CONNECTING;
             _userInitiatedDisconnect = true;
-            _currentStatusIcon.setImageResource(R.drawable.connection_status_disconnected);
-            _disconnectButton.setEnabled(false);
+            binding.connectionStatusIcon.setImageResource(R.drawable.connection_status_disconnected);
+            binding.disconnectButton.setEnabled(false);
             _vpnService.disconnect();
             if (isConnecting) {
                 // In this case, if we call disconnect, the process can be killed.
@@ -320,7 +267,6 @@ public class ConnectionStatusFragment extends Fragment implements VPNService.Con
         }
     }
 
-    @OnClick(R.id.viewLogButton)
     protected void onViewLogClicked() {
         Intent intent = new Intent(getActivity(), LogWindow.class);
         startActivity(intent);
@@ -328,17 +274,17 @@ public class ConnectionStatusFragment extends Fragment implements VPNService.Con
 
     @Override
     public void updateStatus(Long secondsConnected, Long bytesIn, Long bytesOut) {
-        _durationText.setText(FormattingUtils.formatDurationSeconds(getContext(), secondsConnected));
-        _bytesInText.setText(FormattingUtils.formatBytesTraffic(getContext(), bytesIn));
-        _bytesOutText.setText(FormattingUtils.formatBytesTraffic(getContext(), bytesOut));
+        binding.connectionInfo.durationValue.setText(FormattingUtils.formatDurationSeconds(getContext(), secondsConnected));
+        binding.connectionInfo.bytesInValue.setText(FormattingUtils.formatBytesTraffic(getContext(), bytesIn));
+        binding.connectionInfo.bytesOutValue.setText(FormattingUtils.formatBytesTraffic(getContext(), bytesOut));
     }
 
     @Override
     public void metadataAvailable(String localIpV4, String localIpV6) {
         String ipV4DisplayText = localIpV4 == null ? getString(R.string.not_available) : localIpV4;
-        _ipV4Text.setText(ipV4DisplayText);
+        binding.connectionInfo.ipV4Value.setText(ipV4DisplayText);
         String ipV6DisplayText = localIpV6 == null ? getString(R.string.not_available) : localIpV6;
-        _ipV6Text.setText(ipV6DisplayText);
+        binding.connectionInfo.ipV6Value.setText(ipV6DisplayText);
     }
 
 }

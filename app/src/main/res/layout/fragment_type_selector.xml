@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!--
+<?xml version="1.0" encoding="utf-8"?><!--
   ~  This file is part of eduVPN.
   ~
   ~     eduVPN is free software: you can redistribute it and/or modify
@@ -15,56 +14,57 @@
   ~     You should have received a copy of the GNU General Public License
   ~     along with eduVPN.  If not, see <http://www.gnu.org/licenses/>.
   -->
+<layout>
 
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:layout_gravity="center"
-    android:background="@color/backgroundColor"
-    android:orientation="vertical"
-    android:padding="16dp">
-
-    <LinearLayout
-        android:id="@+id/vpn_option_container_secure_internet"
-        style="@style/ProfileTypeContainer"
-        android:layout_marginTop="24dp">
-
-        <ImageView
-            style="@style/ProfileTypeIcon"
-            android:contentDescription="@string/content_description_secure_internet"
-            android:src="@drawable/icon_shield_internet_white_full"/>
-
-        <TextView
-            style="@style/ProfileTypeText"
-            android:text="@string/vpn_option_label_secure_internet"/>
-    </LinearLayout>
-
-    <LinearLayout
-        android:id="@+id/vpn_option_container_institute_access"
-        style="@style/ProfileTypeContainer"
-        android:layout_marginTop="12dp">
-
-        <ImageView
-            style="@style/ProfileTypeIcon"
-            android:contentDescription="@string/content_description_institute_access"
-            android:src="@drawable/icon_shield_access_white_full"/>
-
-        <TextView
-            style="@style/ProfileTypeText"
-            android:text="@string/vpn_option_label_institute_access"/>
-    </LinearLayout>
-
-    <TextView
-        android:id="@+id/other_address"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textSize="18sp"
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         android:layout_gravity="center"
-        android:background="?attr/selectableItemBackground"
-        android:gravity="center"
-        android:layout_marginTop="8dp"
-        android:padding="16dp"
-        android:text="@string/add_other_address"
-        android:textColor="@color/mainColor"/>
-</LinearLayout>
+        android:background="@color/backgroundColor"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <LinearLayout
+            android:id="@+id/vpn_option_container_secure_internet"
+            style="@style/ProfileTypeContainer"
+            android:layout_marginTop="24dp">
+
+            <ImageView
+                style="@style/ProfileTypeIcon"
+                android:contentDescription="@string/content_description_secure_internet"
+                android:src="@drawable/icon_shield_internet_white_full" />
+
+            <TextView
+                style="@style/ProfileTypeText"
+                android:text="@string/vpn_option_label_secure_internet" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/vpn_option_container_institute_access"
+            style="@style/ProfileTypeContainer"
+            android:layout_marginTop="12dp">
+
+            <ImageView
+                style="@style/ProfileTypeIcon"
+                android:contentDescription="@string/content_description_institute_access"
+                android:src="@drawable/icon_shield_access_white_full" />
+
+            <TextView
+                style="@style/ProfileTypeText"
+                android:text="@string/vpn_option_label_institute_access" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/other_address"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginTop="8dp"
+            android:background="?attr/selectableItemBackground"
+            android:gravity="center"
+            android:padding="16dp"
+            android:text="@string/add_other_address"
+            android:textColor="@color/mainColor"
+            android:textSize="18sp" />
+    </LinearLayout>
+</layout>

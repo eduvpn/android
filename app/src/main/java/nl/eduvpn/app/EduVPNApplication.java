@@ -19,6 +19,7 @@ package nl.eduvpn.app;
 
 import android.app.Application;
 import android.content.Context;
+import android.os.StrictMode;
 
 import de.blinkt.openvpn.core.ICSOpenVPNApplication;
 import nl.eduvpn.app.inject.EduVPNComponent;
@@ -39,6 +40,12 @@ public class EduVPNApplication extends ICSOpenVPNApplication {
         super.onCreate();
         // Set up the injector
         _component = EduVPNComponent.Initializer.init(this);
+
+        // The base class sets a strict VM policy for debug builds, which do not work well with OkHttp
+        // (see this issue: https://github.com/square/okhttp/issues/3537)
+        // For now, the best solution seems to be disabling strict mode
+        StrictMode.VmPolicy policy = new StrictMode.VmPolicy.Builder().build();
+        StrictMode.setVmPolicy(policy);
     }
 
     public EduVPNComponent component() {

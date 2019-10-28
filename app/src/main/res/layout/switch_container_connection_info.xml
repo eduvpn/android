@@ -1,98 +1,100 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:padding="12dp"
-    tools:background="@android:color/white"
-    tools:layout_width="250dp"
-    tools:layout_height="180dp">
+<layout>
 
-    <TextView
-        android:id="@+id/durationLabel"
-        style="@style/ConnectionInfoLabel"
-        android:layout_width="@dimen/connection_info_top_container_width"
-        android:text="@string/connection_info_duration"/>
+    <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:padding="12dp"
+        tools:background="@android:color/white"
+        tools:layout_height="180dp"
+        tools:layout_width="250dp">
 
-    <TextView
-        android:id="@+id/durationValue"
-        style="@style/ConnectionInfoLabel"
-        android:layout_width="wrap_content"
-        android:layout_alignBaseline="@id/durationLabel"
-        android:layout_toRightOf="@id/durationLabel"
-        tools:text="0:23:34"/>
+        <TextView
+            android:id="@+id/durationLabel"
+            style="@style/ConnectionInfoLabel"
+            android:layout_width="@dimen/connection_info_top_container_width"
+            android:text="@string/connection_info_duration" />
 
-    <TextView
-        android:id="@+id/bytesInLabel"
-        style="@style/ConnectionInfoLabel"
-        android:layout_width="@dimen/connection_info_top_container_width"
-        android:layout_below="@id/durationLabel"
-        android:text="@string/connection_info_bytes_in"/>
+        <TextView
+            android:id="@+id/durationValue"
+            style="@style/ConnectionInfoLabel"
+            android:layout_width="wrap_content"
+            android:layout_alignBaseline="@id/durationLabel"
+            android:layout_toRightOf="@id/durationLabel"
+            tools:text="0:23:34" />
 
-    <TextView
-        android:id="@+id/bytesInValue"
-        style="@style/ConnectionInfoLabel"
-        android:layout_width="wrap_content"
-        android:layout_alignBaseline="@id/bytesInLabel"
-        android:layout_toRightOf="@id/bytesInLabel"
-        tools:text="23.45Mb"/>
+        <TextView
+            android:id="@+id/bytesInLabel"
+            style="@style/ConnectionInfoLabel"
+            android:layout_width="@dimen/connection_info_top_container_width"
+            android:layout_below="@id/durationLabel"
+            android:text="@string/connection_info_bytes_in" />
 
-    <TextView
-        android:id="@+id/bytesOutLabel"
-        style="@style/ConnectionInfoLabel"
-        android:layout_width="@dimen/connection_info_top_container_width"
-        android:layout_below="@id/bytesInLabel"
-        android:text="@string/connection_info_bytes_out"/>
+        <TextView
+            android:id="@+id/bytesInValue"
+            style="@style/ConnectionInfoLabel"
+            android:layout_width="wrap_content"
+            android:layout_alignBaseline="@id/bytesInLabel"
+            android:layout_toRightOf="@id/bytesInLabel"
+            tools:text="23.45Mb" />
 
-    <TextView
-        android:id="@+id/bytesOutValue"
-        style="@style/ConnectionInfoLabel"
-        android:layout_width="wrap_content"
-        android:layout_alignBaseline="@id/bytesOutLabel"
-        android:layout_toRightOf="@id/bytesOutLabel"
-        tools:text="1.23Mb"/>
+        <TextView
+            android:id="@+id/bytesOutLabel"
+            style="@style/ConnectionInfoLabel"
+            android:layout_width="@dimen/connection_info_top_container_width"
+            android:layout_below="@id/bytesInLabel"
+            android:text="@string/connection_info_bytes_out" />
 
-    <TextView
-        android:id="@+id/ipV4Label"
-        style="@style/ConnectionInfoLabel"
-        android:layout_width="@dimen/connection_info_bottom_container_width"
-        android:layout_below="@id/bytesOutLabel"
-        android:layout_marginTop="10dp"
-        android:text="@string/connection_info_ipv4"/>
+        <TextView
+            android:id="@+id/bytesOutValue"
+            style="@style/ConnectionInfoLabel"
+            android:layout_width="wrap_content"
+            android:layout_alignBaseline="@id/bytesOutLabel"
+            android:layout_toRightOf="@id/bytesOutLabel"
+            tools:text="1.23Mb" />
 
-    <TextView
-        android:id="@+id/ipV4Value"
-        style="@style/ConnectionInfoLabel"
-        android:layout_width="wrap_content"
-        android:layout_alignBaseline="@id/ipV4Label"
-        android:layout_toRightOf="@id/ipV4Label"
-        android:text="@string/not_available"
-        tools:text="195.168.1.122"/>
+        <TextView
+            android:id="@+id/ipV4Label"
+            style="@style/ConnectionInfoLabel"
+            android:layout_width="@dimen/connection_info_bottom_container_width"
+            android:layout_below="@id/bytesOutLabel"
+            android:layout_marginTop="10dp"
+            android:text="@string/connection_info_ipv4" />
 
-    <TextView
-        android:id="@+id/ipV6Label"
-        style="@style/ConnectionInfoLabel"
-        android:layout_width="@dimen/connection_info_bottom_container_width"
-        android:layout_below="@id/ipV4Label"
-        android:text="@string/connection_info_ipv6"/>
+        <TextView
+            android:id="@+id/ipV4Value"
+            style="@style/ConnectionInfoLabel"
+            android:layout_width="wrap_content"
+            android:layout_alignBaseline="@id/ipV4Label"
+            android:layout_toRightOf="@id/ipV4Label"
+            android:text="@string/not_available"
+            tools:text="195.168.1.122" />
 
-    <TextView
-        android:id="@+id/ipV6Value"
-        style="@style/ConnectionInfoLabel"
-        android:layout_width="wrap_content"
-        android:layout_alignBaseline="@id/ipV6Label"
-        android:layout_toRightOf="@id/ipV6Label"
-        android:text="@string/not_available"
-        tools:text="2011:610:450::2::1032"/>
+        <TextView
+            android:id="@+id/ipV6Label"
+            style="@style/ConnectionInfoLabel"
+            android:layout_width="@dimen/connection_info_bottom_container_width"
+            android:layout_below="@id/ipV4Label"
+            android:text="@string/connection_info_ipv6" />
 
-    <Button
-        android:id="@+id/viewLogButton"
-        style="@style/SmallButton"
-        android:layout_width="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true"
-        android:layout_marginBottom="4dp"
-        android:text="@string/view_log_button"/>
+        <TextView
+            android:id="@+id/ipV6Value"
+            style="@style/ConnectionInfoLabel"
+            android:layout_width="wrap_content"
+            android:layout_alignBaseline="@id/ipV6Label"
+            android:layout_toRightOf="@id/ipV6Label"
+            android:text="@string/not_available"
+            tools:text="2011:610:450::2::1032" />
 
-</RelativeLayout>
+        <Button
+            android:id="@+id/viewLogButton"
+            style="@style/SmallButton"
+            android:layout_width="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_centerHorizontal="true"
+            android:layout_marginBottom="4dp"
+            android:text="@string/view_log_button" />
+
+    </RelativeLayout>
+</layout>

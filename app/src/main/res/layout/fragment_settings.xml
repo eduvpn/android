@@ -1,76 +1,76 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent">
+<layout>
 
-    <Button
-        android:id="@+id/saveButton"
-        style="@style/BigButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true"
-        android:layout_marginBottom="@dimen/button_margin_bottom"
-        android:enabled="false"
-        android:text="@string/settings_save"/>
-
-    <ScrollView
+    <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_above="@id/saveButton"
-        android:layout_marginBottom="8dp"
-        android:fillViewport="true">
+        android:layout_height="match_parent">
 
-        <RelativeLayout
-            xmlns:android="http://schemas.android.com/apk/res/android"
-            xmlns:tools="http://schemas.android.com/tools"
-            android:layout_width="match_parent"
+        <Button
+            android:id="@+id/saveButton"
+            style="@style/BigButton"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:background="@color/backgroundColor"
-            android:clickable="true"
-            android:padding="16dp"
-            tools:context=".SettingsActivity">
+            android:layout_alignParentBottom="true"
+            android:layout_centerHorizontal="true"
+            android:layout_marginBottom="@dimen/button_margin_bottom"
+            android:enabled="false"
+            android:text="@string/settings_save" />
 
-            <TextView
-                android:id="@+id/forceTcpTitle"
-                style="@style/SettingsLabelTitle"
-                android:layout_alignParentTop="true"
-                android:text="@string/settings_force_tcp_title"/>
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_above="@id/saveButton"
+            android:layout_marginBottom="8dp"
+            android:fillViewport="true">
 
-            <android.support.v7.widget.SwitchCompat
-                android:id="@+id/forceTcpSwitch"
-                style="@style/SettingsSwitch"/>
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/backgroundColor"
+                android:clickable="true"
+                android:padding="16dp"
+                tools:context=".SettingsActivity">
 
-            <TextView
-                android:id="@+id/forceTcpDescription"
-                style="@style/SettingsLabelDescription"
-                android:layout_below="@+id/forceTcpTitle"
-                android:text="@string/settings_force_tcp_description"/>
+                <TextView
+                    android:id="@+id/forceTcpTitle"
+                    style="@style/SettingsLabelTitle"
+                    android:layout_alignParentTop="true"
+                    android:text="@string/settings_force_tcp_title" />
 
-            <View
-                android:id="@+id/tcpSeparator"
-                style="@style/SettingsSeparator"
-                android:layout_below="@id/forceTcpDescription"/>
+                <android.support.v7.widget.SwitchCompat
+                    android:id="@+id/forceTcpSwitch"
+                    style="@style/SettingsSwitch" />
 
-            <TextView
-                android:id="@+id/useCustomTabsTitle"
-                style="@style/SettingsLabelTitle"
-                android:layout_below="@+id/tcpSeparator"
-                android:text="@string/settings_custom_tabs_opt_out_title"/>
+                <TextView
+                    android:id="@+id/forceTcpDescription"
+                    style="@style/SettingsLabelDescription"
+                    android:layout_below="@+id/forceTcpTitle"
+                    android:text="@string/settings_force_tcp_description" />
 
-            <android.support.v7.widget.SwitchCompat
-                android:id="@+id/useCustomTabsSwitch"
-                style="@style/SettingsSwitch"
-                android:layout_below="@+id/tcpSeparator"/>
+                <View
+                    android:id="@+id/tcpSeparator"
+                    style="@style/SettingsSeparator"
+                    android:layout_below="@id/forceTcpDescription" />
 
-            <TextView
-                android:id="@+id/useCustomTabsDescription"
-                style="@style/SettingsLabelDescription"
-                android:layout_below="@+id/useCustomTabsTitle"
-                android:text="@string/settings_use_custom_tabs_description"/>
-        </RelativeLayout>
-    </ScrollView>
+                <TextView
+                    android:id="@+id/useCustomTabsTitle"
+                    style="@style/SettingsLabelTitle"
+                    android:layout_below="@+id/tcpSeparator"
+                    android:text="@string/settings_custom_tabs_opt_out_title" />
 
-</RelativeLayout>
+                <android.support.v7.widget.SwitchCompat
+                    android:id="@+id/useCustomTabsSwitch"
+                    style="@style/SettingsSwitch"
+                    android:layout_below="@+id/tcpSeparator" />
+
+                <TextView
+                    android:id="@+id/useCustomTabsDescription"
+                    style="@style/SettingsLabelDescription"
+                    android:layout_below="@+id/useCustomTabsTitle"
+                    android:text="@string/settings_use_custom_tabs_description" />
+            </RelativeLayout>
+        </ScrollView>
+
+    </RelativeLayout>
+</layout>
