@@ -17,11 +17,8 @@
 
 package nl.eduvpn.app.adapter;
 
-import android.support.annotation.NonNull;
-import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
-import android.view.View;
 import android.view.ViewGroup;
 
 import com.squareup.picasso.Picasso;
@@ -30,6 +27,8 @@ import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
 
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.RecyclerView;
 import nl.eduvpn.app.R;
 import nl.eduvpn.app.adapter.viewholder.ProviderViewHolder;
 import nl.eduvpn.app.databinding.ListItemProviderBinding;

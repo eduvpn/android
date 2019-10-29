@@ -17,9 +17,9 @@
 
 package nl.eduvpn.app.entity.message;
 
-import android.support.annotation.NonNull;
-
 import java.util.Date;
+
+import androidx.annotation.NonNull;
 
 /**
  * Describes a message object.

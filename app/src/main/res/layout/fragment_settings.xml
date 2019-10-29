@@ -38,7 +38,7 @@
                     android:layout_alignParentTop="true"
                     android:text="@string/settings_force_tcp_title" />
 
-                <android.support.v7.widget.SwitchCompat
+                <androidx.appcompat.widget.SwitchCompat
                     android:id="@+id/forceTcpSwitch"
                     style="@style/SettingsSwitch" />
 
@@ -59,7 +59,7 @@
                     android:layout_below="@+id/tcpSeparator"
                     android:text="@string/settings_custom_tabs_opt_out_title" />
 
-                <android.support.v7.widget.SwitchCompat
+                <androidx.appcompat.widget.SwitchCompat
                     android:id="@+id/useCustomTabsSwitch"
                     style="@style/SettingsSwitch"
                     android:layout_below="@+id/tcpSeparator" />

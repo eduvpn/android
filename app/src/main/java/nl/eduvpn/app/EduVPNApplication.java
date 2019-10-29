@@ -17,15 +17,11 @@
 
 package nl.eduvpn.app;
 
-import android.app.Application;
 import android.content.Context;
 import android.os.StrictMode;
 
 import de.blinkt.openvpn.core.ICSOpenVPNApplication;
 import nl.eduvpn.app.inject.EduVPNComponent;
-
-import de.blinkt.openvpn.core.PRNGFixes;
-import de.blinkt.openvpn.core.VpnStatus;
 
 /**
  * Application object which keeps track of the app lifecycle.

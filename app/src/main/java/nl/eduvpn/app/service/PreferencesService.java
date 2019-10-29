@@ -18,8 +18,6 @@
 package nl.eduvpn.app.service;
 
 import android.content.SharedPreferences;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 
 import net.openid.appauth.AuthState;
 
@@ -28,6 +26,8 @@ import org.json.JSONObject;
 
 import java.util.List;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import nl.eduvpn.app.entity.AuthorizationType;
 import nl.eduvpn.app.entity.DiscoveredAPI;
 import nl.eduvpn.app.entity.Instance;

@@ -17,11 +17,11 @@
 
 package nl.eduvpn.app.adapter.viewholder;
 
-import android.support.v7.widget.RecyclerView;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import androidx.recyclerview.widget.RecyclerView;
 import nl.eduvpn.app.databinding.ListItemConfigBinding;
 
 /**

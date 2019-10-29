@@ -34,7 +34,7 @@
             android:layout_marginBottom="@dimen/footer_height"
             tools:background="#F0F0F0" />
 
-        <android.support.v7.widget.Toolbar
+        <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -80,6 +80,6 @@
                     android:tint="@color/iconColorInverted" />
 
             </RelativeLayout>
-        </android.support.v7.widget.Toolbar>
+        </androidx.appcompat.widget.Toolbar>
     </RelativeLayout>
 </layout>

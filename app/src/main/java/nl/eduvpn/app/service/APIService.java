@@ -17,8 +17,6 @@
 
 package nl.eduvpn.app.service;
 
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 
 import net.openid.appauth.AuthState;
 
@@ -27,15 +25,14 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 
-import io.reactivex.Observable;
-import io.reactivex.ObservableSource;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import io.reactivex.Single;
 import io.reactivex.SingleSource;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function;
 import io.reactivex.schedulers.Schedulers;
-import io.reactivex.subjects.PublishSubject;
 import nl.eduvpn.app.utils.Log;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;

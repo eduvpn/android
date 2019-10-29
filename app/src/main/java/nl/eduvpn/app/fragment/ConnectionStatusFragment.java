@@ -20,9 +20,6 @@ package nl.eduvpn.app.fragment;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.v7.widget.LinearLayoutManager;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.Toast;
@@ -38,6 +35,9 @@ import java.util.Observer;
 
 import javax.inject.Inject;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import de.blinkt.openvpn.activities.LogWindow;
 import nl.eduvpn.app.EduVPNApplication;
 import nl.eduvpn.app.MainActivity;

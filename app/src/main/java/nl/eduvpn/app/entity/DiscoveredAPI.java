@@ -18,8 +18,8 @@
 package nl.eduvpn.app.entity;
 
 import android.net.Uri;
-import android.support.annotation.NonNull;
 
+import androidx.annotation.NonNull;
 import nl.eduvpn.app.Constants;
 
 /**

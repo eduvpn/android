@@ -19,7 +19,6 @@ package nl.eduvpn.app.utils;
 
 import android.app.Dialog;
 import android.content.Context;
-import android.support.annotation.StringRes;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
@@ -28,6 +27,7 @@ import android.widget.TextView;
 
 import java.util.List;
 
+import androidx.annotation.StringRes;
 import nl.eduvpn.app.R;
 import nl.eduvpn.app.entity.Instance;
 

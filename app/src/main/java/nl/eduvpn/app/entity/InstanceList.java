@@ -17,9 +17,9 @@
 
 package nl.eduvpn.app.entity;
 
-import android.support.annotation.NonNull;
-
 import java.util.List;
+
+import androidx.annotation.NonNull;
 
 /**
  * The application configuration.

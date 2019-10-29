@@ -3,12 +3,12 @@ apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-kapt'
 
 android {
-    compileSdkVersion 28
+    compileSdkVersion 29
 
     defaultConfig {
         applicationId "nl.eduvpn.app"
         minSdkVersion 21
-        targetSdkVersion 28 // Only bump to 29 when the VPN library also bumps it. Currently the lib crashes with 29 (https://github.com/schwabe/ics-openvpn/issues/1084)
+        targetSdkVersion 29
         versionCode 10
         versionName "1.3"
         buildConfigField "String", "SECURE_INTERNET_DISCOVERY_URL", "\"https://static.eduvpn.nl/disco/secure_internet.json\""
@@ -27,7 +27,7 @@ android {
         manifestPlaceholders = [
                 'appAuthRedirectScheme': 'org.eduvpn.app'
         ]
-        missingDimensionStrategy 'implementation', 'noovpn3'
+        missingDimensionStrategy 'implementation', 'ui' // Skeleton is no option for us because we need the log activity
     }
 
     buildTypes {
@@ -84,18 +84,18 @@ android {
     }
 }
 
-def supportLibVersion = "28.0.0" // Please try to stay in sync with the version used in the ics-openvpn module (that's why we don't use AndroidX yet)
+def supportLibVersion = "28.0.0"
 def daggerVersion = "2.25.2"
 def okHttpVersion = "4.2.2"
 
 dependencies {
     // The VPN library
     implementation project(path: ':ics-openvpn-main')
-
-    implementation "com.android.support:appcompat-v7:$supportLibVersion"
-    implementation "com.android.support:design:$supportLibVersion"
-    implementation "com.android.support:recyclerview-v7:$supportLibVersion"
-    implementation "com.android.support:customtabs:$supportLibVersion"
+    // Please try to stay in sync with the versions used in the ics-openvpn module
+    implementation "androidx.appcompat:appcompat:1.1.0"
+    implementation "androidx.recyclerview:recyclerview:1.0.0"
+    implementation 'com.google.android.material:material:1.0.0'
+    implementation "androidx.browser:browser:1.0.0" // Custom tabs
     // OAuth client
     implementation 'net.openid:appauth:0.7.1'
     // Secure preferences
@@ -115,7 +115,8 @@ dependencies {
 
     // All testing related libraries
     testImplementation 'junit:junit:4.12'
-    androidTestImplementation "com.android.support:support-annotations:$supportLibVersion"
-    androidTestImplementation 'com.android.support.test:runner:0.5'
-    androidTestImplementation 'com.android.support.test:rules:0.5'
+
+    androidTestImplementation 'androidx.test:runner:1.1.0'
+    androidTestImplementation 'androidx.test:rules:1.1.0'
+
 }
