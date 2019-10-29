@@ -104,7 +104,7 @@ public class ProviderAdapter extends RecyclerView.Adapter<ProviderViewHolder> {
         Instance instance = getItem(position);
         holder.providerDisplayName.setText(instance.getDisplayName());
         if (!TextUtils.isEmpty(instance.getLogoUri())) {
-            Picasso.with(holder.providerIcon.getContext())
+            Picasso.get()
                     .load(instance.getLogoUri())
                     .fit()
                     .into(holder.providerIcon);

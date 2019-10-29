@@ -112,7 +112,7 @@ public class ConnectionStatusFragment extends BaseFragment<FragmentConnectionSta
 
         Instance provider = _preferencesService.getCurrentInstance();
         if (!TextUtils.isEmpty(provider.getLogoUri())) {
-            Picasso.with(view.getContext())
+            Picasso.get()
                     .load(provider.getLogoUri())
                     .fit()
                     .into(binding.providerIcon);

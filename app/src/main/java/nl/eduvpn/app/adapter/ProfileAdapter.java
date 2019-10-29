@@ -165,7 +165,7 @@ public class ProfileAdapter extends RecyclerView.Adapter<ProfileViewHolder> {
             holder.profileName.setText(instanceProfilePair.second.getDisplayName());
             holder.profileProvider.setText(FormattingUtils.formatInstanceUrl(instanceProfilePair.first));
             if (!TextUtils.isEmpty(instanceProfilePair.first.getLogoUri())) {
-                Picasso.with(holder.providerIcon.getContext())
+                Picasso.get()
                         .load(instanceProfilePair.first.getLogoUri())
                         .fit()
                         .noFade()
