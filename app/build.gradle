@@ -27,7 +27,7 @@ android {
         manifestPlaceholders = [
                 'appAuthRedirectScheme': 'org.eduvpn.app'
         ]
-        missingDimensionStrategy 'implementation', 'normal'
+        missingDimensionStrategy 'implementation', 'noovpn3'
     }
 
     buildTypes {
