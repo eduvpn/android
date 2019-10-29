@@ -106,4 +106,7 @@
     <string name="error_user_disabled">Connection process has been aborted because the user has been disabled on the server.</string>
     <string name="error_dialog_title_invalid_certificate">Invalid certificate</string>
     <string name="example_domain">example.org</string>
+    <string name="licenses_title">Software licenses</string>
+    <string name="settings_licenses_title">Software licenses</string>
+    <string name="settings_licenses_description">Acknowledgement for 3rd party software used to build this application.</string>
 </resources>
