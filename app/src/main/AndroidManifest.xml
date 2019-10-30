@@ -149,6 +149,11 @@
             </intent-filter>
         </activity>
 
+        <!-- Remove the MainActivity of the ICS-OpenVPN library-->
+        <activity
+            android:name="de.blinkt.openvpn.activities.MainActivity"
+            tools:node="remove"/>
+
         <meta-data
             android:name="android.content.APP_RESTRICTIONS"
             android:resource="@xml/app_restrictions" />
