@@ -17,15 +17,12 @@
 
 package nl.eduvpn.app.adapter.viewholder;
 
-import android.support.v7.widget.RecyclerView;
-import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import nl.eduvpn.app.R;
+import androidx.recyclerview.widget.RecyclerView;
+import nl.eduvpn.app.databinding.ListItemMessageBinding;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
 
 /**
  * View holder for the notification item view.
@@ -33,14 +30,13 @@ import butterknife.ButterKnife;
  */
 public class MessageViewHolder extends RecyclerView.ViewHolder {
 
-    @BindView(R.id.messageText)
     public TextView messageText;
 
-    @BindView(R.id.messageIcon)
     public ImageView messageIcon;
 
-    public MessageViewHolder(View itemView) {
-        super(itemView);
-        ButterKnife.bind(this, itemView);
+    public MessageViewHolder(ListItemMessageBinding binding) {
+        super(binding.getRoot());
+        messageText = binding.messageText;
+        messageIcon = binding.messageIcon;
     }
 }

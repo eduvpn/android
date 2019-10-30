@@ -1,150 +1,153 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="@color/backgroundColor"
-    android:clickable="true"
-    android:orientation="vertical"
-    android:padding="@dimen/vpn_connection_fragment_padding">
+<layout>
 
-    <LinearLayout
-        android:id="@+id/detailsContainer"
+    <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/header"
-        android:baselineAligned="false"
-        android:orientation="horizontal"
-        android:weightSum="1">
+        android:layout_height="match_parent"
+        android:background="@color/backgroundColor"
+        android:clickable="true"
+        android:orientation="vertical"
+        android:padding="@dimen/vpn_connection_fragment_padding">
 
         <LinearLayout
-            android:layout_width="0dp"
+            android:id="@+id/detailsContainer"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="0.3"
-            android:orientation="vertical"
-            tools:ignore="UseCompoundDrawables">
+            android:baselineAligned="false"
+            android:orientation="horizontal"
+            android:weightSum="1">
 
-            <TextView
-                style="@style/Label"
-                android:layout_width="wrap_content"
+            <LinearLayout
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:text="@string/connection_label_status"/>
+                android:layout_weight="0.3"
+                android:orientation="vertical"
+                tools:ignore="UseCompoundDrawables">
 
-            <ImageView
-                android:id="@+id/connectionStatusIcon"
-                android:layout_width="64dp"
-                android:layout_height="@dimen/connection_status_details_row_height"
-                android:adjustViewBounds="true"
-                android:contentDescription="@string/content_description_connection_status_icon"
-                android:scaleType="fitCenter"
-                android:src="@drawable/connection_status_disconnected"/>
+                <TextView
+                    style="@style/Label"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/connection_label_status" />
+
+                <ImageView
+                    android:id="@+id/connectionStatusIcon"
+                    android:layout_width="64dp"
+                    android:layout_height="@dimen/connection_status_details_row_height"
+                    android:adjustViewBounds="true"
+                    android:contentDescription="@string/content_description_connection_status_icon"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/connection_status_disconnected" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="0.3"
+                android:orientation="vertical"
+                tools:ignore="UseCompoundDrawables">
+
+                <TextView
+                    style="@style/Label"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/connection_label_provider" />
+
+                <ImageView
+                    android:id="@+id/providerIcon"
+                    android:layout_width="64dp"
+                    android:layout_height="@dimen/connection_status_details_row_height"
+                    android:adjustViewBounds="true"
+                    android:contentDescription="@string/content_description_provider_icon"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/external_provider" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="0.4"
+                android:orientation="vertical">
+
+                <TextView
+                    style="@style/Label"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/connection_label_profile" />
+
+                <TextView
+                    android:id="@+id/profileName"
+                    style="@style/Label"
+                    android:layout_width="wrap_content"
+                    android:layout_height="@dimen/connection_status_details_row_height"
+                    android:ellipsize="end"
+                    android:gravity="left|center_vertical"
+                    android:lineSpacingMultiplier="0.85"
+                    android:maxLines="2"
+                    android:textSize="14sp"
+                    tools:text="USA endpoint with 2 factor authentication" />
+            </LinearLayout>
         </LinearLayout>
 
         <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="0.3"
-            android:orientation="vertical"
-            tools:ignore="UseCompoundDrawables">
+            android:id="@+id/switcherButtonsContainer"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/connection_info_notifications_switcher_height"
+            android:layout_below="@+id/detailsContainer"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentLeft="true"
+            android:layout_marginTop="8dp"
+            android:orientation="horizontal"
+            android:weightSum="1">
 
-            <TextView
-                style="@style/Label"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/connection_label_provider"/>
+            <Button
+                android:id="@+id/notificationsSwitchButton"
+                style="@style/SwitcherButton"
+                android:layout_marginRight="-1dp"
+                android:background="@drawable/switcher_button_bg_selected"
+                android:text="@string/notifications_switcher_default_title"
+                android:textOff="@string/notifications_switcher_default_title"
+                android:textOn="@string/notifications_switcher_default_title" />
 
-            <ImageView
-                android:id="@+id/providerIcon"
-                android:layout_width="64dp"
-                android:layout_height="@dimen/connection_status_details_row_height"
-                android:scaleType="fitCenter"
-                android:adjustViewBounds="true"
-                android:contentDescription="@string/content_description_provider_icon"
-                android:src="@drawable/external_provider"/>
+            <Button
+                android:id="@+id/connectionInfoSwitchButton"
+                style="@style/SwitcherButton"
+                android:layout_marginLeft="-1dp"
+                android:background="@drawable/switcher_button_bg"
+                android:checked="false"
+                android:text="@string/connection_switcher_title"
+                android:textOff="@string/connection_switcher_title"
+                android:textOn="@string/connection_switcher_title" />
         </LinearLayout>
 
-        <LinearLayout
-            android:layout_width="0dp"
+        <ViewSwitcher
+            android:id="@+id/switcher"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="0.4"
-            android:orientation="vertical">
+            android:layout_above="@+id/disconnectButton"
+            android:layout_below="@+id/switcherButtonsContainer"
+            android:layout_marginTop="-1dp"
+            android:background="@drawable/switcher_bg">
 
-            <TextView
-                style="@style/Label"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/connection_label_profile"/>
+            <include layout="@layout/switch_container_notifications"
+                android:id="@+id/notifications"/>
 
-            <TextView
-                android:id="@+id/profileName"
-                style="@style/Label"
-                android:layout_width="wrap_content"
-                android:layout_height="@dimen/connection_status_details_row_height"
-                android:ellipsize="end"
-                android:gravity="left|center_vertical"
-                android:lineSpacingMultiplier="0.85"
-                android:maxLines="2"
-                android:textSize="14sp"
-                tools:text="USA endpoint with 2 factor authentication"/>
-        </LinearLayout>
-    </LinearLayout>
+            <include layout="@layout/switch_container_connection_info"
+                android:id="@+id/connection_info"/>
 
-    <LinearLayout
-        android:id="@+id/switcherButtonsContainer"
-        android:layout_width="match_parent"
-        android:layout_height="@dimen/connection_info_notifications_switcher_height"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_below="@+id/detailsContainer"
-        android:layout_marginTop="8dp"
-        android:orientation="horizontal"
-        android:weightSum="1">
+        </ViewSwitcher>
 
         <Button
-            android:id="@+id/notificationsSwitchButton"
-            style="@style/SwitcherButton"
-            android:layout_marginRight="-1dp"
-            android:background="@drawable/switcher_button_bg_selected"
-            android:text="@string/notifications_switcher_default_title"
-            android:textOff="@string/notifications_switcher_default_title"
-            android:textOn="@string/notifications_switcher_default_title"/>
-
-        <Button
-            android:id="@+id/connectionInfoSwitchButton"
-            style="@style/SwitcherButton"
-            android:layout_marginLeft="-1dp"
-            android:background="@drawable/switcher_button_bg"
-            android:checked="false"
-            android:text="@string/connection_switcher_title"
-            android:textOff="@string/connection_switcher_title"
-            android:textOn="@string/connection_switcher_title"/>
-    </LinearLayout>
-
-    <ViewSwitcher
-        android:id="@+id/switcher"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_above="@+id/disconnectButton"
-        android:layout_below="@+id/switcherButtonsContainer"
-        android:layout_marginTop="-1dp"
-        android:background="@drawable/switcher_bg">
-
-        <include layout="@layout/switch_container_notifications"/>
-
-        <include layout="@layout/switch_container_connection_info"/>
-
-    </ViewSwitcher>
-
-    <Button
-        android:id="@+id/disconnectButton"
-        style="@style/BigButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true"
-        android:layout_marginBottom="@dimen/button_margin_bottom"
-        android:layout_marginTop="12dp"
-        android:enabled="false"
-        android:text="@string/button_disconnect"/>
-</RelativeLayout>
+            android:id="@+id/disconnectButton"
+            style="@style/BigButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="12dp"
+            android:layout_marginBottom="@dimen/button_margin_bottom"
+            android:enabled="false"
+            android:text="@string/button_disconnect" />
+    </RelativeLayout>
+</layout>

@@ -1,69 +1,69 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="@dimen/profile_list_item_height"
-    android:background="?attr/selectableItemBackground"
-    android:orientation="vertical">
+<layout>
 
-    <ImageView
-        android:id="@+id/providerIcon"
-        android:layout_width="@dimen/list_item_icon_width"
-        android:layout_height="@dimen/list_item_icon_height"
-        android:layout_centerVertical="true"
-        android:layout_marginLeft="8dp"
-        android:adjustViewBounds="true"
-        android:contentDescription="@string/content_description_provider_icon"
-        android:src="@drawable/external_provider"/>
-
-    <LinearLayout
-        android:id="@+id/textContainer"
+    <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_centerVertical="true"
-        android:layout_marginLeft="12dp"
-        android:layout_marginRight="8dp"
-        android:layout_toRightOf="@+id/providerIcon"
+        android:layout_height="@dimen/profile_list_item_height"
+        android:background="?attr/selectableItemBackground"
         android:orientation="vertical">
 
-        <TextView
-            android:id="@+id/profileName"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:ellipsize="middle"
-            android:maxLines="1"
-            android:singleLine="true"
-            android:textColor="@color/textColor"
-            android:textSize="18sp"
-            tools:ignore="Deprecated"
-            tools:text="Secure Browsing"/>
+        <ImageView
+            android:id="@+id/providerIcon"
+            android:layout_width="@dimen/list_item_icon_width"
+            android:layout_height="@dimen/list_item_icon_height"
+            android:layout_centerVertical="true"
+            android:layout_marginLeft="8dp"
+            android:adjustViewBounds="true"
+            android:contentDescription="@string/content_description_provider_icon"
+            android:src="@drawable/external_provider" />
 
-        <TextView
-            android:id="@+id/profileProvider"
+        <LinearLayout
+            android:id="@+id/textContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_marginLeft="12dp"
+            android:layout_marginRight="8dp"
+            android:layout_toRightOf="@+id/providerIcon"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/profileName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ellipsize="middle"
+                android:singleLine="true"
+                android:textColor="@color/textColor"
+                android:textSize="18sp"
+                tools:ignore="Deprecated"
+                tools:text="Secure Browsing" />
+
+            <TextView
+                android:id="@+id/profileProvider"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ellipsize="middle"
+                android:singleLine="true"
+                android:textColor="@color/textColor"
+                android:textSize="15sp"
+                tools:ignore="Deprecated"
+                tools:text="cloud.eduvpn.nl" />
+
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/undoButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:ellipsize="middle"
-            android:maxLines="1"
-            android:singleLine="true"
-            android:textColor="@color/textColor"
+            android:layout_alignParentRight="true"
+            android:layout_centerVertical="true"
+            android:background="@null"
+            android:padding="8dp"
+            android:text="@string/undo"
+            android:textAllCaps="true"
+            android:textColor="@android:color/white"
             android:textSize="15sp"
-            tools:ignore="Deprecated"
-            tools:text="cloud.eduvpn.nl"/>
-
-    </LinearLayout>
-
-    <Button
-        android:id="@+id/undoButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentRight="true"
-        android:layout_centerVertical="true"
-        android:background="@null"
-        android:padding="8dp"
-        android:text="@string/undo"
-        android:textAllCaps="true"
-        android:textColor="@android:color/white"
-        android:textSize="15sp"
-        android:visibility="gone"/>
-</RelativeLayout>
+            android:visibility="gone" />
+    </RelativeLayout>
+</layout>

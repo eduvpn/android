@@ -20,16 +20,19 @@ package nl.eduvpn.app.fragment;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.EditText;
 
+import org.json.JSONObject;
+
+import javax.inject.Inject;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import nl.eduvpn.app.EduVPNApplication;
 import nl.eduvpn.app.R;
+import nl.eduvpn.app.base.BaseFragment;
+import nl.eduvpn.app.databinding.FragmentCustomProviderBinding;
 import nl.eduvpn.app.entity.AuthorizationType;
 import nl.eduvpn.app.entity.DiscoveredAPI;
 import nl.eduvpn.app.entity.Instance;
@@ -39,29 +42,15 @@ import nl.eduvpn.app.service.SerializerService;
 import nl.eduvpn.app.utils.ErrorDialog;
 import nl.eduvpn.app.utils.Log;
 
-import org.json.JSONObject;
-
-import javax.inject.Inject;
-
-import butterknife.BindView;
-import butterknife.ButterKnife;
-import butterknife.OnClick;
-import butterknife.Unbinder;
-
 import static nl.eduvpn.app.Constants.API_DISCOVERY_POSTFIX;
 
 /**
  * Fragment where you can give the URL to a custom provider.
  * Created by Daniel Zolnai on 2016-10-11.
  */
-public class CustomProviderFragment extends Fragment {
+public class CustomProviderFragment extends BaseFragment<FragmentCustomProviderBinding> {
 
     private static final String TAG = CustomProviderFragment.class.getName();
-
-    private Unbinder _unbinder;
-
-    @BindView(R.id.custom_provider_url)
-    protected EditText _customProviderUrl;
 
     @Inject
     protected ConnectionService _connectionService;
@@ -73,30 +62,29 @@ public class CustomProviderFragment extends Fragment {
     protected SerializerService _serializerService;
 
 
-    @Nullable
     @Override
-    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_custom_provider, container, false);
-        _unbinder = ButterKnife.bind(this, view);
-        EduVPNApplication.get(view.getContext()).component().inject(this);
-        return view;
+    protected int getLayout() {
+        return R.layout.fragment_custom_provider;
     }
 
     @Override
-    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        EduVPNApplication.get(view.getContext()).component().inject(this);
+
+        binding.customProviderConnect.setOnClickListener(v -> onConnectClicked());
+
         // Put the cursor in the field and show the keyboard automatically.
-        _customProviderUrl.requestFocus();
+        binding.customProviderUrl.requestFocus();
         InputMethodManager inputMethodManager = (InputMethodManager)getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
         if (inputMethodManager != null) {
-            inputMethodManager.showSoftInput(_customProviderUrl, InputMethodManager.SHOW_IMPLICIT);
+            inputMethodManager.showSoftInput(binding.customProviderUrl, InputMethodManager.SHOW_IMPLICIT);
         }
     }
 
-    @OnClick(R.id.custom_provider_connect)
     protected void onConnectClicked() {
-        String prefix = getContext().getString(R.string.custom_provider_prefix);
-        String postfix = _customProviderUrl.getText().toString();
+        String prefix = getString(R.string.custom_provider_prefix);
+        String postfix = binding.customProviderUrl.getText().toString();
         String url = prefix + postfix;
         if (getActivity() != null) {
             final Instance customProviderInstance = _createCustomProviderInstance(url, AuthorizationType.LOCAL);
@@ -134,11 +122,5 @@ public class CustomProviderFragment extends Fragment {
      */
     private Instance _createCustomProviderInstance(String baseUri, @AuthorizationType int authorizationType) {
         return new Instance(baseUri, getString(R.string.custom_provider_display_name), null, authorizationType, true);
-    }
-
-    @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-        _unbinder.unbind();
     }
 }

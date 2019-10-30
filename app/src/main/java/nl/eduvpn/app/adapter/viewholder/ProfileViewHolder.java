@@ -17,16 +17,12 @@
 
 package nl.eduvpn.app.adapter.viewholder;
 
-import android.support.v7.widget.RecyclerView;
-import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import nl.eduvpn.app.R;
-
-import butterknife.BindView;
-import butterknife.ButterKnife;
+import androidx.recyclerview.widget.RecyclerView;
+import nl.eduvpn.app.databinding.ListItemConfigBinding;
 
 /**
  * View holder for the provider instance list.
@@ -34,20 +30,16 @@ import butterknife.ButterKnife;
  */
 public class ProfileViewHolder extends RecyclerView.ViewHolder {
 
-    @BindView(R.id.providerIcon)
     public ImageView providerIcon;
-
-    @BindView(R.id.profileName)
     public TextView profileName;
-
-    @BindView(R.id.profileProvider)
     public TextView profileProvider;
-
-    @BindView(R.id.undoButton)
     public Button undoButton;
 
-    public ProfileViewHolder(View itemView) {
-        super(itemView);
-        ButterKnife.bind(this, itemView);
+    public ProfileViewHolder(ListItemConfigBinding binding) {
+        super(binding.getRoot());
+        providerIcon = binding.providerIcon;
+        profileName = binding.profileName;
+        profileProvider = binding.profileProvider;
+        undoButton = binding.undoButton;
     }
 }

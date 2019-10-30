@@ -1,62 +1,63 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="@color/backgroundColor"
-    android:clickable="true"
-    android:orientation="vertical">
+<layout>
 
-    <TextView
-        android:id="@+id/header"
-        style="@style/Header"
-        android:layout_marginBottom="16dp"
-        android:layout_marginTop="16dp"
-        android:text="@string/select_your_country_title"
-        />
-
-    <TextView
-        android:id="@+id/description"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:layout_marginBottom="16dp"
-        android:gravity="center"
-        android:paddingLeft="8dp"
-        android:paddingRight="8dp"
-        android:visibility="gone"
-        tools:visibility="visible"
-        android:text="@string/description_secure_internet_provider"
-        android:textColor="@color/textColor"
-        android:textSize="16sp"/>
-
-    <FrameLayout
-        android:layout_marginTop="8dp"
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
-
-        <android.support.v7.widget.RecyclerView
-            android:id="@+id/provider_list"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:paddingBottom="16dp"
-            android:paddingLeft="16dp"
-            android:paddingRight="16dp"
-            android:scrollbarStyle="outsideOverlay"
-            tools:listitem="@layout/list_item_provider"/>
+        android:layout_height="match_parent"
+        android:background="@color/backgroundColor"
+        android:clickable="true"
+        android:orientation="vertical">
 
         <TextView
-            android:id="@+id/provider_status"
+            android:id="@+id/header"
+            style="@style/Header"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="16dp"
+            android:text="@string/select_your_country_title" />
+
+        <TextView
+            android:id="@+id/description"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="top|center_horizontal"
-            android:visibility="gone"
-            tools:visibility="visible"
-            android:scrollbarStyle="outsideOverlay"
-            android:textSize="20sp"
+            android:layout_gravity="center"
+            android:layout_marginBottom="16dp"
+            android:gravity="center"
+            android:paddingLeft="8dp"
+            android:paddingRight="8dp"
+            android:text="@string/description_secure_internet_provider"
             android:textColor="@color/textColor"
-            android:text="@string/no_provider_found"/>
+            android:textSize="16sp"
+            android:visibility="gone"
+            tools:visibility="visible" />
 
-    </FrameLayout>
-</LinearLayout>
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginTop="8dp">
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/provider_list"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:paddingLeft="16dp"
+                android:paddingRight="16dp"
+                android:paddingBottom="16dp"
+                android:scrollbarStyle="outsideOverlay"
+                tools:listitem="@layout/list_item_provider" />
+
+            <TextView
+                android:id="@+id/provider_status"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="top|center_horizontal"
+                android:scrollbarStyle="outsideOverlay"
+                android:text="@string/no_provider_found"
+                android:textColor="@color/textColor"
+                android:textSize="20sp"
+                android:visibility="gone"
+                tools:visibility="visible" />
+
+        </FrameLayout>
+    </LinearLayout>
+</layout>

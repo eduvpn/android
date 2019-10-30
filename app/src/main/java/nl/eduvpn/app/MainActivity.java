@@ -20,9 +20,6 @@ package nl.eduvpn.app;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.widget.Toast;
 
 import net.openid.appauth.AuthorizationException;
@@ -30,9 +27,9 @@ import net.openid.appauth.AuthorizationResponse;
 
 import javax.inject.Inject;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
-import butterknife.OnClick;
+import androidx.fragment.app.Fragment;
+import nl.eduvpn.app.base.BaseActivity;
+import nl.eduvpn.app.databinding.ActivityMainBinding;
 import nl.eduvpn.app.fragment.ConnectionStatusFragment;
 import nl.eduvpn.app.fragment.CustomProviderFragment;
 import nl.eduvpn.app.fragment.HomeFragment;
@@ -43,7 +40,7 @@ import nl.eduvpn.app.service.VPNService;
 import nl.eduvpn.app.utils.ErrorDialog;
 import nl.eduvpn.app.utils.Log;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends BaseActivity<ActivityMainBinding> {
 
     private static final String TAG = MainActivity.class.getName();
 
@@ -56,16 +53,16 @@ public class MainActivity extends AppCompatActivity {
     @Inject
     protected ConnectionService _connectionService;
 
-    @BindView(R.id.toolbar)
-    protected Toolbar _toolbar;
+    @Override
+    protected int getLayout() {
+        return R.layout.activity_main;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        ButterKnife.bind(this);
         EduVPNApplication.get(this).component().inject(this);
-        setSupportActionBar(_toolbar);
+        setSupportActionBar(binding.toolbar);
         _vpnService.onCreate(this);
         if (savedInstanceState == null) {
             // If there's an ongoing VPN connection, open the status screen.
@@ -86,6 +83,7 @@ public class MainActivity extends AppCompatActivity {
         } // else the activity will automatically restore everything.
         // The app might have been reopened from a URL.
         onNewIntent(getIntent());
+        binding.settingsButton.setOnClickListener(v -> onSettingsButtonClicked());
     }
 
     @Override
@@ -158,11 +156,8 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    @OnClick(R.id.settingsButton)
     protected void onSettingsButtonClicked() {
         Intent intent = new Intent(this, SettingsActivity.class);
         startActivity(intent);
     }
-
-
 }

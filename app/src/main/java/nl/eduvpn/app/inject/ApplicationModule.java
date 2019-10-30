@@ -20,7 +20,6 @@ package nl.eduvpn.app.inject;
 import android.content.Context;
 import android.content.SharedPreferences;
 
-import java.io.IOException;
 import java.net.ConnectException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
@@ -40,9 +39,7 @@ import nl.eduvpn.app.service.SecurityService;
 import nl.eduvpn.app.service.SerializerService;
 import nl.eduvpn.app.service.VPNService;
 import nl.eduvpn.app.utils.Log;
-import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
-import okhttp3.Response;
 
 /**
  * Application module providing the different dependencies
@@ -127,21 +124,18 @@ public class ApplicationModule {
                 .connectTimeout(10, TimeUnit.SECONDS)
                 .writeTimeout(30, TimeUnit.SECONDS)
                 .readTimeout(30, TimeUnit.SECONDS)
-                .addInterceptor(new Interceptor() {
-                    @Override
-                    public Response intercept(Chain chain) throws IOException {
+                .addInterceptor(chain -> {
+                    try {
+                        return chain.proceed(chain.request());
+                    } catch (ConnectException | SocketTimeoutException | UnknownHostException ex) {
+                        Log.d("OkHTTP", "Retrying request because previous one failed with connection exception...");
+                        // Wait 3 seconds
                         try {
-                            return chain.proceed(chain.request());
-                        } catch (ConnectException | SocketTimeoutException | UnknownHostException ex) {
-                            Log.d("OkHTTP", "Retrying request because previous one failed with connection exception...");
-                            // Wait 3 seconds
-                            try {
-                                Thread.sleep(3000);
-                            } catch (InterruptedException e) {
-                                // Do nothing
-                            }
-                            return chain.proceed(chain.request());
+                            Thread.sleep(3000);
+                        } catch (InterruptedException e) {
+                            // Do nothing
                         }
+                        return chain.proceed(chain.request());
                     }
                 });
         return clientBuilder.build();

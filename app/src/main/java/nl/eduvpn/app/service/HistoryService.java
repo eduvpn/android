@@ -17,9 +17,6 @@
 
 package nl.eduvpn.app.service;
 
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-
 import net.openid.appauth.AuthState;
 import net.openid.appauth.AuthorizationServiceConfiguration;
 
@@ -30,6 +27,8 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Observable;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import nl.eduvpn.app.entity.AuthorizationType;
 import nl.eduvpn.app.entity.DiscoveredAPI;
 import nl.eduvpn.app.entity.Instance;

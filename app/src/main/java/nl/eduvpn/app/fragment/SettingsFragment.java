@@ -18,23 +18,17 @@
 package nl.eduvpn.app.fragment;
 
 import android.os.Bundle;
-import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
-import android.support.v7.widget.SwitchCompat;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.Toast;
 
 import javax.inject.Inject;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
-import butterknife.OnClick;
-import butterknife.Unbinder;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import nl.eduvpn.app.EduVPNApplication;
 import nl.eduvpn.app.R;
+import nl.eduvpn.app.base.BaseFragment;
+import nl.eduvpn.app.databinding.FragmentSettingsBinding;
 import nl.eduvpn.app.entity.Settings;
 import nl.eduvpn.app.service.PreferencesService;
 
@@ -42,56 +36,46 @@ import nl.eduvpn.app.service.PreferencesService;
  * Fragment which displays the available settings to the user.
  * Created by Daniel Zolnai on 2016-10-22.
  */
-public class SettingsFragment extends Fragment {
+public class SettingsFragment extends BaseFragment<FragmentSettingsBinding> {
 
     @Inject
     protected PreferencesService _preferencesService;
 
-    @BindView(R.id.forceTcpSwitch)
-    protected SwitchCompat _forceTcpSwitch;
-
-    @BindView(R.id.useCustomTabsSwitch)
-    protected SwitchCompat _customTabsSwitch;
-
-    @BindView(R.id.saveButton)
-    protected Button _saveButton;
-
-    private Unbinder _unbinder;
-
     private Settings _originalSettings;
 
-    @Nullable
     @Override
-    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_settings, container, false);
+    protected int getLayout() {
+        return R.layout.fragment_settings;
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
         EduVPNApplication.get(view.getContext()).component().inject(this);
-        _unbinder = ButterKnife.bind(this, view);
+
         _originalSettings = _preferencesService.getAppSettings();
-        _customTabsSwitch.setChecked(_originalSettings.useCustomTabs());
-        _forceTcpSwitch.setChecked(_originalSettings.forceTcp());
-        return view;
+
+        binding.useCustomTabsSwitch.setChecked(_originalSettings.useCustomTabs());
+        binding.forceTcpSwitch.setChecked(_originalSettings.forceTcp());
+
+        binding.useCustomTabsSwitch.setOnClickListener(v -> onSettingChanged());
+        binding.forceTcpSwitch.setOnClickListener(v -> onSettingChanged());
+        binding.saveButton.setOnClickListener(v -> onSaveButtonClicked());
+
     }
 
-    @OnClick({R.id.forceTcpSwitch, R.id.useCustomTabsSwitch })
     public void onSettingChanged() {
-        boolean useCustomTabs = _customTabsSwitch.isChecked();
-        boolean forceTcp = _forceTcpSwitch.isChecked();
+        boolean useCustomTabs = binding.useCustomTabsSwitch.isChecked();
+        boolean forceTcp = binding.forceTcpSwitch.isChecked();
         boolean settingsChanged = useCustomTabs != _originalSettings.useCustomTabs() || forceTcp != _originalSettings.forceTcp();
-        _saveButton.setEnabled(settingsChanged);
+        binding.saveButton.setEnabled(settingsChanged);
     }
 
-    @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-        _unbinder.unbind();
-    }
-
-    @OnClick(R.id.saveButton)
     protected void onSaveButtonClicked() {
-        boolean useCustomTabs = _customTabsSwitch.isChecked();
-        boolean forceTcp = _forceTcpSwitch.isChecked();
+        boolean useCustomTabs = binding.useCustomTabsSwitch.isChecked();
+        boolean forceTcp = binding.forceTcpSwitch.isChecked();
         _preferencesService.storeAppSettings(new Settings(useCustomTabs, forceTcp));
         Toast.makeText(getContext(), R.string.settings_saved, Toast.LENGTH_LONG).show();
-        getActivity().finish();
+        requireActivity().finish();
     }
 }

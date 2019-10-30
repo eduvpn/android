@@ -19,8 +19,6 @@ package nl.eduvpn.app.utils;
 
 import android.app.Dialog;
 import android.content.Context;
-import android.support.annotation.CheckResult;
-import android.support.annotation.StringRes;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
@@ -29,6 +27,7 @@ import android.widget.TextView;
 
 import java.util.List;
 
+import androidx.annotation.StringRes;
 import nl.eduvpn.app.R;
 import nl.eduvpn.app.entity.Instance;
 
@@ -55,7 +54,6 @@ public class ErrorDialog {
      * @param title   The title of the dialog (string resource ID).
      * @param message The message to show as a string.
      */
-    @CheckResult
     public static Dialog show(Context context, @StringRes int title, String message) {
         return show(context, context.getString(title), message, null);
     }
@@ -67,7 +65,6 @@ public class ErrorDialog {
      * @param title   The title of the dialog (string resource ID).
      * @param message The message to show (string resource ID).
      */
-    @CheckResult
     public static Dialog show(Context context, @StringRes int title, @StringRes int message) {
         return show(context, context.getString(title), context.getString(message), null);
     }
@@ -79,7 +76,6 @@ public class ErrorDialog {
      * @param title   The title of the dialog.
      * @param message The message to show.
      */
-    @CheckResult
     public static Dialog show(Context context, String title, String message, final InstanceWarningHandler handler) {
         final Dialog dialog = new Dialog(context, R.style.ErrorDialog);
         dialog.setCanceledOnTouchOutside(true);
@@ -92,26 +88,17 @@ public class ErrorDialog {
                 View warningView = inflater.inflate(R.layout.list_item_token_warning, parent, false);
                 String warningText = FormattingUtils.formatAccessWarning(context, instance);
                 ((TextView)warningView.findViewById(R.id.displayText)).setText(warningText);
-                warningView.findViewById(R.id.retry).setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        dialog.dismiss();
-                        handler.retryInstance(instance);
-                    }
+                warningView.findViewById(R.id.retry).setOnClickListener(v -> {
+                    dialog.dismiss();
+                    handler.retryInstance(instance);
                 });
-                warningView.findViewById(R.id.remove).setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        dialog.dismiss();
-                        handler.removeInstance(instance);
-                    }
+                warningView.findViewById(R.id.remove).setOnClickListener(v -> {
+                    dialog.dismiss();
+                    handler.removeInstance(instance);
                 });
-                warningView.findViewById(R.id.login).setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        dialog.dismiss();
-                        handler.loginInstance(instance);
-                    }
+                warningView.findViewById(R.id.login).setOnClickListener(v -> {
+                    dialog.dismiss();
+                    handler.loginInstance(instance);
                 });
                 parent.addView(warningView);
             }

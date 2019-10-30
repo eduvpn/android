@@ -19,7 +19,6 @@ package nl.eduvpn.app.service;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.support.annotation.Nullable;
 import android.util.Base64;
 
 import com.securepreferences.SecurePreferences;
@@ -29,8 +28,8 @@ import org.libsodium.jni.Sodium;
 
 import java.nio.charset.Charset;
 import java.security.SecureRandom;
-import java.util.regex.Pattern;
 
+import androidx.annotation.Nullable;
 import nl.eduvpn.app.BuildConfig;
 import nl.eduvpn.app.utils.Log;
 

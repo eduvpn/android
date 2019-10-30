@@ -1,70 +1,72 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:fitsSystemWindows="true"
-    tools:context=".MainActivity">
+<layout>
 
-    <FrameLayout
-        android:layout_width="match_parent"
-        android:layout_height="@dimen/footer_height"
-        android:layout_alignParentBottom="true"
-        android:layout_gravity="bottom"
-        android:background="@color/mainColor">
-
-        <ImageView
-            android:layout_width="wrap_content"
-            android:layout_height="@dimen/footer_icon_size"
-            android:layout_gravity="center_vertical|right"
-            android:layout_marginRight="16dp"
-            android:adjustViewBounds="true"
-            android:contentDescription="@string/content_description_surfnet_logo"
-            android:src="@drawable/surfnet_logo"/>
-    </FrameLayout>
-
-    <FrameLayout
-        android:id="@+id/contentFrame"
+    <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginBottom="@dimen/footer_height"
-        android:layout_marginTop="@dimen/actionbar_size"
-        tools:background="#F0F0F0"/>
+        android:fitsSystemWindows="true"
+        tools:context=".MainActivity">
 
-    <android.support.v7.widget.Toolbar
-        android:id="@+id/toolbar"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="?attr/colorPrimary"
-        android:minHeight="@dimen/actionbar_size"
-        app:popupTheme="@style/AppTheme.PopupOverlay">
-
-        <RelativeLayout
+        <FrameLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_height="@dimen/footer_height"
+            android:layout_alignParentBottom="true"
+            android:layout_gravity="bottom"
+            android:background="@color/mainColor">
 
             <ImageView
-                android:id="@+id/actionbarLogo"
-                android:layout_width="@dimen/actionbar_icon_size"
-                android:layout_height="@dimen/actionbar_icon_size"
-                android:layout_centerVertical="true"
-                android:contentDescription="@string/content_description_application_logo"
-                android:src="@mipmap/ic_launcher"/>
-
-            <TextView
-                android:id="@+id/actionbarTitle"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_centerVertical="true"
-                android:layout_toRightOf="@+id/actionbarLogo"
-                android:paddingLeft="8dp"
-                android:text="@string/settings_title"
-                android:textColor="@color/textColorInverted"
-                android:textSize="24sp"
-                android:textStyle="bold"/>
+                android:layout_height="@dimen/footer_icon_size"
+                android:layout_gravity="center_vertical|right"
+                android:layout_marginRight="16dp"
+                android:adjustViewBounds="true"
+                android:contentDescription="@string/content_description_surfnet_logo"
+                android:src="@drawable/surfnet_logo" />
+        </FrameLayout>
 
-        </RelativeLayout>
-    </android.support.v7.widget.Toolbar>
-</RelativeLayout>
+        <FrameLayout
+            android:id="@+id/contentFrame"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginTop="@dimen/actionbar_size"
+            android:layout_marginBottom="@dimen/footer_height"
+            tools:background="#F0F0F0" />
+
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="?attr/colorPrimary"
+            android:minHeight="@dimen/actionbar_size"
+            app:popupTheme="@style/AppTheme.PopupOverlay">
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <ImageView
+                    android:id="@+id/actionbarLogo"
+                    android:layout_width="@dimen/actionbar_icon_size"
+                    android:layout_height="@dimen/actionbar_icon_size"
+                    android:layout_centerVertical="true"
+                    android:contentDescription="@string/content_description_application_logo"
+                    android:src="@mipmap/ic_launcher" />
+
+                <TextView
+                    android:id="@+id/actionbarTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerVertical="true"
+                    android:layout_toRightOf="@+id/actionbarLogo"
+                    android:paddingLeft="8dp"
+                    android:text="@string/settings_title"
+                    android:textColor="@color/textColorInverted"
+                    android:textSize="24sp"
+                    android:textStyle="bold" />
+
+            </RelativeLayout>
+        </androidx.appcompat.widget.Toolbar>
+    </RelativeLayout>
+</layout>

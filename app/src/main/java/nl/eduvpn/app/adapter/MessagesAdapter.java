@@ -18,21 +18,22 @@
 package nl.eduvpn.app.adapter;
 
 import android.content.Context;
-import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import nl.eduvpn.app.R;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.RecyclerView;
 import nl.eduvpn.app.adapter.viewholder.MessageViewHolder;
+import nl.eduvpn.app.databinding.ListItemMessageBinding;
 import nl.eduvpn.app.entity.message.Maintenance;
 import nl.eduvpn.app.entity.message.Message;
 import nl.eduvpn.app.entity.message.Notification;
 import nl.eduvpn.app.utils.FormattingUtils;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 
 /**
  * Adapter for serving the message views inside a list.
@@ -70,16 +71,17 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessageViewHolder> {
     }
 
 
+    @NonNull
     @Override
-    public MessageViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    public MessageViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         if (_layoutInflater == null) {
             _layoutInflater = LayoutInflater.from(parent.getContext());
         }
-        return new MessageViewHolder(_layoutInflater.inflate(R.layout.list_item_message, parent, false));
+        return new MessageViewHolder(ListItemMessageBinding.inflate(_layoutInflater, parent, false));
     }
 
     @Override
-    public void onBindViewHolder(MessageViewHolder holder, int position) {
+    public void onBindViewHolder(@NonNull MessageViewHolder holder, int position) {
         Message message = _mergedList.get(position);
         if (message instanceof Maintenance) {
             holder.messageIcon.setVisibility(View.VISIBLE);

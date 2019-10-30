@@ -18,54 +18,40 @@
 package nl.eduvpn.app.fragment;
 
 import android.os.Bundle;
-import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
-import butterknife.OnClick;
-import butterknife.Unbinder;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import nl.eduvpn.app.BuildConfig;
 import nl.eduvpn.app.MainActivity;
 import nl.eduvpn.app.R;
+import nl.eduvpn.app.base.BaseFragment;
+import nl.eduvpn.app.databinding.FragmentTypeSelectorBinding;
 import nl.eduvpn.app.entity.AuthorizationType;
 
 /**
  * Fragment where the user can select the VPN type he wants to connect to.
  * Created by Daniel Zolnai on 2017-07-31.
  */
-public class TypeSelectorFragment extends Fragment {
+public class TypeSelectorFragment extends BaseFragment<FragmentTypeSelectorBinding> {
 
-    @BindView(R.id.vpn_option_container_secure_internet)
-    protected View _secureInternetView;
-
-    @BindView(R.id.vpn_option_container_institute_access)
-    protected View _instituteAccessView;
-
-    private Unbinder _unbinder;
-
-    @Nullable
     @Override
-    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_type_selector, container, false);
-        _unbinder = ButterKnife.bind(this, view);
+    protected int getLayout() {
+        return R.layout.fragment_type_selector;
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
         if (!BuildConfig.API_DISCOVERY_ENABLED) {
-            _secureInternetView.setVisibility(View.GONE);
-            _instituteAccessView.setVisibility(View.GONE);
+            binding.vpnOptionContainerSecureInternet.setVisibility(View.GONE);
+            binding.vpnOptionContainerInstituteAccess.setVisibility(View.GONE);
         }
-        return view;
+        binding.vpnOptionContainerSecureInternet.setOnClickListener(v -> _onSecureInternetClicked());
+        binding.vpnOptionContainerInstituteAccess.setOnClickListener(v -> _onInstituteAccessClicked());
+        binding.otherAddress.setOnClickListener(v -> _onOtherAddressClicked());
     }
 
-    @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-        _unbinder.unbind();
-    }
-
-    @OnClick(R.id.vpn_option_container_institute_access)
     protected void _onInstituteAccessClicked() {
         ProviderSelectionFragment providerSelectionFragment = new ProviderSelectionFragment();
         Bundle fragmentParameters = new Bundle();
@@ -74,7 +60,6 @@ public class TypeSelectorFragment extends Fragment {
         ((MainActivity)getActivity()).openFragment(providerSelectionFragment, true);
     }
 
-    @OnClick(R.id.vpn_option_container_secure_internet)
     protected void _onSecureInternetClicked() {
         ProviderSelectionFragment providerSelectionFragment = new ProviderSelectionFragment();
         Bundle fragmentParameters = new Bundle();
@@ -83,7 +68,6 @@ public class TypeSelectorFragment extends Fragment {
         ((MainActivity)getActivity()).openFragment(providerSelectionFragment, true);
     }
 
-    @OnClick(R.id.other_address)
     protected void _onOtherAddressClicked() {
         ((MainActivity)getActivity()).openFragment(new CustomProviderFragment(), true);
     }

@@ -17,8 +17,6 @@
 
 package nl.eduvpn.app.utils;
 
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.util.Pair;
 
 import java.util.Collections;
@@ -26,6 +24,9 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 /**
  * A cache which can purge its contents after a while.

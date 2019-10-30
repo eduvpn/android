@@ -17,15 +17,11 @@
 
 package nl.eduvpn.app.adapter.viewholder;
 
-import android.support.v7.widget.RecyclerView;
-import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import nl.eduvpn.app.R;
-
-import butterknife.BindView;
-import butterknife.ButterKnife;
+import androidx.recyclerview.widget.RecyclerView;
+import nl.eduvpn.app.databinding.ListItemProviderBinding;
 
 /**
  * Viewholder for the provider instance list.
@@ -33,14 +29,12 @@ import butterknife.ButterKnife;
  */
 public class ProviderViewHolder extends RecyclerView.ViewHolder {
 
-    @BindView(R.id.providerIcon)
     public ImageView providerIcon;
-
-    @BindView(R.id.provider_display_name)
     public TextView providerDisplayName;
 
-    public ProviderViewHolder(View itemView) {
-        super(itemView);
-        ButterKnife.bind(this, itemView);
+    public ProviderViewHolder(ListItemProviderBinding binding) {
+        super(binding.getRoot());
+        providerIcon = binding.providerIcon;
+        providerDisplayName = binding.providerDisplayName;
     }
 }

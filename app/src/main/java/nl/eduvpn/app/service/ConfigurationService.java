@@ -17,8 +17,6 @@
 
 package nl.eduvpn.app.service;
 
-import android.support.annotation.NonNull;
-
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -27,6 +25,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Callable;
 
+import androidx.annotation.NonNull;
 import io.reactivex.Observable;
 import io.reactivex.ObservableSource;
 import io.reactivex.android.schedulers.AndroidSchedulers;

@@ -22,20 +22,9 @@ import android.app.Activity;
 import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.helper.ItemTouchHelper;
 import android.util.Pair;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.ImageView;
-import android.widget.TextView;
 import android.widget.Toast;
-import nl.eduvpn.app.BuildConfig;
 
 import net.openid.appauth.AuthState;
 
@@ -50,16 +39,20 @@ import java.util.Observer;
 
 import javax.inject.Inject;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
-import butterknife.OnClick;
-import butterknife.Unbinder;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.recyclerview.widget.ItemTouchHelper;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import de.blinkt.openvpn.VpnProfile;
+import nl.eduvpn.app.BuildConfig;
 import nl.eduvpn.app.Constants;
 import nl.eduvpn.app.EduVPNApplication;
 import nl.eduvpn.app.MainActivity;
 import nl.eduvpn.app.R;
 import nl.eduvpn.app.adapter.ProfileAdapter;
+import nl.eduvpn.app.base.BaseFragment;
+import nl.eduvpn.app.databinding.FragmentHomeBinding;
 import nl.eduvpn.app.entity.AuthorizationType;
 import nl.eduvpn.app.entity.DiscoveredAPI;
 import nl.eduvpn.app.entity.Instance;
@@ -86,7 +79,7 @@ import nl.eduvpn.app.utils.SwipeToDeleteHelper;
  * Fragment which is displayed when the app start.
  * Created by Daniel Zolnai on 2016-10-20.
  */
-public class HomeFragment extends Fragment {
+public class HomeFragment extends BaseFragment<FragmentHomeBinding> {
 
     private static final String TAG = HomeFragment.class.getName();
 
@@ -113,35 +106,6 @@ public class HomeFragment extends Fragment {
     @Inject
     protected ConfigurationService _configurationService;
 
-    @BindView(R.id.secureInternetList)
-    protected RecyclerView _secureInternetList;
-
-    @BindView(R.id.instituteAccessList)
-    protected RecyclerView _instituteAccessList;
-
-    @BindView(R.id.secureInternetContainer)
-    protected View _secureInternetContainer;
-
-    @BindView(R.id.instituteAccessContainer)
-    protected View _instituteAccessContainer;
-
-    @BindView(R.id.noProvidersYet)
-    protected TextView _noProvidersYet;
-
-    @BindView(R.id.loadingBar)
-    protected ViewGroup _loadingBar;
-
-    @BindView(R.id.displayText)
-    protected TextView _displayText;
-
-    @BindView(R.id.warningIcon)
-    protected ImageView _warningIcon;
-
-    @BindView(R.id.progressBar)
-    protected View _progressBar;
-
-    private Unbinder _unbinder;
-
     private int _pendingInstanceCount;
     private List<Instance> _problematicInstances;
     private Observer _newServerObserver;
@@ -156,41 +120,46 @@ public class HomeFragment extends Fragment {
         return homeFragment;
     }
 
-    @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable final Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_home, container, false);
-        _unbinder = ButterKnife.bind(this, view);
+    protected int getLayout() {
+        return R.layout.fragment_home;
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
         EduVPNApplication.get(view.getContext()).component().inject(this);
 
         // Basic setup of the lists
-        _secureInternetList.setHasFixedSize(true);
-        _instituteAccessList.setHasFixedSize(true);
-        _secureInternetList.setLayoutManager(new LinearLayoutManager(view.getContext(), LinearLayoutManager.VERTICAL, false));
-        _instituteAccessList.setLayoutManager(new LinearLayoutManager(view.getContext(), LinearLayoutManager.VERTICAL, false));
+        binding.secureInternetList.setHasFixedSize(true);
+        binding.instituteAccessList.setHasFixedSize(true);
+        binding.secureInternetList.setLayoutManager(new LinearLayoutManager(view.getContext(), LinearLayoutManager.VERTICAL, false));
+        binding.instituteAccessList.setLayoutManager(new LinearLayoutManager(view.getContext(), LinearLayoutManager.VERTICAL, false));
 
         // Add the adapters
         ProfileAdapter instituteAccessAdapter = new ProfileAdapter(_historyService, null);
-        _instituteAccessList.setAdapter(instituteAccessAdapter);
+        binding.instituteAccessList.setAdapter(instituteAccessAdapter);
 
         ProfileAdapter secureInternetAdapter = new ProfileAdapter(_historyService, null);
-        _secureInternetList.setAdapter(secureInternetAdapter);
+        binding.secureInternetList.setAdapter(secureInternetAdapter);
+
+        binding.addProvider.setOnClickListener(v -> onAddProviderClicked());
 
         // Swipe to delete
         ItemTouchHelper instituteSwipeHelper = new ItemTouchHelper(new SwipeToDeleteHelper(getContext()));
-        instituteSwipeHelper.attachToRecyclerView(_instituteAccessList);
-        _instituteAccessList.addItemDecoration(new SwipeToDeleteAnimator(getContext()));
+        instituteSwipeHelper.attachToRecyclerView(binding.instituteAccessList);
+        binding.instituteAccessList.addItemDecoration(new SwipeToDeleteAnimator(getContext()));
         ItemTouchHelper secureInternetSwipeHelper = new ItemTouchHelper(new SwipeToDeleteHelper(getContext()));
-        secureInternetSwipeHelper.attachToRecyclerView(_secureInternetList);
-        _secureInternetList.addItemDecoration(new SwipeToDeleteAnimator(getContext()));
+        secureInternetSwipeHelper.attachToRecyclerView(binding.secureInternetList);
+        binding.secureInternetList.addItemDecoration(new SwipeToDeleteAnimator(getContext()));
 
         // Add click listeners
         ItemClickSupport.OnItemClickListener clickListener = (recyclerView, position, v) -> _onItemClicked(recyclerView, position);
-        ItemClickSupport.addTo(_instituteAccessList).setOnItemClickListener(clickListener);
-        ItemClickSupport.addTo(_secureInternetList).setOnItemClickListener(clickListener);
+        ItemClickSupport.addTo(binding.instituteAccessList).setOnItemClickListener(clickListener);
+        ItemClickSupport.addTo(binding.secureInternetList).setOnItemClickListener(clickListener);
         ItemClickSupport.OnItemLongClickListener longClickListener = (recyclerView, position, v) -> _onItemLongClicked(recyclerView, position);
-        ItemClickSupport.addTo(_instituteAccessList).setOnItemLongClickListener(longClickListener);
-        ItemClickSupport.addTo(_secureInternetList).setOnItemLongClickListener(longClickListener);
+        ItemClickSupport.addTo(binding.instituteAccessList).setOnItemLongClickListener(longClickListener);
+        ItemClickSupport.addTo(binding.secureInternetList).setOnItemLongClickListener(longClickListener);
 
         // Fill the lists with data
         boolean skipUpdate = getArguments() != null && getArguments().containsKey(KEY_SKIP_FIRST_UPDATE) && getArguments().getBoolean(KEY_SKIP_FIRST_UPDATE);
@@ -200,7 +169,7 @@ public class HomeFragment extends Fragment {
         // Add listener on the history service, so we get notified if there is a new server available
         _historyService.addObserver(_newServerObserver = (observable, o) -> {
             if (o instanceof Integer) {
-                Integer notificationType = (Integer) o;
+                Integer notificationType = (Integer)o;
                 if (HistoryService.NOTIFICATION_PROFILES_CHANGED.equals(notificationType) || HistoryService.NOTIFICATION_TOKENS_CHANGED.equals(notificationType)) {
                     _updateLists();
                 }
@@ -208,13 +177,15 @@ public class HomeFragment extends Fragment {
                 Log.e(TAG, "Unexpected notification type! Live reload might not be working correctly.");
             }
         });
-        return view;
     }
 
     private boolean _onItemLongClicked(RecyclerView recyclerView, int position) {
         // On long click we show the full name in a toast
         // Is useful when the names don't fit too well.
-        ProfileAdapter adapter = (ProfileAdapter) recyclerView.getAdapter();
+        ProfileAdapter adapter = (ProfileAdapter)recyclerView.getAdapter();
+        if (adapter == null) {
+            return false;
+        }
         if (adapter.isPendingRemoval(position)) {
             return true;
         }
@@ -227,7 +198,7 @@ public class HomeFragment extends Fragment {
     }
 
     private void _onItemClicked(RecyclerView recyclerView, int position) {
-        ProfileAdapter adapter = (ProfileAdapter) recyclerView.getAdapter();
+        ProfileAdapter adapter = (ProfileAdapter)recyclerView.getAdapter();
         if (adapter.isPendingRemoval(position)) {
             return;
         }
@@ -258,28 +229,28 @@ public class HomeFragment extends Fragment {
         savedSecureInternetTokens = enhanceSecureInternetTokensList(savedSecureInternetTokens);
         if (savedInstituteAccessTokens.isEmpty() && savedSecureInternetTokens.isEmpty()) {
             // No saved tokens
-            _loadingBar.setVisibility(View.GONE);
-            _noProvidersYet.setVisibility(View.VISIBLE);
-            _instituteAccessContainer.setVisibility(View.GONE);
-            _secureInternetContainer.setVisibility(View.GONE);
+            binding.loadingBar.setVisibility(View.GONE);
+            binding.noProvidersYet.setVisibility(View.VISIBLE);
+            binding.instituteAccessContainer.setVisibility(View.GONE);
+            binding.secureInternetContainer.setVisibility(View.GONE);
         } else {
 
-            _loadingBar.setVisibility(View.VISIBLE);
-            _noProvidersYet.setVisibility(View.GONE);
+            binding.loadingBar.setVisibility(View.VISIBLE);
+            binding.noProvidersYet.setVisibility(View.GONE);
             // There are some saved institute access tokens
             if (!savedInstituteAccessTokens.isEmpty()) {
-                _fillList((ProfileAdapter) _instituteAccessList.getAdapter(), savedInstituteAccessTokens);
-                _instituteAccessContainer.setVisibility(View.VISIBLE);
+                _fillList((ProfileAdapter)binding.instituteAccessList.getAdapter(), savedInstituteAccessTokens);
+                binding.instituteAccessContainer.setVisibility(View.VISIBLE);
             } else {
-                _instituteAccessContainer.setVisibility(View.GONE);
+                binding.instituteAccessContainer.setVisibility(View.GONE);
             }
 
             // There are some saved secure internet tokens
             if (!savedSecureInternetTokens.isEmpty()) {
-                _fillList((ProfileAdapter) _secureInternetList.getAdapter(), savedSecureInternetTokens);
-                _secureInternetContainer.setVisibility(View.VISIBLE);
+                _fillList((ProfileAdapter)binding.secureInternetList.getAdapter(), savedSecureInternetTokens);
+                binding.secureInternetContainer.setVisibility(View.VISIBLE);
             } else {
-                _secureInternetContainer.setVisibility(View.GONE);
+                binding.secureInternetContainer.setVisibility(View.GONE);
             }
         }
     }
@@ -315,7 +286,6 @@ public class HomeFragment extends Fragment {
         if (_newServerObserver != null) {
             _historyService.deleteObserver(_newServerObserver);
         }
-        _unbinder.unbind();
     }
 
 
@@ -413,111 +383,105 @@ public class HomeFragment extends Fragment {
     private synchronized void _checkLoadingFinished(final ProfileAdapter adapter) {
         _pendingInstanceCount--;
         if (_pendingInstanceCount <= 0 && _problematicInstances.size() == 0) {
-            if (_loadingBar == null) {
+            if (binding.loadingBar == null) {
                 Log.d(TAG, "Layout has been destroyed already.");
                 return;
             }
-            float startHeight = _loadingBar.getHeight();
+            float startHeight = binding.loadingBar.getHeight();
             ValueAnimator animator = ValueAnimator.ofFloat(startHeight, 0);
             animator.setDuration(600);
-            animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-                @Override
-                public void onAnimationUpdate(ValueAnimator animation) {
-                    float fraction = animation.getAnimatedFraction();
-                    float alpha = 1f - fraction;
-                    float height = (Float) animation.getAnimatedValue();
-                    if (_loadingBar != null) {
-                        _loadingBar.setAlpha(alpha);
-                        _loadingBar.getLayoutParams().height = (int) height;
-                        _loadingBar.requestLayout();
-                    }
+            animator.addUpdateListener(animation -> {
+                float fraction = animation.getAnimatedFraction();
+                float alpha = 1f - fraction;
+                float height = (Float)animation.getAnimatedValue();
+                if (binding.loadingBar != null) {
+                    binding.loadingBar.setAlpha(alpha);
+                    binding.loadingBar.getLayoutParams().height = (int)height;
+                    binding.loadingBar.requestLayout();
                 }
             });
             animator.start();
         } else if (_pendingInstanceCount <= 0) {
-            if (_displayText == null) {
+            if (binding.displayText == null) {
                 Log.d(TAG, "Layout has been destroyed already.");
                 return;
             }
             // There are some warnings
-            _displayText.setText(R.string.could_not_fetch_all_profiles);
-            _warningIcon.setVisibility(View.VISIBLE);
-            _progressBar.setVisibility(View.GONE);
-            _loadingBar.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    // Display a dialog with all the warnings
-                    _currentDialog = ErrorDialog.show(getContext(),
-                            getString(R.string.warnings_list),
-                            getString(R.string.instance_access_warning_message),
-                            new ErrorDialog.InstanceWarningHandler() {
-                                @Override
-                                public List<Instance> getInstances() {
-                                    return _problematicInstances;
-                                }
+            binding.displayText.setText(R.string.could_not_fetch_all_profiles);
+            binding.warningIcon.setVisibility(View.VISIBLE);
+            binding.progressBar.setVisibility(View.GONE);
+            binding.loadingBar.setOnClickListener(v -> {
+                // Display a dialog with all the warnings
+                _currentDialog = ErrorDialog.show(getContext(),
+                        getString(R.string.warnings_list),
+                        getString(R.string.instance_access_warning_message),
+                        new ErrorDialog.InstanceWarningHandler() {
+                            @Override
+                            public List<Instance> getInstances() {
+                                return _problematicInstances;
+                            }
 
-                                @Override
-                                public void retryInstance(Instance instance) {
-                                    _warningIcon.setVisibility(View.GONE);
-                                    _progressBar.setVisibility(View.VISIBLE);
-                                    _displayText.setText(R.string.loading_available_profiles);
-                                    SavedAuthState savedAuthState = _historyService.getSavedToken(instance);
-                                    if (savedAuthState == null) {
-                                        // Should never happen
-                                        _currentDialog = ErrorDialog.show(getContext(), R.string.error_dialog_title, R.string.data_removed);
-                                    } else {
-                                        // Retry
-                                        _problematicInstances.remove(instance);
-                                        _fillList(adapter, Collections.singletonList(savedAuthState));
-                                    }
-                                }
-
-                                @Override
-                                public void loginInstance(final Instance instance) {
-                                    // Find the auth state for the instance and then retry
-                                    AuthState authState = _historyService.getCachedAuthState(instance);
-                                    _apiService.getJSON(instance.getSanitizedBaseURI() + Constants.API_DISCOVERY_POSTFIX,
-                                            authState,
-                                            new APIService.Callback<JSONObject>() {
-                                                @Override
-                                                public void onSuccess(JSONObject result) {
-                                                    try {
-                                                        DiscoveredAPI discoveredAPI = _serializerService.deserializeDiscoveredAPI(result);
-                                                        // Cache the result
-                                                        _historyService.cacheDiscoveredAPI(instance.getSanitizedBaseURI(), discoveredAPI);
-                                                        _problematicInstances.remove(instance);
-                                                        Activity activity = getActivity();
-                                                        if (activity != null && !activity.isFinishing()) {
-                                                            _connectionService.initiateConnection(getActivity(), instance, discoveredAPI);
-                                                        }
-                                                    } catch (SerializerService.UnknownFormatException ex) {
-                                                        Log.e(TAG, "Error parsing discovered API!", ex);
-                                                        _currentDialog = ErrorDialog.show(getContext(), R.string.error_dialog_title, R.string.provider_incorrect_format);
-                                                    }
-                                                }
-
-                                                @Override
-                                                public void onError(String errorMessage) {
-                                                    Log.e(TAG, "Error while fetching discovered API: " + errorMessage);
-                                                    DiscoveredAPI discoveredAPI = _historyService.getCachedDiscoveredAPI(instance.getSanitizedBaseURI());
-                                                    Activity activity = getActivity();
-                                                    if (discoveredAPI != null && activity != null && !activity.isFinishing()) {
-                                                        _connectionService.initiateConnection(activity, instance, discoveredAPI);
-                                                    } else {
-                                                        _currentDialog = ErrorDialog.show(getContext(), R.string.error_dialog_title, R.string.provider_not_found_retry);
-                                                    }
-                                                }
-                                            });
-                                }
-
-                                @Override
-                                public void removeInstance(Instance instance) {
-                                    _historyService.removeAllDataForInstance(instance);
+                            @Override
+                            public void retryInstance(Instance instance) {
+                                binding.warningIcon.setVisibility(View.GONE);
+                                binding.progressBar.setVisibility(View.VISIBLE);
+                                binding.displayText.setText(R.string.loading_available_profiles);
+                                SavedAuthState savedAuthState = _historyService.getSavedToken(instance);
+                                if (savedAuthState == null) {
+                                    // Should never happen
+                                    _currentDialog = ErrorDialog.show(getContext(), R.string.error_dialog_title, R.string.data_removed);
+                                } else {
+                                    // Retry
                                     _problematicInstances.remove(instance);
-                                    getActivity().runOnUiThread(() -> _checkLoadingFinished(adapter));
+                                    _fillList(adapter, Collections.singletonList(savedAuthState));
                                 }
-                            });
-                }
+                            }
+
+                            @Override
+                            public void loginInstance(final Instance instance) {
+                                // Find the auth state for the instance and then retry
+                                AuthState authState = _historyService.getCachedAuthState(instance);
+                                _apiService.getJSON(instance.getSanitizedBaseURI() + Constants.API_DISCOVERY_POSTFIX,
+                                        authState,
+                                        new APIService.Callback<JSONObject>() {
+                                            @Override
+                                            public void onSuccess(JSONObject result) {
+                                                try {
+                                                    DiscoveredAPI discoveredAPI = _serializerService.deserializeDiscoveredAPI(result);
+                                                    // Cache the result
+                                                    _historyService.cacheDiscoveredAPI(instance.getSanitizedBaseURI(), discoveredAPI);
+                                                    _problematicInstances.remove(instance);
+                                                    Activity activity = getActivity();
+                                                    if (activity != null && !activity.isFinishing()) {
+                                                        _connectionService.initiateConnection(getActivity(), instance, discoveredAPI);
+                                                    }
+                                                } catch (SerializerService.UnknownFormatException ex) {
+                                                    Log.e(TAG, "Error parsing discovered API!", ex);
+                                                    _currentDialog = ErrorDialog.show(getContext(), R.string.error_dialog_title, R.string.provider_incorrect_format);
+                                                }
+                                            }
+
+                                            @Override
+                                            public void onError(String errorMessage) {
+                                                Log.e(TAG, "Error while fetching discovered API: " + errorMessage);
+                                                DiscoveredAPI discoveredAPI = _historyService.getCachedDiscoveredAPI(instance.getSanitizedBaseURI());
+                                                Activity activity = getActivity();
+                                                if (discoveredAPI != null && activity != null && !activity.isFinishing()) {
+                                                    _connectionService.initiateConnection(activity, instance, discoveredAPI);
+                                                } else {
+                                                    _currentDialog = ErrorDialog.show(getContext(), R.string.error_dialog_title, R.string.provider_not_found_retry);
+                                                }
+                                            }
+                                        });
+                            }
+
+                            @Override
+                            public void removeInstance(Instance instance) {
+                                _historyService.removeAllDataForInstance(instance);
+                                _problematicInstances.remove(instance);
+                                getActivity().runOnUiThread(() -> _checkLoadingFinished(adapter));
+                            }
+                        });
             });
         }
     }
@@ -548,7 +512,7 @@ public class HomeFragment extends Fragment {
         String requestData = "display_name=eduVPN";
         try {
             requestData = "display_name=" + URLEncoder.encode(BuildConfig.CERTIFICATE_DISPLAY_NAME, "UTF-8");
-        } catch(UnsupportedEncodingException e) {
+        } catch (UnsupportedEncodingException e) {
             // unable to encode the display name, use default
         }
 
@@ -610,7 +574,7 @@ public class HomeFragment extends Fragment {
                     // Connect with the profile
                     dialog.dismiss();
                     _vpnService.connect(getActivity(), vpnProfile);
-                    ((MainActivity) getActivity()).openFragment(new ConnectionStatusFragment(), false);
+                    ((MainActivity)getActivity()).openFragment(new ConnectionStatusFragment(), false);
                 } else {
                     dialog.dismiss();
                     _currentDialog = ErrorDialog.show(getContext(), R.string.error_dialog_title, R.string.error_importing_profile);
@@ -674,7 +638,7 @@ public class HomeFragment extends Fragment {
             public void onError(String errorMessage) {
                 dialog.dismiss();
                 if (errorMessage != null && (APIService.USER_NOT_AUTHORIZED_ERROR.equals(errorMessage) ||
-                    errorMessage.contains("invalid_grant"))) {
+                        errorMessage.contains("invalid_grant"))) {
                     // Display a dialog with all the warnings
                     _currentDialog = ErrorDialog.show(getContext(),
                             getString(R.string.warnings_list),
@@ -755,14 +719,13 @@ public class HomeFragment extends Fragment {
     /**
      * Called when the user clicks on the 'Add Provider' button.
      */
-    @OnClick(R.id.addProvider)
     protected void onAddProviderClicked() {
         if (BuildConfig.API_DISCOVERY_ENABLED) {
             /* for "basic" we ask for the type of the provider to add */
-            ((MainActivity) getActivity()).openFragment(new TypeSelectorFragment(), true);
+            ((MainActivity)getActivity()).openFragment(new TypeSelectorFragment(), true);
         } else {
             /* for "home", i.e. Let's Connect! we immediately ask for the domain */
-            ((MainActivity) getActivity()).openFragment(new CustomProviderFragment(), true);
+            ((MainActivity)getActivity()).openFragment(new CustomProviderFragment(), true);
         }
 
     }

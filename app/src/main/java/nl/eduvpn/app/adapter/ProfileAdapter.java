@@ -19,9 +19,6 @@ package nl.eduvpn.app.adapter;
 
 import android.content.Context;
 import android.os.Handler;
-import android.support.annotation.Nullable;
-import android.support.v4.content.ContextCompat;
-import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
 import android.util.Pair;
 import android.view.LayoutInflater;
@@ -36,8 +33,13 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
+import androidx.recyclerview.widget.RecyclerView;
 import nl.eduvpn.app.R;
 import nl.eduvpn.app.adapter.viewholder.ProfileViewHolder;
+import nl.eduvpn.app.databinding.ListItemConfigBinding;
 import nl.eduvpn.app.entity.Instance;
 import nl.eduvpn.app.entity.Profile;
 import nl.eduvpn.app.service.HistoryService;
@@ -118,17 +120,17 @@ public class ProfileAdapter extends RecyclerView.Adapter<ProfileViewHolder> {
     }
 
 
+    @NonNull
     @Override
-    public ProfileViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    public ProfileViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         if (_layoutInflater == null) {
             _layoutInflater = LayoutInflater.from(parent.getContext());
         }
-        View view = _layoutInflater.inflate(R.layout.list_item_config, parent, false);
-        return new ProfileViewHolder(view);
+        return new ProfileViewHolder(ListItemConfigBinding.inflate(_layoutInflater, parent, false));
     }
 
     @Override
-    public void onBindViewHolder(ProfileViewHolder holder, int position) {
+    public void onBindViewHolder(@NonNull ProfileViewHolder holder, int position) {
         final Pair<Instance, Profile> instanceProfilePair = getItem(position);
         if (_itemsPendingRemoval.contains(instanceProfilePair)) {
             // We need to show the "undo" state of the row
