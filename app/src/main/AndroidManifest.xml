@@ -37,8 +37,7 @@
         <!-- Activities and services inherited from the OpenVPN library. -->
         <service
             android:name="de.blinkt.openvpn.core.OpenVPNService"
-            android:permission="android.permission.BIND_VPN_SERVICE"
-            android:process=":eduvpn">
+            android:permission="android.permission.BIND_VPN_SERVICE">
             <intent-filter>
                 <action android:name="android.net.VpnService" />
             </intent-filter>
@@ -46,8 +45,7 @@
 
         <service
             android:name="de.blinkt.openvpn.api.ExternalOpenVPNService"
-            tools:ignore="ExportedService"
-            android:process=":eduvpn">
+            tools:ignore="ExportedService">
             <intent-filter>
                 <action android:name="de.blinkt.openvpn.api.IOpenVPNAPIService" />
             </intent-filter>
@@ -80,7 +78,6 @@
 
         <service
             android:name="de.blinkt.openvpn.core.OpenVPNStatusService"
-            android:process=":eduvpn"
             android:exported="false" />
 
 
