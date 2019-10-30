@@ -63,7 +63,7 @@
 
         <service
             android:name="de.blinkt.openvpn.OpenVPNTileService"
-            android:icon="@drawable/ic_quick"
+            android:icon="@drawable/logo_black"
             android:label="@string/qs_title"
             android:permission="android.permission.BIND_QUICK_SETTINGS_TILE"
             android:value="true">
