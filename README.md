@@ -16,6 +16,8 @@ This is the eduVPN / Let's Connect! for Android application.
         java-1.8.0-openjdk-devel \
         ncurses-compat-libs
 
+We last tested this (succesfully on 2019-10-31 with Fedora 31).
+
 ### Debian
 
     $ sudo apt -y install openjdk-8-jdk git curl unzip
