@@ -102,7 +102,7 @@ public class HistoryServiceTest {
             String profileId = "vpn_profile";
             String profileUUID = "ABCD-1234-DEFG-5678";
             Instance instance = new Instance(baseURI + i, "displayName", null, AuthorizationType.DISTRIBUTED, true);
-            Profile profile = new Profile("displayName", profileId, false);
+            Profile profile = new Profile("displayName", profileId);
             SavedProfile savedProfile = new SavedProfile(instance, profile, profileUUID);
             _historyService.cacheSavedProfile(savedProfile);
             _historyService.cacheAuthenticationState(instance, new AuthState());
@@ -148,7 +148,7 @@ public class HistoryServiceTest {
         String profileId = "vpn_profile";
         String profileUUID = "ABCD-1234-DEFG-5678";
         Instance instance = new Instance(baseURI, "displayName", null, AuthorizationType.DISTRIBUTED, true);
-        Profile profile = new Profile("displayName", profileId, false);
+        Profile profile = new Profile("displayName", profileId);
         SavedProfile savedProfile = new SavedProfile(instance, profile, profileUUID);
         _historyService.cacheSavedProfile(savedProfile);
         _reloadHistoryService(false);

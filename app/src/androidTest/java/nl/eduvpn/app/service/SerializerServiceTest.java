@@ -86,12 +86,11 @@ public class SerializerServiceTest {
 
     @Test
     public void testProfileSerialization() throws SerializerService.UnknownFormatException {
-        Profile profile = new Profile("displayName", "profileId", true);
+        Profile profile = new Profile("displayName", "profileId");
         JSONObject serializedProfile = _serializerService.serializeProfile(profile);
         Profile deserializedProfile = _serializerService.deserializeProfile(serializedProfile);
         assertEquals(profile.getDisplayName(), deserializedProfile.getDisplayName());
         assertEquals(profile.getProfileId(), deserializedProfile.getProfileId());
-        assertEquals(profile.getTwoFactor(), deserializedProfile.getTwoFactor());
     }
 
     @Test
@@ -197,8 +196,8 @@ public class SerializerServiceTest {
     public void testSavedProfileListSerialization() throws SerializerService.UnknownFormatException {
         Instance instance1 = new Instance("baseUri1", "displayName1", "logoUri1", AuthorizationType.DISTRIBUTED, true);
         Instance instance2 = new Instance("baseUri2", "displayName2", "logoUri2", AuthorizationType.LOCAL, true);
-        Profile profile1 = new Profile("displayName1", "profileId1", false);
-        Profile profile2 = new Profile("displayName2", "profileId2", true);
+        Profile profile1 = new Profile("displayName1", "profileId1");
+        Profile profile2 = new Profile("displayName2", "profileId2");
         SavedProfile savedProfile1 = new SavedProfile(instance1, profile1, "profileUUID1");
         SavedProfile savedProfile2 = new SavedProfile(instance2, profile2, "profileUUID2");
         List<SavedProfile> list = Arrays.asList(savedProfile1, savedProfile2);

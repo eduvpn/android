@@ -17,6 +17,7 @@
 
 package nl.eduvpn.app.fragment;
 
+import android.app.Activity;
 import android.app.ProgressDialog;
 import android.os.Bundle;
 import android.view.View;
@@ -83,6 +84,8 @@ public class ProviderSelectionFragment extends BaseFragment<FragmentProviderSele
 
     private RecyclerView.AdapterDataObserver _dataObserver;
 
+    private ProgressDialog _currentDialog;
+
     @Override
     protected int getLayout() {
         return R.layout.fragment_provider_selection;
@@ -103,6 +106,22 @@ public class ProviderSelectionFragment extends BaseFragment<FragmentProviderSele
             if (_authorizationType < 0) {
                 throw new RuntimeException("Selected connection type was not provided via arguments!");
             }
+        }
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        if (_currentDialog != null) {
+            _currentDialog.dismiss();
+        }
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        if (_currentDialog != null) {
+            _currentDialog.show();
         }
     }
 
@@ -175,12 +194,16 @@ public class ProviderSelectionFragment extends BaseFragment<FragmentProviderSele
         // If there's only a discovered API, initiate the connection
         if (discoveredAPI != null) {
             Log.d(TAG, "Cached discovered API found.");
-            _connectionService.initiateConnection(getActivity(), instance, discoveredAPI);
+            Activity activity = getActivity();
+            if (activity != null && !activity.isFinishing()) {
+                _connectionService.initiateConnection(activity, instance, discoveredAPI);
+            }
             return;
         }
         // If no discovered API, fetch it first, then initiate the connection for the login
         Log.d(TAG, "No cached discovered API found, continuing with discovery.");
         final ProgressDialog dialog = ProgressDialog.show(getContext(), getString(R.string.progress_dialog_title), getString(R.string.api_discovery_message), true);
+        _currentDialog = dialog;
         // Discover the API
         _apiService.getJSON(instance.getSanitizedBaseURI() + Constants.API_DISCOVERY_POSTFIX, null, new APIService.Callback<JSONObject>() {
             @Override
@@ -188,6 +211,7 @@ public class ProviderSelectionFragment extends BaseFragment<FragmentProviderSele
                 try {
                     DiscoveredAPI discoveredAPI = _serializerService.deserializeDiscoveredAPI(result);
                     dialog.dismiss();
+                    _currentDialog = null;
                     // Cache the result
                     _historyService.cacheDiscoveredAPI(instance.getSanitizedBaseURI(), discoveredAPI);
                     _connectionService.initiateConnection(getActivity(), instance, discoveredAPI);
@@ -195,12 +219,14 @@ public class ProviderSelectionFragment extends BaseFragment<FragmentProviderSele
                     Log.e(TAG, "Error parsing discovered API!", ex);
                     ErrorDialog.show(getContext(), R.string.error_dialog_title, ex.toString());
                     dialog.dismiss();
+                    _currentDialog = null;
                 }
             }
 
             @Override
             public void onError(String errorMessage) {
                 dialog.dismiss();
+                _currentDialog = null;
                 Log.e(TAG, "Error while fetching discovered API: " + errorMessage);
                 ErrorDialog.show(getContext(), R.string.error_dialog_title, errorMessage);
             }
