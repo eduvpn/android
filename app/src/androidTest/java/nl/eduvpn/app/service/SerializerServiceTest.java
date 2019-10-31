@@ -18,8 +18,6 @@
 package nl.eduvpn.app.service;
 
 import android.net.Uri;
-import android.support.test.filters.LargeTest;
-import android.support.test.runner.AndroidJUnit4;
 import android.util.Pair;
 
 import net.openid.appauth.AuthState;
@@ -38,6 +36,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
 
+import androidx.test.ext.junit.runners.AndroidJUnit4;
+import androidx.test.filters.LargeTest;
 import nl.eduvpn.app.entity.AuthorizationType;
 import nl.eduvpn.app.entity.DiscoveredAPI;
 import nl.eduvpn.app.entity.Instance;

@@ -17,6 +17,7 @@
 
 package nl.eduvpn.app.fragment;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Toast;
@@ -26,6 +27,7 @@ import javax.inject.Inject;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import nl.eduvpn.app.EduVPNApplication;
+import nl.eduvpn.app.LicenseActivity;
 import nl.eduvpn.app.R;
 import nl.eduvpn.app.base.BaseFragment;
 import nl.eduvpn.app.databinding.FragmentSettingsBinding;
@@ -61,7 +63,9 @@ public class SettingsFragment extends BaseFragment<FragmentSettingsBinding> {
         binding.useCustomTabsSwitch.setOnClickListener(v -> onSettingChanged());
         binding.forceTcpSwitch.setOnClickListener(v -> onSettingChanged());
         binding.saveButton.setOnClickListener(v -> onSaveButtonClicked());
-
+        binding.licensesContainer.setOnClickListener(v -> {
+            startActivity(new Intent(requireContext(), LicenseActivity.class));
+        });
     }
 
     public void onSettingChanged() {

@@ -69,6 +69,31 @@
                     style="@style/SettingsLabelDescription"
                     android:layout_below="@+id/useCustomTabsTitle"
                     android:text="@string/settings_use_custom_tabs_description" />
+
+                <View
+                    android:id="@+id/customTabsSeparator"
+                    style="@style/SettingsSeparator"
+                    android:layout_below="@id/useCustomTabsDescription" />
+
+                <LinearLayout
+                    android:id="@+id/licensesContainer"
+                    android:orientation="vertical"
+                    android:background="?attr/selectableItemBackground"
+                    android:layout_width="match_parent"
+                    android:layout_below="@id/customTabsSeparator"
+                    android:layout_height="wrap_content">
+
+                    <TextView
+                        android:id="@+id/licensesTitle"
+                        style="@style/SettingsLabelTitle"
+                        android:text="@string/settings_licenses_title" />
+                    <TextView
+                        android:id="@+id/licensesDescription"
+                        style="@style/SettingsLabelDescription"
+                        android:text="@string/settings_licenses_description" />
+
+                </LinearLayout>
+
             </RelativeLayout>
         </ScrollView>
 
