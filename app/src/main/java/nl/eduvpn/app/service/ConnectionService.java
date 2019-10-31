@@ -46,6 +46,7 @@ import io.reactivex.Single;
 import io.reactivex.SingleEmitter;
 import io.reactivex.SingleOnSubscribe;
 import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
 import nl.eduvpn.app.MainActivity;
@@ -121,43 +122,38 @@ public class ConnectionService {
      * @param instance      The instance to connect to.
      * @param discoveredAPI The discovered API which has the URL.
      */
-    public void initiateConnection(@NonNull final Activity activity, @NonNull final Instance instance, @NonNull final DiscoveredAPI discoveredAPI) {
-        Observable.defer(new Callable<ObservableSource<AuthorizationRequest>>() {
-            @Override
-            public ObservableSource<AuthorizationRequest> call() throws Exception {
-                String stateString = _securityService.generateSecureRandomString(32);
-                _preferencesService.currentInstance(instance);
-                _preferencesService.storeCurrentDiscoveredAPI(discoveredAPI);
-                AuthorizationServiceConfiguration serviceConfig = _buildAuthConfiguration(discoveredAPI);
+    public Disposable initiateConnection(@NonNull final Activity activity, @NonNull final Instance instance, @NonNull final DiscoveredAPI discoveredAPI) {
+        return Observable.defer((Callable<ObservableSource<AuthorizationRequest>>)() -> {
+            String stateString = _securityService.generateSecureRandomString(32);
+            _preferencesService.currentInstance(instance);
+            _preferencesService.storeCurrentDiscoveredAPI(discoveredAPI);
+            AuthorizationServiceConfiguration serviceConfig = _buildAuthConfiguration(discoveredAPI);
 
-                AuthorizationRequest.Builder authRequestBuilder =
-                        new AuthorizationRequest.Builder(
-                                serviceConfig, // the authorization service configuration
-                                CLIENT_ID, // the client ID, typically pre-registered and static
-                                ResponseTypeValues.CODE, // the response_type value: we want a code
-                                Uri.parse(REDIRECT_URI)) // the redirect URI to which the auth response is sent
-                                .setScope(SCOPE)
-                                .setCodeVerifier(CodeVerifierUtil.generateRandomCodeVerifier()) // Use S256 challenge method if possible
-                                .setResponseType(RESPONSE_TYPE)
-                                .setState(stateString);
-                return Observable.just(authRequestBuilder.build());
-            }
+            AuthorizationRequest.Builder authRequestBuilder =
+                    new AuthorizationRequest.Builder(
+                            serviceConfig, // the authorization service configuration
+                            CLIENT_ID, // the client ID, typically pre-registered and static
+                            ResponseTypeValues.CODE, // the response_type value: we want a code
+                            Uri.parse(REDIRECT_URI)) // the redirect URI to which the auth response is sent
+                            .setScope(SCOPE)
+                            .setCodeVerifier(CodeVerifierUtil.generateRandomCodeVerifier()) // Use S256 challenge method if possible
+                            .setResponseType(RESPONSE_TYPE)
+                            .setState(stateString);
+            return Observable.just(authRequestBuilder.build());
         }).subscribeOn(Schedulers.computation())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Consumer<AuthorizationRequest>() {
-                    @Override
-                    public void accept(AuthorizationRequest authorizationRequest) throws Exception {
-                        if (_authorizationService == null) {
-                            throw new RuntimeException("Please call onStart() on this service from your activity!");
-                        }
+                .subscribe(authorizationRequest -> {
+                    if (_authorizationService == null) {
+                        throw new RuntimeException("Please call onStart() on this service from your activity!");
+                    }
+                    if (activity != null && !activity.isFinishing()) {
                         _authorizationService.performAuthorizationRequest(
                                 authorizationRequest,
                                 PendingIntent.getActivity(activity, REQUEST_CODE_APP_AUTH, new Intent(activity, MainActivity.class), 0));
-
                     }
-                }, new Consumer<Throwable>() {
-                    @Override
-                    public void accept(Throwable throwable) throws Exception {
+
+                }, throwable -> {
+                    if (activity != null && !activity.isFinishing()) {
                         ErrorDialog.show(activity, R.string.error_dialog_title, throwable.getMessage());
                     }
                 });

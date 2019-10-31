@@ -17,6 +17,7 @@
 
 package nl.eduvpn.app.fragment;
 
+import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.os.Bundle;
@@ -96,9 +97,15 @@ public class CustomProviderFragment extends BaseFragment<FragmentCustomProviderB
                     try {
                         DiscoveredAPI discoveredAPI = _serializerService.deserializeDiscoveredAPI(result);
                         dialog.dismiss();
-                        _connectionService.initiateConnection(getActivity(), customProviderInstance, discoveredAPI);
+                        Activity activity = getActivity();
+                        if (activity != null && activity.isFinishing()) {
+                            _connectionService.initiateConnection(activity, customProviderInstance, discoveredAPI);
+                        }
                     } catch (SerializerService.UnknownFormatException ex) {
-                        ErrorDialog.show(getContext(), R.string.error_dialog_title, getString(R.string.custom_api_discovery_error, ex.toString()));
+                        Context context = getContext();
+                        if (context != null){
+                            ErrorDialog.show(context, R.string.error_dialog_title, context.getString(R.string.custom_api_discovery_error, ex.toString()));
+                        }
                         Log.e(TAG, "Error while parsing discovered API", ex);
                         dialog.dismiss();
                     }
@@ -108,7 +115,10 @@ public class CustomProviderFragment extends BaseFragment<FragmentCustomProviderB
                 public void onError(String errorMessage) {
                     dialog.dismiss();
                     Log.e(TAG, "Error fetching discovered API: " + errorMessage);
-                    ErrorDialog.show(getContext(), R.string.error_dialog_title, getString(R.string.custom_api_discovery_error, errorMessage));
+                    Context context = getContext();
+                    if (context != null) {
+                        ErrorDialog.show(context, R.string.error_dialog_title, getString(R.string.custom_api_discovery_error, errorMessage));
+                    }
                 }
             });
         }
