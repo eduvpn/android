@@ -127,6 +127,9 @@ public class ConnectionStatusFragment extends BaseFragment<FragmentConnectionSta
                 try {
                     List<Message> systemMessagesList = _serializerService.deserializeMessageList(result, "system_messages");
                     messagesAdapter.setSystemMessages(systemMessagesList);
+                    if (!systemMessagesList.isEmpty()) {
+                        onSwitcherButtonClicked(binding.notificationsSwitchButton);
+                    }
                 } catch (SerializerService.UnknownFormatException ex) {
                     ErrorDialog.show(getContext(), R.string.error_dialog_title, ex.toString());
                 }
@@ -228,11 +231,11 @@ public class ConnectionStatusFragment extends BaseFragment<FragmentConnectionSta
         int selectedBg = R.drawable.switcher_button_bg_selected;
         int defaultBg = R.drawable.switcher_button_bg;
         if (view == binding.notificationsSwitchButton) {
-            binding.switcher.setDisplayedChild(0);
+            binding.switcher.setDisplayedChild(1);
             binding.notificationsSwitchButton.setBackgroundResource(selectedBg);
             binding.connectionInfoSwitchButton.setBackgroundResource(defaultBg);
         } else {
-            binding.switcher.setDisplayedChild(1);
+            binding.switcher.setDisplayedChild(0);
             binding.notificationsSwitchButton.setBackgroundResource(defaultBg);
             binding.connectionInfoSwitchButton.setBackgroundResource(selectedBg);
         }

@@ -102,23 +102,25 @@
             android:weightSum="1">
 
             <Button
-                android:id="@+id/notificationsSwitchButton"
+                android:id="@+id/connectionInfoSwitchButton"
                 style="@style/SwitcherButton"
                 android:layout_marginRight="-1dp"
                 android:background="@drawable/switcher_button_bg_selected"
+                android:text="@string/connection_switcher_title"
+                android:textOff="@string/connection_switcher_title"
+                android:textOn="@string/connection_switcher_title" />
+
+            <Button
+                android:id="@+id/notificationsSwitchButton"
+                style="@style/SwitcherButton"
+                android:layout_marginLeft="-1dp"
+                android:checked="false"
+                android:background="@drawable/switcher_button_bg"
                 android:text="@string/notifications_switcher_default_title"
                 android:textOff="@string/notifications_switcher_default_title"
                 android:textOn="@string/notifications_switcher_default_title" />
 
-            <Button
-                android:id="@+id/connectionInfoSwitchButton"
-                style="@style/SwitcherButton"
-                android:layout_marginLeft="-1dp"
-                android:background="@drawable/switcher_button_bg"
-                android:checked="false"
-                android:text="@string/connection_switcher_title"
-                android:textOff="@string/connection_switcher_title"
-                android:textOn="@string/connection_switcher_title" />
+
         </LinearLayout>
 
         <ViewSwitcher
@@ -130,11 +132,11 @@
             android:layout_marginTop="-1dp"
             android:background="@drawable/switcher_bg">
 
-            <include layout="@layout/switch_container_notifications"
-                android:id="@+id/notifications"/>
-
             <include layout="@layout/switch_container_connection_info"
                 android:id="@+id/connection_info"/>
+
+            <include layout="@layout/switch_container_notifications"
+                android:id="@+id/notifications"/>
 
         </ViewSwitcher>
 
