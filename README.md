@@ -11,6 +11,7 @@ This is the eduVPN / Let's Connect! for Android application.
     $ sudo dnf -y install \
         unzip \
         git \
+        swig \
         java-1.8.0-openjdk \
         java-1.8.0-openjdk-devel \
         ncurses-compat-libs

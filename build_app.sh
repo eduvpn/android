@@ -9,6 +9,7 @@ KEY_STORE=${HOME}/android.jks
 
 GIT_REPO=https://github.com/eduvpn/android
 GIT_TAG=1.2.3
+#GIT_TAG=master
 
 PROJECT_DIR=${HOME}/Projects
 APP_DIR=${PROJECT_DIR}/eduvpn-android-$(date +%Y%m%d%H%M%S)
