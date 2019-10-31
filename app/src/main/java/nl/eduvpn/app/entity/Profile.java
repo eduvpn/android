@@ -25,12 +25,10 @@ public class Profile {
 
     private String _displayName;
     private String _profileId;
-    private Boolean _twoFactor;
 
-    public Profile(String displayName, String profileId, Boolean twoFactor) {
+    public Profile(String displayName, String profileId) {
         _displayName = displayName;
         _profileId = profileId;
-        _twoFactor = twoFactor;
     }
 
     /**
@@ -40,15 +38,6 @@ public class Profile {
      */
     public String getDisplayName() {
         return _displayName;
-    }
-
-    /**
-     * Returns if this profile supports two-factor authentication.
-     *
-     * @return If the profile supports two-factor authentication.
-     */
-    public Boolean getTwoFactor() {
-        return _twoFactor;
     }
 
     /**

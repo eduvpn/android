@@ -113,7 +113,6 @@ public class SerializerService {
         try {
             result.put("display_name", profile.getDisplayName());
             result.put("profile_id", profile.getProfileId());
-            result.put("two_factor", profile.getTwoFactor());
             return result;
         } catch (JSONException ex) {
             throw new UnknownFormatException(ex);
@@ -131,8 +130,7 @@ public class SerializerService {
         try {
             String displayName = jsonObject.getString("display_name");
             String profileId = jsonObject.getString("profile_id");
-            Boolean twoFactor = jsonObject.getBoolean("two_factor");
-            return new Profile(displayName, profileId, twoFactor);
+            return new Profile(displayName, profileId);
         } catch (JSONException ex) {
             throw new UnknownFormatException(ex);
         }
