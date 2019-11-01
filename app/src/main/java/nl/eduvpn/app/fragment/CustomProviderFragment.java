@@ -98,7 +98,7 @@ public class CustomProviderFragment extends BaseFragment<FragmentCustomProviderB
                         DiscoveredAPI discoveredAPI = _serializerService.deserializeDiscoveredAPI(result);
                         dialog.dismiss();
                         Activity activity = getActivity();
-                        if (activity != null && activity.isFinishing()) {
+                        if (activity != null && !activity.isFinishing()) {
                             _connectionService.initiateConnection(activity, customProviderInstance, discoveredAPI);
                         }
                     } catch (SerializerService.UnknownFormatException ex) {
