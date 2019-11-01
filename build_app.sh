@@ -9,6 +9,7 @@ KEY_STORE=${HOME}/android.jks
 
 GIT_REPO=https://github.com/eduvpn/android
 GIT_TAG=1.2.3
+#GIT_TAG=master
 
 PROJECT_DIR=${HOME}/Projects
 APP_DIR=${PROJECT_DIR}/eduvpn-android-$(date +%Y%m%d%H%M%S)
@@ -42,7 +43,7 @@ SIGNED_APK=${PROJECT_DIR}/eduVPN-${GIT_TAG}.apk
 (
     export ANDROID_HOME=${SDK_DIR}
     cd "${APP_DIR}" || exit
-    ./gradlew ${GRADLE_TASK}
+    ./gradlew ${GRADLE_TASK} --stacktrace || exit
 )
 
 ###############################################################################
@@ -50,6 +51,8 @@ SIGNED_APK=${PROJECT_DIR}/eduVPN-${GIT_TAG}.apk
 ###############################################################################
 
 (
-    ${SDK_DIR}/build-tools/*/apksigner sign --ks "${KEY_STORE}" "${UNSIGNED_APK}" || exit
+    # pick the newest build tools in case multiple versions are available
+    BUILD_TOOLS_VERSION=$(ls ${SDK_DIR}/build-tools/ | sort -r | head -1)
+    ${SDK_DIR}/build-tools/${BUILD_TOOLS_VERSION}/apksigner sign --ks "${KEY_STORE}" "${UNSIGNED_APK}" || exit
     cp "${UNSIGNED_APK}" "${SIGNED_APK}" || exit
 )
