@@ -28,6 +28,13 @@ android {
                 'appAuthRedirectHost': 'android.app.eduvpn.org',
         ]
         missingDimensionStrategy 'implementation', 'ui' // Skeleton is no option for us because we need the log activity
+
+        // This excludes some pretty old ABIs such armeabi or mips. LibSodium-JNI still includes binaries for these, which
+        // leads to some devices selecting these as the app ABI, but the OpenVPN library did not include a binary for these,
+        // thus resulting in a crash.
+        ndk {
+            abiFilters 'arm64-v8a', 'x86', 'x86_64', 'armeabi-v7a'
+        }
     }
 
     buildTypes {
