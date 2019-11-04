@@ -219,8 +219,6 @@ public class VPNService extends Observable implements VpnStatus.StateListener {
      */
     private void _onDisconnect() {
         // Reset all statistics
-        VpnStatus.removeByteCountListener(_byteCountListener);
-        _updatesHandler.removeCallbacksAndMessages(null);
         _connectionTime = null;
         _bytesIn = null;
         _bytesOut = null;
@@ -428,6 +426,8 @@ public class VPNService extends Observable implements VpnStatus.StateListener {
      */
     public void detachConnectionInfoListener() {
         _connectionInfoCallback = null;
+        _updatesHandler.removeCallbacksAndMessages(null);
+        VpnStatus.removeByteCountListener(_byteCountListener);
     }
 
     public interface ConnectionInfoCallback {
