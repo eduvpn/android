@@ -33,7 +33,7 @@ import org.junit.runner.RunWith;
 
 import java.util.Random;
 
-import androidx.test.InstrumentationRegistry;
+import androidx.test.core.app.ApplicationProvider;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.filters.LargeTest;
 import nl.eduvpn.app.entity.AuthorizationType;
@@ -67,7 +67,7 @@ public class HistoryServiceTest {
 
     @BeforeClass
     public static void setPreferences() {
-        Context context = InstrumentationRegistry.getTargetContext();
+        Context context = ApplicationProvider.getApplicationContext();
         _securePreferences = new SecurityService(context).getSecurePreferences();
     }
 
@@ -79,7 +79,8 @@ public class HistoryServiceTest {
     @SuppressLint({ "CommitPrefEdits", "ApplySharedPref" })
     private void _reloadHistoryService(boolean clearHistory) {
         SerializerService serializerService = new SerializerService();
-        PreferencesService preferencesService = new PreferencesService(serializerService, _securePreferences);
+        Context context = ApplicationProvider.getApplicationContext();
+        PreferencesService preferencesService = new PreferencesService(context, serializerService, _securePreferences);
         // Clean the shared preferences if needed
         if (clearHistory) {
             preferencesService._getSharedPreferences().edit().clear().commit();
