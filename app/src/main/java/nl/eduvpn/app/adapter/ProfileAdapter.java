@@ -17,8 +17,6 @@
 
 package nl.eduvpn.app.adapter;
 
-import android.content.Context;
-import android.os.Handler;
 import android.text.TextUtils;
 import android.util.Pair;
 import android.view.LayoutInflater;
@@ -28,14 +26,11 @@ import android.view.ViewGroup;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.ListIterator;
-import java.util.Map;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 import nl.eduvpn.app.R;
 import nl.eduvpn.app.adapter.viewholder.ProfileViewHolder;
@@ -51,16 +46,9 @@ import nl.eduvpn.app.utils.FormattingUtils;
  */
 public class ProfileAdapter extends RecyclerView.Adapter<ProfileViewHolder> {
 
-    private static final boolean UNDO_ENABLED = true;
-    private static final int PENDING_REMOVAL_TIMEOUT = 5000;
-
     private List<Pair<Instance, Profile>> _profileList;
-    private final List<Pair<Instance, Profile>> _itemsPendingRemoval;
-    private final Map<Pair<Instance, Profile>, Runnable> _pendingRunnables = new HashMap<>();
 
     private final Object _profileListLock = new Object();
-
-    private Handler _handler = new Handler();
 
     private LayoutInflater _layoutInflater;
     private HistoryService _historyService;
@@ -77,7 +65,6 @@ public class ProfileAdapter extends RecyclerView.Adapter<ProfileViewHolder> {
         if (_profileList == null) {
             _profileList = new ArrayList<>();
         }
-        _itemsPendingRemoval = new ArrayList<>();
     }
 
     /**
@@ -132,32 +119,8 @@ public class ProfileAdapter extends RecyclerView.Adapter<ProfileViewHolder> {
     @Override
     public void onBindViewHolder(@NonNull ProfileViewHolder holder, int position) {
         final Pair<Instance, Profile> instanceProfilePair = getItem(position);
-        if (_itemsPendingRemoval.contains(instanceProfilePair)) {
-            // We need to show the "undo" state of the row
-            Context context = holder.itemView.getContext();
-            holder.itemView.setBackgroundColor(ContextCompat.getColor(context, R.color.swipeBackgroundColor));
-            holder.profileName.setVisibility(View.GONE);
-            holder.providerIcon.setVisibility(View.GONE);
-            holder.profileProvider.setText(FormattingUtils.formatInstanceUrl(instanceProfilePair.first));
-            holder.profileProvider.setVisibility(View.VISIBLE);
-            holder.undoButton.setVisibility(View.VISIBLE);
-            holder.undoButton.setOnClickListener(v -> {
-                // user wants to undo the removal, let's cancel the pending task
-                Runnable pendingRemovalRunnable = _pendingRunnables.get(instanceProfilePair);
-                _pendingRunnables.remove(instanceProfilePair);
-                if (pendingRemovalRunnable != null) {
-                    _handler.removeCallbacks(pendingRemovalRunnable);
-                }
-                _itemsPendingRemoval.remove(instanceProfilePair);
-                // This will rebind the row in "normal" state
-                notifyItemChanged(_profileList.indexOf(instanceProfilePair));
-            });
-        } else {
-            Context context = holder.itemView.getContext();
-            holder.itemView.setBackgroundColor(ContextCompat.getColor(context, R.color.backgroundColor));
             holder.profileName.setVisibility(View.VISIBLE);
             holder.providerIcon.setVisibility(View.VISIBLE);
-            holder.undoButton.setVisibility(View.GONE);
             holder.profileName.setText(instanceProfilePair.second.getDisplayName());
             holder.profileProvider.setText(FormattingUtils.formatInstanceUrl(instanceProfilePair.first));
             if (!TextUtils.isEmpty(instanceProfilePair.first.getLogoUri())) {
@@ -169,7 +132,6 @@ public class ProfileAdapter extends RecyclerView.Adapter<ProfileViewHolder> {
             } else {
                 holder.providerIcon.setImageResource(R.drawable.external_provider);
             }
-        }
     }
 
     @Override
@@ -187,36 +149,6 @@ public class ProfileAdapter extends RecyclerView.Adapter<ProfileViewHolder> {
     }
 
 
-    /**
-     * Returns if undoing is enabled.
-     *
-     * @return If undo is enabled.
-     */
-    public boolean isUndoEnabled() {
-        return UNDO_ENABLED;
-    }
-
-    /**
-     * Makes the removal of an item pending. The item will be removed soon unless the user presses on undo.
-     *
-     * @param position The position of the item.
-     */
-    public void pendingRemoval(int position) {
-        final Pair<Instance, Profile> item;
-        synchronized (_profileListLock) {
-            item = _profileList.get(position);
-        }
-        if (!_itemsPendingRemoval.contains(item)) {
-            _itemsPendingRemoval.add(item);
-            // This will redraw row in "undo" state
-            notifyItemChanged(position);
-            // Let's create, store and post a runnable to remove the item
-            Runnable pendingRemovalRunnable = () -> remove(item);
-            _handler.postDelayed(pendingRemovalRunnable, PENDING_REMOVAL_TIMEOUT);
-            _pendingRunnables.put(item, pendingRemovalRunnable);
-        }
-
-    }
 
     /**
      * Removes the item at the given position.
@@ -224,9 +156,6 @@ public class ProfileAdapter extends RecyclerView.Adapter<ProfileViewHolder> {
      * @param item The item to remove
      */
     public void remove(Pair<Instance, Profile> item) {
-        if (_itemsPendingRemoval.contains(item)) {
-            _itemsPendingRemoval.remove(item);
-        }
         synchronized (_profileListLock) {
             int firstIndex = -1;
             int lastIndex = -1;
@@ -245,19 +174,5 @@ public class ProfileAdapter extends RecyclerView.Adapter<ProfileViewHolder> {
             }
         }
         _historyService.removeAllDataForInstance(item.first);
-    }
-
-    /**
-     * Returns if a given item is pending removal.
-     *
-     * @param position The position of the item.
-     * @return True if removal is pending. Otherwise false.
-     */
-    public boolean isPendingRemoval(int position) {
-        Pair<Instance, Profile> item;
-        synchronized (_profileListLock) {
-            item = _profileList.get(position);
-        }
-        return _itemsPendingRemoval.contains(item);
     }
 }

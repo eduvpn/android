@@ -21,6 +21,7 @@ import android.animation.ValueAnimator;
 import android.app.Activity;
 import android.app.Dialog;
 import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.util.Pair;
 import android.view.View;
@@ -41,7 +42,7 @@ import javax.inject.Inject;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.recyclerview.widget.ItemTouchHelper;
+import androidx.appcompat.app.AlertDialog;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import de.blinkt.openvpn.VpnProfile;
@@ -72,8 +73,6 @@ import nl.eduvpn.app.utils.ErrorDialog;
 import nl.eduvpn.app.utils.FormattingUtils;
 import nl.eduvpn.app.utils.ItemClickSupport;
 import nl.eduvpn.app.utils.Log;
-import nl.eduvpn.app.utils.SwipeToDeleteAnimator;
-import nl.eduvpn.app.utils.SwipeToDeleteHelper;
 
 /**
  * Fragment which is displayed when the app start.
@@ -145,14 +144,6 @@ public class HomeFragment extends BaseFragment<FragmentHomeBinding> {
 
         binding.addProvider.setOnClickListener(v -> onAddProviderClicked());
 
-        // Swipe to delete
-        ItemTouchHelper instituteSwipeHelper = new ItemTouchHelper(new SwipeToDeleteHelper(getContext()));
-        instituteSwipeHelper.attachToRecyclerView(binding.instituteAccessList);
-        binding.instituteAccessList.addItemDecoration(new SwipeToDeleteAnimator(getContext()));
-        ItemTouchHelper secureInternetSwipeHelper = new ItemTouchHelper(new SwipeToDeleteHelper(getContext()));
-        secureInternetSwipeHelper.attachToRecyclerView(binding.secureInternetList);
-        binding.secureInternetList.addItemDecoration(new SwipeToDeleteAnimator(getContext()));
-
         // Add click listeners
         ItemClickSupport.OnItemClickListener clickListener = (recyclerView, position, v) -> _onItemClicked(recyclerView, position);
         ItemClickSupport.addTo(binding.instituteAccessList).setOnItemClickListener(clickListener);
@@ -180,28 +171,29 @@ public class HomeFragment extends BaseFragment<FragmentHomeBinding> {
     }
 
     private boolean _onItemLongClicked(RecyclerView recyclerView, int position) {
-        // On long click we show the full name in a toast
+        // On long click we ask if the user wants to delete the given provider
         // Is useful when the names don't fit too well.
         ProfileAdapter adapter = (ProfileAdapter)recyclerView.getAdapter();
         if (adapter == null) {
             return false;
         }
-        if (adapter.isPendingRemoval(position)) {
-            return true;
-        }
         Pair<Instance, Profile> instanceProfilePair = adapter.getItem(position);
-        Toast.makeText(
-                getContext(),
-                FormattingUtils.formatProfileName(getContext(), instanceProfilePair.first, instanceProfilePair.second),
-                Toast.LENGTH_SHORT).show();
+        if (instanceProfilePair != null) {
+            new AlertDialog.Builder(requireContext())
+                    .setTitle(R.string.delete_provider)
+                    .setMessage(getString(R.string.delete_provider_message, instanceProfilePair.first.getDisplayName(), instanceProfilePair.first.getSanitizedBaseURI()))
+                    .setPositiveButton(R.string.button_remove, (dialog, which) -> {
+                        adapter.remove(instanceProfilePair);
+                        dialog.dismiss();
+                    })
+                    .setNegativeButton(R.string.delete_provider_cancel, (dialog, which) -> dialog.dismiss())
+                    .show();
+        }
         return true;
     }
 
     private void _onItemClicked(RecyclerView recyclerView, int position) {
         ProfileAdapter adapter = (ProfileAdapter)recyclerView.getAdapter();
-        if (adapter.isPendingRemoval(position)) {
-            return;
-        }
         Pair<Instance, Profile> instanceProfilePair = adapter.getItem(position);
         // We surely have a discovered API and access token, since we just loaded the list with them
         Instance instance = instanceProfilePair.first;

@@ -109,4 +109,7 @@
     <string name="licenses_title">Software licenses</string>
     <string name="settings_licenses_title">Software licenses</string>
     <string name="settings_licenses_description">Acknowledgement for 3rd party software used to build this application.</string>
+    <string name="delete_provider">Delete provider</string>
+    <string name="delete_provider_message">Are you sure you want to remove the provider \'%1$s\' (%2$s) with all its profiles?</string>
+    <string name="delete_provider_cancel">Cancel</string>
 </resources>
