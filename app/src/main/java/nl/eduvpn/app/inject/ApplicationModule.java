@@ -75,8 +75,8 @@ public class ApplicationModule {
 
     @Provides
     @Singleton
-    protected PreferencesService providePreferencesService(SerializerService serializerService, SharedPreferences sharedPreferences) {
-        return new PreferencesService(serializerService, sharedPreferences);
+    protected PreferencesService providePreferencesService(Context context, SerializerService serializerService, SharedPreferences sharedPreferences) {
+        return new PreferencesService(context, serializerService, sharedPreferences);
     }
 
     @Provides
