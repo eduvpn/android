@@ -17,7 +17,6 @@
 
 package nl.eduvpn.app.adapter.viewholder;
 
-import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -33,13 +32,11 @@ public class ProfileViewHolder extends RecyclerView.ViewHolder {
     public ImageView providerIcon;
     public TextView profileName;
     public TextView profileProvider;
-    public Button undoButton;
 
     public ProfileViewHolder(ListItemConfigBinding binding) {
         super(binding.getRoot());
         providerIcon = binding.providerIcon;
         profileName = binding.profileName;
         profileProvider = binding.profileProvider;
-        undoButton = binding.undoButton;
     }
 }
