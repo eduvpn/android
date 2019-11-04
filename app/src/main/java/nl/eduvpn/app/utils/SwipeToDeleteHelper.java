@@ -26,6 +26,7 @@ import android.graphics.drawable.Drawable;
 import android.util.Pair;
 import android.view.View;
 
+import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.RecyclerView;
@@ -54,7 +55,7 @@ public class SwipeToDeleteHelper extends ItemTouchHelper.SimpleCallback {
     }
 
     @Override
-    public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
+    public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder target) {
         // Not important, we don't want drag & drop
         return false;
     }
@@ -63,8 +64,8 @@ public class SwipeToDeleteHelper extends ItemTouchHelper.SimpleCallback {
     public int getSwipeDirs(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder) {
         int position = viewHolder.getAdapterPosition();
         _profileAdapter = (ProfileAdapter)recyclerView.getAdapter();
-        if (_profileAdapter.isUndoEnabled() && _profileAdapter.isPendingRemoval(position)) {
-            return 0;
+        if (_profileAdapter != null && _profileAdapter.isUndoEnabled() && _profileAdapter.isPendingRemoval(position)) {
+            return ItemTouchHelper.LEFT;
         }
         return super.getSwipeDirs(recyclerView, viewHolder);
     }
@@ -84,7 +85,7 @@ public class SwipeToDeleteHelper extends ItemTouchHelper.SimpleCallback {
 
     @Override
 
-    public void onChildDraw(Canvas c, RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, float dX, float dY, int actionState, boolean isCurrentlyActive) {
+    public void onChildDraw(@NonNull Canvas c, @NonNull RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, float dX, float dY, int actionState, boolean isCurrentlyActive) {
         View itemView = viewHolder.itemView;
         // Not sure why, but this method gets called for view holders that are already swiped away
         if (viewHolder.getAdapterPosition() == -1) {

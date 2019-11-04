@@ -121,6 +121,8 @@ public class ApplicationModule {
     protected OkHttpClient provideHttpClient() {
         OkHttpClient.Builder clientBuilder = new OkHttpClient.Builder()
                 .retryOnConnectionFailure(true)
+                .followRedirects(true)
+                .followSslRedirects(true)
                 .connectTimeout(10, TimeUnit.SECONDS)
                 .writeTimeout(30, TimeUnit.SECONDS)
                 .readTimeout(30, TimeUnit.SECONDS)

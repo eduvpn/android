@@ -55,8 +55,8 @@ public class ProfileAdapter extends RecyclerView.Adapter<ProfileViewHolder> {
     private static final int PENDING_REMOVAL_TIMEOUT = 5000;
 
     private List<Pair<Instance, Profile>> _profileList;
-    private List<Pair<Instance, Profile>> _itemsPendingRemoval;
-    private Map<Pair<Instance, Profile>, Runnable> _pendingRunnables = new HashMap<>();
+    private final List<Pair<Instance, Profile>> _itemsPendingRemoval;
+    private final Map<Pair<Instance, Profile>, Runnable> _pendingRunnables = new HashMap<>();
 
     private final Object _profileListLock = new Object();
 
@@ -141,20 +141,16 @@ public class ProfileAdapter extends RecyclerView.Adapter<ProfileViewHolder> {
             holder.profileProvider.setText(FormattingUtils.formatInstanceUrl(instanceProfilePair.first));
             holder.profileProvider.setVisibility(View.VISIBLE);
             holder.undoButton.setVisibility(View.VISIBLE);
-            holder.undoButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    // user wants to undo the removal, let's cancel the pending task
-                    Runnable pendingRemovalRunnable = _pendingRunnables.get(instanceProfilePair);
-                    _pendingRunnables.remove(instanceProfilePair);
-                    if (pendingRemovalRunnable != null) {
-                        _handler.removeCallbacks(pendingRemovalRunnable);
-                    }
-                    _itemsPendingRemoval.remove(instanceProfilePair);
-                    // This will rebind the row in "normal" state
-                    notifyItemChanged(_profileList.indexOf(instanceProfilePair));
+            holder.undoButton.setOnClickListener(v -> {
+                // user wants to undo the removal, let's cancel the pending task
+                Runnable pendingRemovalRunnable = _pendingRunnables.get(instanceProfilePair);
+                _pendingRunnables.remove(instanceProfilePair);
+                if (pendingRemovalRunnable != null) {
+                    _handler.removeCallbacks(pendingRemovalRunnable);
                 }
-
+                _itemsPendingRemoval.remove(instanceProfilePair);
+                // This will rebind the row in "normal" state
+                notifyItemChanged(_profileList.indexOf(instanceProfilePair));
             });
         } else {
             Context context = holder.itemView.getContext();
@@ -215,12 +211,7 @@ public class ProfileAdapter extends RecyclerView.Adapter<ProfileViewHolder> {
             // This will redraw row in "undo" state
             notifyItemChanged(position);
             // Let's create, store and post a runnable to remove the item
-            Runnable pendingRemovalRunnable = new Runnable() {
-                @Override
-                public void run() {
-                    remove(item);
-                }
-            };
+            Runnable pendingRemovalRunnable = () -> remove(item);
             _handler.postDelayed(pendingRemovalRunnable, PENDING_REMOVAL_TIMEOUT);
             _pendingRunnables.put(item, pendingRemovalRunnable);
         }
@@ -236,16 +227,24 @@ public class ProfileAdapter extends RecyclerView.Adapter<ProfileViewHolder> {
         if (_itemsPendingRemoval.contains(item)) {
             _itemsPendingRemoval.remove(item);
         }
-        int indexInList;
         synchronized (_profileListLock) {
-            indexInList = _profileList.indexOf(item);
-            if (indexInList < 0) {
-                return; // Already removed
+            int firstIndex = -1;
+            int lastIndex = -1;
+            for (int i = 0; i < _profileList.size(); ++i) {
+                Pair<Instance, Profile> current = _profileList.get(i);
+                if (current.first.getSanitizedBaseURI().equals(item.first.getSanitizedBaseURI())) {
+                    if (firstIndex < 0) {
+                        firstIndex = i;
+                    }
+                    lastIndex = i;
+                }
             }
-            _profileList.remove(indexInList);
+            if (firstIndex >= 0) {
+                _profileList.subList(firstIndex, lastIndex + 1).clear();
+                notifyItemRangeRemoved(firstIndex, lastIndex - firstIndex + 1);
+            }
         }
         _historyService.removeAllDataForInstance(item.first);
-        // The service will notify the list that it changed.
     }
 
     /**
