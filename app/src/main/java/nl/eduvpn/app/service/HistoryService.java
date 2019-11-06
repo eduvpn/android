@@ -46,8 +46,6 @@ import nl.eduvpn.app.utils.TTLCache;
 public class HistoryService extends Observable {
     private static final String TAG = HistoryService.class.getName();
 
-    private static final Long DISCOVERED_API_CACHE_TTL_SECONDS = 30 * 24 * 3600L; // 30 days
-
     private List<SavedProfile> _savedProfileList;
     private List<SavedAuthState> _savedAuthStateList;
     private List<SavedKeyPair> _savedKeyPairList;
@@ -107,7 +105,7 @@ public class HistoryService extends Observable {
         for (SavedAuthState savedAuthState : _savedAuthStateList) {
             if (savedAuthState.getInstance().getSanitizedBaseURI().equals(instance.getSanitizedBaseURI())) {
                 return savedAuthState.getAuthState();
-            } else if (instance.getAuthorizationType() == AuthorizationType.DISTRIBUTED && savedAuthState.getInstance().getAuthorizationType() == AuthorizationType.DISTRIBUTED) {
+            } else if (instance.getAuthorizationType() == AuthorizationType.Distributed && savedAuthState.getInstance().getAuthorizationType() == AuthorizationType.Distributed) {
                 return savedAuthState.getAuthState();
             }
         }
@@ -147,7 +145,7 @@ public class HistoryService extends Observable {
      * @return The list of saved tokens for specific instances.
      */
     @NonNull
-    public List<SavedAuthState> getSavedTokensForAuthorizationType(@AuthorizationType int authorizationType) {
+    public List<SavedAuthState> getSavedTokensForAuthorizationType(AuthorizationType authorizationType) {
         List<SavedAuthState> result = new ArrayList<>();
         for (SavedAuthState savedAuthState : _savedAuthStateList) {
             if (savedAuthState.getInstance().getAuthorizationType() == authorizationType) {
@@ -211,11 +209,11 @@ public class HistoryService extends Observable {
         Iterator<SavedAuthState> savedTokenIterator = _savedAuthStateList.iterator();
         while (savedTokenIterator.hasNext()) {
             SavedAuthState savedAuthState = savedTokenIterator.next();
-            if (instance.getAuthorizationType() == AuthorizationType.DISTRIBUTED &&
-                    savedAuthState.getInstance().getAuthorizationType() == AuthorizationType.DISTRIBUTED) {
+            if (instance.getAuthorizationType() == AuthorizationType.Distributed &&
+                    savedAuthState.getInstance().getAuthorizationType() == AuthorizationType.Distributed) {
                 savedTokenIterator.remove();
                 Log.i(TAG, "Deleted saved token for distributed auth instance " + savedAuthState.getInstance().getSanitizedBaseURI());
-            } else if (instance.getAuthorizationType() == AuthorizationType.LOCAL &&
+            } else if (instance.getAuthorizationType() == AuthorizationType.Local &&
                     savedAuthState.getInstance().getSanitizedBaseURI().equals(instance.getSanitizedBaseURI())) {
                 savedTokenIterator.remove();
                 Log.i(TAG, "Deleted saved token for local auth instance " + savedAuthState.getInstance().getSanitizedBaseURI());
@@ -242,11 +240,11 @@ public class HistoryService extends Observable {
         Iterator<SavedProfile> savedProfileIterator = _savedProfileList.iterator();
         while (savedProfileIterator.hasNext()) {
             SavedProfile savedProfile = savedProfileIterator.next();
-            if (instance.getAuthorizationType() == AuthorizationType.DISTRIBUTED &&
-                    savedProfile.getInstance().getAuthorizationType() == AuthorizationType.DISTRIBUTED) {
+            if (instance.getAuthorizationType() == AuthorizationType.Distributed &&
+                    savedProfile.getInstance().getAuthorizationType() == AuthorizationType.Distributed) {
                 savedProfileIterator.remove();
                 Log.i(TAG, "Deleted profile for distributed auth instance " + savedProfile.getInstance().getSanitizedBaseURI());
-            } else if (instance.getAuthorizationType() == AuthorizationType.LOCAL &&
+            } else if (instance.getAuthorizationType() == AuthorizationType.Local &&
                     savedProfile.getInstance().getSanitizedBaseURI().equals(instance.getSanitizedBaseURI())) {
                 savedProfileIterator.remove();
                 Log.i(TAG, "Deleted profile for local auth instance " + savedProfile.getInstance().getSanitizedBaseURI());
@@ -273,9 +271,9 @@ public class HistoryService extends Observable {
             }
         }
         // Second pass: if distributed auth instance, any other instance with distributed auth is fine as well
-        if (instance.getAuthorizationType() == AuthorizationType.DISTRIBUTED) {
+        if (instance.getAuthorizationType() == AuthorizationType.Distributed) {
             for (SavedAuthState savedAuthState : _savedAuthStateList) {
-                if (savedAuthState.getInstance().getAuthorizationType() == AuthorizationType.DISTRIBUTED) {
+                if (savedAuthState.getInstance().getAuthorizationType() == AuthorizationType.Distributed) {
                     return savedAuthState;
                 }
             }
@@ -374,11 +372,11 @@ public class HistoryService extends Observable {
         ListIterator<SavedKeyPair> keyPairListIterator = _savedKeyPairList.listIterator();
         while (keyPairListIterator.hasNext()) {
             SavedKeyPair current = keyPairListIterator.next();
-            if (instance.getAuthorizationType() == AuthorizationType.DISTRIBUTED &&
-                    current.getInstance().getAuthorizationType() == AuthorizationType.DISTRIBUTED) {
+            if (instance.getAuthorizationType() == AuthorizationType.Distributed &&
+                    current.getInstance().getAuthorizationType() == AuthorizationType.Distributed) {
                 keyPairListIterator.remove();
                 Log.i(TAG, "Deleted saved key pair for distributed auth instance " + current.getInstance().getSanitizedBaseURI());
-            } else if (instance.getAuthorizationType() == AuthorizationType.LOCAL &&
+            } else if (instance.getAuthorizationType() == AuthorizationType.Local &&
                     instance.getSanitizedBaseURI().equals(current.getInstance().getSanitizedBaseURI())) {
                 keyPairListIterator.remove();
                 Log.i(TAG, "Deleted saved key pair for local auth instance " + current.getInstance().getSanitizedBaseURI());

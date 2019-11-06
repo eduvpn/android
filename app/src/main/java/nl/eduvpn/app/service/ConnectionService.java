@@ -169,18 +169,15 @@ public class ConnectionService {
         Log.i(TAG, "Got auth response: " + authorizationResponse.jsonSerializeString());
         _authorizationService.performTokenRequest(
                 authorizationResponse.createTokenExchangeRequest(),
-                new AuthorizationService.TokenResponseCallback() {
-                    @Override
-                    public void onTokenRequestCompleted(TokenResponse tokenResponse, AuthorizationException ex) {
-                        if (tokenResponse != null) {
-                            // exchange succeeded
-                            _processTokenExchangeResponse(authorizationResponse, tokenResponse, activity);
-                        } else {
-                            // authorization failed, check ex for more details
-                            ErrorDialog.show(activity,
-                                    R.string.authorization_error_title,
-                                    activity.getString(R.string.authorization_error_message, ex.error, ex.code, ex.getMessage()));
-                        }
+                (tokenResponse, ex) -> {
+                    if (tokenResponse != null) {
+                        // exchange succeeded
+                        _processTokenExchangeResponse(authorizationResponse, tokenResponse, activity);
+                    } else {
+                        // authorization failed, check ex for more details
+                        ErrorDialog.show(activity,
+                                R.string.authorization_error_title,
+                                activity.getString(R.string.authorization_error_message, ex.error, ex.code, ex.getMessage()));
                     }
                 });
 
@@ -218,23 +215,18 @@ public class ConnectionService {
             publishSubject = Single.just(authState.getAccessToken());
             return publishSubject;
         }
-        publishSubject = Single.create(new SingleOnSubscribe<String>() {
+        publishSubject = Single.create(singleEmitter -> authState.performActionWithFreshTokens(_authorizationService, new AuthState.AuthStateAction() {
             @Override
-            public void subscribe(@io.reactivex.annotations.NonNull final SingleEmitter<String> singleEmitter) throws Exception {
-                authState.performActionWithFreshTokens(_authorizationService, new AuthState.AuthStateAction() {
-                    @Override
-                    public void execute(@Nullable String accessToken, @Nullable String idToken, @Nullable AuthorizationException ex) {
-                        if (accessToken != null) {
-                            _preferencesService.storeCurrentAuthState(authState);
-                            _historyService.refreshAuthState(authState);
-                            singleEmitter.onSuccess(accessToken);
-                        } else {
-                            singleEmitter.onError(ex);
-                        }
-                    }
-                });
+            public void execute(@Nullable String accessToken, @Nullable String idToken, @Nullable AuthorizationException ex) {
+                if (accessToken != null) {
+                    _preferencesService.storeCurrentAuthState(authState);
+                    _historyService.refreshAuthState(authState);
+                    singleEmitter.onSuccess(accessToken);
+                } else {
+                    singleEmitter.onError(ex);
+                }
             }
-        });
+        }));
 
         return publishSubject;
     }

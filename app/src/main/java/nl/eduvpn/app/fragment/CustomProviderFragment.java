@@ -88,7 +88,7 @@ public class CustomProviderFragment extends BaseFragment<FragmentCustomProviderB
         String postfix = binding.customProviderUrl.getText().toString();
         String url = prefix + postfix;
         if (getActivity() != null) {
-            final Instance customProviderInstance = _createCustomProviderInstance(url, AuthorizationType.LOCAL);
+            final Instance customProviderInstance = _createCustomProviderInstance(url, AuthorizationType.Local);
             final ProgressDialog dialog = ProgressDialog.show(getContext(), getString(R.string.progress_dialog_title), getString(R.string.api_discovery_message), true);
             // Discover the API
             _apiService.getJSON(customProviderInstance.getSanitizedBaseURI() + API_DISCOVERY_POSTFIX, null, new APIService.Callback<JSONObject>() {
@@ -130,7 +130,7 @@ public class CustomProviderFragment extends BaseFragment<FragmentCustomProviderB
      * @param baseUri The base URI of the instance.
      * @return A new instance.
      */
-    private Instance _createCustomProviderInstance(String baseUri, @AuthorizationType int authorizationType) {
+    private Instance _createCustomProviderInstance(String baseUri, AuthorizationType authorizationType) {
         return new Instance(baseUri, getString(R.string.custom_provider_display_name), null, authorizationType, true);
     }
 }

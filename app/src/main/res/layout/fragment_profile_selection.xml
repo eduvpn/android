@@ -22,7 +22,7 @@
             android:gravity="center"
             android:paddingLeft="16dp"
             android:paddingRight="16dp"
-            android:text="@string/select_a_server_description"
+            android:text="@string/select_a_profile_description"
             android:textColor="@color/textColor"
             android:textSize="16sp" />
 

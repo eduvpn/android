@@ -15,20 +15,12 @@
  *     along with eduVPN.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package nl.eduvpn.app.entity;
-
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-
-import androidx.annotation.IntDef;
+package nl.eduvpn.app.entity
 
 /**
  * The type of the VPN which the user will connect to.
  * Created by Daniel Zolnai on 2017-07-31.
  */
-@IntDef({ AuthorizationType.LOCAL, AuthorizationType.DISTRIBUTED })
-@Retention(RetentionPolicy.SOURCE)
-public @interface AuthorizationType {
-    int LOCAL = 0;
-    int DISTRIBUTED = 1;
+enum class AuthorizationType {
+        Local, Distributed
 }

@@ -30,10 +30,10 @@ public class Instance {
     private String _displayName;
     private String _logoUri;
     private boolean _isCustom;
-    private @AuthorizationType int _authorizationType;
+    private AuthorizationType _authorizationType;
 
     public Instance(@NonNull String baseUri, @NonNull String displayName, @Nullable String logoUri,
-                    @AuthorizationType int authorizationType, boolean isCustom) {
+                    AuthorizationType authorizationType, boolean isCustom) {
         _baseUri = baseUri;
         _displayName = displayName;
         _logoUri = logoUri;
@@ -64,8 +64,7 @@ public class Instance {
         return _logoUri;
     }
 
-    @AuthorizationType
-    public int getAuthorizationType() {
+    public AuthorizationType getAuthorizationType() {
         return _authorizationType;
     }
 
@@ -73,7 +72,7 @@ public class Instance {
         return _isCustom;
     }
 
-    public void setAuthorizationType(@AuthorizationType int authorizationType) {
+    public void setAuthorizationType(AuthorizationType authorizationType) {
         _authorizationType = authorizationType;
     }
 }

@@ -81,7 +81,12 @@ class ServerSelectionFragment : BaseFragment<FragmentServerSelectionBinding>(), 
         binding.serverList.layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
 
         binding.addServerButton.setOnClickListener {
-            (activity as? MainActivity)?.openFragment(CustomProviderFragment(), true)
+            @Suppress("ConstantConditionIf")
+            if (BuildConfig.API_DISCOVERY_ENABLED) {
+                (activity as? MainActivity)?.openFragment(ProviderSelectionFragment(), true)
+            } else {
+                (activity as? MainActivity)?.openFragment(CustomProviderFragment(), true)
+            }
         }
 
         val instances = historyService.savedAuthStateList.map { it.instance }
@@ -92,28 +97,12 @@ class ServerSelectionFragment : BaseFragment<FragmentServerSelectionBinding>(), 
             val item = adapter.getItem(position)
             discoverApi(item)
         }
-
-
-        @Suppress("ConstantConditionIf")
-        if (!BuildConfig.API_DISCOVERY_ENABLED) {
-            ItemClickSupport.addTo(binding.serverList).setOnItemLongClickListener { _, position, _ ->
-                val item = adapter.getItem(position)
-                displayDeleteDialog(item)
-            }
+        ItemClickSupport.addTo(binding.serverList).setOnItemLongClickListener { _, position, _ ->
+            val item = adapter.getItem(position)
+            displayDeleteDialog(item)
         }
 
-        if (arguments?.getBoolean(KEY_RETURNING_FROM_AUTH) == true) {
-            val currentInstance = preferencesService.currentInstance
-            val discoveredAPI = preferencesService.currentDiscoveredAPI
-            val authState = historyService.getCachedAuthState(currentInstance)
-            if (currentInstance != null && discoveredAPI != null && authState != null) {
-                Log.d(TAG, "Continuing with profile fetch after successful auth.")
-                fetchProfiles(currentInstance, discoveredAPI, authState)
-            } else {
-                Log.e(TAG, "Not all data available after an auth redirect. Instance OK: ${currentInstance != null}, " +
-                        "discovery OK: ${discoveredAPI != null}, auth OK: ${authState != null}")
-            }
-        }
+        tryAutoConnectIfReturningFromAuth()
     }
 
     override fun onResume() {
@@ -227,13 +216,38 @@ class ServerSelectionFragment : BaseFragment<FragmentServerSelectionBinding>(), 
         }
     }
 
+    fun tryAutoConnectIfReturningFromAuth() {
+        if (arguments?.getBoolean(KEY_RETURNING_FROM_AUTH) == true) {
+            val currentInstance = preferencesService.currentInstance
+            val discoveredAPI = preferencesService.currentDiscoveredAPI
+            val authState = historyService.getCachedAuthState(currentInstance)
+            if (currentInstance != null && discoveredAPI != null && authState != null) {
+                Log.d(TAG, "Continuing with profile fetch after successful auth.")
+                arguments?.remove(KEY_RETURNING_FROM_AUTH) // Makes sure it is not triggered twice
+                fetchProfiles(currentInstance, discoveredAPI, authState)
+            } else {
+                // Auth state might not be processed yet.
+                Log.i(TAG, "Not all data available after an auth redirect. Instance OK: ${currentInstance != null}, " +
+                        "discovery OK: ${discoveredAPI != null}, auth OK: ${authState != null}")
+            }
+        }
+    }
+
+
     override fun update(o: Observable?, arg: Any?) {
         @Suppress("ConstantConditionIf")
-        if (!BuildConfig.API_DISCOVERY_ENABLED) {
-            if (arg == HistoryService.NOTIFICATION_PROFILES_CHANGED || arg == HistoryService.NOTIFICATION_TOKENS_CHANGED) {
-                val instances = historyService.savedAuthStateList.map { it.instance }
-                (binding.serverList.adapter as? ServerAdapter)?.submitList(instances)
+        if (arg == HistoryService.NOTIFICATION_PROFILES_CHANGED || arg == HistoryService.NOTIFICATION_TOKENS_CHANGED) {
+            val instances = historyService.savedAuthStateList.map { it.instance }
+            (binding.serverList.adapter as? ServerAdapter)?.submitList(instances)
+
+            if (instances.isEmpty()) {
+                binding.description.setText(R.string.select_a_server_description_empty)
+            } else {
+                binding.description.setText(R.string.select_a_server_description)
             }
+
+            // Tokens are processed at a later moment
+            tryAutoConnectIfReturningFromAuth()
         }
     }
 

@@ -53,19 +53,11 @@ public class TypeSelectorFragment extends BaseFragment<FragmentTypeSelectorBindi
     }
 
     protected void _onInstituteAccessClicked() {
-        ProviderSelectionFragment providerSelectionFragment = new ProviderSelectionFragment();
-        Bundle fragmentParameters = new Bundle();
-        fragmentParameters.putInt(ProviderSelectionFragment.EXTRA_AUTHORIZATION_TYPE, AuthorizationType.LOCAL);
-        providerSelectionFragment.setArguments(fragmentParameters);
-        ((MainActivity)getActivity()).openFragment(providerSelectionFragment, true);
+        ((MainActivity)getActivity()).openFragment(ProviderSelectionFragment.Companion.newInstance(AuthorizationType.Local), true);
     }
 
     protected void _onSecureInternetClicked() {
-        ProviderSelectionFragment providerSelectionFragment = new ProviderSelectionFragment();
-        Bundle fragmentParameters = new Bundle();
-        fragmentParameters.putInt(ProviderSelectionFragment.EXTRA_AUTHORIZATION_TYPE, AuthorizationType.DISTRIBUTED);
-        providerSelectionFragment.setArguments(fragmentParameters);
-        ((MainActivity)getActivity()).openFragment(providerSelectionFragment, true);
+        ((MainActivity)getActivity()).openFragment(ProviderSelectionFragment.Companion.newInstance(AuthorizationType.Distributed), true);
     }
 
     protected void _onOtherAddressClicked() {

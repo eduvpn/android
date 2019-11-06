@@ -360,11 +360,11 @@ public class PreferencesService {
     /**
      * Stores the instance list for a specific connection type
      */
-    public void storeInstanceList(@AuthorizationType int authorizationType, InstanceList instanceListToSave) {
+    public void storeInstanceList(AuthorizationType authorizationType, InstanceList instanceListToSave) {
         String key;
-        if (authorizationType == AuthorizationType.DISTRIBUTED) {
+        if (authorizationType == AuthorizationType.Distributed) {
             key = KEY_INSTANCE_LIST_INSTITUTE_ACCESS;
-        } else if (authorizationType == AuthorizationType.LOCAL) {
+        } else if (authorizationType == AuthorizationType.Local) {
             key = KEY_INSTANCE_LIST_SECURE_INTERNET;
         } else {
             throw new RuntimeException("Unexpected connection type!");
@@ -395,11 +395,11 @@ public class PreferencesService {
      * Stores the instance list for a specific authorization type
      */
     @Nullable
-    public InstanceList getInstanceList(@AuthorizationType int authorizationType) {
+    public InstanceList getInstanceList(AuthorizationType authorizationType) {
         String key;
-        if (authorizationType == AuthorizationType.DISTRIBUTED) {
+        if (authorizationType == AuthorizationType.Distributed) {
             key = KEY_INSTANCE_LIST_INSTITUTE_ACCESS;
-        } else if (authorizationType == AuthorizationType.LOCAL) {
+        } else if (authorizationType == AuthorizationType.Local) {
             key = KEY_INSTANCE_LIST_SECURE_INTERNET;
         } else {
             throw new RuntimeException("Unexpected connection type!");
