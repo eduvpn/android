@@ -2,6 +2,11 @@
 
 This is the eduVPN / Let's Connect! for Android application.
 
+You can clone this repository by executing the following command (provided you have git installed):
+    
+    git clone --recurse-submodules -j8 https://github.com/eduvpn/android.git
+
+
 # Running with Android Studio
 
 Make sure you have the latest stable version of Android Studio installed, you can download it from [here](https://developer.android.com/studio).
