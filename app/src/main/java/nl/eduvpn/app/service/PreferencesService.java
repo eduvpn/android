@@ -103,7 +103,7 @@ public class PreferencesService {
             editor.putString(KEY_SAVED_AUTH_STATES, oldPreferences.getString(KEY_SAVED_AUTH_STATES, null));
             editor.putString(KEY_SAVED_KEY_PAIRS, oldPreferences.getString(KEY_SAVED_KEY_PAIRS, null));
 
-            editor.putInt(KEY_STORAGE_VERSION, 2);
+            editor.putInt(KEY_STORAGE_VERSION, STORAGE_VERSION);
 
             editor.commit();
             oldPreferences.edit().clear().commit();
@@ -118,8 +118,20 @@ public class PreferencesService {
      *
      * @return The preferences to be used.
      */
+    @VisibleForTesting
     SharedPreferences _getSharedPreferences() {
         return _sharedPreferences;
+    }
+
+    /**
+     * Clears the shared preferences, but makes sure that the storage version key remains.
+     * Only use this method to clear all data. Only to be used for unit testing
+     *
+     */
+    @SuppressLint("ApplySharedPref")
+    @VisibleForTesting
+    void _clearPreferences() {
+        _sharedPreferences.edit().clear().putInt(KEY_STORAGE_VERSION, 2).commit();
     }
 
     /**

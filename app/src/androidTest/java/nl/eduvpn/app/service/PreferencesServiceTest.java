@@ -55,7 +55,7 @@ public class PreferencesServiceTest {
 
     @Test
     public void testInstanceSave() {
-        Instance instance = new Instance("http://example.com", "Example", "http://example.com/image.jpg", AuthorizationType.Companion.getDISTRIBUTED(), true);
+        Instance instance = new Instance("http://example.com", "Example", "http://example.com/image.jpg", AuthorizationType.Distributed, true);
         _preferencesService.currentInstance(instance);
         Instance retrievedInstance = _preferencesService.getCurrentInstance();
         assertNotNull(retrievedInstance);
@@ -80,7 +80,7 @@ public class PreferencesServiceTest {
     public void testMigration() throws SerializerService.UnknownFormatException {
         // We only test a few properties
         DiscoveredAPI discoveredAPI = new DiscoveredAPI("http://example.com/", "http://example.com/auth_endpoint", "http://example.com/token_endpoint");
-        Instance instance = new Instance("base_uri", "display_name", "logo_uri", AuthorizationType.Companion.getDISTRIBUTED(), false);
+        Instance instance = new Instance("base_uri", "display_name", "logo_uri", AuthorizationType.Distributed, false);
         SharedPreferences.Editor editor = _oldPreferences.edit();
 
         SerializerService serializerService = new SerializerService();
