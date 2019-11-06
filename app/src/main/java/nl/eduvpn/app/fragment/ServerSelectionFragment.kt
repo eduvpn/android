@@ -23,8 +23,10 @@ import android.app.ProgressDialog
 import android.content.Context
 import android.os.Bundle
 import android.view.View
+import androidx.appcompat.app.AlertDialog
 import androidx.recyclerview.widget.LinearLayoutManager
 import net.openid.appauth.AuthState
+import nl.eduvpn.app.BuildConfig
 import nl.eduvpn.app.Constants
 import nl.eduvpn.app.EduVPNApplication
 import nl.eduvpn.app.MainActivity
@@ -43,9 +45,11 @@ import nl.eduvpn.app.utils.ErrorDialog
 import nl.eduvpn.app.utils.ItemClickSupport
 import nl.eduvpn.app.utils.Log
 import org.json.JSONObject
+import java.util.Observable
+import java.util.Observer
 import javax.inject.Inject
 
-class ServerSelectionFragment : BaseFragment<FragmentServerSelectionBinding>() {
+class ServerSelectionFragment : BaseFragment<FragmentServerSelectionBinding>(), Observer {
     override val layout = R.layout.fragment_server_selection
 
     private var currentDialog: Dialog? = null
@@ -84,9 +88,18 @@ class ServerSelectionFragment : BaseFragment<FragmentServerSelectionBinding>() {
 
         adapter.submitList(instances)
 
-        ItemClickSupport.addTo(binding.serverList).setOnItemClickListener { _, position, v ->
+        ItemClickSupport.addTo(binding.serverList).setOnItemClickListener { _, position, _ ->
             val item = adapter.getItem(position)
             discoverApi(item)
+        }
+
+
+        @Suppress("ConstantConditionIf")
+        if (!BuildConfig.API_DISCOVERY_ENABLED) {
+            ItemClickSupport.addTo(binding.serverList).setOnItemLongClickListener { _, position, _ ->
+                val item = adapter.getItem(position)
+                displayDeleteDialog(item)
+            }
         }
 
         if (arguments?.getBoolean(KEY_RETURNING_FROM_AUTH) == true) {
@@ -101,6 +114,30 @@ class ServerSelectionFragment : BaseFragment<FragmentServerSelectionBinding>() {
                         "discovery OK: ${discoveredAPI != null}, auth OK: ${authState != null}")
             }
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        historyService.addObserver(this)
+    }
+
+    override fun onPause() {
+        super.onPause()
+        historyService.deleteObserver(this)
+    }
+
+    private fun displayDeleteDialog(instance: Instance): Boolean {
+        AlertDialog.Builder(requireContext())
+                .setTitle(R.string.delete_server)
+                .setMessage(getString(R.string.delete_server_message, instance.displayName, instance.sanitizedBaseURI))
+                .setPositiveButton(R.string.button_remove) { dialog, _ ->
+                    historyService.removeAllDataForInstance(instance)
+
+                    dialog.dismiss()
+                }
+                .setNegativeButton(R.string.delete_server_cancel) { dialog, _ -> dialog.dismiss() }
+                .show()
+        return true
     }
 
     private fun discoverApi(instance: Instance) {
@@ -186,6 +223,16 @@ class ServerSelectionFragment : BaseFragment<FragmentServerSelectionBinding>() {
         activity?.let {
             if (!it.isFinishing) {
                 connectionService.initiateConnection(it, instance, discoveredAPI)
+            }
+        }
+    }
+
+    override fun update(o: Observable?, arg: Any?) {
+        @Suppress("ConstantConditionIf")
+        if (!BuildConfig.API_DISCOVERY_ENABLED) {
+            if (arg == HistoryService.NOTIFICATION_PROFILES_CHANGED || arg == HistoryService.NOTIFICATION_TOKENS_CHANGED) {
+                val instances = historyService.savedAuthStateList.map { it.instance }
+                (binding.serverList.adapter as? ServerAdapter)?.submitList(instances)
             }
         }
     }

@@ -108,9 +108,9 @@
     <string name="licenses_title">Software licenses</string>
     <string name="settings_licenses_title">Software licenses</string>
     <string name="settings_licenses_description">Acknowledgement for 3rd party software used to build this application.</string>
-    <string name="delete_provider">Delete provider</string>
-    <string name="delete_provider_message">Are you sure you want to remove the provider \'%1$s\' (%2$s) with all its profiles?</string>
-    <string name="delete_provider_cancel">Cancel</string>
+    <string name="delete_server">Delete server</string>
+    <string name="delete_server_message">Are you sure you want to remove the server \'%1$s\' (%2$s) with all its profiles?</string>
+    <string name="delete_server_cancel">Cancel</string>
     <string name="select_a_server_title">Select a server</string>
     <string name="select_a_server_description">Tap on a server to initiate the authentication process.</string>
     <string name="error_parsing_profiles">Unable to parse the profile list.</string>
