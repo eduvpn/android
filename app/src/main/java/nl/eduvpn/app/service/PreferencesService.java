@@ -42,7 +42,6 @@ import nl.eduvpn.app.entity.SavedKeyPair;
 import nl.eduvpn.app.entity.SavedProfile;
 import nl.eduvpn.app.entity.Settings;
 import nl.eduvpn.app.utils.Log;
-import nl.eduvpn.app.utils.TTLCache;
 
 /**
  * This service is used to save temporary data
@@ -70,7 +69,6 @@ public class PreferencesService {
 
     static final String KEY_SAVED_PROFILES = "saved_profiles";
     static final String KEY_SAVED_AUTH_STATES = "saved_auth_state";
-    static final String KEY_DISCOVERED_API_CACHE = "discovered_api_cache";
     static final String KEY_SAVED_KEY_PAIRS = "saved_key_pairs";
     static final String KEY_STORAGE_VERSION = "storage_version";
 
@@ -103,7 +101,6 @@ public class PreferencesService {
             editor.putString(KEY_APP_SETTINGS, oldPreferences.getString(KEY_APP_SETTINGS, null));
             editor.putString(KEY_SAVED_PROFILES, oldPreferences.getString(KEY_SAVED_PROFILES, null));
             editor.putString(KEY_SAVED_AUTH_STATES, oldPreferences.getString(KEY_SAVED_AUTH_STATES, null));
-            editor.putString(KEY_DISCOVERED_API_CACHE, oldPreferences.getString(KEY_DISCOVERED_API_CACHE, null));
             editor.putString(KEY_SAVED_KEY_PAIRS, oldPreferences.getString(KEY_SAVED_KEY_PAIRS, null));
 
             editor.putInt(KEY_STORAGE_VERSION, 2);
@@ -357,40 +354,6 @@ public class PreferencesService {
             _getSharedPreferences().edit().putString(KEY_SAVED_AUTH_STATES, serializedSavedAuthStateList).apply();
         } catch (SerializerService.UnknownFormatException ex) {
             Log.e(TAG, "Can not save saved token list.", ex);
-        }
-    }
-
-    /**
-     * Retrieves a saved TTL cache of discovered APIs.
-     *
-     * @return The discovered API cache. Null if no saved one.
-     */
-    @Nullable
-    public TTLCache<DiscoveredAPI> getDiscoveredAPICache() {
-        String serializedCache = _getSharedPreferences().getString(KEY_DISCOVERED_API_CACHE, null);
-        if (serializedCache == null) {
-            return null;
-        }
-        try {
-            return _serializerService.deserializeDiscoveredAPITTLCache(new JSONObject(serializedCache));
-        } catch (SerializerService.UnknownFormatException | JSONException ex) {
-            Log.e(TAG, "Unable to deserialize saved discovered API cache.");
-            return null;
-        }
-
-    }
-
-    /**
-     * Stores the discovered API cache.
-     *
-     * @param ttlCache The cache to save.
-     */
-    public void storeDiscoveredAPICache(@NonNull TTLCache<DiscoveredAPI> ttlCache) {
-        try {
-            String serializedCache = _serializerService.serializeDiscoveredAPITTLCache(ttlCache).toString();
-            _getSharedPreferences().edit().putString(KEY_DISCOVERED_API_CACHE, serializedCache).apply();
-        } catch (SerializerService.UnknownFormatException ex) {
-            Log.e(TAG, "Can not save discovered API cache.", ex);
         }
     }
 

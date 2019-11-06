@@ -49,7 +49,7 @@
     <string name="maintenance_message">The VPN service will be under maintenance starting from %1$s until %2$s.</string>
     <string name="error_loading_system_messages">Unable to load system messages: %s</string>
     <string name="error_loading_user_messages">Unable to load user messages: %s</string>
-    <string name="home_add_provider">Add Provider</string>
+    <string name="server_selection_add_server">Add Server</string>
     <string name="saved_profile_display_name">%1$s - %2$s</string>
     <string name="error_confirm_button">OK</string>
     <string name="error_dialog_title">Unexpected problem</string>
@@ -57,7 +57,6 @@
     <string name="custom_api_discovery_error">It seems that this provider does not exist, or is not compatible with eduVPN.\nDetails: %s</string>
     <string name="provider_added_new_configs_available">Provider added. You can now select your profile.</string>
     <string name="could_not_fetch_all_profiles">Could not fetch all profiles.</string>
-    <string name="warnings_list">Resources missing</string>
     <string name="cant_connect_application_state_missing">Can\'t connect, application state is missing.</string>
     <string name="callback_error">Callback error: %s</string>
     <string name="rejected_permission">User rejected access for the app.</string>
@@ -112,4 +111,10 @@
     <string name="delete_provider">Delete provider</string>
     <string name="delete_provider_message">Are you sure you want to remove the provider \'%1$s\' (%2$s) with all its profiles?</string>
     <string name="delete_provider_cancel">Cancel</string>
+    <string name="select_a_server_title">Select a server</string>
+    <string name="select_a_server_description">Tap on a server to initiate the authentication process.</string>
+    <string name="error_parsing_profiles">Unable to parse the profile list.</string>
+    <string name="select_a_profile_title">Select a profile</string>
+    <string name="select_a_profile_description">Tap on a profile to retrieve the configuration and connect.</string>
+
 </resources>

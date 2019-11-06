@@ -48,7 +48,6 @@ public class HistoryService extends Observable {
 
     private static final Long DISCOVERED_API_CACHE_TTL_SECONDS = 30 * 24 * 3600L; // 30 days
 
-    private TTLCache<DiscoveredAPI> _discoveredAPICache;
     private List<SavedProfile> _savedProfileList;
     private List<SavedAuthState> _savedAuthStateList;
     private List<SavedKeyPair> _savedKeyPairList;
@@ -66,10 +65,6 @@ public class HistoryService extends Observable {
     public HistoryService(@NonNull PreferencesService preferencesService) {
         _preferencesService = preferencesService;
         _load();
-        _discoveredAPICache.purge();
-        // Save it immediately, because we just did a purge.
-        // (It is better to purge at app start, since we do have some time now).
-        _save();
     }
 
     /**
@@ -86,11 +81,6 @@ public class HistoryService extends Observable {
             _savedAuthStateList = new ArrayList<>();
             Log.i(TAG, "No saved tokens found.");
         }
-        _discoveredAPICache = _preferencesService.getDiscoveredAPICache();
-        if (_discoveredAPICache == null) {
-            Log.i(TAG, "No discovered API cache found.");
-            _discoveredAPICache = new TTLCache<>(DISCOVERED_API_CACHE_TTL_SECONDS);
-        }
         _savedKeyPairList = _preferencesService.getSavedKeyPairList();
         if (_savedKeyPairList == null) {
             Log.i(TAG, "No saved key pair found.");
@@ -102,31 +92,8 @@ public class HistoryService extends Observable {
      * Saves the state of the service.
      */
     private void _save() {
-        _preferencesService.storeDiscoveredAPICache(_discoveredAPICache);
         _preferencesService.storeSavedProfileList(_savedProfileList);
         _preferencesService.storeSavedAuthStateList(_savedAuthStateList);
-    }
-
-    /**
-     * Returns a discovered API from the cache.
-     *
-     * @param sanitizedBaseURI The sanitized base URI of the API.
-     * @return A discovered API if a cached one was found. Null if none found.
-     */
-    @Nullable
-    public DiscoveredAPI getCachedDiscoveredAPI(@NonNull String sanitizedBaseURI) {
-        return _discoveredAPICache.get(sanitizedBaseURI);
-    }
-
-    /**
-     * Caches a discovered API for future usage.
-     *
-     * @param sanitizedBaseURI The sanitized base URI of the API which was discovered.
-     * @param discoveredAPI    The discovered API object to save.
-     */
-    public void cacheDiscoveredAPI(@NonNull String sanitizedBaseURI, @NonNull DiscoveredAPI discoveredAPI) {
-        _discoveredAPICache.put(sanitizedBaseURI, discoveredAPI);
-        _save();
     }
 
     /**
@@ -254,16 +221,6 @@ public class HistoryService extends Observable {
                 Log.i(TAG, "Deleted saved token for local auth instance " + savedAuthState.getInstance().getSanitizedBaseURI());
             }
         }
-        _save();
-    }
-
-    /**
-     * Removes a discovered API based on the provider.
-     *
-     * @param instance The instance to remove the API cache for.
-     */
-    public void removeDiscoveredAPI(@NonNull Instance instance) {
-        _discoveredAPICache.remove(instance.getSanitizedBaseURI());
         _save();
     }
 
@@ -437,7 +394,6 @@ public class HistoryService extends Observable {
      * @param instance The instance to remove the data for.
      */
     public void removeAllDataForInstance(Instance instance) {
-        removeDiscoveredAPI(instance);
         removeSavedKeyPairs(instance);
         _removeAuthentications(instance);
         removeSavedProfilesForInstance(instance); // This will trigger a profiles changed event

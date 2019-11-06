@@ -156,7 +156,7 @@ public class ProviderSelectionFragment extends BaseFragment<FragmentProviderSele
                 }
                 Log.e(TAG, "Instance not found for position: " + position);
             } else {
-                _connectToApi(instance);
+//                _connectToApi(instance);
             }
         });
         // When clicked long on an item, display its name in a toast.
@@ -184,54 +184,6 @@ public class ProviderSelectionFragment extends BaseFragment<FragmentProviderSele
         _dataObserver.onChanged();
     }
 
-    /**
-     * Starts connecting to an API provider.
-     *
-     * @param instance The instance to connect to.
-     */
-    private void _connectToApi(final Instance instance) {
-        DiscoveredAPI discoveredAPI = _historyService.getCachedDiscoveredAPI(instance.getSanitizedBaseURI());
-        // If there's only a discovered API, initiate the connection
-        if (discoveredAPI != null) {
-            Log.d(TAG, "Cached discovered API found.");
-            Activity activity = getActivity();
-            if (activity != null && !activity.isFinishing()) {
-                _connectionService.initiateConnection(activity, instance, discoveredAPI);
-            }
-            return;
-        }
-        // If no discovered API, fetch it first, then initiate the connection for the login
-        Log.d(TAG, "No cached discovered API found, continuing with discovery.");
-        final ProgressDialog dialog = ProgressDialog.show(getContext(), getString(R.string.progress_dialog_title), getString(R.string.api_discovery_message), true);
-        _currentDialog = dialog;
-        // Discover the API
-        _apiService.getJSON(instance.getSanitizedBaseURI() + Constants.API_DISCOVERY_POSTFIX, null, new APIService.Callback<JSONObject>() {
-            @Override
-            public void onSuccess(JSONObject result) {
-                try {
-                    DiscoveredAPI discoveredAPI = _serializerService.deserializeDiscoveredAPI(result);
-                    dialog.dismiss();
-                    _currentDialog = null;
-                    // Cache the result
-                    _historyService.cacheDiscoveredAPI(instance.getSanitizedBaseURI(), discoveredAPI);
-                    _connectionService.initiateConnection(getActivity(), instance, discoveredAPI);
-                } catch (SerializerService.UnknownFormatException ex) {
-                    Log.e(TAG, "Error parsing discovered API!", ex);
-                    ErrorDialog.show(getContext(), R.string.error_dialog_title, ex.toString());
-                    dialog.dismiss();
-                    _currentDialog = null;
-                }
-            }
-
-            @Override
-            public void onError(String errorMessage) {
-                dialog.dismiss();
-                _currentDialog = null;
-                Log.e(TAG, "Error while fetching discovered API: " + errorMessage);
-                ErrorDialog.show(getContext(), R.string.error_dialog_title, errorMessage);
-            }
-        });
-    }
 
 
     @Override

@@ -15,28 +15,18 @@
  *     along with eduVPN.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package nl.eduvpn.app.adapter.viewholder;
+package nl.eduvpn.app.entity
 
-import android.widget.ImageView;
-import android.widget.TextView;
-
-import androidx.recyclerview.widget.RecyclerView;
-import nl.eduvpn.app.databinding.ListItemConfigBinding;
+import android.os.Parcelable
+import kotlinx.android.parcel.Parcelize
 
 /**
- * View holder for the provider instance list.
- * Created by Daniel Zolnai on 2016-10-07.
+ * Represents a VPN connection profile.
+ * Created by Daniel Zolnai on 2016-10-11.
  */
-public class ProfileViewHolder extends RecyclerView.ViewHolder {
-
-    public ImageView providerIcon;
-    public TextView profileName;
-    public TextView profileProvider;
-
-    public ProfileViewHolder(ListItemConfigBinding binding) {
-        super(binding.getRoot());
-        providerIcon = binding.providerIcon;
-        profileName = binding.profileName;
-        profileProvider = binding.profileProvider;
-    }
-}
+@Parcelize
+data class Profile(
+        // How this profile should appear in the UI
+        val displayName: String,
+        // The pool ID of this VPN profile
+        val profileId: String) : Parcelable

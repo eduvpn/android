@@ -36,6 +36,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
 
+import androidx.annotation.NonNull;
 import nl.eduvpn.app.entity.AuthorizationType;
 import nl.eduvpn.app.entity.DiscoveredAPI;
 import nl.eduvpn.app.entity.Instance;
@@ -259,6 +260,7 @@ public class SerializerService {
      * @return The discovered API object.
      * @throws UnknownFormatException Thrown if the JSON had an unknown format.
      */
+    @NonNull
     public DiscoveredAPI deserializeDiscoveredAPI(JSONObject result) throws UnknownFormatException {
         try {
             // we only support version 1 at the moment

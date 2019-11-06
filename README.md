@@ -30,7 +30,7 @@ to the device selector.
 
 # Building
 
-## Dependencies
+info## Dependencies
 
 ### Fedora
 
