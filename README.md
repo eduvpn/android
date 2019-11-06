@@ -9,6 +9,7 @@ You can clone this repository by executing the following command (provided you h
 
 # Running with Android Studio
 
+First install the `swig` package with your operating system package manager.
 Make sure you have the latest stable version of Android Studio installed, you can download it from [here](https://developer.android.com/studio).
 Open the project by opening the build.gradle in the root of this repository with Android Studio.
 Make sure that you have the following packages installed in the SDK Manager (Tools -> SDK Manager):
@@ -45,7 +46,7 @@ We last tested this (succesfully) on 2019-10-31 with Fedora 31.
 
 ### Debian
 
-    $ sudo apt -y install openjdk-8-jdk git curl unzip
+    $ sudo apt -y install openjdk-8-jdk git curl unzip swig
 
 ## Key Store
 
