@@ -46,9 +46,6 @@ import nl.eduvpn.app.utils.TTLCache;
 public class HistoryService extends Observable {
     private static final String TAG = HistoryService.class.getName();
 
-    private static final Long DISCOVERED_API_CACHE_TTL_SECONDS = 30 * 24 * 3600L; // 30 days
-
-    private TTLCache<DiscoveredAPI> _discoveredAPICache;
     private List<SavedProfile> _savedProfileList;
     private List<SavedAuthState> _savedAuthStateList;
     private List<SavedKeyPair> _savedKeyPairList;
@@ -66,10 +63,6 @@ public class HistoryService extends Observable {
     public HistoryService(@NonNull PreferencesService preferencesService) {
         _preferencesService = preferencesService;
         _load();
-        _discoveredAPICache.purge();
-        // Save it immediately, because we just did a purge.
-        // (It is better to purge at app start, since we do have some time now).
-        _save();
     }
 
     /**
@@ -86,11 +79,6 @@ public class HistoryService extends Observable {
             _savedAuthStateList = new ArrayList<>();
             Log.i(TAG, "No saved tokens found.");
         }
-        _discoveredAPICache = _preferencesService.getDiscoveredAPICache();
-        if (_discoveredAPICache == null) {
-            Log.i(TAG, "No discovered API cache found.");
-            _discoveredAPICache = new TTLCache<>(DISCOVERED_API_CACHE_TTL_SECONDS);
-        }
         _savedKeyPairList = _preferencesService.getSavedKeyPairList();
         if (_savedKeyPairList == null) {
             Log.i(TAG, "No saved key pair found.");
@@ -102,31 +90,8 @@ public class HistoryService extends Observable {
      * Saves the state of the service.
      */
     private void _save() {
-        _preferencesService.storeDiscoveredAPICache(_discoveredAPICache);
         _preferencesService.storeSavedProfileList(_savedProfileList);
         _preferencesService.storeSavedAuthStateList(_savedAuthStateList);
-    }
-
-    /**
-     * Returns a discovered API from the cache.
-     *
-     * @param sanitizedBaseURI The sanitized base URI of the API.
-     * @return A discovered API if a cached one was found. Null if none found.
-     */
-    @Nullable
-    public DiscoveredAPI getCachedDiscoveredAPI(@NonNull String sanitizedBaseURI) {
-        return _discoveredAPICache.get(sanitizedBaseURI);
-    }
-
-    /**
-     * Caches a discovered API for future usage.
-     *
-     * @param sanitizedBaseURI The sanitized base URI of the API which was discovered.
-     * @param discoveredAPI    The discovered API object to save.
-     */
-    public void cacheDiscoveredAPI(@NonNull String sanitizedBaseURI, @NonNull DiscoveredAPI discoveredAPI) {
-        _discoveredAPICache.put(sanitizedBaseURI, discoveredAPI);
-        _save();
     }
 
     /**
@@ -140,7 +105,7 @@ public class HistoryService extends Observable {
         for (SavedAuthState savedAuthState : _savedAuthStateList) {
             if (savedAuthState.getInstance().getSanitizedBaseURI().equals(instance.getSanitizedBaseURI())) {
                 return savedAuthState.getAuthState();
-            } else if (instance.getAuthorizationType() == AuthorizationType.DISTRIBUTED && savedAuthState.getInstance().getAuthorizationType() == AuthorizationType.DISTRIBUTED) {
+            } else if (instance.getAuthorizationType() == AuthorizationType.Distributed && savedAuthState.getInstance().getAuthorizationType() == AuthorizationType.Distributed) {
                 return savedAuthState.getAuthState();
             }
         }
@@ -155,7 +120,7 @@ public class HistoryService extends Observable {
      */
     public void cacheAuthenticationState(@NonNull Instance instance, @NonNull AuthState authState) {
         // Remove all previous entries
-        _removeAuthentications(instance, false);
+        _removeAuthentications(instance);
         _savedAuthStateList.add(new SavedAuthState(instance, authState));
         _save();
         setChanged();
@@ -180,7 +145,7 @@ public class HistoryService extends Observable {
      * @return The list of saved tokens for specific instances.
      */
     @NonNull
-    public List<SavedAuthState> getSavedTokensForAuthorizationType(@AuthorizationType int authorizationType) {
+    public List<SavedAuthState> getSavedTokensForAuthorizationType(AuthorizationType authorizationType) {
         List<SavedAuthState> result = new ArrayList<>();
         for (SavedAuthState savedAuthState : _savedAuthStateList) {
             if (savedAuthState.getInstance().getAuthorizationType() == authorizationType) {
@@ -240,35 +205,20 @@ public class HistoryService extends Observable {
      *
      * @param instance The instance the access token will be saved for.
      */
-    private void _removeAuthentications(@NonNull Instance instance, boolean notifyObservers) {
+    private void _removeAuthentications(@NonNull Instance instance) {
         Iterator<SavedAuthState> savedTokenIterator = _savedAuthStateList.iterator();
         while (savedTokenIterator.hasNext()) {
             SavedAuthState savedAuthState = savedTokenIterator.next();
-            if (instance.getAuthorizationType() == AuthorizationType.DISTRIBUTED &&
-                    savedAuthState.getInstance().getAuthorizationType() == AuthorizationType.DISTRIBUTED) {
+            if (instance.getAuthorizationType() == AuthorizationType.Distributed &&
+                    savedAuthState.getInstance().getAuthorizationType() == AuthorizationType.Distributed) {
                 savedTokenIterator.remove();
                 Log.i(TAG, "Deleted saved token for distributed auth instance " + savedAuthState.getInstance().getSanitizedBaseURI());
-            } else if (instance.getAuthorizationType() == AuthorizationType.LOCAL &&
+            } else if (instance.getAuthorizationType() == AuthorizationType.Local &&
                     savedAuthState.getInstance().getSanitizedBaseURI().equals(instance.getSanitizedBaseURI())) {
                 savedTokenIterator.remove();
                 Log.i(TAG, "Deleted saved token for local auth instance " + savedAuthState.getInstance().getSanitizedBaseURI());
             }
         }
-        _save();
-        if (notifyObservers) {
-            setChanged();
-            notifyObservers(NOTIFICATION_TOKENS_CHANGED);
-            clearChanged();
-        }
-    }
-
-    /**
-     * Removes a discovered API based on the provider.
-     *
-     * @param instance The instance to remove the API cache for.
-     */
-    public void removeDiscoveredAPI(@NonNull Instance instance) {
-        _discoveredAPICache.remove(instance.getSanitizedBaseURI());
         _save();
     }
 
@@ -290,11 +240,11 @@ public class HistoryService extends Observable {
         Iterator<SavedProfile> savedProfileIterator = _savedProfileList.iterator();
         while (savedProfileIterator.hasNext()) {
             SavedProfile savedProfile = savedProfileIterator.next();
-            if (instance.getAuthorizationType() == AuthorizationType.DISTRIBUTED &&
-                    savedProfile.getInstance().getAuthorizationType() == AuthorizationType.DISTRIBUTED) {
+            if (instance.getAuthorizationType() == AuthorizationType.Distributed &&
+                    savedProfile.getInstance().getAuthorizationType() == AuthorizationType.Distributed) {
                 savedProfileIterator.remove();
                 Log.i(TAG, "Deleted profile for distributed auth instance " + savedProfile.getInstance().getSanitizedBaseURI());
-            } else if (instance.getAuthorizationType() == AuthorizationType.LOCAL &&
+            } else if (instance.getAuthorizationType() == AuthorizationType.Local &&
                     savedProfile.getInstance().getSanitizedBaseURI().equals(instance.getSanitizedBaseURI())) {
                 savedProfileIterator.remove();
                 Log.i(TAG, "Deleted profile for local auth instance " + savedProfile.getInstance().getSanitizedBaseURI());
@@ -321,9 +271,9 @@ public class HistoryService extends Observable {
             }
         }
         // Second pass: if distributed auth instance, any other instance with distributed auth is fine as well
-        if (instance.getAuthorizationType() == AuthorizationType.DISTRIBUTED) {
+        if (instance.getAuthorizationType() == AuthorizationType.Distributed) {
             for (SavedAuthState savedAuthState : _savedAuthStateList) {
-                if (savedAuthState.getInstance().getAuthorizationType() == AuthorizationType.DISTRIBUTED) {
+                if (savedAuthState.getInstance().getAuthorizationType() == AuthorizationType.Distributed) {
                     return savedAuthState;
                 }
             }
@@ -422,11 +372,11 @@ public class HistoryService extends Observable {
         ListIterator<SavedKeyPair> keyPairListIterator = _savedKeyPairList.listIterator();
         while (keyPairListIterator.hasNext()) {
             SavedKeyPair current = keyPairListIterator.next();
-            if (instance.getAuthorizationType() == AuthorizationType.DISTRIBUTED &&
-                    current.getInstance().getAuthorizationType() == AuthorizationType.DISTRIBUTED) {
+            if (instance.getAuthorizationType() == AuthorizationType.Distributed &&
+                    current.getInstance().getAuthorizationType() == AuthorizationType.Distributed) {
                 keyPairListIterator.remove();
                 Log.i(TAG, "Deleted saved key pair for distributed auth instance " + current.getInstance().getSanitizedBaseURI());
-            } else if (instance.getAuthorizationType() == AuthorizationType.LOCAL &&
+            } else if (instance.getAuthorizationType() == AuthorizationType.Local &&
                     instance.getSanitizedBaseURI().equals(current.getInstance().getSanitizedBaseURI())) {
                 keyPairListIterator.remove();
                 Log.i(TAG, "Deleted saved key pair for local auth instance " + current.getInstance().getSanitizedBaseURI());
@@ -442,9 +392,8 @@ public class HistoryService extends Observable {
      * @param instance The instance to remove the data for.
      */
     public void removeAllDataForInstance(Instance instance) {
-        removeDiscoveredAPI(instance);
-        removeSavedProfilesForInstance(instance);
         removeSavedKeyPairs(instance);
-        _removeAuthentications(instance, true);
+        _removeAuthentications(instance);
+        removeSavedProfilesForInstance(instance); // This will trigger a profiles changed event
     }
 }

@@ -1,6 +1,11 @@
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-kapt'
+apply plugin: 'kotlin-android-extensions'
+
+androidExtensions {
+    experimental = true
+}
 
 android {
     compileSdkVersion 29
@@ -54,6 +59,7 @@ android {
         // Android Studio uses the alphabetically first flavor as the default, so I selected a name which would precede "dev" (sadly, "default" is a reserved keyword)
         basic {
             dimension "product"
+            isDefault = true
         }
         dev {
             dimension "product"

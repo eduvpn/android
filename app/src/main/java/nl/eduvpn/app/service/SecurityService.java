@@ -54,6 +54,12 @@ public class SecurityService {
         _context = context;
     }
 
+    /**
+     * @deprecated This will be removed in favor of the regular preferences. Currently
+     * we migrate all data over from these preferences to the regular if we detect any data in this one.
+     * This method will be probably removed in 1.4 or 1.5. For more info, see: https://github.com/eduvpn/android/issues/117
+     */
+    @Deprecated
     public SharedPreferences getSecurePreferences() {
         return new SecurePreferences(_context);
     }

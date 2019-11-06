@@ -15,20 +15,18 @@
  *     along with eduVPN.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package nl.eduvpn.app.entity;
+package nl.eduvpn.app.entity
 
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-
-import androidx.annotation.IntDef;
+import android.os.Parcelable
+import kotlinx.android.parcel.Parcelize
 
 /**
- * The type of the VPN which the user will connect to.
- * Created by Daniel Zolnai on 2017-07-31.
+ * Represents a VPN connection profile.
+ * Created by Daniel Zolnai on 2016-10-11.
  */
-@IntDef({ AuthorizationType.LOCAL, AuthorizationType.DISTRIBUTED })
-@Retention(RetentionPolicy.SOURCE)
-public @interface AuthorizationType {
-    int LOCAL = 0;
-    int DISTRIBUTED = 1;
-}
+@Parcelize
+data class Profile(
+        // How this profile should appear in the UI
+        val displayName: String,
+        // The pool ID of this VPN profile
+        val profileId: String) : Parcelable

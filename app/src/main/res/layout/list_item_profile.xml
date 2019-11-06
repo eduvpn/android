@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout>
+
+    <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/profile_list_item_height"
+        android:clickable="true"
+        android:focusable="true"
+        android:background="?attr/selectableItemBackground">
+
+        <ImageView
+            android:id="@+id/profileIcon"
+            android:layout_width="@dimen/list_item_icon_width"
+            android:layout_height="@dimen/list_item_icon_height"
+            android:layout_centerVertical="true"
+            android:layout_marginLeft="8dp"
+            android:adjustViewBounds="true"
+            android:contentDescription="@string/content_description_provider_icon"
+            android:src="@drawable/external_provider" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_marginLeft="12dp"
+            android:layout_marginRight="8dp"
+            android:layout_toRightOf="@+id/profileIcon"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/profileName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ellipsize="middle"
+                android:singleLine="true"
+                android:textColor="@color/textColor"
+                android:textSize="18sp"
+                tools:ignore="Deprecated"
+                tools:text="Secure Browsing" />
+
+            <TextView
+                android:id="@+id/profileProvider"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ellipsize="middle"
+                android:singleLine="true"
+                android:textColor="@color/textColor"
+                android:textSize="15sp"
+                tools:ignore="Deprecated"
+                tools:text="cloud.eduvpn.nl" />
+
+        </LinearLayout>
+    </RelativeLayout>
+</layout>

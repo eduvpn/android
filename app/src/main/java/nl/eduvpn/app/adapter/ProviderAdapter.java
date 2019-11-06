@@ -44,14 +44,13 @@ public class ProviderAdapter extends RecyclerView.Adapter<ProviderViewHolder> {
 
     private List<Instance> _instanceList;
     private LayoutInflater _layoutInflater;
-    @AuthorizationType
-    private int _authorizationType;
+    private AuthorizationType _authorizationType;
     private ConfigurationService _configurationService;
 
-    public ProviderAdapter(final ConfigurationService configurationService, @AuthorizationType final int authorizationType) {
+    public ProviderAdapter(final ConfigurationService configurationService, AuthorizationType authorizationType) {
         _configurationService = configurationService;
         _authorizationType = authorizationType;
-        if (authorizationType == AuthorizationType.LOCAL) {
+        if (authorizationType == AuthorizationType.Local) {
             _instanceList = configurationService.getInstituteAccessList();
         } else {
             _instanceList = configurationService.getSecureInternetList();
@@ -59,7 +58,7 @@ public class ProviderAdapter extends RecyclerView.Adapter<ProviderViewHolder> {
         configurationService.addObserver(new Observer() {
             @Override
             public void update(Observable o, Object arg) {
-                if (_authorizationType == AuthorizationType.LOCAL) {
+                if (_authorizationType == AuthorizationType.Local) {
                     _instanceList = configurationService.getInstituteAccessList();
                 } else {
                     _instanceList = configurationService.getSecureInternetList();

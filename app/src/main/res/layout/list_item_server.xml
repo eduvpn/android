@@ -1,15 +1,34 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ This file is part of eduVPN.
+  ~
+  ~ eduVPN is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as published by
+  ~ the Free Software Foundation, either version 3 of the License, or
+  ~ (at your option) any later version.
+  ~
+  ~ eduVPN is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with eduVPN.  If not, see <http://www.gnu.org/licenses/>.
+  ~
+  -->
+
 <layout>
 
     <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
         android:layout_height="@dimen/profile_list_item_height"
-        android:background="?attr/selectableItemBackground"
-        android:orientation="vertical">
+        android:clickable="true"
+        android:focusable="true"
+        android:background="?android:attr/selectableItemBackground">
 
         <ImageView
-            android:id="@+id/providerIcon"
+            android:id="@+id/serverIcon"
             android:layout_width="@dimen/list_item_icon_width"
             android:layout_height="@dimen/list_item_icon_height"
             android:layout_centerVertical="true"
@@ -19,17 +38,16 @@
             android:src="@drawable/external_provider" />
 
         <LinearLayout
-            android:id="@+id/textContainer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_centerVertical="true"
             android:layout_marginLeft="12dp"
             android:layout_marginRight="8dp"
-            android:layout_toRightOf="@+id/providerIcon"
+            android:layout_toRightOf="@+id/serverIcon"
             android:orientation="vertical">
 
             <TextView
-                android:id="@+id/profileName"
+                android:id="@+id/serverName"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:ellipsize="middle"
@@ -40,7 +58,7 @@
                 tools:text="Secure Browsing" />
 
             <TextView
-                android:id="@+id/profileProvider"
+                android:id="@+id/serverUrl"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:ellipsize="middle"
@@ -51,19 +69,5 @@
                 tools:text="cloud.eduvpn.nl" />
 
         </LinearLayout>
-
-        <Button
-            android:id="@+id/undoButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentRight="true"
-            android:layout_centerVertical="true"
-            android:background="@null"
-            android:padding="8dp"
-            android:text="@string/undo"
-            android:textAllCaps="true"
-            android:textColor="@android:color/white"
-            android:textSize="15sp"
-            android:visibility="gone" />
     </RelativeLayout>
 </layout>

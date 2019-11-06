@@ -33,7 +33,7 @@ import org.junit.runner.RunWith;
 
 import java.util.Random;
 
-import androidx.test.InstrumentationRegistry;
+import androidx.test.core.app.ApplicationProvider;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.filters.LargeTest;
 import nl.eduvpn.app.entity.AuthorizationType;
@@ -67,7 +67,7 @@ public class HistoryServiceTest {
 
     @BeforeClass
     public static void setPreferences() {
-        Context context = InstrumentationRegistry.getTargetContext();
+        Context context = ApplicationProvider.getApplicationContext();
         _securePreferences = new SecurityService(context).getSecurePreferences();
     }
 
@@ -79,10 +79,11 @@ public class HistoryServiceTest {
     @SuppressLint({ "CommitPrefEdits", "ApplySharedPref" })
     private void _reloadHistoryService(boolean clearHistory) {
         SerializerService serializerService = new SerializerService();
-        PreferencesService preferencesService = new PreferencesService(serializerService, _securePreferences);
+        Context context = ApplicationProvider.getApplicationContext();
+        PreferencesService preferencesService = new PreferencesService(context, serializerService, _securePreferences);
         // Clean the shared preferences if needed
         if (clearHistory) {
-            preferencesService._getSharedPreferences().edit().clear().commit();
+            preferencesService._clearPreferences();
         } else {
             // By doing a new commit, we make sure that all other pending transactions are being taken care of
             preferencesService._getSharedPreferences().edit().putInt("DUMMY_KEY", new Random().nextInt()).commit();
@@ -90,18 +91,15 @@ public class HistoryServiceTest {
         _historyService = new HistoryService(preferencesService);
     }
 
-    @Test(timeout = 1000) // Could be a lot faster, but we use secure preferences, which encrypts and decrypts on-the-fly.
+    @Test(timeout = 100) // Could be a lot faster, but we use secure preferences, which encrypts and decrypts on-the-fly.
     public void testSerializationSpeed() {
         // We create, save and restore 10 discovered APIs, 10 saved profiles, 10 access tokens.
         // Should be still fast.
         String baseURI = "http://example.com/baseURI";
         for (int i = 0; i < 10; ++i) {
-            DiscoveredAPI discoveredAPI =  new DiscoveredAPI("http://example.com/", "http://example.com/auth_endpoint",
-                    "http://example.com/token_endpoint");
-            _historyService.cacheDiscoveredAPI(baseURI + i, discoveredAPI);
             String profileId = "vpn_profile";
             String profileUUID = "ABCD-1234-DEFG-5678";
-            Instance instance = new Instance(baseURI + i, "displayName", null, AuthorizationType.DISTRIBUTED, true);
+            Instance instance = new Instance(baseURI + i, "displayName", null, AuthorizationType.Distributed, true);
             Profile profile = new Profile("displayName", profileId);
             SavedProfile savedProfile = new SavedProfile(instance, profile, profileUUID);
             _historyService.cacheSavedProfile(savedProfile);
@@ -110,30 +108,16 @@ public class HistoryServiceTest {
         _reloadHistoryService(false);
         assertEquals(10, _historyService.getSavedProfileList().size());
         for (int i = 0; i < 10; ++i) {
-            assertNotNull(_historyService.getCachedAuthState(new Instance(baseURI + i, "displayName", null, AuthorizationType.DISTRIBUTED, true)));
-            assertNotNull(_historyService.getCachedDiscoveredAPI(baseURI + i));
+            assertNotNull(_historyService.getCachedAuthState(new Instance(baseURI + i, "displayName", null, AuthorizationType.Distributed, true)));
         }
 
-    }
-
-    @Test
-    public void testCacheDiscoveredAPI() {
-        String baseUri = "http://example.com";
-        DiscoveredAPI discoveredAPI = new DiscoveredAPI("http://example.com/", "http://example.com/auth_endpoint",
-                "http://example.com/token_endpoint");
-        _historyService.cacheDiscoveredAPI(baseUri, discoveredAPI);
-        _reloadHistoryService(false);
-        DiscoveredAPI restoredDiscoveredAPI = _historyService.getCachedDiscoveredAPI(baseUri);
-        assertNotNull(restoredDiscoveredAPI);
-        assertEquals(discoveredAPI.getAuthorizationEndpoint(), restoredDiscoveredAPI.getAuthorizationEndpoint());
-        // We could test the other properties as well, but that is already tested by the serializer service.
     }
 
     @Test
     public void testCacheAccessToken() {
         String baseURI = "http://example.com";
         AuthState exampleAuthState = new AuthState(new AuthorizationServiceConfiguration(Uri.parse("http://example.com/auth"), Uri.parse("http://example.com/token"), null));
-        Instance instance = new Instance(baseURI, "displayName", null, AuthorizationType.DISTRIBUTED, true);
+        Instance instance = new Instance(baseURI, "displayName", null, AuthorizationType.Distributed, true);
         _historyService.cacheAuthenticationState(instance, exampleAuthState);
         _reloadHistoryService(false);
         AuthState restoredAuthState = _historyService.getCachedAuthState(instance);
@@ -147,7 +131,7 @@ public class HistoryServiceTest {
         String baseURI = "http://example.com/baseURI";
         String profileId = "vpn_profile";
         String profileUUID = "ABCD-1234-DEFG-5678";
-        Instance instance = new Instance(baseURI, "displayName", null, AuthorizationType.DISTRIBUTED, true);
+        Instance instance = new Instance(baseURI, "displayName", null, AuthorizationType.Distributed, true);
         Profile profile = new Profile("displayName", profileId);
         SavedProfile savedProfile = new SavedProfile(instance, profile, profileUUID);
         _historyService.cacheSavedProfile(savedProfile);
@@ -169,9 +153,9 @@ public class HistoryServiceTest {
     @Test
     public void testStoreSavedKeyPair() {
         KeyPair keyPair1 = new KeyPair(false, "cert1", "pk1");
-        Instance instance1 = new Instance("http://example.com/", "example.com", null, AuthorizationType.DISTRIBUTED, false);
+        Instance instance1 = new Instance("http://example.com/", "example.com", null, AuthorizationType.Distributed, false);
         SavedKeyPair savedKeyPair1 = new SavedKeyPair(instance1, keyPair1);
-        Instance instance2 = new Instance("http://something.else/", "something.else", null, AuthorizationType.DISTRIBUTED, false);
+        Instance instance2 = new Instance("http://something.else/", "something.else", null, AuthorizationType.Distributed, false);
         KeyPair keyPair2 = new KeyPair(true, "example certificate", "example private key");
         SavedKeyPair savedKeyPair2 = new SavedKeyPair(instance2, keyPair2);
         _historyService.storeSavedKeyPair(savedKeyPair1);

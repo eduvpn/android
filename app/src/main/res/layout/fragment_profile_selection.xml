@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout>
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
+        android:orientation="vertical"
+        android:layout_height="match_parent"
+        android:background="@color/backgroundColor"
+        android:paddingBottom="16dp">
+
+        <TextView
+            android:id="@+id/header"
+            style="@style/Header"
+            android:text="@string/select_a_profile_title" />
+
+        <TextView
+            android:id="@+id/description"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginBottom="16dp"
+            android:gravity="center"
+            android:paddingLeft="16dp"
+            android:paddingRight="16dp"
+            android:text="@string/select_a_profile_description"
+            android:textColor="@color/textColor"
+            android:textSize="16sp" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/profileList"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="8dp"
+            android:fadeScrollbars="false"
+            android:scrollbarSize="4dp"
+            android:scrollbarThumbVertical="@drawable/scrollbar_thumb"
+            android:scrollbars="vertical"
+            tools:listitem="@layout/list_item_profile" />
+
+
+    </LinearLayout>
+</layout>

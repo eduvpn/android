@@ -17,6 +17,7 @@
 
 package nl.eduvpn.app.service;
 
+import android.location.Location;
 import android.util.Pair;
 
 import net.openid.appauth.AuthState;
@@ -36,6 +37,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
 
+import androidx.annotation.NonNull;
 import nl.eduvpn.app.entity.AuthorizationType;
 import nl.eduvpn.app.entity.DiscoveredAPI;
 import nl.eduvpn.app.entity.Instance;
@@ -177,7 +179,7 @@ public class SerializerService {
             result.put("display_name", instance.getDisplayName());
             result.put("logo", instance.getLogoUri());
             result.put("is_custom", instance.isCustom());
-            result.put("authorization_type", instance.getAuthorizationType());
+            result.put("authorization_type", instance.getAuthorizationType() == AuthorizationType.Local ? 0 : 1);
         } catch (JSONException ex) {
             throw new UnknownFormatException(ex);
         }
@@ -217,10 +219,13 @@ public class SerializerService {
             if (jsonObject.has("is_custom")) {
                 isCustom = jsonObject.getBoolean("is_custom");
             }
-            @AuthorizationType int authorizationType = AuthorizationType.LOCAL;
+            AuthorizationType authorizationType = AuthorizationType.Local;
             if (jsonObject.has("authorization_type")) {
                 //noinspection WrongConstant
-                authorizationType = jsonObject.getInt("authorization_type");
+                int authorizationTypeInt = jsonObject.getInt("authorization_type");
+                if (authorizationTypeInt == 1) {
+                    authorizationType = AuthorizationType.Distributed;
+                }
             }
             return new Instance(baseUri, displayName, logoUri, authorizationType, isCustom);
         } catch (JSONException ex) {
@@ -259,6 +264,7 @@ public class SerializerService {
      * @return The discovered API object.
      * @throws UnknownFormatException Thrown if the JSON had an unknown format.
      */
+    @NonNull
     public DiscoveredAPI deserializeDiscoveredAPI(JSONObject result) throws UnknownFormatException {
         try {
             // we only support version 1 at the moment

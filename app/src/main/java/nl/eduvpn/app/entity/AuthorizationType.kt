@@ -15,35 +15,12 @@
  *     along with eduVPN.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package nl.eduvpn.app.entity;
+package nl.eduvpn.app.entity
 
 /**
- * Represents a VPN connection profile.
- * Created by Daniel Zolnai on 2016-10-11.
+ * The type of the VPN which the user will connect to.
+ * Created by Daniel Zolnai on 2017-07-31.
  */
-public class Profile {
-
-    private String _displayName;
-    private String _profileId;
-
-    public Profile(String displayName, String profileId) {
-        _displayName = displayName;
-        _profileId = profileId;
-    }
-
-    /**
-     * Returns the display name of this profile.
-     *
-     * @return How this profile should be mentioned.
-     */
-    public String getDisplayName() {
-        return _displayName;
-    }
-
-    /**
-     * Returns the pool ID of this VPN profile.
-     */
-    public String getProfileId() {
-        return _profileId;
-    }
+enum class AuthorizationType {
+        Local, Distributed
 }

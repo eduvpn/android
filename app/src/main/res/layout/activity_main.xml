@@ -10,8 +10,17 @@
         tools:context=".MainActivity">
 
         <FrameLayout
+            android:id="@+id/contentFrame"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginTop="@dimen/actionbar_size"
+            android:layout_marginBottom="@dimen/footer_height"
+            tools:background="#F0F0F0" />
+
+        <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="@dimen/footer_height"
+            android:elevation="8dp"
             android:layout_alignParentBottom="true"
             android:layout_gravity="bottom"
             android:background="@color/mainColor">
@@ -26,16 +35,11 @@
                 android:src="@drawable/surfnet_logo" />
         </FrameLayout>
 
-        <FrameLayout
-            android:id="@+id/contentFrame"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginTop="@dimen/actionbar_size"
-            android:layout_marginBottom="@dimen/footer_height"
-            tools:background="#F0F0F0" />
+
 
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbar"
+            android:elevation="8dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="?attr/colorPrimary"

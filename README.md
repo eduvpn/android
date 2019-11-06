@@ -4,12 +4,16 @@ This is the eduVPN / Let's Connect! for Android application.
 
 You can clone this repository by executing the following command (provided you have git installed):
     
-    git clone --recurse-submodules -j8 https://github.com/eduvpn/android.git
+    git clone --recurse-submodules https://github.com/eduvpn/android.git
 
+Or if your git version is below 2.13:
+
+    git clone --recursive https://github.com/eduvpn/android.git
 
 # Running with Android Studio
 
 First install the `swig` package with your operating system package manager.
+
 Make sure you have the latest stable version of Android Studio installed, you can download it from [here](https://developer.android.com/studio).
 Open the project by opening the build.gradle in the root of this repository with Android Studio.
 Make sure that you have the following packages installed in the SDK Manager (Tools -> SDK Manager):

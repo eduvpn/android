@@ -105,11 +105,11 @@ public class ConfigurationService extends java.util.Observable {
     private void _loadSavedLists() {
         // Loads the saved configuration from the storage.
         // If none found, it will default to the one in the app.
-        _secureInternetList = _preferencesService.getInstanceList(AuthorizationType.DISTRIBUTED);
-        _instituteAccessList = _preferencesService.getInstanceList(AuthorizationType.LOCAL);
+        _secureInternetList = _preferencesService.getInstanceList(AuthorizationType.Distributed);
+        _instituteAccessList = _preferencesService.getInstanceList(AuthorizationType.Local);
     }
 
-    private void _saveListIfChanged(@NonNull InstanceList instanceList, @AuthorizationType int authorizationType) {
+    private void _saveListIfChanged(@NonNull InstanceList instanceList, AuthorizationType authorizationType) {
         InstanceList previousList = _preferencesService.getInstanceList(authorizationType);
         if (previousList == null || previousList.getSequenceNumber() < instanceList.getSequenceNumber()) {
             Log.i(TAG, "Previously saved instance list for connection type " + authorizationType + " is outdated, or there was" +
@@ -132,7 +132,7 @@ public class ConfigurationService extends java.util.Observable {
      * @return An InstanceList object containing the same information.
      * @throws JSONException Thrown if the JSON was malformed or had an unknown list version.
      */
-    private InstanceList _parseInstanceList(String instanceListString, @AuthorizationType int authorizationType) throws Exception {
+    private InstanceList _parseInstanceList(String instanceListString, AuthorizationType authorizationType) throws Exception {
         JSONObject instanceListJson = new JSONObject(instanceListString);
         InstanceList result = _serializerService.deserializeInstanceList(instanceListJson);
         for (Instance instance : result.getInstanceList()) {
@@ -147,11 +147,11 @@ public class ConfigurationService extends java.util.Observable {
     private void _fetchLatestConfiguration() {
         _secureInternetPendingDiscovery = true;
         _instituteAccessPendingDiscovery = true;
-        _fetchConfigurationForAuthorizationType(AuthorizationType.DISTRIBUTED);
-        _fetchConfigurationForAuthorizationType(AuthorizationType.LOCAL);
+        _fetchConfigurationForAuthorizationType(AuthorizationType.Distributed);
+        _fetchConfigurationForAuthorizationType(AuthorizationType.Local);
     }
 
-    private void _fetchConfigurationForAuthorizationType(@AuthorizationType final int authorizationType) {
+    private void _fetchConfigurationForAuthorizationType(AuthorizationType authorizationType) {
         Observable<String> instanceListObservable = _createInstanceListObservable(authorizationType);
         Observable<String> signatureObservable = _createSignatureObservable(authorizationType);
         // Combine the result of the two
@@ -169,7 +169,7 @@ public class ConfigurationService extends java.util.Observable {
                 .subscribe(new Consumer<InstanceList>() {
                     @Override
                     public void accept(InstanceList instanceList) throws Exception {
-                        if (authorizationType == AuthorizationType.DISTRIBUTED) {
+                        if (authorizationType == AuthorizationType.Distributed) {
                             _secureInternetList = instanceList;
                             _secureInternetPendingDiscovery = false;
                         } else {
@@ -182,7 +182,7 @@ public class ConfigurationService extends java.util.Observable {
                 }, new Consumer<Throwable>() {
                     @Override
                     public void accept(Throwable throwable) throws Exception {
-                        if (authorizationType == AuthorizationType.DISTRIBUTED) {
+                        if (authorizationType == AuthorizationType.Distributed) {
                             _secureInternetPendingDiscovery = false;
                         } else {
                             _instituteAccessPendingDiscovery = false;
@@ -195,11 +195,11 @@ public class ConfigurationService extends java.util.Observable {
                 });
     }
 
-    private Observable<String> _createSignatureObservable(@AuthorizationType final int authorizationType) {
+    private Observable<String> _createSignatureObservable(AuthorizationType authorizationType) {
         return Observable.defer(new Callable<ObservableSource<String>>() {
             @Override
             public ObservableSource<String> call() throws Exception {
-                String signatureRequestUrl = authorizationType == AuthorizationType.LOCAL ? BuildConfig.INSTITUTE_ACCESS_DISCOVERY_URL : BuildConfig.SECURE_INTERNET_DISCOVERY_URL;
+                String signatureRequestUrl = authorizationType == AuthorizationType.Local ? BuildConfig.INSTITUTE_ACCESS_DISCOVERY_URL : BuildConfig.SECURE_INTERNET_DISCOVERY_URL;
                 signatureRequestUrl = signatureRequestUrl + BuildConfig.SIGNATURE_URL_POSTFIX;
                 Request request = new Request.Builder().url(signatureRequestUrl).build();
                 Response response = _okHttpClient.newCall(request).execute();
@@ -214,11 +214,11 @@ public class ConfigurationService extends java.util.Observable {
         }).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread());
     }
 
-    private Observable<String> _createInstanceListObservable(@AuthorizationType final int authorizationType) {
+    private Observable<String> _createInstanceListObservable(AuthorizationType authorizationType) {
         return Observable.defer(new Callable<ObservableSource<String>>() {
             @Override
             public ObservableSource<String> call() throws Exception {
-                String listRequestUrl = authorizationType == AuthorizationType.LOCAL ? BuildConfig.INSTITUTE_ACCESS_DISCOVERY_URL : BuildConfig.SECURE_INTERNET_DISCOVERY_URL;
+                String listRequestUrl = authorizationType == AuthorizationType.Local ? BuildConfig.INSTITUTE_ACCESS_DISCOVERY_URL : BuildConfig.SECURE_INTERNET_DISCOVERY_URL;
                 Request request = new Request.Builder().url(listRequestUrl).build();
                 Response response = _okHttpClient.newCall(request).execute();
                 ResponseBody responseBody = response.body();
@@ -237,8 +237,8 @@ public class ConfigurationService extends java.util.Observable {
      * @param authorizationType The authorization type.
      * @return True if discovery is still not completed, and that's why the list is not complete.
      */
-    public boolean isPendingDiscovery(@AuthorizationType int authorizationType) {
-        if (authorizationType == AuthorizationType.LOCAL) {
+    public boolean isPendingDiscovery(AuthorizationType authorizationType) {
+        if (authorizationType == AuthorizationType.Local) {
             return _instituteAccessPendingDiscovery;
         } else {
             return _secureInternetPendingDiscovery;

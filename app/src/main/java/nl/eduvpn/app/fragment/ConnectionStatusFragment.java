@@ -194,7 +194,7 @@ public class ConnectionStatusFragment extends BaseFragment<FragmentConnectionSta
                             binding.disconnectButton.setEnabled(false);
                             _userNavigation = false;
                             _gracefulDisconnectHandler.removeCallbacksAndMessages(null);
-                            ((MainActivity) getActivity()).openFragment(HomeFragment.newInstance(false), false);
+                            _returnToHome();
                         } else {
                             binding.connectionStatusIcon.setImageResource(R.drawable.connection_status_disconnected);
                             binding.disconnectButton.setEnabled(true);
@@ -216,6 +216,13 @@ public class ConnectionStatusFragment extends BaseFragment<FragmentConnectionSta
         _vpnStatusObserver.update(_vpnService, _vpnService.getStatus());
         _vpnService.addObserver(_vpnStatusObserver);
         _vpnService.attachConnectionInfoListener(this);
+    }
+
+    private void _returnToHome() {
+        MainActivity activity = (MainActivity)getActivity();
+        if (activity != null && !activity.isFinishing()) {
+            activity.openFragment(ServerSelectionFragment.Companion.newInstance(false), false);
+        }
     }
 
     @Override
@@ -243,7 +250,7 @@ public class ConnectionStatusFragment extends BaseFragment<FragmentConnectionSta
 
     protected void onDisconnectButtonClicked() {
         if (_userNavigation) {
-            ((MainActivity) getActivity()).openFragment(HomeFragment.newInstance(false), false);
+            _returnToHome();
         } else {
             boolean isConnecting = _vpnService.getStatus() == VPNService.VPNStatus.CONNECTING;
             _userInitiatedDisconnect = true;
@@ -254,16 +261,13 @@ public class ConnectionStatusFragment extends BaseFragment<FragmentConnectionSta
                 // In this case, if we call disconnect, the process can be killed.
                 // That means we won't get any notification from the disconnect event.
                 // So we add a timer which waits for the disconnect event. If not received, we assume the process was killed.
-                _gracefulDisconnectHandler.postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        if (getActivity() == null || getActivity().isFinishing()) {
-                            Log.i(TAG, "Cannot close connection status fragment, because activity was already finished. User probably left the app.");
-                            return;
-                        }
-                        Log.i(TAG, "No disconnect event received from VPN within " + WAIT_FOR_DISCONNECT_UNTIL_MS + " milliseconds. Assuming process died.");
-                        ((MainActivity) getActivity()).openFragment(HomeFragment.newInstance(false), false);
+                _gracefulDisconnectHandler.postDelayed(() -> {
+                    if (getActivity() == null || getActivity().isFinishing()) {
+                        Log.i(TAG, "Cannot close connection status fragment, because activity was already finished. User probably left the app.");
+                        return;
                     }
+                    Log.i(TAG, "No disconnect event received from VPN within " + WAIT_FOR_DISCONNECT_UNTIL_MS + " milliseconds. Assuming process died.");
+                    _returnToHome();
                 }, WAIT_FOR_DISCONNECT_UNTIL_MS);
 
             }

@@ -25,14 +25,18 @@ import android.widget.Toast;
 import net.openid.appauth.AuthorizationException;
 import net.openid.appauth.AuthorizationResponse;
 
+import java.util.List;
+
 import javax.inject.Inject;
 
 import androidx.fragment.app.Fragment;
 import nl.eduvpn.app.base.BaseActivity;
 import nl.eduvpn.app.databinding.ActivityMainBinding;
+import nl.eduvpn.app.entity.Profile;
 import nl.eduvpn.app.fragment.ConnectionStatusFragment;
 import nl.eduvpn.app.fragment.CustomProviderFragment;
-import nl.eduvpn.app.fragment.HomeFragment;
+import nl.eduvpn.app.fragment.ProfileSelectionFragment;
+import nl.eduvpn.app.fragment.ServerSelectionFragment;
 import nl.eduvpn.app.fragment.TypeSelectorFragment;
 import nl.eduvpn.app.service.ConnectionService;
 import nl.eduvpn.app.service.HistoryService;
@@ -69,7 +73,7 @@ public class MainActivity extends BaseActivity<ActivityMainBinding> {
             if (_vpnService.getStatus() != VPNService.VPNStatus.DISCONNECTED) {
                 openFragment(new ConnectionStatusFragment(), false);
             } else if (!_historyService.getSavedAuthStateList().isEmpty()) {
-                openFragment(new HomeFragment(), false);
+                openFragment(ServerSelectionFragment.Companion.newInstance(false), false);
             } else {
                 // User has no previously saved profiles. Show the type selector.
                 if (BuildConfig.API_DISCOVERY_ENABLED) {
@@ -131,9 +135,7 @@ public class MainActivity extends BaseActivity<ActivityMainBinding> {
             _connectionService.parseAuthorizationResponse(authorizationResponse, this);
             // Remove it so we don't parse it again.
             intent.setData(null);
-            // Show the home fragment, so the user can select his new config(s)
-            HomeFragment fragment = HomeFragment.newInstance(true);
-            openFragment(fragment, false);
+            openFragment(ServerSelectionFragment.Companion.newInstance(true), false);
         }
     }
 

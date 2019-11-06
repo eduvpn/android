@@ -17,12 +17,15 @@
 
 package nl.eduvpn.app.inject;
 
+import org.jetbrains.annotations.NotNull;
+
 import nl.eduvpn.app.EduVPNApplication;
 import nl.eduvpn.app.MainActivity;
 import nl.eduvpn.app.fragment.ConnectionStatusFragment;
 import nl.eduvpn.app.fragment.CustomProviderFragment;
-import nl.eduvpn.app.fragment.HomeFragment;
+import nl.eduvpn.app.fragment.ProfileSelectionFragment;
 import nl.eduvpn.app.fragment.ProviderSelectionFragment;
+import nl.eduvpn.app.fragment.ServerSelectionFragment;
 import nl.eduvpn.app.fragment.SettingsFragment;
 
 import javax.inject.Singleton;
@@ -56,7 +59,9 @@ public interface EduVPNComponent {
 
     void inject(ConnectionStatusFragment connectionStatusFragment);
 
-    void inject(HomeFragment homeFragment);
+    void inject(ProfileSelectionFragment homeFragment);
 
     void inject(SettingsFragment settingsFragment);
+
+    void inject(@NotNull ServerSelectionFragment serverSelectionFragment);
 }
