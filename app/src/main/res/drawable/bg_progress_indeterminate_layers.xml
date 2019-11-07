@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ This file is part of eduVPN.
+  ~
+  ~ eduVPN is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as published by
+  ~ the Free Software Foundation, either version 3 of the License, or
+  ~ (at your option) any later version.
+  ~
+  ~ eduVPN is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with eduVPN.  If not, see <http://www.gnu.org/licenses/>.
+  ~
+  -->
+
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:height="10dp"
+    android:width="360dp"
+    android:viewportHeight="10"
+    android:viewportWidth="360" >
+    <group
+        android:name="progress_group"
+        android:translateX="180"
+        android:translateY="5" >
+        <path
+            android:name="background_track"
+            android:pathData="M -180.0,-1.0 l 360.0,0 l 0,2.0 l -360.0,0 Z"
+            android:fillColor="#FFF" />
+        <group
+            android:name="rect2_grp"
+            android:translateX="-197.60001"
+            android:scaleX="0.1" >
+            <path
+                android:name="rect2"
+                android:pathData="M -144.0,-1.0 l 288.0,0 l 0,2.0 l -288.0,0 Z"
+                android:fillColor="@color/colorAccent" />
+        </group>
+        <group
+            android:name="rect1_grp"
+            android:translateX="-522.59998"
+            android:scaleX="0.1" >
+            <path
+                android:name="rect1"
+                android:pathData="M -144.0,-1.0 l 288.0,0 l 0,2.0 l -288.0,0 Z"
+                android:fillColor="@color/colorPrimaryLight" />
+        </group>
+    </group>
+</vector>

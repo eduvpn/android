@@ -17,52 +17,45 @@
 
 package nl.eduvpn.app.fragment
 
+import android.content.Context
 import android.os.Bundle
 import android.view.View
+import android.view.inputmethod.InputMethodManager
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
-import androidx.recyclerview.widget.LinearLayoutManager
 import nl.eduvpn.app.EduVPNApplication
 import nl.eduvpn.app.MainActivity
 import nl.eduvpn.app.R
-import nl.eduvpn.app.adapter.ProfileAdapter
 import nl.eduvpn.app.base.BaseFragment
-import nl.eduvpn.app.databinding.FragmentProfileSelectionBinding
-import nl.eduvpn.app.entity.Profile
+import nl.eduvpn.app.databinding.FragmentCustomProviderBinding
+import nl.eduvpn.app.entity.AuthorizationType
+import nl.eduvpn.app.entity.Instance
 import nl.eduvpn.app.utils.ErrorDialog
-import nl.eduvpn.app.utils.ItemClickSupport
 import nl.eduvpn.app.viewmodel.ConnectionViewModel
-import java.util.ArrayList
 
 /**
- * Fragment which is displayed when the app start.
- * Created by Daniel Zolnai on 2016-10-20.
+ * Fragment where you can give the URL to a custom provider.
+ * Created by Daniel Zolnai on 2016-10-11.
  */
-class ProfileSelectionFragment : BaseFragment<FragmentProfileSelectionBinding>() {
+class CustomProviderFragment : BaseFragment<FragmentCustomProviderBinding>() {
+
+    override val layout = R.layout.fragment_custom_provider
 
     private val viewModel by lazy {
         ViewModelProviders.of(requireActivity(), viewModelFactory).get(ConnectionViewModel::class.java)
     }
 
-    override val layout = R.layout.fragment_profile_selection
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         EduVPNApplication.get(view.context).component().inject(this)
-
         binding.viewModel = viewModel
+        binding.customProviderConnect.setOnClickListener { onConnectClicked() }
 
-        // Basic setup of the lists
-        binding.profileList.setHasFixedSize(true)
-        binding.profileList.layoutManager = LinearLayoutManager(view.context, LinearLayoutManager.VERTICAL, false)
-
-        // Add the adapters
-        val profileAdapter = ProfileAdapter(viewModel.getProfileInstance())
-        binding.profileList.adapter = profileAdapter
-
-        val profiles: ArrayList<Profile> = arguments?.getParcelableArrayList(KEY_PROFILES)!!
-
-        profileAdapter.submitList(profiles)
+        // Put the cursor in the field and show the keyboard automatically.
+        binding.customProviderUrl.requestFocus()
+        val inputMethodManager = requireActivity().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        inputMethodManager.showSoftInput(binding.customProviderUrl, InputMethodManager.SHOW_IMPLICIT)
 
         viewModel.parentAction.observe(this, Observer { parentAction ->
             when (parentAction) {
@@ -73,25 +66,20 @@ class ProfileSelectionFragment : BaseFragment<FragmentProfileSelectionBinding>()
                         }
                     }
                 }
-                is ConnectionViewModel.ParentAction.ConnectWithProfile -> {
-                    viewModel.openVpnConnectionToProfile(requireActivity(), parentAction.vpnProfile)
-                    (activity as? MainActivity)?.openFragment(ConnectionStatusFragment(), false)
-                }
                 is ConnectionViewModel.ParentAction.DisplayError -> {
                     ErrorDialog.show(requireContext(), parentAction.title, parentAction.message)
                 }
             }
         })
 
-        // Add click listeners
-        ItemClickSupport.addTo(binding.profileList).setOnItemClickListener { _, position, _ ->
-            val profile = profileAdapter.getItem(position)
-            viewModel.selectProfileToConnectTo(profile)
-        }
+    }
 
-        if (profiles.size == 1) {
-            viewModel.selectProfileToConnectTo(profiles[0])
-        }
+    private fun onConnectClicked() {
+        val prefix = getString(R.string.custom_provider_prefix)
+        val postfix = binding.customProviderUrl.text.toString()
+        val url = prefix + postfix
+        val customProviderInstance = createCustomProviderInstance(url)
+        viewModel.discoverApi(customProviderInstance)
     }
 
     override fun onResume() {
@@ -99,16 +87,13 @@ class ProfileSelectionFragment : BaseFragment<FragmentProfileSelectionBinding>()
         viewModel.onResume()
     }
 
-    companion object {
-
-        private const val KEY_PROFILES = "profiles"
-
-        fun newInstance(profileList: List<Profile>): ProfileSelectionFragment {
-            val fragment = ProfileSelectionFragment()
-            val arguments = Bundle()
-            arguments.putParcelableArrayList(KEY_PROFILES, ArrayList(profileList))
-            fragment.arguments = arguments
-            return fragment
-        }
+    /**
+     * Creates a custom provider instance for caching.
+     *
+     * @param baseUri The base URI of the instance.
+     * @return A new instance.
+     */
+    private fun createCustomProviderInstance(baseUri: String): Instance {
+        return Instance(baseUri, getString(R.string.custom_provider_display_name), null, AuthorizationType.Local, true)
     }
 }

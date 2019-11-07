@@ -43,11 +43,8 @@ import androidx.annotation.Nullable;
 import io.reactivex.Observable;
 import io.reactivex.ObservableSource;
 import io.reactivex.Single;
-import io.reactivex.SingleEmitter;
-import io.reactivex.SingleOnSubscribe;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
-import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
 import nl.eduvpn.app.MainActivity;
 import nl.eduvpn.app.R;
@@ -125,8 +122,8 @@ public class ConnectionService {
     public Disposable initiateConnection(@NonNull final Activity activity, @NonNull final Instance instance, @NonNull final DiscoveredAPI discoveredAPI) {
         return Observable.defer((Callable<ObservableSource<AuthorizationRequest>>)() -> {
             String stateString = _securityService.generateSecureRandomString(32);
-            _preferencesService.currentInstance(instance);
-            _preferencesService.storeCurrentDiscoveredAPI(discoveredAPI);
+            _preferencesService.setCurrentInstance(instance);
+            _preferencesService.setCurrentDiscoveredAPI(discoveredAPI);
             AuthorizationServiceConfiguration serviceConfig = _buildAuthConfiguration(discoveredAPI);
 
             AuthorizationRequest.Builder authRequestBuilder =
@@ -198,7 +195,7 @@ public class ConnectionService {
             return;
         }
         // Save the authentication state.
-        _preferencesService.storeCurrentAuthState(authState);
+        _preferencesService.setCurrentAuthState(authState);
         // Save the access token for later use.
         _historyService.cacheAuthenticationState(_preferencesService.getCurrentInstance(), authState);
         Toast.makeText(activity, R.string.provider_added_new_configs_available, Toast.LENGTH_LONG).show();
@@ -219,7 +216,7 @@ public class ConnectionService {
             @Override
             public void execute(@Nullable String accessToken, @Nullable String idToken, @Nullable AuthorizationException ex) {
                 if (accessToken != null) {
-                    _preferencesService.storeCurrentAuthState(authState);
+                    _preferencesService.setCurrentAuthState(authState);
                     _historyService.refreshAuthState(authState);
                     singleEmitter.onSuccess(accessToken);
                 } else {

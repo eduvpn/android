@@ -219,6 +219,7 @@ public class APIService {
         ResponseBody responseBody = response.body();
         if (responseBody != null) {
             result = responseBody.string();
+            responseBody.close();
         }
         Log.d(TAG, "POST " + url + " data: '" + requestData + "': " + result);
         if (statusCode >= 200 && statusCode <= 299) {
@@ -263,6 +264,7 @@ public class APIService {
         ResponseBody responseBody = response.body();
         if (responseBody != null) {
             responseString = responseBody.string();
+            responseBody.close();
         }
         Log.d(TAG, "GET " + url + ": " + responseString);
         return responseString;

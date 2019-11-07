@@ -1,31 +1,47 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout>
-    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<layout xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <data>
+        <variable
+            name="viewModel"
+            type="nl.eduvpn.app.viewmodel.ConnectionViewModel" />
+    </data>
+
+    <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
-        android:orientation="vertical"
         android:layout_height="match_parent"
-        android:background="@color/backgroundColor"
-        android:paddingBottom="16dp">
+        android:background="@color/backgroundColor">
 
-        <TextView
-            android:id="@+id/header"
-            style="@style/Header"
-            android:text="@string/select_a_profile_title" />
-
-
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/profileList"
+        <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:tools="http://schemas.android.com/tools"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_gravity="center_horizontal"
-            android:layout_marginBottom="8dp"
-            android:fadeScrollbars="false"
-            android:scrollbarSize="4dp"
-            android:scrollbarThumbVertical="@drawable/scrollbar_thumb"
-            android:scrollbars="vertical"
-            tools:listitem="@layout/list_item_profile" />
+            android:orientation="vertical"
+            android:paddingBottom="16dp">
+
+            <TextView
+                android:id="@+id/header"
+                style="@style/Header"
+                android:text="@string/select_a_profile_title" />
 
 
-    </LinearLayout>
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/profileList"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginBottom="8dp"
+                android:fadeScrollbars="false"
+                android:scrollbarSize="4dp"
+                android:scrollbarThumbVertical="@drawable/scrollbar_thumb"
+                android:scrollbars="vertical"
+                tools:listitem="@layout/list_item_profile" />
+
+        </LinearLayout>
+
+        <include
+            layout="@layout/include_loading"
+            app:connectionState="@{viewModel.connectionState}" />
+    </FrameLayout>
 </layout>

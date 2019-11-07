@@ -107,6 +107,8 @@ dependencies {
     implementation "androidx.recyclerview:recyclerview:1.0.0"
     implementation 'com.google.android.material:material:1.0.0'
     implementation "androidx.browser:browser:1.0.0" // Custom tabs
+    implementation "androidx.lifecycle:lifecycle-viewmodel:2.1.0"
+    implementation "androidx.lifecycle:lifecycle-extensions:2.1.0"
     // OAuth client
     implementation 'net.openid:appauth:0.7.1'
     // Secure preferences

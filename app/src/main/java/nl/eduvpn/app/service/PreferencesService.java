@@ -126,7 +126,6 @@ public class PreferencesService {
     /**
      * Clears the shared preferences, but makes sure that the storage version key remains.
      * Only use this method to clear all data. Only to be used for unit testing
-     *
      */
     @SuppressLint("ApplySharedPref")
     @VisibleForTesting
@@ -139,7 +138,7 @@ public class PreferencesService {
      *
      * @param instance The instance to save.
      */
-    public void currentInstance(@NonNull Instance instance) {
+    public void setCurrentInstance(@NonNull Instance instance) {
         try {
             _getSharedPreferences().edit()
                     .putString(KEY_INSTANCE, _serializerService.serializeInstance(instance).toString())
@@ -206,8 +205,14 @@ public class PreferencesService {
      *
      * @param authState The access token and refresh token to use for the VPN provider API.
      */
-    public void storeCurrentAuthState(@NonNull AuthState authState) {
-        _getSharedPreferences().edit().putString(KEY_AUTH_STATE, authState.jsonSerializeString()).apply();
+    public void setCurrentAuthState(@Nullable AuthState authState) {
+        SharedPreferences.Editor editor = _getSharedPreferences().edit();
+        if (authState == null) {
+            editor.remove(KEY_AUTH_STATE);
+        } else {
+            editor.putString(KEY_AUTH_STATE, authState.jsonSerializeString());
+        }
+        editor.apply();
     }
 
     /**
@@ -273,11 +278,15 @@ public class PreferencesService {
      *
      * @param discoveredAPI The discovered API.
      */
-    public void storeCurrentDiscoveredAPI(@NonNull DiscoveredAPI discoveredAPI) {
+    public void setCurrentDiscoveredAPI(@Nullable DiscoveredAPI discoveredAPI) {
         try {
-            _getSharedPreferences().edit()
-                    .putString(KEY_DISCOVERED_API, _serializerService.serializeDiscoveredAPI(discoveredAPI).toString())
-                    .apply();
+            SharedPreferences.Editor editor = _getSharedPreferences().edit();
+            if (discoveredAPI == null) {
+                editor.remove(KEY_DISCOVERED_API);
+            } else {
+                editor.putString(KEY_DISCOVERED_API, _serializerService.serializeDiscoveredAPI(discoveredAPI).toString());
+            }
+            editor.apply();
         } catch (SerializerService.UnknownFormatException ex) {
             Log.e(TAG, "Can not save discovered API!", ex);
         }

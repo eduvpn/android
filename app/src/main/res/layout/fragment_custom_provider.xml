@@ -1,11 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout>
+<layout xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <data>
+        <variable
+            name="viewModel"
+            type="nl.eduvpn.app.viewmodel.ConnectionViewModel" />
+    </data>
+
+    <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/backgroundColor">
 
     <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@color/backgroundColor"
-        android:clickable="true"
         android:orientation="vertical">
 
         <TextView
@@ -54,4 +64,12 @@
             android:layout_marginTop="16dp"
             android:text="@string/custom_provider_connect" />
     </LinearLayout>
+
+        <include
+            layout="@layout/include_loading"
+            app:connectionState="@{viewModel.connectionState}" />
+    </FrameLayout>
+
+
+
 </layout>

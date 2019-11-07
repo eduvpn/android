@@ -3,6 +3,7 @@
     <color name="mainColor">#00B3D0</color>
     <color name="colorPrimary">#00B3D0</color>
     <color name="colorPrimaryDark">#00A2C8</color>
+    <color name="colorPrimaryLight">#A6F3FF</color>
     <color name="colorAccent">#00A2C8</color>
     <color name="colorSwitchThumbNormal">#808080</color>
     <color name="textColor">#101010</color>

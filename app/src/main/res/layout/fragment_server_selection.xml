@@ -16,48 +16,62 @@
   ~
   -->
 
-<layout>
+<layout xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    <data>
+        <variable
+            name="viewModel"
+            type="nl.eduvpn.app.viewmodel.ConnectionViewModel" />
+    </data>
+
+    <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@color/backgroundColor"
-        android:clickable="true"
-        android:orientation="vertical">
+        android:background="@color/backgroundColor">
 
-        <TextView
-            android:id="@+id/header"
-            style="@style/Header"
-            android:text="@string/select_a_server_title" />
-
-        <FrameLayout
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_marginTop="8dp"
-            android:layout_weight="1">
+            android:layout_height="match_parent"
+            android:orientation="vertical">
 
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/server_list"
+            <TextView
+                android:id="@+id/header"
+                style="@style/Header"
+                android:text="@string/select_a_server_title" />
+
+            <FrameLayout
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:paddingLeft="16dp"
-                android:paddingRight="16dp"
-                android:paddingBottom="16dp"
-                android:scrollbarStyle="outsideOverlay"
-                tools:listitem="@layout/list_item_provider" />
+                android:layout_height="0dp"
+                android:layout_marginTop="8dp"
+                android:layout_weight="1">
 
-        </FrameLayout>
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/server_list"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:paddingLeft="16dp"
+                    android:paddingRight="16dp"
+                    android:paddingBottom="16dp"
+                    android:scrollbarStyle="outsideOverlay"
+                    tools:listitem="@layout/list_item_provider" />
+
+            </FrameLayout>
 
 
-        <Button
-            android:id="@+id/add_server_button"
-            style="@style/BigButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:layout_marginTop="16dp"
-            android:layout_marginBottom="16dp"
-            android:text="@string/server_selection_add_server" />
-    </LinearLayout>
+            <Button
+                android:id="@+id/add_server_button"
+                style="@style/BigButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="16dp"
+                android:text="@string/server_selection_add_server" />
+        </LinearLayout>
+
+        <include
+            layout="@layout/include_loading"
+            app:connectionState="@{viewModel.connectionState}" />
+    </FrameLayout>
 </layout>

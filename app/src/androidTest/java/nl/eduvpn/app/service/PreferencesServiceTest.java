@@ -27,7 +27,6 @@ import org.junit.runner.RunWith;
 import androidx.test.core.app.ApplicationProvider;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.filters.LargeTest;
-import de.blinkt.openvpn.core.Preferences;
 import nl.eduvpn.app.entity.AuthorizationType;
 import nl.eduvpn.app.entity.DiscoveredAPI;
 import nl.eduvpn.app.entity.Instance;
@@ -56,7 +55,7 @@ public class PreferencesServiceTest {
     @Test
     public void testInstanceSave() {
         Instance instance = new Instance("http://example.com", "Example", "http://example.com/image.jpg", AuthorizationType.Distributed, true);
-        _preferencesService.currentInstance(instance);
+        _preferencesService.setCurrentInstance(instance);
         Instance retrievedInstance = _preferencesService.getCurrentInstance();
         assertNotNull(retrievedInstance);
         assertEquals(instance.getDisplayName(), retrievedInstance.getDisplayName());
@@ -68,7 +67,7 @@ public class PreferencesServiceTest {
     @Test
     public void testDiscoveredAPISave() {
         DiscoveredAPI discoveredAPI = new DiscoveredAPI("http://example.com/", "http://example.com/auth_endpoint", "http://example.com/token_endpoint");
-        _preferencesService.storeCurrentDiscoveredAPI(discoveredAPI);
+        _preferencesService.setCurrentDiscoveredAPI(discoveredAPI);
         DiscoveredAPI retrievedDiscoveredAPI = _preferencesService.getCurrentDiscoveredAPI();
         //noinspection ConstantConditions
         assertEquals(discoveredAPI.getAuthorizationEndpoint(), retrievedDiscoveredAPI.getAuthorizationEndpoint());
