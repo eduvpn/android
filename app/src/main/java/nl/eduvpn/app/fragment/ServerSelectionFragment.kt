@@ -83,7 +83,7 @@ class ServerSelectionFragment : BaseFragment<FragmentServerSelectionBinding>(), 
         binding.addServerButton.setOnClickListener {
             @Suppress("ConstantConditionIf")
             if (BuildConfig.API_DISCOVERY_ENABLED) {
-                (activity as? MainActivity)?.openFragment(ProviderSelectionFragment(), true)
+                (activity as? MainActivity)?.openFragment(TypeSelectorFragment(), true)
             } else {
                 (activity as? MainActivity)?.openFragment(CustomProviderFragment(), true)
             }
