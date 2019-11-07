@@ -240,12 +240,6 @@ class ServerSelectionFragment : BaseFragment<FragmentServerSelectionBinding>(), 
             val instances = historyService.savedAuthStateList.map { it.instance }
             (binding.serverList.adapter as? ServerAdapter)?.submitList(instances)
 
-            if (instances.isEmpty()) {
-                binding.description.setText(R.string.select_a_server_description_empty)
-            } else {
-                binding.description.setText(R.string.select_a_server_description)
-            }
-
             // Tokens are processed at a later moment
             tryAutoConnectIfReturningFromAuth()
         }

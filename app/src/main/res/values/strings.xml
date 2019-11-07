@@ -112,10 +112,7 @@
     <string name="delete_server_message">Are you sure you want to remove the server \'%1$s\' (%2$s) with all its profiles?</string>
     <string name="delete_server_cancel">Cancel</string>
     <string name="select_a_server_title">Select a server</string>
-    <string name="select_a_server_description">Tap on a server to initiate the authentication process.</string>
     <string name="error_parsing_profiles">Unable to parse the profile list.</string>
     <string name="select_a_profile_title">Select a profile</string>
-    <string name="select_a_profile_description">Tap on a profile to retrieve the configuration and connect.</string>
-    <string name="select_a_server_description_empty">You don\'t have any servers. Tap on the button below to add a new one.</string>
 
 </resources>

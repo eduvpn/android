@@ -13,18 +13,6 @@
             style="@style/Header"
             android:text="@string/select_a_profile_title" />
 
-        <TextView
-            android:id="@+id/description"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:layout_marginBottom="16dp"
-            android:gravity="center"
-            android:paddingLeft="16dp"
-            android:paddingRight="16dp"
-            android:text="@string/select_a_profile_description"
-            android:textColor="@color/textColor"
-            android:textSize="16sp" />
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/profileList"
