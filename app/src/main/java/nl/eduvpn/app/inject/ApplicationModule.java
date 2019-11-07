@@ -39,6 +39,7 @@ import nl.eduvpn.app.service.SecurityService;
 import nl.eduvpn.app.service.SerializerService;
 import nl.eduvpn.app.service.VPNService;
 import nl.eduvpn.app.utils.Log;
+import nl.eduvpn.app.viewmodel.ViewModelFactory;
 import okhttp3.OkHttpClient;
 
 /**
@@ -141,5 +142,20 @@ public class ApplicationModule {
                     }
                 });
         return clientBuilder.build();
+    }
+
+    @Provides
+    @Singleton
+    protected ViewModelFactory provideViewModelFactory(Context context,
+                                                       APIService apiService,
+                                                       SerializerService serializerService,
+                                                       ConfigurationService configurationService,
+                                                       HistoryService historyService,
+                                                       PreferencesService preferencesService,
+                                                       ConnectionService connectionService,
+                                                       VPNService vpnService) {
+        return new ViewModelFactory(context, apiService, serializerService,
+                configurationService, historyService, preferencesService, connectionService,
+                vpnService);
     }
 }

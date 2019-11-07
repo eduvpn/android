@@ -148,11 +148,13 @@ public class MainActivity extends BaseActivity<ActivityMainBinding> {
     public void openFragment(Fragment fragment, boolean openOnTop) {
         if (openOnTop) {
             getSupportFragmentManager().beginTransaction()
+                    .setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out)
                     .addToBackStack(null)
                     .add(R.id.contentFrame, fragment)
-                    .commit();
+                    .commitAllowingStateLoss();
         } else {
             getSupportFragmentManager().beginTransaction()
+                    .setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out)
                     .replace(R.id.contentFrame, fragment)
                     .commitAllowingStateLoss();
         }

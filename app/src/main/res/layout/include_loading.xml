@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?><!--
+  ~ This file is part of eduVPN.
+  ~
+  ~ eduVPN is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as published by
+  ~ the Free Software Foundation, either version 3 of the License, or
+  ~ (at your option) any later version.
+  ~
+  ~ eduVPN is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with eduVPN.  If not, see <http://www.gnu.org/licenses/>.
+  ~
+  -->
+<layout xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <data>
+        <import type="android.view.View" />
+        <import type="nl.eduvpn.app.viewmodel.ConnectionViewModel.ConnectionState" />
+        <variable
+            name="connectionState"
+            type="nl.eduvpn.app.viewmodel.ConnectionViewModel.ConnectionState" />
+    </data>
+
+    <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clickable="true"
+        android:focusable="true"
+        android:visibility="gone"
+        app:animatedVisibility="@{connectionState == ConnectionState.Ready ? View.GONE : View.VISIBLE}">
+
+        <View
+            android:id="@+id/background"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:alpha="0.5"
+            android:background="@color/backgroundColor" />
+
+        <LinearLayout
+            android:layout_width="300dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:background="@color/colorAccent"
+            android:elevation="4dp"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:padding="16dp"
+                android:text="@{connectionState.displayString}"
+                android:textColor="@color/textColorInverted"
+                app:dontChangeIfNull="@{true}"
+                tools:text="@string/loading_available_profiles" />
+
+            <ProgressBar
+                style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="16dp"
+                android:layout_marginTop="-6.dp"
+                android:layout_marginBottom="-6.5dp"
+                android:indeterminate="true"
+                android:indeterminateDrawable="@drawable/bg_progressbar_indeterminate"
+                android:minHeight="0dp"
+                android:padding="0dp" />
+        </LinearLayout>
+
+    </FrameLayout>
+</layout>

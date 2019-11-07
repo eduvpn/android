@@ -206,7 +206,9 @@ public class ConfigurationService extends java.util.Observable {
                 ResponseBody responseBody = response.body();
                 if (responseBody != null) {
                     //noinspection WrongConstant
-                    return Observable.just(responseBody.string());
+                    String result = responseBody.string();
+                    responseBody.close();
+                    return Observable.just(result);
                 } else {
                     return Observable.error(new IOException("Response body is empty!"));
                 }
@@ -224,7 +226,9 @@ public class ConfigurationService extends java.util.Observable {
                 ResponseBody responseBody = response.body();
                 if (responseBody != null) {
                     //noinspection WrongConstant
-                    return Observable.just(responseBody.string());
+                    String result = responseBody.string();
+                    responseBody.close();
+                    return Observable.just(result);
                 } else {
                     return Observable.error(new IOException("Response body is empty!"));
                 }

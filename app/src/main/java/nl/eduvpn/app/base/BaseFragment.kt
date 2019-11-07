@@ -26,10 +26,15 @@ import androidx.annotation.LayoutRes
 import androidx.databinding.DataBindingUtil
 import androidx.databinding.ViewDataBinding
 import androidx.fragment.app.Fragment
+import nl.eduvpn.app.viewmodel.ViewModelFactory
+import javax.inject.Inject
 
 abstract class BaseFragment<B : ViewDataBinding> : Fragment() {
 
     protected lateinit var binding: B
+
+    @Inject
+    protected lateinit var viewModelFactory : ViewModelFactory
 
     @get:LayoutRes
     protected abstract val layout: Int
