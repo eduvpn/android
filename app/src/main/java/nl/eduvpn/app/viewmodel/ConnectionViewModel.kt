@@ -77,7 +77,6 @@ class ConnectionViewModel(
         data class DisplayError(@StringRes val title: Int, val message: String) : ParentAction()
         data class OpenProfileSelector(val profiles: List<Profile>) : ParentAction()
         data class InitiateConnection(val instance: Instance, val discoveredAPI: DiscoveredAPI) : ParentAction()
-        object CheckIfAutoConnectRequired : ParentAction()
         data class ConnectWithProfile(val vpnProfile: VpnProfile) : ParentAction()
     }
 
@@ -369,8 +368,6 @@ class ConnectionViewModel(
     override fun update(o: Observable?, arg: Any?) {
         if (o is HistoryService) {
             refreshInstances()
-            // Tokens are processed at a later moment
-            parentAction.value = ParentAction.CheckIfAutoConnectRequired
         } else if (o is ConfigurationService) {
             refreshInstances()
         }
