@@ -41,7 +41,7 @@ import java.util.ArrayList
 class ProfileSelectionFragment : BaseFragment<FragmentProfileSelectionBinding>() {
 
     private val viewModel by lazy {
-        ViewModelProviders.of(requireActivity(), viewModelFactory).get(ConnectionViewModel::class.java)
+        ViewModelProviders.of(this, viewModelFactory).get(ConnectionViewModel::class.java)
     }
 
     override val layout = R.layout.fragment_profile_selection

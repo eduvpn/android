@@ -41,7 +41,7 @@ class ServerSelectionFragment : BaseFragment<FragmentServerSelectionBinding>() {
     override val layout = R.layout.fragment_server_selection
 
     private val viewModel by lazy {
-        ViewModelProviders.of(requireActivity(), viewModelFactory).get(ConnectionViewModel::class.java)
+        ViewModelProviders.of(this, viewModelFactory).get(ConnectionViewModel::class.java)
     }
 
     override fun onAttach(context: Context) {
@@ -71,7 +71,6 @@ class ServerSelectionFragment : BaseFragment<FragmentServerSelectionBinding>() {
 
         viewModel.parentAction.observe(this, Observer { parentAction ->
             when (parentAction) {
-                ConnectionViewModel.ParentAction.CheckIfAutoConnectRequired -> tryAutoConnectIfReturningFromAuth()
                 is ConnectionViewModel.ParentAction.InitiateConnection -> {
                     activity?.let { activity ->
                         if (!activity.isFinishing) {
@@ -96,8 +95,6 @@ class ServerSelectionFragment : BaseFragment<FragmentServerSelectionBinding>() {
             val item = adapter.getItem(position)
             displayDeleteDialog(item)
         }
-
-        tryAutoConnectIfReturningFromAuth()
     }
 
 
@@ -115,13 +112,6 @@ class ServerSelectionFragment : BaseFragment<FragmentServerSelectionBinding>() {
     }
 
 
-    private fun tryAutoConnectIfReturningFromAuth() {
-        if (arguments?.getBoolean(KEY_RETURNING_FROM_AUTH) == true) {
-            if (viewModel.tryAutoConnectIfReturningFromAuth()) {
-                arguments?.remove(KEY_RETURNING_FROM_AUTH) // Makes sure it is not triggered twice
-            }
-        }
-    }
 
     override fun onResume() {
         super.onResume()
