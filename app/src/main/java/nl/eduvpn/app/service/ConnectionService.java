@@ -184,7 +184,7 @@ public class ConnectionService {
      * Process the the exchanged token.
      *
      * @param authorizationResponse The authorization response.
-     * @param tokenResponse         The response from the token exchange updated into the authentication state
+     * @param tokenResponse         The response from the token exchange updated into the authorization state
      * @param activity              The current activity.
      */
     private void _processTokenExchangeResponse(AuthorizationResponse authorizationResponse, TokenResponse tokenResponse, Activity activity) {
@@ -194,17 +194,17 @@ public class ConnectionService {
             ErrorDialog.show(activity, R.string.error_dialog_title, R.string.error_access_token_missing);
             return;
         }
-        // Save the authentication state.
+        // Save the authorization state.
         _preferencesService.setCurrentAuthState(authState);
         // Save the access token for later use.
-        _historyService.cacheAuthenticationState(_preferencesService.getCurrentInstance(), authState);
+        _historyService.cacheAuthorizationState(_preferencesService.getCurrentInstance(), authState);
         Toast.makeText(activity, R.string.provider_added_new_configs_available, Toast.LENGTH_LONG).show();
     }
 
     /**
      * Returns a single which emits a fresh access token which is to be used with the API.
      *
-     * @return The access token used to authenticate in an emitter.
+     * @return The access token used to authorization in an emitter.
      */
     public Single<String> getFreshAccessToken(final AuthState authState) {
         final Single<String> publishSubject;

@@ -162,7 +162,7 @@ class ProviderSelectionFragment : BaseFragment<FragmentProviderSelectionBinding>
                     val discoveredAPI = serializerService.deserializeDiscoveredAPI(result)
                     dialog.dismiss()
                     currentDialog = null
-                    authenticate(instance, discoveredAPI)
+                    authorize(instance, discoveredAPI)
                 } catch (ex: SerializerService.UnknownFormatException) {
                     Log.e(TAG, "Error parsing discovered API!", ex)
                     ErrorDialog.show(context, R.string.error_dialog_title, ex.toString())
@@ -188,7 +188,7 @@ class ProviderSelectionFragment : BaseFragment<FragmentProviderSelectionBinding>
      * @param instance The instance to connect to.
      * @param discoveredAPI The discovered API containing all the required URLs.
      */
-    private fun authenticate(instance: Instance, discoveredAPI: DiscoveredAPI) {
+    private fun authorize(instance: Instance, discoveredAPI: DiscoveredAPI) {
         activity?.let {
             if (!it.isFinishing) {
                 connectionService.initiateConnection(it, instance, discoveredAPI)

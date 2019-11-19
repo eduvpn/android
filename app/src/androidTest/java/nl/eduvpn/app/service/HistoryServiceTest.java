@@ -37,7 +37,6 @@ import androidx.test.core.app.ApplicationProvider;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.filters.LargeTest;
 import nl.eduvpn.app.entity.AuthorizationType;
-import nl.eduvpn.app.entity.DiscoveredAPI;
 import nl.eduvpn.app.entity.Instance;
 import nl.eduvpn.app.entity.KeyPair;
 import nl.eduvpn.app.entity.Profile;
@@ -103,7 +102,7 @@ public class HistoryServiceTest {
             Profile profile = new Profile("displayName", profileId);
             SavedProfile savedProfile = new SavedProfile(instance, profile, profileUUID);
             _historyService.cacheSavedProfile(savedProfile);
-            _historyService.cacheAuthenticationState(instance, new AuthState());
+            _historyService.cacheAuthorizationState(instance, new AuthState());
         }
         _reloadHistoryService(false);
         assertEquals(10, _historyService.getSavedProfileList().size());
@@ -118,7 +117,7 @@ public class HistoryServiceTest {
         String baseURI = "http://example.com";
         AuthState exampleAuthState = new AuthState(new AuthorizationServiceConfiguration(Uri.parse("http://example.com/auth"), Uri.parse("http://example.com/token"), null));
         Instance instance = new Instance(baseURI, "displayName", null, AuthorizationType.Distributed, true);
-        _historyService.cacheAuthenticationState(instance, exampleAuthState);
+        _historyService.cacheAuthorizationState(instance, exampleAuthState);
         _reloadHistoryService(false);
         AuthState restoredAuthState = _historyService.getCachedAuthState(instance);
         //noinspection ConstantConditions

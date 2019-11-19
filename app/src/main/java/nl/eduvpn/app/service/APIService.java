@@ -110,7 +110,7 @@ public class APIService {
      * Retrieves a resource as a string.
      *
      * @param url      The URL to get the resource from.
-     * @param authState If the access token should be used, provide a previous authentication state.
+     * @param authState If the access token should be used, provide a previous authorization state.
      * @param callback The callback where the result is returned.
      */
     public void getString(final String url, @Nullable AuthState authState, final Callback<String> callback) {

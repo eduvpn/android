@@ -68,7 +68,7 @@ class ConnectionViewModel(
         Ready(null),
         DiscoveringApi(R.string.api_discovery_message),
         FetchingProfiles(R.string.loading_available_profiles),
-        Authenticating(R.string.loading_browser_for_authentication),
+        Authorizing(R.string.loading_browser_for_authorization),
         ProfileCheckingCertificate(R.string.vpn_profile_checking_certificate),
         ProfileDownloadingKeyPair(R.string.vpn_profile_creating_keypair)
     }
@@ -112,7 +112,7 @@ class ConnectionViewModel(
                     val discoveredAPI = serializerService.deserializeDiscoveredAPI(result)
                     val savedToken = historyService.getSavedToken(instance)
                     if (savedToken == null) {
-                        authenticate(instance, discoveredAPI)
+                        authorize(instance, discoveredAPI)
                     } else {
                         fetchProfiles(savedToken.instance, discoveredAPI, savedToken.authState)
                     }
@@ -133,7 +133,7 @@ class ConnectionViewModel(
     }
 
     fun onResume() {
-        if (connectionState.value == ConnectionState.Authenticating) {
+        if (connectionState.value == ConnectionState.Authorizing) {
             connectionState.value = ConnectionState.Ready
         }
     }
@@ -166,7 +166,7 @@ class ConnectionViewModel(
             override fun onError(errorMessage: String) {
                 Log.e(TAG, "Error fetching profile list: $errorMessage")
                 // It is highly probable that the auth state is not valid anymore.
-                authenticate(instance, discoveredAPI)
+                authorize(instance, discoveredAPI)
             }
         })
     }
@@ -187,8 +187,8 @@ class ConnectionViewModel(
         }
     }
 
-    private fun authenticate(instance: Instance, discoveredAPI: DiscoveredAPI) {
-        connectionState.value = ConnectionState.Authenticating
+    private fun authorize(instance: Instance, discoveredAPI: DiscoveredAPI) {
+        connectionState.value = ConnectionState.Authorizing
         parentAction.value = ParentAction.InitiateConnection(instance, discoveredAPI)
         parentAction.value = null // Immediately reset it, so it is not triggered twice, when coming back to the activity.
     }

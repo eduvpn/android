@@ -87,7 +87,7 @@
                     android:lineSpacingMultiplier="0.85"
                     android:maxLines="2"
                     android:textSize="14sp"
-                    tools:text="USA endpoint with 2 factor authentication" />
+                    tools:text="USA endpoint with 2FA" />
             </LinearLayout>
         </LinearLayout>
 
