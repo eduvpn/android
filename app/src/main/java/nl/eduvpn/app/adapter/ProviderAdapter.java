@@ -55,16 +55,13 @@ public class ProviderAdapter extends RecyclerView.Adapter<ProviderViewHolder> {
         } else {
             _instanceList = configurationService.getSecureInternetList();
         }
-        configurationService.addObserver(new Observer() {
-            @Override
-            public void update(Observable o, Object arg) {
-                if (_authorizationType == AuthorizationType.Local) {
-                    _instanceList = configurationService.getInstituteAccessList();
-                } else {
-                    _instanceList = configurationService.getSecureInternetList();
-                }
-                notifyDataSetChanged();
+        configurationService.addObserver((o, arg) -> {
+            if (_authorizationType == AuthorizationType.Local) {
+                _instanceList = configurationService.getInstituteAccessList();
+            } else {
+                _instanceList = configurationService.getSecureInternetList();
             }
+            notifyDataSetChanged();
         });
     }
 

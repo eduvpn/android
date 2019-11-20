@@ -201,7 +201,7 @@ public class PreferencesService {
     }
 
     /**
-     * Saves the authentication state for further usage.
+     * Saves the authorization state for further usage.
      *
      * @param authState The access token and refresh token to use for the VPN provider API.
      */
@@ -229,7 +229,7 @@ public class PreferencesService {
             //noinspection ConstantConditions
             return AuthState.jsonDeserialize(_getSharedPreferences().getString(KEY_AUTH_STATE, null));
         } catch (JSONException ex) {
-            Log.e(TAG, "Could not deserialize saved authentication state", ex);
+            Log.e(TAG, "Could not deserialize saved authorization state", ex);
             return null;
         }
     }
@@ -346,7 +346,7 @@ public class PreferencesService {
 
 
     /**
-     * Returns a previously saved list of saved authentication states.
+     * Returns a previously saved list of saved authorization states.
      *
      * @return The saved list, or null if not exists.
      */

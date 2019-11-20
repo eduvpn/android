@@ -68,7 +68,7 @@ class ConnectionViewModel(
         Ready(null),
         DiscoveringApi(R.string.api_discovery_message),
         FetchingProfiles(R.string.loading_available_profiles),
-        Authenticating(R.string.loading_browser_for_authentication),
+        Authorizing(R.string.loading_browser_for_authorization),
         ProfileCheckingCertificate(R.string.vpn_profile_checking_certificate),
         ProfileDownloadingKeyPair(R.string.vpn_profile_creating_keypair)
     }
@@ -77,7 +77,6 @@ class ConnectionViewModel(
         data class DisplayError(@StringRes val title: Int, val message: String) : ParentAction()
         data class OpenProfileSelector(val profiles: List<Profile>) : ParentAction()
         data class InitiateConnection(val instance: Instance, val discoveredAPI: DiscoveredAPI) : ParentAction()
-        object CheckIfAutoConnectRequired : ParentAction()
         data class ConnectWithProfile(val vpnProfile: VpnProfile) : ParentAction()
     }
 
@@ -113,9 +112,17 @@ class ConnectionViewModel(
                     val discoveredAPI = serializerService.deserializeDiscoveredAPI(result)
                     val savedToken = historyService.getSavedToken(instance)
                     if (savedToken == null) {
-                        authenticate(instance, discoveredAPI)
+                        authorize(instance, discoveredAPI)
                     } else {
-                        fetchProfiles(savedToken.instance, discoveredAPI, savedToken.authState)
+                        if (savedToken.instance.sanitizedBaseURI != instance.sanitizedBaseURI) {
+                            // This is a distributed token. We add it to the list.
+                            Log.i(TAG, "Distributed token found for different instance.")
+                            preferencesService.currentInstance = instance
+                            preferencesService.currentDiscoveredAPI =discoveredAPI
+                            preferencesService.currentAuthState = savedToken.authState
+                            historyService.cacheAuthorizationState(instance, savedToken.authState)
+                        }
+                        fetchProfiles(instance, discoveredAPI, savedToken.authState)
                     }
                 } catch (ex: SerializerService.UnknownFormatException) {
                     Log.e(TAG, "Error parsing discovered API!", ex)
@@ -134,7 +141,7 @@ class ConnectionViewModel(
     }
 
     fun onResume() {
-        if (connectionState.value == ConnectionState.Authenticating) {
+        if (connectionState.value == ConnectionState.Authorizing) {
             connectionState.value = ConnectionState.Ready
         }
     }
@@ -167,29 +174,13 @@ class ConnectionViewModel(
             override fun onError(errorMessage: String) {
                 Log.e(TAG, "Error fetching profile list: $errorMessage")
                 // It is highly probable that the auth state is not valid anymore.
-                authenticate(instance, discoveredAPI)
+                authorize(instance, discoveredAPI)
             }
         })
     }
 
-    fun tryAutoConnectIfReturningFromAuth(): Boolean {
-        val currentInstance = preferencesService.currentInstance
-        val discoveredAPI = preferencesService.currentDiscoveredAPI
-        val authState = historyService.getCachedAuthState(currentInstance)
-        return if (currentInstance != null && discoveredAPI != null && authState != null) {
-            Log.d(TAG, "Continuing with profile fetch after successful auth.")
-            fetchProfiles(currentInstance, discoveredAPI, authState)
-            true
-        } else {
-            // Auth state might not be processed yet.
-            Log.i(TAG, "Not all data available after an auth redirect. Instance OK: ${currentInstance != null}, " +
-                    "discovery OK: ${discoveredAPI != null}, auth OK: ${authState != null}")
-            false
-        }
-    }
-
-    private fun authenticate(instance: Instance, discoveredAPI: DiscoveredAPI) {
-        connectionState.value = ConnectionState.Authenticating
+    private fun authorize(instance: Instance, discoveredAPI: DiscoveredAPI) {
+        connectionState.value = ConnectionState.Authorizing
         parentAction.value = ParentAction.InitiateConnection(instance, discoveredAPI)
         parentAction.value = null // Immediately reset it, so it is not triggered twice, when coming back to the activity.
     }
@@ -369,8 +360,6 @@ class ConnectionViewModel(
     override fun update(o: Observable?, arg: Any?) {
         if (o is HistoryService) {
             refreshInstances()
-            // Tokens are processed at a later moment
-            parentAction.value = ParentAction.CheckIfAutoConnectRequired
         } else if (o is ConfigurationService) {
             refreshInstances()
         }

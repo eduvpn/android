@@ -20,7 +20,7 @@ package nl.eduvpn.app.entity;
 import net.openid.appauth.AuthState;
 
 /**
- * Stores the mapping between the base URI and the authentication state containing the current and refresh tokens.
+ * Stores the mapping between the base URI and the authorization state containing the current and refresh tokens.
  * Created by Daniel Zolnai on 2016-10-20.
  */
 public class SavedAuthState {
@@ -31,7 +31,7 @@ public class SavedAuthState {
      * Constructor.
      *
      * @param instance  The VPN provider the token is valid for.
-     * @param authState The authentication state with the tokens..
+     * @param authState The authorization state with the tokens..
      */
     public SavedAuthState(Instance instance, AuthState authState) {
         _instance = instance;

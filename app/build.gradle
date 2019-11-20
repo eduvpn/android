@@ -24,13 +24,13 @@ android {
 
         // API
         buildConfigField "String", "OAUTH_CLIENT_ID", "\"org.eduvpn.app.android\""
-        buildConfigField "String", "OAUTH_REDIRECT_URI", "\"https://android.app.eduvpn.org/api/callback\""
+        buildConfigField "String", "OAUTH_REDIRECT_URI", "\"org.eduvpn.app:/api/callback\""
         buildConfigField "String", "OAUTH_SCOPE", "\"config\""
         buildConfigField "String", "CERTIFICATE_DISPLAY_NAME", "\"eduVPN for Android\""
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         manifestPlaceholders = [
-                'appAuthRedirectHost': 'android.app.eduvpn.org',
+                'appAuthRedirectScheme': 'org.eduvpn.app'
         ]
         missingDimensionStrategy 'implementation', 'ui' // Skeleton is no option for us because we need the log activity
 
@@ -75,10 +75,11 @@ android {
             // API discovery is disabled, and only custom URLs can be entered.
             buildConfigField "boolean", "API_DISCOVERY_ENABLED", "false"
             buildConfigField "String", "OAUTH_CLIENT_ID", "\"org.letsconnect-vpn.app.android\""
-            buildConfigField "String", "OAUTH_REDIRECT_URI", "\"https://android.app.letsconnect-vpn.org/api/callback\""
+            buildConfigField "String", "OAUTH_REDIRECT_URI", "\"org.letsconnect-vpn.app:/api/callback\""
             buildConfigField "String", "CERTIFICATE_DISPLAY_NAME", "\"Let's Connect! for Android\""
+
             manifestPlaceholders = [
-                    'appAuthRedirectHost': 'android.app.letsconnect-vpn.org',
+                    'appAuthRedirectScheme': 'org.letsconnect-vpn.app'
             ]
         }
     }
@@ -111,7 +112,7 @@ dependencies {
     implementation "androidx.lifecycle:lifecycle-extensions:2.1.0"
     // OAuth client
     implementation 'net.openid:appauth:0.7.1'
-    // Secure preferences
+    // Secure preferences (deprecated, only kept for backwards compatibility)
     implementation 'com.scottyab:secure-preferences-lib:0.1.4'
     // HTTP client
     implementation "com.squareup.okhttp3:okhttp:$okHttpVersion"
@@ -121,14 +122,14 @@ dependencies {
     // Image loader
     implementation 'com.squareup.picasso:picasso:2.71828'
     // Public key verification
-    implementation "com.github.joshjdevl.libsodiumjni:libsodium-jni-aar:1.0.6@aar"
+    implementation "com.github.joshjdevl.libsodiumjni:libsodium-jni-aar:2.0.2@aar"
     // Reactive extensions for asynchronous events
     implementation 'io.reactivex.rxjava2:rxandroid:2.1.1'
     implementation 'io.reactivex.rxjava2:rxjava:2.2.12'
 
     // All testing related libraries
     testImplementation 'junit:junit:4.12'
-    androidTestImplementation 'androidx.test:runner:1.1.0'
-    androidTestImplementation 'androidx.test:rules:1.1.0'
+    androidTestImplementation 'androidx.test:runner:1.2.0'
+    androidTestImplementation 'androidx.test:rules:1.2.0'
     androidTestImplementation 'androidx.test.ext:junit:1.1.1'
 }

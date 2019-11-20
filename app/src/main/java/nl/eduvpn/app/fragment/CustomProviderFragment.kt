@@ -42,7 +42,7 @@ class CustomProviderFragment : BaseFragment<FragmentCustomProviderBinding>() {
     override val layout = R.layout.fragment_custom_provider
 
     private val viewModel by lazy {
-        ViewModelProviders.of(requireActivity(), viewModelFactory).get(ConnectionViewModel::class.java)
+        ViewModelProviders.of(this, viewModelFactory).get(ConnectionViewModel::class.java)
     }
 
 

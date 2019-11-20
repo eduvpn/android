@@ -391,9 +391,9 @@ public class SerializerService {
     }
 
     /**
-     * Serializes a list of saved authentication states.
+     * Serializes a list of saved authorization states.
      *
-     * @param savedAuthStateList The list with the saved authentication states.
+     * @param savedAuthStateList The list with the saved authorization states.
      * @return The parsed list in a JSON format.
      * @throws UnknownFormatException Thrown if there was an unexpected error.
      */
