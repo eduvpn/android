@@ -115,5 +115,7 @@
     <string name="error_parsing_profiles">Unable to parse the profile list.</string>
     <string name="select_a_profile_title">Select a profile</string>
     <string name="loading_browser_for_authorization">Loading browser for authorization</string>
+    <string name="error_no_internet_connection">No internet connection</string>
+    <string name="error_no_internet_connection_message">It seems that you have no connection to the internet. Please check your connection, and try again.\nOriginal error: %s</string>
 
 </resources>
