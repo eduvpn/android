@@ -118,8 +118,20 @@ public class HistoryService extends Observable {
      */
     public void cacheAuthorizationState(@NonNull Instance instance, @NonNull AuthState authState) {
         // Remove all previous entries
+        List<Instance> existingInstances = new ArrayList<>();
+        if (instance.getAuthorizationType() == AuthorizationType.Distributed) {
+            for (SavedAuthState savedAuthState : _savedAuthStateList) {
+                if (savedAuthState.getInstance().getAuthorizationType() == AuthorizationType.Distributed &&
+                        !savedAuthState.getInstance().getSanitizedBaseURI().equals(instance.getSanitizedBaseURI())) {
+                    existingInstances.add(savedAuthState.getInstance());
+                }
+            }
+        }
         _removeAuthorizations(instance);
         _savedAuthStateList.add(new SavedAuthState(instance, authState));
+        for (Instance existingDistributedInstance : existingInstances) {
+            _savedAuthStateList.add(new SavedAuthState(existingDistributedInstance, authState));
+        }
         _save();
         setChanged();
         notifyObservers(NOTIFICATION_TOKENS_CHANGED);
@@ -390,8 +402,20 @@ public class HistoryService extends Observable {
      * @param instance The instance to remove the data for.
      */
     public void removeAllDataForInstance(Instance instance) {
-        removeSavedKeyPairs(instance);
-        _removeAuthorizations(instance);
-        removeSavedProfilesForInstance(instance); // This will trigger a profiles changed event
+        if (instance.getAuthorizationType() == AuthorizationType.Distributed) {
+            // Remove all distributed instance related data
+            List<SavedAuthState> authStates = new ArrayList<>(getSavedAuthStateList());
+            for (SavedAuthState savedAuthState : authStates) {
+                if (savedAuthState.getInstance().getAuthorizationType() == AuthorizationType.Distributed) {
+                    removeSavedKeyPairs(savedAuthState.getInstance());
+                    _removeAuthorizations(savedAuthState.getInstance());
+                    removeSavedProfilesForInstance(savedAuthState.getInstance()); // This will trigger a profiles changed event
+                }
+            }
+        } else {
+            removeSavedKeyPairs(instance);
+            _removeAuthorizations(instance);
+            removeSavedProfilesForInstance(instance); // This will trigger a profiles changed event
+        }
     }
 }

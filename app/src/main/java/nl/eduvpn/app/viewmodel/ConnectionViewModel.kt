@@ -114,7 +114,15 @@ class ConnectionViewModel(
                     if (savedToken == null) {
                         authorize(instance, discoveredAPI)
                     } else {
-                        fetchProfiles(savedToken.instance, discoveredAPI, savedToken.authState)
+                        if (savedToken.instance.sanitizedBaseURI != instance.sanitizedBaseURI) {
+                            // This is a distributed token. We add it to the list.
+                            Log.i(TAG, "Distributed token found for different instance.")
+                            preferencesService.currentInstance = instance
+                            preferencesService.currentDiscoveredAPI =discoveredAPI
+                            preferencesService.currentAuthState = savedToken.authState
+                            historyService.cacheAuthorizationState(instance, savedToken.authState)
+                        }
+                        fetchProfiles(instance, discoveredAPI, savedToken.authState)
                     }
                 } catch (ex: SerializerService.UnknownFormatException) {
                     Log.e(TAG, "Error parsing discovered API!", ex)
@@ -169,22 +177,6 @@ class ConnectionViewModel(
                 authorize(instance, discoveredAPI)
             }
         })
-    }
-
-    fun tryAutoConnectIfReturningFromAuth(): Boolean {
-        val currentInstance = preferencesService.currentInstance
-        val discoveredAPI = preferencesService.currentDiscoveredAPI
-        val authState = historyService.getCachedAuthState(currentInstance)
-        return if (currentInstance != null && discoveredAPI != null && authState != null) {
-            Log.d(TAG, "Continuing with profile fetch after successful auth.")
-            fetchProfiles(currentInstance, discoveredAPI, authState)
-            true
-        } else {
-            // Auth state might not be processed yet.
-            Log.i(TAG, "Not all data available after an auth redirect. Instance OK: ${currentInstance != null}, " +
-                    "discovery OK: ${discoveredAPI != null}, auth OK: ${authState != null}")
-            false
-        }
     }
 
     private fun authorize(instance: Instance, discoveredAPI: DiscoveredAPI) {
