@@ -130,24 +130,6 @@
             android:name=".LicenseActivity"
             android:launchMode="singleTask"
             android:theme="@style/AppTheme.NoActionBar" />
-    
-        <activity
-            android:name="net.openid.appauth.RedirectUriReceiverActivity"
-            tools:node="replace">
-            <intent-filter
-                android:autoVerify="true"
-                tools:targetApi="m">
-                <action android:name="android.intent.action.VIEW" />
-
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-
-                <data
-                    android:host="${appAuthRedirectHost}"
-                    android:path="/api/callback"
-                    android:scheme="https" />
-            </intent-filter>
-        </activity>
 
         <!-- Remove the MainActivity of the ICS-OpenVPN library-->
         <activity

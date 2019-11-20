@@ -24,13 +24,13 @@ android {
 
         // API
         buildConfigField "String", "OAUTH_CLIENT_ID", "\"org.eduvpn.app.android\""
-        buildConfigField "String", "OAUTH_REDIRECT_URI", "\"https://android.app.eduvpn.org/api/callback\""
+        buildConfigField "String", "OAUTH_REDIRECT_URI", "\"org.eduvpn.app:/api/callback\""
         buildConfigField "String", "OAUTH_SCOPE", "\"config\""
         buildConfigField "String", "CERTIFICATE_DISPLAY_NAME", "\"eduVPN for Android\""
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         manifestPlaceholders = [
-                'appAuthRedirectHost': 'android.app.eduvpn.org',
+                'appAuthRedirectScheme': 'org.eduvpn.app'
         ]
         missingDimensionStrategy 'implementation', 'ui' // Skeleton is no option for us because we need the log activity
 
@@ -75,10 +75,11 @@ android {
             // API discovery is disabled, and only custom URLs can be entered.
             buildConfigField "boolean", "API_DISCOVERY_ENABLED", "false"
             buildConfigField "String", "OAUTH_CLIENT_ID", "\"org.letsconnect-vpn.app.android\""
-            buildConfigField "String", "OAUTH_REDIRECT_URI", "\"https://android.app.letsconnect-vpn.org/api/callback\""
+            buildConfigField "String", "OAUTH_REDIRECT_URI", "\"org.letsconnect-vpn.app:/api/callback\""
             buildConfigField "String", "CERTIFICATE_DISPLAY_NAME", "\"Let's Connect! for Android\""
+
             manifestPlaceholders = [
-                    'appAuthRedirectHost': 'android.app.letsconnect-vpn.org',
+                    'appAuthRedirectScheme': 'org.letsconnect-vpn.app'
             ]
         }
     }
