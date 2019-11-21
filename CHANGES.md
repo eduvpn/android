@@ -1,5 +1,20 @@
 # Changelog
 
+## 1.3.0 (unreleased)
+- Updated the flow: instead of profiles you now select servers first. We don't connect to each server to fetch the latest profiles.
+- Added some animations and updated loading indicators for a smoother user experience.
+- You can remove servers by long pressing on them, instead of swiping.
+- Update `ics-openvpn` submodule to v0.7.10 (#188). This adds support for TLSv1.3, Ed25519  keys, and includes OpenSSL 1.1.1d.
+- Redirect URLs are now followed.
+- Android 10 support, also updated most of our libraries to their latest version.
+- Added license screen.
+- Fixed some edge-cases where IPv4 / IPv6 / Duration would not be displayed when connected, and the back button would not appear.
+- When connecting, the notifications tab is only shown when there are any notifications.
+- Fixed a crash which happened on screen rotation.
+- Removed mentions of 2FA.
+- Deprecated the secure-preferences library, added migration.
+- Updated documentations and build scripts.
+
 ## 1.2.3 (2018-06-28)
 - fix Gradle build (#165)
 - immediately show "add provider" page when starting the app and no
