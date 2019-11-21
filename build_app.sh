@@ -43,7 +43,7 @@ SIGNED_APK=${PROJECT_DIR}/eduVPN-${GIT_TAG}.apk
 (
     export ANDROID_HOME=${SDK_DIR}
     cd "${APP_DIR}" || exit
-    ./gradlew ${GRADLE_TASK} --stacktrace || exit
+    ./gradlew ${GRADLE_TASK} --warning-mode all --stacktrace || exit
 )
 
 ###############################################################################
