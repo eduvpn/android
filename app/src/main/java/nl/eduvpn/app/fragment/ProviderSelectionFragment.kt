@@ -61,10 +61,10 @@ class ProviderSelectionFragment : BaseFragment<FragmentProviderSelectionBinding>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        if (savedInstanceState != null) {
-            authorizationType = AuthorizationType.valueOf(savedInstanceState.getString(EXTRA_AUTHORIZATION_TYPE)!!)
+        authorizationType = if (savedInstanceState != null) {
+            AuthorizationType.valueOf(savedInstanceState.getString(EXTRA_AUTHORIZATION_TYPE)!!)
         } else {
-            authorizationType = AuthorizationType.valueOf(arguments?.getString(EXTRA_AUTHORIZATION_TYPE)!!)
+            AuthorizationType.valueOf(arguments?.getString(EXTRA_AUTHORIZATION_TYPE)!!)
         }
     }
 
@@ -88,7 +88,7 @@ class ProviderSelectionFragment : BaseFragment<FragmentProviderSelectionBinding>
         binding.providerList.layoutManager = LinearLayoutManager(view.context, LinearLayoutManager.VERTICAL, false)
         val adapter = ProviderAdapter(configurationService, authorizationType)
         binding.providerList.adapter = adapter
-        ItemClickSupport.addTo(binding.providerList).setOnItemClickListener { recyclerView, position, v ->
+        ItemClickSupport.addTo(binding.providerList).setOnItemClickListener { recyclerView, position, _ ->
             val instance = (recyclerView.adapter as ProviderAdapter).getItem(position)
             if (instance == null) {
                 // Should never happen
@@ -102,7 +102,7 @@ class ProviderSelectionFragment : BaseFragment<FragmentProviderSelectionBinding>
             }
         }
         // When clicked long on an item, display its name in a toast.
-        ItemClickSupport.addTo(binding.providerList).setOnItemLongClickListener { recyclerView, position, v ->
+        ItemClickSupport.addTo(binding.providerList).setOnItemLongClickListener { recyclerView, position, _ ->
             val instance = (recyclerView.adapter as ProviderAdapter).getItem(position)
             val name = instance?.displayName ?: getString(R.string.display_other_name)
             Toast.makeText(recyclerView.context, name, Toast.LENGTH_LONG).show()
@@ -110,14 +110,16 @@ class ProviderSelectionFragment : BaseFragment<FragmentProviderSelectionBinding>
         }
         dataObserver = object : RecyclerView.AdapterDataObserver() {
             override fun onChanged() {
-                if (adapter.itemCount > 0) {
-                    binding.providerStatus.visibility = View.GONE
-                } else if (adapter.isDiscoveryPending) {
-                    binding.providerStatus.setText(R.string.discovering_providers)
-                    binding.providerStatus.visibility = View.VISIBLE
-                } else {
-                    binding.providerStatus.setText(R.string.no_provider_found)
-                    binding.providerStatus.visibility = View.VISIBLE
+                when {
+                    adapter.itemCount > 0 -> binding.providerStatus.visibility = View.GONE
+                    adapter.isDiscoveryPending -> {
+                        binding.providerStatus.setText(R.string.discovering_providers)
+                        binding.providerStatus.visibility = View.VISIBLE
+                    }
+                    else -> {
+                        binding.providerStatus.setText(R.string.no_provider_found)
+                        binding.providerStatus.visibility = View.VISIBLE
+                    }
                 }
             }
         }
@@ -154,7 +156,7 @@ class ProviderSelectionFragment : BaseFragment<FragmentProviderSelectionBinding>
 
     override fun onDestroyView() {
         super.onDestroyView()
-        if (binding.providerList != null && binding.providerList.adapter != null && dataObserver != null) {
+        if (binding.providerList.adapter != null && dataObserver != null) {
             binding.providerList.adapter?.unregisterAdapterDataObserver(dataObserver!!)
             dataObserver = null
         }
