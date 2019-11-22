@@ -19,16 +19,12 @@ package nl.eduvpn.app.utils
 
 import android.app.Dialog
 import android.content.Context
+import android.net.ConnectivityManager
 import android.view.View
 import android.widget.Button
 import android.widget.TextView
-
 import androidx.annotation.StringRes
 import nl.eduvpn.app.R
-import android.net.NetworkInfo
-import androidx.core.content.ContextCompat.getSystemService
-import android.net.ConnectivityManager
-
 
 
 /**

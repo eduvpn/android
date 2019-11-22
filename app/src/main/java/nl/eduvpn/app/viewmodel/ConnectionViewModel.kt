@@ -163,7 +163,11 @@ class ConnectionViewModel(
                     preferencesService.currentDiscoveredAPI = discoveredAPI
                     preferencesService.currentAuthState = authState
                     connectionState.value = ConnectionState.Ready
-                    parentAction.value = ParentAction.OpenProfileSelector(profiles)
+                    if (profiles.size > 1) {
+                        parentAction.value = ParentAction.OpenProfileSelector(profiles)
+                    } else {
+                        selectProfileToConnectTo(profiles[0])
+                    }
                 } catch (ex: SerializerService.UnknownFormatException) {
                     Log.e(TAG, "Error parsing profile list.", ex)
                     connectionState.value = ConnectionState.Ready
