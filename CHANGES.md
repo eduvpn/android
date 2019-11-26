@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.3.0 (unreleased)
+## 1.3.0 (2019-11-26)
 - Updated the flow: instead of profiles you now select servers first. We don't connect to each server to fetch the latest profiles.
 - Added some animations and updated loading indicators for a smoother user experience.
 - You can remove servers by long pressing on them, instead of swiping.
