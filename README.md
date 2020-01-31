@@ -23,7 +23,6 @@ Make sure that you have the following packages installed in the SDK Manager (Too
 * SDK Tools - CMake
 * SDK Tools - Android SDK Platform-Tools
 * SDK Tools - Android SDK Tools
-* SDK Tools - Android SDK Tools
 * SDK Tools - NDK - 19.2.x version (a later version might work, but is untested)
 
 To find a specific version of a package (for the NDK), check the option 'Show Package Details'
@@ -50,7 +49,7 @@ We last tested this (succesfully) on 2019-10-31 with Fedora 31.
 
 ### Debian
 
-    $ sudo apt -y install openjdk-8-jdk git curl unzip swig
+    $ sudo apt -y install openjdk-8-jdk git curl unzip swig ninja-build
 
 ## Key Store
 
