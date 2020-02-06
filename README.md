@@ -74,6 +74,22 @@ Additional documentation
 
 ## Build
 
-    $ ./build_app.sh
+### Git
+
+To build the app from git, i.e. tag, branch or commit, use the following after 
+modifying the file if necessary. Use this if you want to build a test or 
+development release.
+
+    $ ./build_app_git.sh
+
+You'll find the signed output APK in ${HOME}/Projects.
+
+### Tar
+
+To build the app from tar, i.e. the archive that contains the full source code
+including all submodules, use the following after modifying the file if 
+necessary. Use this if you want to use an official release.
+
+    $ ./build_app_tar.sh
 
 You'll find the signed output APK in ${HOME}/Projects.
