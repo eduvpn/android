@@ -334,8 +334,9 @@ public class VPNService extends Observable implements VpnStatus.StateListener {
         Log.i(TAG, "Connected with profile: " + uuid);
     }
 
+
     @Override
-    public void updateState(String state, String logMessage, int localizedResId, ConnectionStatus level) {
+    public void updateState(String state, String logmessage, int localizedResId, ConnectionStatus level, Intent Intent) {
         ConnectionStatus oldStatus = _connectionStatus;
         _connectionStatus = level;
         if (_connectionStatus == oldStatus) {
@@ -352,19 +353,14 @@ public class VPNService extends Observable implements VpnStatus.StateListener {
                 _serverIpV6 = ips.second;
             } else {
                 Log.i(TAG, "Unable to determine IP addresses from network interface lookup, using log message instead.");
-                ips = _parseVpnIpAddressesFromLogMessage(logMessage);
+                ips = _parseVpnIpAddressesFromLogMessage(logmessage);
                 if (ips != null) {
                     _serverIpV4 = ips.first;
                     _serverIpV6 = ips.second;
                 }
             }
             if (_connectionInfoCallback != null) {
-                _updatesHandler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        _connectionInfoCallback.metadataAvailable(_serverIpV4, _serverIpV6);
-                    }
-                });
+                _updatesHandler.post(() -> _connectionInfoCallback.metadataAvailable(_serverIpV4, _serverIpV6));
             }
         } else if (getStatus() == VPNStatus.FAILED) {
             _errorResource = localizedResId;
