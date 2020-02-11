@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.3.1 (2020-02-11)
+- update ics-openvpn to version v0.7.13
+
 ## 1.3.0 (2019-11-26)
 - Updated the flow: instead of profiles you now select servers first. We don't connect to each server to fetch the latest profiles.
 - Added some animations and updated loading indicators for a smoother user experience.

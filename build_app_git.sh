@@ -8,7 +8,7 @@ SDK_DIR=${HOME}/android-sdk
 KEY_STORE=${HOME}/android.jks
 
 GIT_REPO=https://github.com/eduvpn/android
-GIT_TAG=1.3.0
+GIT_TAG=1.3.1
 #GIT_TAG=master
 
 PROJECT_DIR=${HOME}/Projects
