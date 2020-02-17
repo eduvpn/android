@@ -40,6 +40,8 @@ import nl.eduvpn.app.viewmodel.ConnectionViewModel
 class ServerSelectionFragment : BaseFragment<FragmentServerSelectionBinding>() {
     override val layout = R.layout.fragment_server_selection
 
+    private var previousListSize = 0
+
     private val viewModel by lazy {
         ViewModelProviders.of(this, viewModelFactory).get(ConnectionViewModel::class.java)
     }
@@ -66,7 +68,14 @@ class ServerSelectionFragment : BaseFragment<FragmentServerSelectionBinding>() {
         }
 
         viewModel.instances.observe(this, Observer {
-            (binding.serverList.adapter as? ServerAdapter)?.submitList(it)
+
+            if (it.isEmpty() && previousListSize > 0)  {
+                // Go to the add server screen
+                binding.addServerButton.performClick()
+            } else {
+                (binding.serverList.adapter as? ServerAdapter)?.submitList(it)
+                previousListSize = it.size
+            }
         })
 
         viewModel.parentAction.observe(this, Observer { parentAction ->
