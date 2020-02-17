@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.3.2 (...)
+- Continue to add server screen if selection screen is empty (#232)
+- Fix app being stuck in creating keypair (#233)
+
 ## 1.3.1 (2020-02-11)
 - update ics-openvpn to version v0.7.13
 
