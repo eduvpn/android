@@ -144,6 +144,10 @@ class ProviderSelectionFragment : BaseFragment<FragmentProviderSelectionBinding>
                 is ConnectionViewModel.ParentAction.DisplayError -> {
                     ErrorDialog.show(requireContext(), parentAction.title, parentAction.message)
                 }
+                is ConnectionViewModel.ParentAction.ConnectWithProfile -> {
+                    viewModel.openVpnConnectionToProfile(requireActivity(), parentAction.vpnProfile)
+                    (activity as? MainActivity)?.openFragment(ConnectionStatusFragment(), false)
+                }
             }
         })
 
