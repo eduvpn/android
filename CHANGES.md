@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.3.2 (...)
+## 1.3.2 (2020-02-18)
 - Continue to add server screen if selection screen is empty (#232)
 - Fix app being stuck in creating keypair (#233)
 
