@@ -24,15 +24,12 @@ import android.view.ViewGroup;
 import com.squareup.picasso.Picasso;
 
 import java.util.List;
-import java.util.Observable;
-import java.util.Observer;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import nl.eduvpn.app.R;
 import nl.eduvpn.app.adapter.viewholder.ProviderViewHolder;
 import nl.eduvpn.app.databinding.ListItemProviderBinding;
-import nl.eduvpn.app.entity.AuthorizationType;
 import nl.eduvpn.app.entity.Instance;
 import nl.eduvpn.app.service.ConfigurationService;
 
@@ -40,33 +37,24 @@ import nl.eduvpn.app.service.ConfigurationService;
  * Adapter for the providers list.
  * Created by Daniel Zolnai on 2016-10-07.
  */
-public class ProviderAdapter extends RecyclerView.Adapter<ProviderViewHolder> {
+public class OrganizationAdapter extends RecyclerView.Adapter<ProviderViewHolder> {
 
-    private List<Instance> _instanceList;
+    private List<Instance> _organizationList;
     private LayoutInflater _layoutInflater;
-    private AuthorizationType _authorizationType;
+
     private ConfigurationService _configurationService;
 
-    public ProviderAdapter(final ConfigurationService configurationService, AuthorizationType authorizationType) {
+    public OrganizationAdapter(final ConfigurationService configurationService) {
         _configurationService = configurationService;
-        _authorizationType = authorizationType;
-        if (authorizationType == AuthorizationType.Local) {
-            _instanceList = configurationService.getInstituteAccessList();
-        } else {
-            _instanceList = configurationService.getSecureInternetList();
-        }
+        _organizationList = configurationService.getOrganizationList();
         configurationService.addObserver((o, arg) -> {
-            if (_authorizationType == AuthorizationType.Local) {
-                _instanceList = configurationService.getInstituteAccessList();
-            } else {
-                _instanceList = configurationService.getSecureInternetList();
-            }
+            _organizationList = configurationService.getOrganizationList();
             notifyDataSetChanged();
         });
     }
 
     public boolean isDiscoveryPending() {
-        return _configurationService.isPendingDiscovery(_authorizationType);
+        return _configurationService.isPendingDiscovery();
     }
 
     /**
@@ -76,10 +64,10 @@ public class ProviderAdapter extends RecyclerView.Adapter<ProviderViewHolder> {
      * @return The item at the given position. Null if 'Other' item or invalid query.
      */
     public Instance getItem(int position) {
-        if (_instanceList == null) {
+        if (_organizationList == null) {
             return null;
-        } else if (position < _instanceList.size()) {
-            return _instanceList.get(position);
+        } else if (position < _organizationList.size()) {
+            return _organizationList.get(position);
         } else {
             return null;
         }
@@ -92,7 +80,7 @@ public class ProviderAdapter extends RecyclerView.Adapter<ProviderViewHolder> {
         if (_layoutInflater == null) {
             _layoutInflater = LayoutInflater.from(parent.getContext());
         }
-        return new ProviderViewHolder(ListItemProviderBinding.inflate(_layoutInflater, parent, false ));
+        return new ProviderViewHolder(ListItemProviderBinding.inflate(_layoutInflater, parent, false));
     }
 
     @Override
@@ -111,6 +99,6 @@ public class ProviderAdapter extends RecyclerView.Adapter<ProviderViewHolder> {
 
     @Override
     public int getItemCount() {
-        return _instanceList == null ? 0 : _instanceList.size();
+        return _organizationList == null ? 0 : _organizationList.size();
     }
 }

@@ -25,12 +25,12 @@ import androidx.annotation.NonNull;
  * The application configuration.
  * Created by Daniel Zolnai on 2016-10-07.
  */
-public class InstanceList {
+public class OrganizationList {
 
     private Integer _sequenceNumber;
     private List<Instance> _instanceList;
 
-    public InstanceList(@NonNull List<Instance> instanceList, @NonNull Integer sequenceNumber) {
+    public OrganizationList(@NonNull List<Instance> instanceList, @NonNull Integer sequenceNumber) {
         _instanceList = instanceList;
         _sequenceNumber = sequenceNumber;
     }

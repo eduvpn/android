@@ -17,7 +17,6 @@
 
 package nl.eduvpn.app.service;
 
-import android.location.Location;
 import android.util.Pair;
 
 import net.openid.appauth.AuthState;
@@ -41,7 +40,7 @@ import androidx.annotation.NonNull;
 import nl.eduvpn.app.entity.AuthorizationType;
 import nl.eduvpn.app.entity.DiscoveredAPI;
 import nl.eduvpn.app.entity.Instance;
-import nl.eduvpn.app.entity.InstanceList;
+import nl.eduvpn.app.entity.OrganizationList;
 import nl.eduvpn.app.entity.KeyPair;
 import nl.eduvpn.app.entity.Profile;
 import nl.eduvpn.app.entity.SavedAuthState;
@@ -145,7 +144,7 @@ public class SerializerService {
      * @return The JSON in the InstanceList POJO format.
      * @throws UnknownFormatException Thrown if there was a problem while parsing the JSON.
      */
-    public InstanceList deserializeInstanceList(JSONObject json) throws UnknownFormatException {
+    public OrganizationList deserializeInstanceList(JSONObject json) throws UnknownFormatException {
         try {
             Integer sequenceNumber;
             if (json.has("seq")) {
@@ -159,7 +158,7 @@ public class SerializerService {
                 JSONObject instanceObject = instanceArray.getJSONObject(i);
                 instances.add(deserializeInstance(instanceObject));
             }
-            return new InstanceList(instances, sequenceNumber);
+            return new OrganizationList(instances, sequenceNumber);
         } catch (JSONException ex) {
             throw new UnknownFormatException(ex);
         }
@@ -241,7 +240,7 @@ public class SerializerService {
      * @return The result in a JSON representation.
      * @throws UnknownFormatException Thrown if there was a problem when serializing.
      */
-    public JSONObject serializeInstanceList(InstanceList instanceList) throws UnknownFormatException {
+    public JSONObject serializeInstanceList(OrganizationList instanceList) throws UnknownFormatException {
         try {
             JSONObject serialized = new JSONObject();
             serialized.put("seq", instanceList.getSequenceNumber());

@@ -41,7 +41,7 @@ import androidx.test.filters.LargeTest;
 import nl.eduvpn.app.entity.AuthorizationType;
 import nl.eduvpn.app.entity.DiscoveredAPI;
 import nl.eduvpn.app.entity.Instance;
-import nl.eduvpn.app.entity.InstanceList;
+import nl.eduvpn.app.entity.OrganizationList;
 import nl.eduvpn.app.entity.KeyPair;
 import nl.eduvpn.app.entity.Profile;
 import nl.eduvpn.app.entity.SavedAuthState;
@@ -119,9 +119,9 @@ public class SerializerServiceTest {
     public void testInstanceListSerialization() throws SerializerService.UnknownFormatException {
         Instance instance1 = new Instance("baseUri", "displayName", "logoUri", AuthorizationType.Distributed, true);
         Instance instance2 = new Instance("baseUri2", "displayName2", "logoUri2", AuthorizationType.Distributed, true);
-        InstanceList instanceList = new InstanceList(Arrays.asList(instance1, instance2), 231);
+        OrganizationList instanceList = new OrganizationList(Arrays.asList(instance1, instance2), 231);
         JSONObject serializedInstanceList = _serializerService.serializeInstanceList(instanceList);
-        InstanceList deserializedInstanceList = _serializerService.deserializeInstanceList(serializedInstanceList);
+        OrganizationList deserializedInstanceList = _serializerService.deserializeInstanceList(serializedInstanceList);
         assertEquals(instanceList.getSequenceNumber(), deserializedInstanceList.getSequenceNumber());
         assertEquals(instanceList.getInstanceList().size(), deserializedInstanceList.getInstanceList().size());
         assertEquals(instanceList.getInstanceList().get(0).getDisplayName(), deserializedInstanceList.getInstanceList().get(0).getDisplayName());

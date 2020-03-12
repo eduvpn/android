@@ -26,10 +26,15 @@ import com.securepreferences.SecurePreferences;
 import org.libsodium.jni.NaCl;
 import org.libsodium.jni.Sodium;
 
+import java.io.IOException;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 
+import androidx.annotation.CheckResult;
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.VisibleForTesting;
 import nl.eduvpn.app.BuildConfig;
 import nl.eduvpn.app.utils.Log;
 
@@ -41,7 +46,20 @@ import nl.eduvpn.app.utils.Log;
 public class SecurityService {
     private static final String TAG = SecurityService.class.getName();
 
-    private static final byte[] PUBLIC_KEY_BYTES = Base64.decode(BuildConfig.SIGNATURE_VALIDATION_PUBLIC_KEY, Base64.DEFAULT);
+    private static String PUBLIC_KEY_ID;
+    private static byte[] PUBLIC_KEY_BYTES;
+
+    private static final String ALGO_DESCRIPTION = "Ed";
+    private static final int RANDOM_BYTES_LENGTH = 8;
+    private static final int ED_SIGNATURE_LENGTH = 64;
+    private static final int ED_PUBLIC_KEY_LENGTH = 32;
+
+    // We use the ISO-8859-1 charset for converting between strings and bytes,
+    // because there one character is exactly one byte.
+    // In UTF-8, a character could be 2 or 3 bytes, in ASCII one character is 7 bits only.
+    private static final Charset BYTE_DECODE_CHARSET = StandardCharsets.ISO_8859_1;
+
+
 
     static {
         // Init the library
@@ -50,8 +68,24 @@ public class SecurityService {
 
     private final Context _context;
 
+
     public SecurityService(Context context) {
         _context = context;
+        loadPublicKey(BuildConfig.SIGNATURE_VALIDATION_PUBLIC_KEY);
+    }
+
+    @VisibleForTesting
+    static void loadPublicKey(String publicKey) {
+        byte[] publicKeyRawBytes =  Base64.decode(publicKey, Base64.DEFAULT);
+        String publicKeyRawString = new String(publicKeyRawBytes, BYTE_DECODE_CHARSET);
+        if (ALGO_DESCRIPTION.length() + RANDOM_BYTES_LENGTH + ED_PUBLIC_KEY_LENGTH != publicKeyRawBytes.length) {
+            throw new IllegalArgumentException("Invalid public key: not long enough!");
+        }
+        if (!ALGO_DESCRIPTION.equals(publicKeyRawString.substring(0, ALGO_DESCRIPTION.length()))) {
+            throw new IllegalArgumentException("Unsupported algorithm, we only support '" + ALGO_DESCRIPTION + "'!");
+        }
+        PUBLIC_KEY_ID = publicKeyRawString.substring(ALGO_DESCRIPTION.length(), ALGO_DESCRIPTION.length() + RANDOM_BYTES_LENGTH);
+        PUBLIC_KEY_BYTES = publicKeyRawString.substring(ALGO_DESCRIPTION.length() + RANDOM_BYTES_LENGTH).getBytes(BYTE_DECODE_CHARSET);
     }
 
     /**
@@ -64,9 +98,26 @@ public class SecurityService {
         return new SecurePreferences(_context);
     }
 
-    public boolean isValidSignature(String message, String signatureBase64) {
-        byte[] signatureBytes = Base64.decode(signatureBase64, Base64.DEFAULT);
-        byte[] messageBytes = message.getBytes(Charset.forName("UTF-8"));
+    @CheckResult
+    public boolean verify(@NonNull String message, @NonNull String signatureBase64) throws IOException, IllegalArgumentException {
+        String signatureData = getSecondLine(signatureBase64);
+        byte[] signatureBytesWithMetadata = Base64.decode(signatureData, Base64.DEFAULT);
+        byte[] messageBytes = message.getBytes(BYTE_DECODE_CHARSET);
+
+        String signatureString = new String(signatureBytesWithMetadata, BYTE_DECODE_CHARSET);
+
+        if (ALGO_DESCRIPTION.length() + RANDOM_BYTES_LENGTH + ED_SIGNATURE_LENGTH != signatureBytesWithMetadata.length) {
+            throw new IllegalArgumentException("Invalid signature: not long enough!");
+        }
+        if (!ALGO_DESCRIPTION.equals(signatureString.substring(0, ALGO_DESCRIPTION.length()))) {
+            throw new IllegalArgumentException("Unsupported algorithm, we only support '" + ALGO_DESCRIPTION + "'!");
+        }
+        if (!PUBLIC_KEY_ID.equals(signatureString.substring(ALGO_DESCRIPTION.length(), ALGO_DESCRIPTION.length() + RANDOM_BYTES_LENGTH))) {
+            throw new IllegalArgumentException("Signature does not match public key!");
+        }
+
+        byte[] signatureBytes = signatureString.substring(ALGO_DESCRIPTION.length() + RANDOM_BYTES_LENGTH).getBytes(BYTE_DECODE_CHARSET);
+
         int result = Sodium.crypto_sign_verify_detached(signatureBytes, messageBytes, messageBytes.length, PUBLIC_KEY_BYTES);
         if (result != 0) {
             Log.e(TAG, "Signature validation failed with result: " + result);
@@ -82,7 +133,7 @@ public class SecurityService {
      */
     public String generateSecureRandomString(@Nullable Integer maxLength) {
         SecureRandom random = new SecureRandom();
-        byte randomBytes[] = new byte[128];
+        byte[] randomBytes = new byte[128];
         random.nextBytes(randomBytes);
         // We use Base64 to convert random bytes into a string representation, NOT for encryption
         String base64 = Base64.encodeToString(randomBytes, Base64.DEFAULT);
@@ -91,5 +142,14 @@ public class SecurityService {
             base64 = base64.substring(0, Math.min(maxLength, base64.length()));
         }
         return base64;
+    }
+
+    @VisibleForTesting
+    String getSecondLine(String input) throws IOException {
+        String[] splitLines = input.split(System.lineSeparator());
+        if (splitLines.length < 2) {
+            throw new IOException("Input has less than 2 lines!");
+        }
+        return splitLines[1];
     }
 }

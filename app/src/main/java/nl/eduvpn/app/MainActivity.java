@@ -25,19 +25,15 @@ import android.widget.Toast;
 import net.openid.appauth.AuthorizationException;
 import net.openid.appauth.AuthorizationResponse;
 
-import java.util.List;
-
 import javax.inject.Inject;
 
 import androidx.fragment.app.Fragment;
 import nl.eduvpn.app.base.BaseActivity;
 import nl.eduvpn.app.databinding.ActivityMainBinding;
-import nl.eduvpn.app.entity.Profile;
 import nl.eduvpn.app.fragment.ConnectionStatusFragment;
 import nl.eduvpn.app.fragment.CustomProviderFragment;
-import nl.eduvpn.app.fragment.ProfileSelectionFragment;
+import nl.eduvpn.app.fragment.OrganizationSelectionFragment;
 import nl.eduvpn.app.fragment.ServerSelectionFragment;
-import nl.eduvpn.app.fragment.TypeSelectorFragment;
 import nl.eduvpn.app.service.ConnectionService;
 import nl.eduvpn.app.service.HistoryService;
 import nl.eduvpn.app.service.VPNService;
@@ -78,7 +74,7 @@ public class MainActivity extends BaseActivity<ActivityMainBinding> {
                 // User has no previously saved profiles. Show the type selector.
                 if (BuildConfig.API_DISCOVERY_ENABLED) {
                     // eduVPN flavor
-                    openFragment(new TypeSelectorFragment(), false);
+                    openFragment(new OrganizationSelectionFragment(), false);
                 } else {
                     // Let's Connect! flavor
                     openFragment(new CustomProviderFragment(), false);
