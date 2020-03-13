@@ -37,7 +37,7 @@ import nl.eduvpn.app.entity.AuthorizationType;
 import nl.eduvpn.app.entity.DiscoveredAPI;
 import nl.eduvpn.app.entity.Instance;
 import nl.eduvpn.app.entity.InstanceList;
-import nl.eduvpn.app.entity.OrganizationList;
+import nl.eduvpn.app.entity.Organization;
 import nl.eduvpn.app.entity.Profile;
 import nl.eduvpn.app.entity.SavedAuthState;
 import nl.eduvpn.app.entity.SavedKeyPair;
@@ -395,16 +395,15 @@ public class PreferencesService {
     }
 
     /**
-     * Stores the instance list for a specific connection type
+     * Stores the organization list
      */
-    public void storeOrganizationList(OrganizationList instanceListToSave) {
-        /*** TODO
+    public void storeOrganizationList(List<Organization> organizationListToSave) {
         try {
-            String serializedInstanceList = _serializerService.serializeInstanceList(instanceListToSave).toString();
-            _getSharedPreferences().edit().putString(KEY_ORGANIZATION_LIST, serializedInstanceList).apply();
+            String serializedOrganizationList = _serializerService.serializeOrganizationList(organizationListToSave).toString();
+            _getSharedPreferences().edit().putString(KEY_ORGANIZATION_LIST, serializedOrganizationList).apply();
         } catch (SerializerService.UnknownFormatException ex) {
             Log.e(TAG, "Cannot save organization list.", ex);
-        }***/
+        }
     }
 
 
@@ -446,14 +445,13 @@ public class PreferencesService {
      * Retrieves the organization list
      */
     @Nullable
-    public OrganizationList getOrganizationList() {
+    public List<Organization> getOrganizationList() {
         try {
-            String serializedInstanceList = _getSharedPreferences().getString(KEY_ORGANIZATION_LIST, null);
-            if (serializedInstanceList == null) {
+            String serializedOrganizationList = _getSharedPreferences().getString(KEY_ORGANIZATION_LIST, null);
+            if (serializedOrganizationList == null) {
                 return null;
             }
-            // TODO return _serializerService.deserializeInstanceList(new JSONObject(serializedInstanceList));
-            return null;
+            return _serializerService.deserializeOrganizationList(new JSONObject(serializedOrganizationList));
         } catch (Exception ex) {
             Log.e(TAG, "Cannot deserialize previously saved organization list.", ex);
             return null;

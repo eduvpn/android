@@ -19,12 +19,10 @@ package nl.eduvpn.app.fragment
 
 import android.os.Bundle
 import android.view.View
-import android.widget.Toast
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.snackbar.Snackbar
 import nl.eduvpn.app.EduVPNApplication
 import nl.eduvpn.app.MainActivity
 import nl.eduvpn.app.R
@@ -34,7 +32,6 @@ import nl.eduvpn.app.databinding.FragmentOrganizationSelectionBinding
 import nl.eduvpn.app.service.ConfigurationService
 import nl.eduvpn.app.utils.ErrorDialog
 import nl.eduvpn.app.utils.ItemClickSupport
-import nl.eduvpn.app.utils.Log
 import nl.eduvpn.app.viewmodel.ConnectionViewModel
 import javax.inject.Inject
 
@@ -64,31 +61,14 @@ class OrganizationSelectionFragment : BaseFragment<FragmentOrganizationSelection
         val adapter = OrganizationAdapter(configurationService)
         binding.providerList.adapter = adapter
         ItemClickSupport.addTo(binding.providerList).setOnItemClickListener { recyclerView, position, _ ->
-            val instance = (recyclerView.adapter as OrganizationAdapter).getItem(position)
-            if (instance == null) {
-                // Should never happen
-                val mainView = getView()
-                if (mainView != null) {
-                    Snackbar.make(mainView, R.string.error_selected_instance_not_found, Snackbar.LENGTH_LONG).show()
-                }
-                Log.e(TAG, "Instance not found for position: $position")
-            } else {
-                viewModel.discoverApi(instance)
-            }
-        }
-        // When clicked long on an item, display its name in a toast.
-        ItemClickSupport.addTo(binding.providerList).setOnItemLongClickListener { recyclerView, position, _ ->
-            val instance = (recyclerView.adapter as OrganizationAdapter).getItem(position)
-            val name = instance?.displayName ?: getString(R.string.display_other_name)
-            Toast.makeText(recyclerView.context, name, Toast.LENGTH_LONG).show()
-            true
+            // TODO
         }
         dataObserver = object : RecyclerView.AdapterDataObserver() {
             override fun onChanged() {
                 when {
                     adapter.itemCount > 0 -> binding.providerStatus.visibility = View.GONE
                     adapter.isDiscoveryPending -> {
-                        binding.providerStatus.setText(R.string.discovering_providers)
+                        binding.providerStatus.setText(R.string.discovering_organizations)
                         binding.providerStatus.visibility = View.VISIBLE
                     }
                     else -> {

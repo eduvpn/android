@@ -17,6 +17,7 @@
 
 package nl.eduvpn.app.service;
 
+import android.text.TextUtils;
 import android.util.Pair;
 
 import net.openid.appauth.AuthState;
@@ -29,20 +30,25 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import nl.eduvpn.app.Constants;
 import nl.eduvpn.app.entity.AuthorizationType;
 import nl.eduvpn.app.entity.DiscoveredAPI;
 import nl.eduvpn.app.entity.Instance;
 import nl.eduvpn.app.entity.InstanceList;
-import nl.eduvpn.app.entity.OrganizationList;
 import nl.eduvpn.app.entity.KeyPair;
+import nl.eduvpn.app.entity.Organization;
 import nl.eduvpn.app.entity.Profile;
 import nl.eduvpn.app.entity.SavedAuthState;
 import nl.eduvpn.app.entity.SavedKeyPair;
@@ -704,14 +710,147 @@ public class SerializerService {
         }
     }
 
+    /**
+     * Deserializes an organization from JSON.
+     *
+     * @param jsonObject The JSON object to deserialize.
+     * @return The organization instance.
+     * @throws UnknownFormatException Thrown if the JSON has an unknown format.
+     */
+    public Organization deserializeOrganization(JSONObject jsonObject) throws UnknownFormatException {
+        try {
+            String displayName = _findTranslation(jsonObject.getJSONObject("display_name"));
+            if (displayName == null) {
+                displayName = "";
+            }
+            List<String> keywordList = Collections.emptyList();
+            if (jsonObject.has("keyword_list") && !jsonObject.isNull("keyword_list")) {
+                String keywordString = _findTranslation(jsonObject.getJSONObject("keyword_list"));
+                if (keywordString != null) {
+                    keywordList = Arrays.asList(keywordString.split(" "));
+                }
+            }
+            String serverInfoUrl = jsonObject.getString("server_info_url");
+            return new Organization(displayName, keywordList, serverInfoUrl);
+        } catch (JSONException ex) {
+            throw new UnknownFormatException(ex);
+        }
+    }
+
+    /**
+     * Deserializes a list of organizations.
+     *
+     * @param jsonObject The json to deserialize from.
+     * @return The list of organizations created from the JSON.
+     * @throws UnknownFormatException Thrown if there was an error while deserializing.
+     */
+    public List<Organization> deserializeOrganizationList(JSONObject jsonObject) throws UnknownFormatException {
+        try {
+            List<Organization> result = new ArrayList<>();
+            JSONArray itemsList = jsonObject.getJSONArray("organization_list");
+            for (int i = 0; i < itemsList.length(); ++i) {
+                JSONObject serializedItem = itemsList.getJSONObject(i);
+                Organization organization = deserializeOrganization(serializedItem);
+                result.add(organization);
+            }
+            return result;
+        } catch (JSONException ex) {
+            throw new UnknownFormatException(ex);
+        }
+    }
+
+    /**
+     * Serializes a list of organizations into a JSON format.
+     *
+     * @param organizationList The list of organizations to serialize.
+     * @return The messages as a JSON object.
+     * @throws UnknownFormatException Thrown if there was an error constructing the JSON.
+     */
+    public JSONObject serializeOrganizationList(List<Organization> organizationList) throws UnknownFormatException {
+        try {
+            JSONObject result = new JSONObject();
+            JSONArray organizationsArray = new JSONArray();
+            for (Organization organization : organizationList) {
+                JSONObject organizationObject = new JSONObject();
+                JSONObject translation = new JSONObject();
+                translation.put(Constants.LOCALE.getLanguage(), organization.getDisplayName());
+                organizationObject.put("display_name", translation);
+                translation = new JSONObject();
+                String keywordString = TextUtils.join(" ", organization.getKeywordList());
+                if (keywordString.isEmpty()) {
+                    organizationObject.put("keyword_list", null);
+                } else {
+                    translation.put(Constants.LOCALE.getLanguage(), keywordString);
+                    organizationObject.put("keyword_list", translation);
+                }
+                organizationObject.put("server_info_url", organization.getServerInfoUrl());
+                organizationsArray.put(organizationObject);
+            }
+            result.put("organization_list", organizationsArray);
+            return result;
+        } catch (JSONException ex) {
+            throw new UnknownFormatException(ex);
+        }
+    }
+
 
     /**
      * Returns the language of the user in a specific "country-language" format.
-
+     *
      * @return The current language of the user.
      */
     private String _getUserLanguage() {
         // Converts 'en_US' to 'en-US'
-        return Locale.getDefault().toString().replace('_', '-');
+        return Constants.LOCALE.toString().replace('_', '-');
+    }
+
+    /**
+     * Finds a matching translation in the JSON.
+     * Strings with matching language (and locale) take precedence.
+     *
+     * @param translationsObject The object containing the translations as a map.
+     * @return The best match from the object. Could be null if the object is empty.
+     */
+    @Nullable
+    private String _findTranslation(JSONObject translationsObject) throws JSONException {
+        Iterator<String> keysIterator = translationsObject.keys();
+        int matchingLevel = 0;
+        String bestTranslationMatch = null;
+        // 0 - no matching
+        // 1 - matches any item (will be the first item, if no better match)
+        // 2 - language part matches, territory does not
+        // 3 - language part matches, territory part matches, variant does not
+        // 4 - full match
+        while (keysIterator.hasNext()) {
+            String key = keysIterator.next();
+            String[] localeParts = key.split("-");
+            Locale translationLocale;
+            if (localeParts.length == 1) {
+                translationLocale = new Locale(localeParts[0]);
+            } else if (localeParts.length == 2) {
+                translationLocale = new Locale(localeParts[0], localeParts[1]);
+            } else {
+                String variant = TextUtils.join("-", Arrays.copyOfRange(localeParts, 2, localeParts.length));
+                translationLocale = new Locale(localeParts[0], localeParts[1], variant);
+            }
+            int currentMatchingLevel = 1;
+            if (translationLocale.getLanguage().equalsIgnoreCase(Constants.LOCALE.getLanguage())) {
+                currentMatchingLevel = 2;
+                if (translationLocale.getCountry().equalsIgnoreCase(Constants.LOCALE.getCountry())) {
+                    currentMatchingLevel = 3;
+                    if (translationLocale.getVariant().equalsIgnoreCase(Constants.LOCALE.getVariant())) {
+                        currentMatchingLevel = 4;
+                    }
+                }
+            }
+            if (currentMatchingLevel > matchingLevel) {
+                matchingLevel = currentMatchingLevel;
+                bestTranslationMatch = translationsObject.getString(key);
+            }
+            if (currentMatchingLevel == 4) {
+                break;
+            }
+        }
+        return bestTranslationMatch;
     }
 }

@@ -99,6 +99,7 @@
     <string name="error_selected_instance_not_found">Selected instance not found.</string>
     <string name="no_provider_found">No provider found.</string>
     <string name="no_organization_found">No organization found.</string>
+    <string name="discovering_organizations">Discovering organizations...</string>
     <string name="discovering_providers">Discovering providers...</string>
     <string name="description_secure_internet_provider">Select your organization here. After authorization, you can connect or select a specific profile.</string>
     <string name="vpn_profile_checking_certificate">Checking certificate validity...</string>

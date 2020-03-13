@@ -31,6 +31,7 @@ import nl.eduvpn.app.R;
 import nl.eduvpn.app.adapter.viewholder.ProviderViewHolder;
 import nl.eduvpn.app.databinding.ListItemProviderBinding;
 import nl.eduvpn.app.entity.Instance;
+import nl.eduvpn.app.entity.Organization;
 import nl.eduvpn.app.service.ConfigurationService;
 
 /**
@@ -39,7 +40,7 @@ import nl.eduvpn.app.service.ConfigurationService;
  */
 public class OrganizationAdapter extends RecyclerView.Adapter<ProviderViewHolder> {
 
-    private List<Instance> _organizationList;
+    private List<Organization> _organizationList;
     private LayoutInflater _layoutInflater;
 
     private ConfigurationService _configurationService;
@@ -63,7 +64,7 @@ public class OrganizationAdapter extends RecyclerView.Adapter<ProviderViewHolder
      * @param position The position of the item.
      * @return The item at the given position. Null if 'Other' item or invalid query.
      */
-    public Instance getItem(int position) {
+    public Organization getItem(int position) {
         if (_organizationList == null) {
             return null;
         } else if (position < _organizationList.size()) {
@@ -85,13 +86,15 @@ public class OrganizationAdapter extends RecyclerView.Adapter<ProviderViewHolder
 
     @Override
     public void onBindViewHolder(ProviderViewHolder holder, int position) {
-        Instance instance = getItem(position);
-        holder.providerDisplayName.setText(instance.getDisplayName());
-        if (!TextUtils.isEmpty(instance.getLogoUri())) {
+        Organization organization = getItem(position);
+        holder.providerDisplayName.setText(organization.getDisplayName());
+        if (!TextUtils.isEmpty(organization.getDisplayName())) {
+            /**
             Picasso.get()
-                    .load(instance.getLogoUri())
+                    .load(organization.getLogoUri())
                     .fit()
                     .into(holder.providerIcon);
+             **/
         } else {
             holder.providerIcon.setImageResource(R.drawable.external_provider);
         }

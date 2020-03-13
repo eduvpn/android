@@ -32,13 +32,12 @@ import io.reactivex.Observable;
 import io.reactivex.ObservableSource;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.functions.BiFunction;
-import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
 import nl.eduvpn.app.BuildConfig;
 import nl.eduvpn.app.entity.AuthorizationType;
 import nl.eduvpn.app.entity.Instance;
 import nl.eduvpn.app.entity.InstanceList;
-import nl.eduvpn.app.entity.OrganizationList;
+import nl.eduvpn.app.entity.Organization;
 import nl.eduvpn.app.entity.exception.InvalidSignatureException;
 import nl.eduvpn.app.utils.Log;
 import okhttp3.OkHttpClient;
@@ -59,7 +58,7 @@ public class ConfigurationService extends java.util.Observable {
     private final SecurityService _securityService;
     private final OkHttpClient _okHttpClient;
 
-    private OrganizationList _organizationList;
+    private List<Organization> _organizationList;
     private InstanceList _secureInternetList;
     private InstanceList _instituteAccessList;
 
@@ -96,11 +95,11 @@ public class ConfigurationService extends java.util.Observable {
      * @return The currently cached list of organizations.
      */
     @NonNull
-    public List<Instance> getOrganizationList() {
+    public List<Organization> getOrganizationList() {
         if (_organizationList == null) {
             return Collections.emptyList();
         } else {
-            return Collections.unmodifiableList(_organizationList.getInstanceList());
+            return Collections.unmodifiableList(_organizationList);
         }
     }
 
@@ -115,19 +114,11 @@ public class ConfigurationService extends java.util.Observable {
         }
     }
 
-    private void _saveListIfChanged(@NonNull OrganizationList organizationList) {
-        OrganizationList previousList = _preferencesService.getOrganizationList();
-        if (previousList == null || previousList.getSequenceNumber() < organizationList.getSequenceNumber()) {
-            Log.i(TAG, "Previously saved organization list is outdated, or there was" +
-                    " no existing one. Saving new list for the future.");
-            _preferencesService.storeOrganizationList(organizationList);
-            setChanged();
-            notifyObservers();
-            clearChanged();
-        } else {
-            Log.d(TAG, "Previously saved organization list has the same version as " +
-                    "the newly downloaded one, new one does not have to be cached.");
-        }
+    private void _saveList(@NonNull List<Organization> organizationList) {
+        _preferencesService.storeOrganizationList(organizationList);
+        setChanged();
+        notifyObservers();
+        clearChanged();
     }
 
     private void _saveListIfChanged(@NonNull InstanceList instanceList, AuthorizationType authorizationType) {
@@ -152,18 +143,16 @@ public class ConfigurationService extends java.util.Observable {
      * @return An InstanceList object containing the same information.
      * @throws JSONException Thrown if the JSON was malformed or had an unknown list version.
      */
-    private OrganizationList _parseOrganizationList(String organizationList) throws Exception {
+    private List<Organization> _parseOrganizationList(String organizationList) throws Exception {
         JSONObject organizationListJson = new JSONObject(organizationList);
-        // TODO do it with organization list
-        //return _serializerService.deserializeOrganizationList(organizationListJson);
-        return null;
+        return _serializerService.deserializeOrganizationList(organizationListJson);
     }
 
     /**
      * Parses the JSON string of the instance list to a POJO object.
      *
      * @param instanceListString The string with the JSON representation.
-     * @param authorizationType     The authorization types for these instances.
+     * @param authorizationType  The authorization types for these instances.
      * @return An InstanceList object containing the same information.
      * @throws JSONException Thrown if the JSON was malformed or had an unknown list version.
      */
@@ -199,7 +188,7 @@ public class ConfigurationService extends java.util.Observable {
         String listRequestUrl = authorizationType == AuthorizationType.Local ? BuildConfig.INSTITUTE_ACCESS_DISCOVERY_URL : BuildConfig.SECURE_INTERNET_DISCOVERY_URL;
         Observable<String> signatureObservable = _createSignatureObservable(listRequestUrl);
         // Combine the result of the two
-        Observable.zip(instanceListObservable, signatureObservable, (BiFunction<String, String, InstanceList>)(instanceList, signature) -> {
+        Observable.zip(instanceListObservable, signatureObservable, (instanceList, signature) -> {
             if (_securityService.verifyDeprecatedSignature(instanceList, signature)) {
                 return _parseInstanceList(instanceList, authorizationType);
             } else {
@@ -251,7 +240,7 @@ public class ConfigurationService extends java.util.Observable {
                 .subscribe(instanceList -> {
                     _organizationList = instanceList;
                     _organizationsPendingDiscovery = false;
-                    _saveListIfChanged(instanceList);
+                    _saveList(instanceList);
                     Log.i(TAG, "Successfully refreshed organization list.");
                 }, throwable -> {
                     _organizationsPendingDiscovery = false;
@@ -324,6 +313,7 @@ public class ConfigurationService extends java.util.Observable {
 
     /**
      * Returns if provider discovery is still pending for a given authorization type.
+     *
      * @param authorizationType The authorization type.
      * @return True if discovery is still not completed, and that's why the list is not complete.
      */

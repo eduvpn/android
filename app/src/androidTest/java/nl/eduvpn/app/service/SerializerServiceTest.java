@@ -28,8 +28,10 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
@@ -42,8 +44,8 @@ import nl.eduvpn.app.entity.AuthorizationType;
 import nl.eduvpn.app.entity.DiscoveredAPI;
 import nl.eduvpn.app.entity.Instance;
 import nl.eduvpn.app.entity.InstanceList;
-import nl.eduvpn.app.entity.OrganizationList;
 import nl.eduvpn.app.entity.KeyPair;
+import nl.eduvpn.app.entity.Organization;
 import nl.eduvpn.app.entity.Profile;
 import nl.eduvpn.app.entity.SavedAuthState;
 import nl.eduvpn.app.entity.SavedKeyPair;
@@ -54,7 +56,9 @@ import nl.eduvpn.app.entity.message.Message;
 import nl.eduvpn.app.entity.message.Notification;
 import nl.eduvpn.app.utils.TTLCache;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Unit tests for the serializer service.
@@ -286,6 +290,21 @@ public class SerializerServiceTest {
             assertEquals(savedKeyPairList.get(i).getInstance().getDisplayName(), deserializedSavedKeyPairList.get(i).getInstance().getDisplayName());
             assertEquals(savedKeyPairList.get(i).getInstance().getLogoUri(), deserializedSavedKeyPairList.get(i).getInstance().getLogoUri());
             assertEquals(savedKeyPairList.get(i).getInstance().isCustom(), deserializedSavedKeyPairList.get(i).getInstance().isCustom());
+        }
+    }
+
+    @Test
+    public void testOrganizationListSerialization() throws SerializerService.UnknownFormatException {
+        Organization organization1 = new Organization("display name - 1", Arrays.asList("keyword1", "keyword2", "keyword3"), "https://server.info/url");
+        Organization organization2 = new Organization("display name - 2", Collections.singletonList("notthesamekeyword"), "https://server.info2/url");
+        Organization organization3 = new Organization("display name - 3", new ArrayList<>(), "http://server.info/url3");
+        List<Organization> organizations = Arrays.asList(organization1, organization2, organization3);
+        JSONObject serializedOrganizationList = _serializerService.serializeOrganizationList(organizations);
+        List<Organization> deserializedOrganizationList = _serializerService.deserializeOrganizationList(serializedOrganizationList);
+        for (int i = 0; i < organizations.size(); ++i) {
+            assertEquals(organizations.get(i).getDisplayName(), deserializedOrganizationList.get(i).getDisplayName());
+            assertEquals(organizations.get(i).getKeywordList(), deserializedOrganizationList.get(i).getKeywordList());
+            assertEquals(organizations.get(i).getServerInfoUrl(), deserializedOrganizationList.get(i).getServerInfoUrl());
         }
     }
 
