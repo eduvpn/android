@@ -104,6 +104,7 @@ android {
 
 def daggerVersion = "2.25.2"
 def okHttpVersion = "4.2.2"
+def lifecycleVersion = "2.2.0"
 
 dependencies {
     // The VPN library
@@ -113,8 +114,11 @@ dependencies {
     implementation "androidx.recyclerview:recyclerview:1.0.0"
     implementation 'com.google.android.material:material:1.0.0'
     implementation "androidx.browser:browser:1.0.0" // Custom tabs
-    implementation "androidx.lifecycle:lifecycle-viewmodel:2.1.0"
-    implementation "androidx.lifecycle:lifecycle-extensions:2.1.0"
+
+    implementation "androidx.lifecycle:lifecycle-viewmodel:$lifecycleVersion"
+    implementation "androidx.lifecycle:lifecycle-extensions:$lifecycleVersion"
+    implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycleVersion"
+
     // OAuth client
     implementation 'net.openid:appauth:0.7.1'
     // Secure preferences (deprecated, only kept for backwards compatibility)

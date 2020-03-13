@@ -118,15 +118,7 @@ public class ProviderAdapter extends RecyclerView.Adapter<ProviderViewHolder> {
     @Override
     public void onBindViewHolder(ProviderViewHolder holder, int position) {
         Instance instance = getItem(position);
-        holder.providerDisplayName.setText(instance.getDisplayName());
-        if (!TextUtils.isEmpty(instance.getLogoUri())) {
-            Picasso.get()
-                    .load(instance.getLogoUri())
-                    .fit()
-                    .into(holder.providerIcon);
-        } else {
-            holder.providerIcon.setImageResource(R.drawable.external_provider);
-        }
+        holder.bind(instance);
     }
 
     @Override

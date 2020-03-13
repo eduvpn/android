@@ -49,6 +49,7 @@ import nl.eduvpn.app.entity.Instance;
 import nl.eduvpn.app.entity.InstanceList;
 import nl.eduvpn.app.entity.KeyPair;
 import nl.eduvpn.app.entity.Organization;
+import nl.eduvpn.app.entity.OrganizationServer;
 import nl.eduvpn.app.entity.Profile;
 import nl.eduvpn.app.entity.SavedAuthState;
 import nl.eduvpn.app.entity.SavedKeyPair;
@@ -793,6 +794,80 @@ public class SerializerService {
         }
     }
 
+    /**
+     * Deserializes a list of organization servers.
+     *
+     * @param jsonObject The json to deserialize from.
+     * @return The list of organizations servers created from the JSON.
+     * @throws UnknownFormatException Thrown if there was an error while deserializing.
+     */
+    public List<OrganizationServer> deserializeOrganizationServerList(JSONObject jsonObject) throws UnknownFormatException {
+        try {
+            List<OrganizationServer> result = new ArrayList<>();
+            JSONArray itemsList = jsonObject.getJSONArray("server_list");
+            for (int i = 0; i < itemsList.length(); ++i) {
+                JSONObject serializedItem = itemsList.getJSONObject(i);
+                OrganizationServer organization = deserializeOrganizationServer(serializedItem);
+                result.add(organization);
+            }
+            return result;
+        } catch (JSONException ex) {
+            throw new UnknownFormatException(ex);
+        }
+    }
+
+    /**
+     * Serializes a list of organization servers into a JSON format.
+     *
+     * @param serverList The list of organization servers to serialize.
+     * @return The messages as a JSON object.
+     * @throws UnknownFormatException Thrown if there was an error constructing the JSON.
+     */
+    public JSONObject serializeOrganizationServerList(List<OrganizationServer> serverList) throws UnknownFormatException {
+        try {
+            JSONObject result = new JSONObject();
+            JSONArray organizationsArray = new JSONArray();
+            for (OrganizationServer server : serverList) {
+                JSONObject serverObject = new JSONObject();
+                JSONObject translation = new JSONObject();
+                translation.put(Constants.LOCALE.getLanguage(), server.getDisplayName());
+                serverObject.put("display_name", translation);
+                serverObject.put("base_url", server.getBaseUrl());
+                if (server.getServerGroupUrl() != null) {
+                    serverObject.put("server_group_url", server.getServerGroupUrl());
+                }
+                organizationsArray.put(serverObject);
+            }
+            result.put("server_list", organizationsArray);
+            return result;
+        } catch (JSONException ex) {
+            throw new UnknownFormatException(ex);
+        }
+    }
+
+    /**
+     * Deserializes an organization server from JSON.
+     *
+     * @param jsonObject The JSON object to deserialize.
+     * @return The organization instance.
+     * @throws UnknownFormatException Thrown if the JSON has an unknown format.
+     */
+    public OrganizationServer deserializeOrganizationServer(JSONObject jsonObject) throws UnknownFormatException {
+        try {
+            String displayName = _findTranslation(jsonObject.getJSONObject("display_name"));
+            if (displayName == null) {
+                displayName = "";
+            }
+            String baseUrl = jsonObject.getString("base_url");
+            String serverGroupUrl = null;
+            if (jsonObject.has("server_group_url") && !jsonObject.isNull("server_group_url")) {
+                serverGroupUrl = jsonObject.getString("server_group_url");
+            }
+            return new OrganizationServer(displayName, baseUrl, serverGroupUrl);
+        } catch (JSONException ex) {
+            throw new UnknownFormatException(ex);
+        }
+    }
 
     /**
      * Returns the language of the user in a specific "country-language" format.
@@ -818,9 +893,10 @@ public class SerializerService {
         String bestTranslationMatch = null;
         // 0 - no matching
         // 1 - matches any item (will be the first item, if no better match)
-        // 2 - language part matches, territory does not
-        // 3 - language part matches, territory part matches, variant does not
-        // 4 - full match
+        // 2 - item in english language
+        // 3 - language part matches, territory does not
+        // 4 - language part matches, territory part matches, variant does not
+        // 5 - full match
         while (keysIterator.hasNext()) {
             String key = keysIterator.next();
             String[] localeParts = key.split("-");
@@ -835,19 +911,21 @@ public class SerializerService {
             }
             int currentMatchingLevel = 1;
             if (translationLocale.getLanguage().equalsIgnoreCase(Constants.LOCALE.getLanguage())) {
-                currentMatchingLevel = 2;
+                currentMatchingLevel = 3;
                 if (translationLocale.getCountry().equalsIgnoreCase(Constants.LOCALE.getCountry())) {
-                    currentMatchingLevel = 3;
+                    currentMatchingLevel = 4;
                     if (translationLocale.getVariant().equalsIgnoreCase(Constants.LOCALE.getVariant())) {
-                        currentMatchingLevel = 4;
+                        currentMatchingLevel = 5;
                     }
                 }
+            } else if (translationLocale.getLanguage().equalsIgnoreCase("en")) {
+                currentMatchingLevel = 2;
             }
             if (currentMatchingLevel > matchingLevel) {
                 matchingLevel = currentMatchingLevel;
                 bestTranslationMatch = translationsObject.getString(key);
             }
-            if (currentMatchingLevel == 4) {
+            if (currentMatchingLevel == 5) {
                 break;
             }
         }

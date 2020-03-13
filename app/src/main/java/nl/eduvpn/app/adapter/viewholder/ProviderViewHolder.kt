@@ -14,27 +14,30 @@
  *     You should have received a copy of the GNU General Public License
  *     along with eduVPN.  If not, see <http://www.gnu.org/licenses/>.
  */
+package nl.eduvpn.app.adapter.viewholder
 
-package nl.eduvpn.app.adapter.viewholder;
-
-import android.widget.ImageView;
-import android.widget.TextView;
-
-import androidx.recyclerview.widget.RecyclerView;
-import nl.eduvpn.app.databinding.ListItemProviderBinding;
+import android.text.TextUtils
+import androidx.recyclerview.widget.RecyclerView
+import com.squareup.picasso.Picasso
+import nl.eduvpn.app.R
+import nl.eduvpn.app.databinding.ListItemProviderBinding
+import nl.eduvpn.app.entity.Instance
 
 /**
  * Viewholder for the provider instance list.
  * Created by Daniel Zolnai on 2016-10-07.
  */
-public class ProviderViewHolder extends RecyclerView.ViewHolder {
+class ProviderViewHolder(private val binding: ListItemProviderBinding) : RecyclerView.ViewHolder(binding.root) {
+    fun bind(instance: Instance) {
+        binding.providerDisplayName.text = instance.displayName
+        if (!TextUtils.isEmpty(instance.logoUri)) {
+            Picasso.get()
+                    .load(instance.logoUri)
+                    .fit()
+                    .into(binding.providerIcon)
+        } else {
+            binding.providerIcon.setImageResource(R.drawable.external_provider)
+        }
 
-    public ImageView providerIcon;
-    public TextView providerDisplayName;
-
-    public ProviderViewHolder(ListItemProviderBinding binding) {
-        super(binding.getRoot());
-        providerIcon = binding.providerIcon;
-        providerDisplayName = binding.providerDisplayName;
     }
 }

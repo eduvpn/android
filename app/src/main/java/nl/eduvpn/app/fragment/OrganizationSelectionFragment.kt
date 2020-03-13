@@ -18,7 +18,10 @@
 package nl.eduvpn.app.fragment
 
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.View
+import android.widget.Toast
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -33,11 +36,12 @@ import nl.eduvpn.app.service.ConfigurationService
 import nl.eduvpn.app.utils.ErrorDialog
 import nl.eduvpn.app.utils.ItemClickSupport
 import nl.eduvpn.app.viewmodel.ConnectionViewModel
+import nl.eduvpn.app.viewmodel.OrganizationSelectionViewModel
 import javax.inject.Inject
 
 /**
  * The fragment showing the list of organizations.
- * Created by Daniel Zolnai on 2016-10-07.
+ * Created by Daniel Zolnai on 2020-03-13.
  */
 class OrganizationSelectionFragment : BaseFragment<FragmentOrganizationSelectionBinding>() {
 
@@ -49,31 +53,45 @@ class OrganizationSelectionFragment : BaseFragment<FragmentOrganizationSelection
     override val layout = R.layout.fragment_organization_selection
 
     private val viewModel by lazy {
-        ViewModelProviders.of(this, viewModelFactory).get(ConnectionViewModel::class.java)
+        ViewModelProviders.of(this, viewModelFactory).get(OrganizationSelectionViewModel::class.java)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         EduVPNApplication.get(view.context).component().inject(this)
         binding.viewModel = viewModel
-        binding.providerList.setHasFixedSize(true)
-        binding.providerList.layoutManager = LinearLayoutManager(view.context, LinearLayoutManager.VERTICAL, false)
+        binding.organizationList.setHasFixedSize(true)
+        binding.organizationList.layoutManager = LinearLayoutManager(view.context, LinearLayoutManager.VERTICAL, false)
         val adapter = OrganizationAdapter(configurationService)
-        binding.providerList.adapter = adapter
-        ItemClickSupport.addTo(binding.providerList).setOnItemClickListener { recyclerView, position, _ ->
-            // TODO
+        binding.organizationList.adapter = adapter
+        binding.search.addTextChangedListener(object : TextWatcher {
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                adapter.searchFilter = s?.toString()
+            }
+
+            override fun afterTextChanged(s: Editable?) {
+                // Unused.
+            }
+
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
+                // Unused.
+            }
+        })
+        ItemClickSupport.addTo(binding.organizationList).setOnItemClickListener { _, position, _ ->
+            val organization = adapter.getItem(position) ?: return@setOnItemClickListener
+            viewModel.selectOrganization(organization)
         }
         dataObserver = object : RecyclerView.AdapterDataObserver() {
             override fun onChanged() {
                 when {
-                    adapter.itemCount > 0 -> binding.providerStatus.visibility = View.GONE
+                    adapter.itemCount > 0 -> binding.organizationDiscoveryStatus.visibility = View.GONE
                     adapter.isDiscoveryPending -> {
-                        binding.providerStatus.setText(R.string.discovering_organizations)
-                        binding.providerStatus.visibility = View.VISIBLE
+                        binding.organizationDiscoveryStatus.setText(R.string.discovering_organizations)
+                        binding.organizationDiscoveryStatus.visibility = View.VISIBLE
                     }
                     else -> {
-                        binding.providerStatus.setText(R.string.no_organization_found)
-                        binding.providerStatus.visibility = View.VISIBLE
+                        binding.organizationDiscoveryStatus.setText(R.string.no_organization_found)
+                        binding.organizationDiscoveryStatus.visibility = View.VISIBLE
                     }
                 }
             }
@@ -84,44 +102,25 @@ class OrganizationSelectionFragment : BaseFragment<FragmentOrganizationSelection
             it.onChanged()
         }
 
-        viewModel.parentAction.observe(this, Observer { parentAction ->
+        viewModel.parentAction.observe(viewLifecycleOwner, Observer { parentAction ->
             when (parentAction) {
-                is ConnectionViewModel.ParentAction.InitiateConnection -> {
-                    activity?.let { activity ->
-                        if (!activity.isFinishing) {
-                            viewModel.initiateConnection(activity, parentAction.instance, parentAction.discoveredAPI)
-                        }
-                    }
-                }
-                is ConnectionViewModel.ParentAction.OpenProfileSelector -> {
-                    (activity as? MainActivity)?.openFragment(ProfileSelectionFragment.newInstance(parentAction.profiles), true)
-                }
-                is ConnectionViewModel.ParentAction.DisplayError -> {
+                is OrganizationSelectionViewModel.ParentAction.DisplayError -> {
                     ErrorDialog.show(requireContext(), parentAction.title, parentAction.message)
                 }
-                is ConnectionViewModel.ParentAction.ConnectWithProfile -> {
-                    viewModel.openVpnConnectionToProfile(requireActivity(), parentAction.vpnProfile)
-                    (activity as? MainActivity)?.openFragment(ConnectionStatusFragment(), false)
+                is OrganizationSelectionViewModel.ParentAction.OpenServerSelector -> {
+                    // TODO
+                    Toast.makeText(requireContext(), "TODO", Toast.LENGTH_LONG).show()
                 }
             }
         })
 
     }
 
-    override fun onResume() {
-        super.onResume()
-        viewModel.onResume()
-    }
-
     override fun onDestroyView() {
         super.onDestroyView()
-        if (binding.providerList.adapter != null && dataObserver != null) {
-            binding.providerList.adapter?.unregisterAdapterDataObserver(dataObserver!!)
+        if (binding.organizationList.adapter != null && dataObserver != null) {
+            binding.organizationList.adapter?.unregisterAdapterDataObserver(dataObserver!!)
             dataObserver = null
         }
-    }
-
-    companion object {
-        private val TAG = OrganizationSelectionFragment::class.java.name
     }
 }

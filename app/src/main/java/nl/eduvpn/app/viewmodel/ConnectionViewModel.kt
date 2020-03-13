@@ -64,15 +64,6 @@ class ConnectionViewModel(
         private val vpnService: VPNService
 ) : BaseViewModel(), Observer {
 
-    enum class ConnectionState(@StringRes val displayString: Int?) {
-        Ready(null),
-        DiscoveringApi(R.string.api_discovery_message),
-        FetchingProfiles(R.string.loading_available_profiles),
-        Authorizing(R.string.loading_browser_for_authorization),
-        ProfileCheckingCertificate(R.string.vpn_profile_checking_certificate),
-        ProfileDownloadingKeyPair(R.string.vpn_profile_creating_keypair)
-    }
-
     sealed class ParentAction {
         data class DisplayError(@StringRes val title: Int, val message: String) : ParentAction()
         data class OpenProfileSelector(val profiles: List<Profile>) : ParentAction()

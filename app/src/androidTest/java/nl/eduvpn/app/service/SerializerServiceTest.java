@@ -46,6 +46,7 @@ import nl.eduvpn.app.entity.Instance;
 import nl.eduvpn.app.entity.InstanceList;
 import nl.eduvpn.app.entity.KeyPair;
 import nl.eduvpn.app.entity.Organization;
+import nl.eduvpn.app.entity.OrganizationServer;
 import nl.eduvpn.app.entity.Profile;
 import nl.eduvpn.app.entity.SavedAuthState;
 import nl.eduvpn.app.entity.SavedKeyPair;
@@ -305,6 +306,21 @@ public class SerializerServiceTest {
             assertEquals(organizations.get(i).getDisplayName(), deserializedOrganizationList.get(i).getDisplayName());
             assertEquals(organizations.get(i).getKeywordList(), deserializedOrganizationList.get(i).getKeywordList());
             assertEquals(organizations.get(i).getServerInfoUrl(), deserializedOrganizationList.get(i).getServerInfoUrl());
+        }
+    }
+
+    @Test
+    public void testOrganizationServerListSerialization() throws SerializerService.UnknownFormatException {
+        OrganizationServer server1 = new OrganizationServer("display name - 1", "http://base.url/1", "https://group.info/url");
+        OrganizationServer server2 = new OrganizationServer("display name - 2", "https://baseurl2.com/", null);
+        OrganizationServer server3 = new OrganizationServer("display name - 3", "http://bas3url.com/vpn", null);
+        List<OrganizationServer> servers = Arrays.asList(server1, server2, server3);
+        JSONObject serializedServerList = _serializerService.serializeOrganizationServerList(servers);
+        List<OrganizationServer> deserializedServerList = _serializerService.deserializeOrganizationServerList(serializedServerList);
+        for (int i = 0; i < servers.size(); ++i) {
+            assertEquals(servers.get(i).getDisplayName(), deserializedServerList.get(i).getDisplayName());
+            assertEquals(servers.get(i).getBaseUrl(), deserializedServerList.get(i).getBaseUrl());
+            assertEquals(servers.get(i).getServerGroupUrl(), deserializedServerList.get(i).getServerGroupUrl());
         }
     }
 

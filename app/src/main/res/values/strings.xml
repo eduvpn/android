@@ -101,7 +101,7 @@
     <string name="no_organization_found">No organization found.</string>
     <string name="discovering_organizations">Discovering organizations...</string>
     <string name="discovering_providers">Discovering providers...</string>
-    <string name="description_secure_internet_provider">Select your organization here. After authorization, you can connect or select a specific profile.</string>
+    <string name="description_secure_internet_provider">Select your institution\'s country here. Afterwards you can use other countries.</string>
     <string name="vpn_profile_checking_certificate">Checking certificate validity...</string>
     <string name="error_parsing_certificate">Unexpected certificate check response from API.</string>
     <string name="error_certificate_disabled">Connection process aborted because certificate has been disabled.</string>
@@ -120,5 +120,8 @@
     <string name="loading_browser_for_authorization">Loading browser for authorization</string>
     <string name="error_no_internet_connection">No internet connection</string>
     <string name="error_no_internet_connection_message">It seems that you have no connection to the internet. Please check your connection, and try again.\nOriginal error: %s</string>
+    <string name="select_your_organization_search_hint">Search for your organization...</string>
+    <string name="fetching_organization_servers">Fetching organization servers...</string>
+    <string name="error_fetching_organization_servers">Error fetching organization servers</string>
 
 </resources>
