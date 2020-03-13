@@ -17,6 +17,8 @@
 
 package nl.eduvpn.app;
 
+import java.util.Locale;
+
 /**
  * Contains application-wide constant values.
  * Created by Daniel Zolnai on 2016-09-14.
@@ -32,4 +34,6 @@ public class Constants {
     public static final String API_CREATE_KEYPAIR = "create_keypair";
     public static final String API_PROFILE_CONFIG = "profile_config";
     public static final String API_CHECK_CERTIFICATE = "check_certificate";
+
+    public static final Locale LOCALE = Locale.getDefault();
 }

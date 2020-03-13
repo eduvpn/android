@@ -19,10 +19,10 @@
 
     <data>
         <import type="android.view.View" />
-        <import type="nl.eduvpn.app.viewmodel.ConnectionViewModel.ConnectionState" />
+        <import type="nl.eduvpn.app.viewmodel.ConnectionState" />
         <variable
             name="connectionState"
-            type="nl.eduvpn.app.viewmodel.ConnectionViewModel.ConnectionState" />
+            type="nl.eduvpn.app.viewmodel.ConnectionState" />
     </data>
 
     <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
