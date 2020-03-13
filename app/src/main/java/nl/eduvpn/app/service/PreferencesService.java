@@ -31,10 +31,12 @@ import java.util.List;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
+import nl.eduvpn.app.BuildConfig;
 import nl.eduvpn.app.Constants;
 import nl.eduvpn.app.entity.AuthorizationType;
 import nl.eduvpn.app.entity.DiscoveredAPI;
 import nl.eduvpn.app.entity.Instance;
+import nl.eduvpn.app.entity.InstanceList;
 import nl.eduvpn.app.entity.OrganizationList;
 import nl.eduvpn.app.entity.Profile;
 import nl.eduvpn.app.entity.SavedAuthState;
@@ -64,6 +66,13 @@ public class PreferencesService {
     static final String KEY_DISCOVERED_API = "discovered_api";
 
     static final String KEY_ORGANIZATION_LIST = "organization_list";
+
+    static final String KEY_INSTANCE_LIST_PREFIX = "instance_list_";
+    @Deprecated
+    static final String KEY_INSTANCE_LIST_SECURE_INTERNET = KEY_INSTANCE_LIST_PREFIX + "secure_internet";
+    @Deprecated
+    static final String KEY_INSTANCE_LIST_INSTITUTE_ACCESS = KEY_INSTANCE_LIST_PREFIX + "institute_access";
+
 
     static final String KEY_SAVED_PROFILES = "saved_profiles";
     static final String KEY_SAVED_AUTH_STATES = "saved_auth_state";
@@ -109,10 +118,10 @@ public class PreferencesService {
                 Log.d(TAG, "Migrated over to storage version v2.");
             }
         }
-        if (version < 3) {
+        if (version < 3 && BuildConfig.NEW_ORGANIZATION_LIST_ENABLED) {
             SharedPreferences.Editor editor = newPreferences.edit();
-            editor.remove("instance_list_secure_internet");
-            editor.remove("instance_list_institute_access");
+            editor.remove(KEY_INSTANCE_LIST_SECURE_INTERNET);
+            editor.remove(KEY_INSTANCE_LIST_INSTITUTE_ACCESS);
             editor.commit();
             if (Constants.DEBUG) {
                 Log.d(TAG, "Migrated over to storage version v3.");
@@ -389,11 +398,33 @@ public class PreferencesService {
      * Stores the instance list for a specific connection type
      */
     public void storeOrganizationList(OrganizationList instanceListToSave) {
+        /*** TODO
         try {
             String serializedInstanceList = _serializerService.serializeInstanceList(instanceListToSave).toString();
             _getSharedPreferences().edit().putString(KEY_ORGANIZATION_LIST, serializedInstanceList).apply();
         } catch (SerializerService.UnknownFormatException ex) {
             Log.e(TAG, "Cannot save organization list.", ex);
+        }***/
+    }
+
+
+    /**
+     * Stores the instance list for a specific connection type
+     */
+    public void storeInstanceList(AuthorizationType authorizationType, InstanceList instanceListToSave) {
+        String key;
+        if (authorizationType == AuthorizationType.Distributed) {
+            key = KEY_INSTANCE_LIST_INSTITUTE_ACCESS;
+        } else if (authorizationType == AuthorizationType.Local) {
+            key = KEY_INSTANCE_LIST_SECURE_INTERNET;
+        } else {
+            throw new RuntimeException("Unexpected connection type!");
+        }
+        try {
+            String serializedInstanceList = _serializerService.serializeInstanceList(instanceListToSave).toString();
+            _getSharedPreferences().edit().putString(key, serializedInstanceList).apply();
+        } catch (SerializerService.UnknownFormatException ex) {
+            Log.e(TAG, "Cannot save instance list for connection type: " + authorizationType, ex);
         }
     }
 
@@ -421,9 +452,35 @@ public class PreferencesService {
             if (serializedInstanceList == null) {
                 return null;
             }
+            // TODO return _serializerService.deserializeInstanceList(new JSONObject(serializedInstanceList));
+            return null;
+        } catch (Exception ex) {
+            Log.e(TAG, "Cannot deserialize previously saved organization list.", ex);
+            return null;
+        }
+    }
+
+    /**
+     * Stores the instance list for a specific authorization type
+     */
+    @Nullable
+    public InstanceList getInstanceList(AuthorizationType authorizationType) {
+        String key;
+        if (authorizationType == AuthorizationType.Distributed) {
+            key = KEY_INSTANCE_LIST_INSTITUTE_ACCESS;
+        } else if (authorizationType == AuthorizationType.Local) {
+            key = KEY_INSTANCE_LIST_SECURE_INTERNET;
+        } else {
+            throw new RuntimeException("Unexpected connection type!");
+        }
+        try {
+            String serializedInstanceList = _getSharedPreferences().getString(key, null);
+            if (serializedInstanceList == null) {
+                return null;
+            }
             return _serializerService.deserializeInstanceList(new JSONObject(serializedInstanceList));
         } catch (SerializerService.UnknownFormatException | JSONException ex) {
-            Log.e(TAG, "Cannot deserialize previously saved organization list.", ex);
+            Log.e(TAG, "Cannot deserialize previously saved instance list of authorization type: " + authorizationType, ex);
             return null;
         }
     }

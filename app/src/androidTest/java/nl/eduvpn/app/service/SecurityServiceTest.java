@@ -50,55 +50,55 @@ public class SecurityServiceTest {
     public void before() {
         Context context = ApplicationProvider.getApplicationContext();
         _securityService = new SecurityService(context);
-        SecurityService.loadPublicKey(UNIT_TEST_PUBLIC_KEY);
+        SecurityService.loadMinisignPublicKey(UNIT_TEST_PUBLIC_KEY);
     }
 
     @Test
-    public void testGetSecondLineSuccess() throws IOException {
+    public void testMinisignGetSecondLineSuccess() throws IOException {
         String input = "1234\n5678";
         String output = _securityService.getSecondLine(input);
         assertEquals("5678", output);
     }
 
     @Test(expected = IOException.class)
-    public void testGetSecondLineError() throws IOException {
+    public void testMinisignGetSecondLineError() throws IOException {
         String input = "12345678";
         _securityService.getSecondLine(input);
     }
 
     @Test
-    public void testVerifySuccess() throws Exception {
+    public void testMinisignVerifySuccess() throws Exception {
         // Generated these on my local machine
         String toVerify = "test text signed by eduvpn dev";
         String signature = "untrusted comment: signature from minisign secret key\n" +
                 "RWQBThy5Bd7KtZdpjhBiwppvZdTt9nc23OVuBQCcNJ6LT5MgIcA4wLxjgGIOMGEbaZVLxqrHNRMWQ3JSGRWn2CxE6UVF+QplMA4=\n" +
                 "trusted comment: timestamp:1584026575\tfile:test.txt\n" +
                 "tOgVBGUEo6HVEEz49P7thyDMZsSrtEHBrz60n/TYaOk4PBNdgXl46z9rG/k3Xul9ewzNeOWY/hv1E2EMEVldDg==";
-        assertTrue(_securityService.verify(toVerify, signature));
+        assertTrue(_securityService.verifyMinisign(toVerify, signature));
     }
 
     @Test(expected = IOException.class)
-    public void testVerifyOneLineFail() throws Exception {
+    public void testMinisignVerifyOneLineFail() throws Exception {
         String toVerify = "test text signed by eduvpn dev";
         String signature = "this is of course the wrong signature";
-        assertFalse(_securityService.verify(toVerify, signature));
+        assertFalse(_securityService.verifyMinisign(toVerify, signature));
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void testVerifySignatureFormatException() throws Exception {
+    public void testMinisignVerifySignatureFormatException() throws Exception {
         String toVerify = "test text signed by eduvpn dev";
         String signature = "this is of course the wrong signature\naW4gMiBsaW5lcyBzbyB0aGF0IGl0IHdpbGwgZW50ZXIgdGhlIHZlcmlmaWNhdGlvbiBwaGFzZQ==";
-        assertFalse(_securityService.verify(toVerify, signature));
+        assertFalse(_securityService.verifyMinisign(toVerify, signature));
     }
 
     @Test
-    public void testVerifySignatureFail() throws Exception {
+    public void testMinisignVerifySignatureFail() throws Exception {
         String toVerify = "a completely different text which has the same signature as the success text";
         String signature = "untrusted comment: signature from minisign secret key\n" +
                 "RWQBThy5Bd7KtZdpjhBiwppvZdTt9nc23OVuBQCcNJ6LT5MgIcA4wLxjgGIOMGEbaZVLxqrHNRMWQ3JSGRWn2CxE6UVF+QplMA4=\n" +
                 "trusted comment: timestamp:1584026575\tfile:test.txt\n" +
                 "tOgVBGUEo6HVEEz49P7thyDMZsSrtEHBrz60n/TYaOk4PBNdgXl46z9rG/k3Xul9ewzNeOWY/hv1E2EMEVldDg==";
-        assertFalse(_securityService.verify(toVerify, signature));
+        assertFalse(_securityService.verifyMinisign(toVerify, signature));
     }
 
 

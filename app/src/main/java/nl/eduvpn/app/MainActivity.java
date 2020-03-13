@@ -33,7 +33,9 @@ import nl.eduvpn.app.databinding.ActivityMainBinding;
 import nl.eduvpn.app.fragment.ConnectionStatusFragment;
 import nl.eduvpn.app.fragment.CustomProviderFragment;
 import nl.eduvpn.app.fragment.OrganizationSelectionFragment;
+import nl.eduvpn.app.fragment.ProviderSelectionFragment;
 import nl.eduvpn.app.fragment.ServerSelectionFragment;
+import nl.eduvpn.app.fragment.TypeSelectorFragment;
 import nl.eduvpn.app.service.ConnectionService;
 import nl.eduvpn.app.service.HistoryService;
 import nl.eduvpn.app.service.VPNService;
@@ -74,7 +76,11 @@ public class MainActivity extends BaseActivity<ActivityMainBinding> {
                 // User has no previously saved profiles. Show the type selector.
                 if (BuildConfig.API_DISCOVERY_ENABLED) {
                     // eduVPN flavor
-                    openFragment(new OrganizationSelectionFragment(), false);
+                    if (BuildConfig.NEW_ORGANIZATION_LIST_ENABLED) {
+                        openFragment(new OrganizationSelectionFragment(), false);
+                    } else {
+                        openFragment(new TypeSelectorFragment(), false);
+                    }
                 } else {
                     // Let's Connect! flavor
                     openFragment(new CustomProviderFragment(), false);
