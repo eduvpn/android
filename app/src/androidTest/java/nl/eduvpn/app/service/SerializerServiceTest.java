@@ -42,6 +42,7 @@ import nl.eduvpn.app.entity.AuthorizationType;
 import nl.eduvpn.app.entity.DiscoveredAPI;
 import nl.eduvpn.app.entity.Instance;
 import nl.eduvpn.app.entity.InstanceList;
+import nl.eduvpn.app.entity.OrganizationList;
 import nl.eduvpn.app.entity.KeyPair;
 import nl.eduvpn.app.entity.Profile;
 import nl.eduvpn.app.entity.SavedAuthState;

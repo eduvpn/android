@@ -1,22 +1,4 @@
 /*
- * This file is part of eduVPN.
- *
- * eduVPN is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * eduVPN is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with eduVPN.  If not, see <http://www.gnu.org/licenses/>.
- *
- */
-
-/*
  *  This file is part of eduVPN.
  *
  *     eduVPN is free software: you can redistribute it and/or modify
@@ -46,10 +28,9 @@ import com.google.android.material.snackbar.Snackbar
 import nl.eduvpn.app.EduVPNApplication
 import nl.eduvpn.app.MainActivity
 import nl.eduvpn.app.R
-import nl.eduvpn.app.adapter.ProviderAdapter
+import nl.eduvpn.app.adapter.OrganizationAdapter
 import nl.eduvpn.app.base.BaseFragment
-import nl.eduvpn.app.databinding.FragmentProviderSelectionBinding
-import nl.eduvpn.app.entity.AuthorizationType
+import nl.eduvpn.app.databinding.FragmentOrganizationSelectionBinding
 import nl.eduvpn.app.service.ConfigurationService
 import nl.eduvpn.app.utils.ErrorDialog
 import nl.eduvpn.app.utils.ItemClickSupport
@@ -58,56 +39,32 @@ import nl.eduvpn.app.viewmodel.ConnectionViewModel
 import javax.inject.Inject
 
 /**
- * The fragment showing the provider list.
+ * The fragment showing the list of organizations.
  * Created by Daniel Zolnai on 2016-10-07.
  */
-class ProviderSelectionFragment : BaseFragment<FragmentProviderSelectionBinding>() {
+class OrganizationSelectionFragment : BaseFragment<FragmentOrganizationSelectionBinding>() {
 
     @Inject
     internal lateinit var configurationService: ConfigurationService
 
-    private lateinit var authorizationType: AuthorizationType
-
     private var dataObserver: RecyclerView.AdapterDataObserver? = null
 
-    override val layout = R.layout.fragment_provider_selection
+    override val layout = R.layout.fragment_organization_selection
 
     private val viewModel by lazy {
         ViewModelProviders.of(this, viewModelFactory).get(ConnectionViewModel::class.java)
     }
 
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        authorizationType = if (savedInstanceState != null) {
-            AuthorizationType.valueOf(savedInstanceState.getString(EXTRA_AUTHORIZATION_TYPE)!!)
-        } else {
-            AuthorizationType.valueOf(arguments?.getString(EXTRA_AUTHORIZATION_TYPE)!!)
-        }
-    }
-
-    override fun onSaveInstanceState(outState: Bundle) {
-        super.onSaveInstanceState(outState)
-        outState.putString(EXTRA_AUTHORIZATION_TYPE, authorizationType.name)
-    }
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         EduVPNApplication.get(view.context).component().inject(this)
-        if (authorizationType == AuthorizationType.Local) {
-            binding.header.setText(R.string.select_your_institution_title)
-            binding.description.visibility = View.GONE
-        } else {
-            binding.header.setText(R.string.select_your_country_title)
-            binding.description.visibility = View.VISIBLE
-        }
         binding.viewModel = viewModel
         binding.providerList.setHasFixedSize(true)
         binding.providerList.layoutManager = LinearLayoutManager(view.context, LinearLayoutManager.VERTICAL, false)
-        val adapter = ProviderAdapter(configurationService, authorizationType)
+        val adapter = OrganizationAdapter(configurationService)
         binding.providerList.adapter = adapter
         ItemClickSupport.addTo(binding.providerList).setOnItemClickListener { recyclerView, position, _ ->
-            val instance = (recyclerView.adapter as ProviderAdapter).getItem(position)
+            val instance = (recyclerView.adapter as OrganizationAdapter).getItem(position)
             if (instance == null) {
                 // Should never happen
                 val mainView = getView()
@@ -121,7 +78,7 @@ class ProviderSelectionFragment : BaseFragment<FragmentProviderSelectionBinding>
         }
         // When clicked long on an item, display its name in a toast.
         ItemClickSupport.addTo(binding.providerList).setOnItemLongClickListener { recyclerView, position, _ ->
-            val instance = (recyclerView.adapter as ProviderAdapter).getItem(position)
+            val instance = (recyclerView.adapter as OrganizationAdapter).getItem(position)
             val name = instance?.displayName ?: getString(R.string.display_other_name)
             Toast.makeText(recyclerView.context, name, Toast.LENGTH_LONG).show()
             true
@@ -135,7 +92,7 @@ class ProviderSelectionFragment : BaseFragment<FragmentProviderSelectionBinding>
                         binding.providerStatus.visibility = View.VISIBLE
                     }
                     else -> {
-                        binding.providerStatus.setText(R.string.no_provider_found)
+                        binding.providerStatus.setText(R.string.no_organization_found)
                         binding.providerStatus.visibility = View.VISIBLE
                     }
                 }
@@ -185,16 +142,6 @@ class ProviderSelectionFragment : BaseFragment<FragmentProviderSelectionBinding>
     }
 
     companion object {
-
-        private val TAG = ProviderSelectionFragment::class.java.name
-        private const val EXTRA_AUTHORIZATION_TYPE = "extra_authorization_type"
-
-        fun newInstance(authorizationType: AuthorizationType): ProviderSelectionFragment {
-            val fragment = ProviderSelectionFragment()
-            val args = Bundle()
-            args.putString(EXTRA_AUTHORIZATION_TYPE, authorizationType.name)
-            fragment.arguments = args
-            return fragment
-        }
+        private val TAG = OrganizationSelectionFragment::class.java.name
     }
 }

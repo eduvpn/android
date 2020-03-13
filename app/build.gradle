@@ -16,11 +16,18 @@ android {
         targetSdkVersion 29
         versionCode 12
         versionName "1.3.2"
+
+        buildConfigField "String", "ORGANIZATION_LIST_URL", "\"https://argon.tuxed.net/fkooman/eduVPN/discovery/v2/organization_list.json\""
         buildConfigField "String", "SECURE_INTERNET_DISCOVERY_URL", "\"https://static.eduvpn.nl/disco/secure_internet.json\""
         buildConfigField "String", "INSTITUTE_ACCESS_DISCOVERY_URL", "\"https://static.eduvpn.nl/disco/institute_access.json\""
+
         buildConfigField "String", "SIGNATURE_URL_POSTFIX", "\".sig\""
-        buildConfigField "String", "SIGNATURE_VALIDATION_PUBLIC_KEY", "\"E5On0JTtyUVZmcWd+I/FXRm32nSq8R2ioyW7dcu/U88=\""
-        buildConfigField "boolean", "API_DISCOVERY_ENABLED", "true"
+
+        buildConfigField "String", "DEPRECATED_SIGNATURE_VALIDATION_PUBLIC_KEY", "\"E5On0JTtyUVZmcWd+I/FXRm32nSq8R2ioyW7dcu/U88=\""
+        buildConfigField "String", "MINISIGN_SIGNATURE_VALIDATION_PUBLIC_KEY", "\"RWSC3Lwn4f9mhG3XIwRUTEIqf7Ucu9+7/Rq+scUMxrjg5/kjskXKOJY/\""
+
+        buildConfigField "boolean", "API_DISCOVERY_ENABLED", "true" // If false, you can only enter server URLs manually.
+        buildConfigField "boolean", "NEW_ORGANIZATION_LIST_ENABLED", "true" // If false, the servers will be fetched from the secure internet + institute access list
 
         // API
         buildConfigField "String", "OAUTH_CLIENT_ID", "\"org.eduvpn.app.android\""
@@ -65,8 +72,6 @@ android {
             dimension "product"
             applicationId "nl.eduvpn.app.dev"
             // Override the URLs for fetching the configs
-            buildConfigField "String", "SECURE_INTERNET_DISCOVERY_URL", "\"https://static.eduvpn.nl/disco/secure_internet_dev.json\""
-            buildConfigField "String", "INSTITUTE_ACCESS_DISCOVERY_URL", "\"https://static.eduvpn.nl/disco/institute_access_dev.json\""
             buildConfigField "String", "SIGNATURE_VALIDATION_PUBLIC_KEY", "\"zzls4TZTXHEyV3yxaxag1DZw3tSpIdBoaaOjUGH/Rwg=\""
         }
         home {

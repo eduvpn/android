@@ -1,3 +1,7 @@
+## Notice: on the current development branch signature checks are disabled because signatures are not up-to-date yet.
+
+===
+
 # Introduction
 
 This is the eduVPN / Let's Connect! for Android application.
