@@ -61,6 +61,7 @@ public class PreferencesService {
     private static final String KEY_AUTH_STATE = "auth_state";
     private static final String KEY_APP_SETTINGS = "app_settings";
 
+    static final String KEY_ORGANIZATION = "organization";
     static final String KEY_INSTANCE = "instance";
     static final String KEY_PROFILE = "profile";
     static final String KEY_DISCOVERED_API = "discovered_api";
@@ -147,6 +148,39 @@ public class PreferencesService {
     @VisibleForTesting
     void _clearPreferences() {
         _sharedPreferences.edit().clear().putInt(KEY_STORAGE_VERSION, 2).commit();
+    }
+
+    /**
+     * Saves the organization the app is connecting to.
+     * @param organization The organization to save.
+     */
+    public void setCurrentOrganization(@NonNull Organization organization) {
+        try {
+            _getSharedPreferences().edit()
+                    .putString(KEY_ORGANIZATION, _serializerService.serializeOrganization(organization).toString())
+                    .apply();
+        } catch (SerializerService.UnknownFormatException ex) {
+            Log.e(TAG, "Cannot save organization!", ex);
+        }
+    }
+
+    /**
+     * Returns a saved organization.
+     *
+     * @return The organization to connect to. Null if none found.
+     */
+    public @Nullable Organization getCurrentOrganization() {
+        String serializedOrganization = _getSharedPreferences().getString(KEY_ORGANIZATION, null);
+        if (serializedOrganization == null) {
+            return null;
+        }
+        try {
+            return _serializerService.deserializeOrganization(new JSONObject(serializedOrganization));
+        } catch (SerializerService.UnknownFormatException | JSONException ex) {
+            Log.e(TAG, "Unable to deserialize instance!", ex);
+            return null;
+        }
+
     }
 
     /**

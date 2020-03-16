@@ -70,8 +70,10 @@ public class ProviderAdapter extends RecyclerView.Adapter<ProviderViewHolder> {
         _authorizationType = authorizationType;
         if (authorizationType == AuthorizationType.Local) {
             _instanceList = configurationService.getInstituteAccessList();
-        } else {
+        } else if (authorizationType == AuthorizationType.Distributed){
             _instanceList = configurationService.getSecureInternetList();
+        } else {
+            // TODO _instanceList = configurationService.getOrganizationList()
         }
         configurationService.addObserver((o, arg) -> {
             if (_authorizationType == AuthorizationType.Local) {

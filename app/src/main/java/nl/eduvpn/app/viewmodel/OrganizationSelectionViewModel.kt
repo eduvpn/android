@@ -18,23 +18,15 @@
 
 package nl.eduvpn.app.viewmodel
 
-import androidx.annotation.StringRes
 import androidx.lifecycle.MutableLiveData
-import nl.eduvpn.app.R
 import nl.eduvpn.app.base.BaseViewModel
-import nl.eduvpn.app.entity.InstanceList
 import nl.eduvpn.app.entity.Organization
-import nl.eduvpn.app.entity.OrganizationServer
-import nl.eduvpn.app.service.APIService
-import nl.eduvpn.app.service.SerializerService
-import org.json.JSONObject
+import nl.eduvpn.app.service.PreferencesService
 
-class OrganizationSelectionViewModel(private val apiService: APIService,
-                                     private val serializerService: SerializerService) : BaseViewModel() {
+class OrganizationSelectionViewModel(private val preferencesService: PreferencesService) : BaseViewModel() {
 
     sealed class ParentAction {
-        data class DisplayError(@StringRes val title: Int, val message: String) : ParentAction()
-        data class OpenServerSelector(val servers: List<OrganizationServer>) : ParentAction()
+        object OpenProviderSelector : ParentAction()
     }
 
     val state = MutableLiveData<ConnectionState>().also { it.value = ConnectionState.Ready }
@@ -42,15 +34,7 @@ class OrganizationSelectionViewModel(private val apiService: APIService,
 
 
     fun selectOrganization(organization: Organization) {
-        apiService.getJSON(organization.serverInfoUrl, null, object: APIService.Callback<JSONObject> {
-            override fun onSuccess(result: JSONObject) {
-                val serversList = serializerService.deserializeOrganizationServerList(result)
-                parentAction.postValue(ParentAction.OpenServerSelector(serversList))
-            }
-
-            override fun onError(errorMessage: String) {
-                parentAction.postValue(ParentAction.DisplayError(R.string.error_fetching_organization_servers, errorMessage))
-            }
-        })
+        preferencesService.setCurrentOrganization(organization)
+        parentAction.postValue(ParentAction.OpenProviderSelector)
     }
 }

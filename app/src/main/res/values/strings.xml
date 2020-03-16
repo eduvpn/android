@@ -11,6 +11,7 @@
     <string name="actionbar_title">eduVPN</string>
     <string name="select_your_country_title">Select your Country</string>
     <string name="select_your_institution_title">Select your Institution</string>
+    <string name="select_your_server_title">Select your Server</string>
     <string name="select_your_organization_title">Select your Organization</string>
     <string name="custom_provider_title">Add Provider</string>
     <string name="custom_provider_prefix">https://</string>

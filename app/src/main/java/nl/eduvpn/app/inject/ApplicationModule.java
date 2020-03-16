@@ -34,6 +34,7 @@ import nl.eduvpn.app.service.APIService;
 import nl.eduvpn.app.service.ConfigurationService;
 import nl.eduvpn.app.service.ConnectionService;
 import nl.eduvpn.app.service.HistoryService;
+import nl.eduvpn.app.service.OrganizationService;
 import nl.eduvpn.app.service.PreferencesService;
 import nl.eduvpn.app.service.SecurityService;
 import nl.eduvpn.app.service.SerializerService;
@@ -66,6 +67,13 @@ public class ApplicationModule {
     protected ConfigurationService provideConfigurationService(PreferencesService preferencesService, SerializerService serializerService,
                                                                SecurityService securityService, OkHttpClient okHttpClient) {
         return new ConfigurationService(preferencesService, serializerService, securityService, okHttpClient);
+    }
+
+    @Provides
+    @Singleton
+    protected OrganizationService provideOrganizationService(PreferencesService preferencesService, SerializerService serializerService,
+                                                             SecurityService securityService, OkHttpClient okHttpClient) {
+        return new OrganizationService(preferencesService, serializerService, securityService, okHttpClient);
     }
 
     @Provides

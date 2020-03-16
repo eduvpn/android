@@ -50,6 +50,7 @@ import nl.eduvpn.app.adapter.ProviderAdapter
 import nl.eduvpn.app.base.BaseFragment
 import nl.eduvpn.app.databinding.FragmentProviderSelectionBinding
 import nl.eduvpn.app.entity.AuthorizationType
+import nl.eduvpn.app.entity.Instance
 import nl.eduvpn.app.service.ConfigurationService
 import nl.eduvpn.app.utils.ErrorDialog
 import nl.eduvpn.app.utils.ItemClickSupport
@@ -97,9 +98,12 @@ class ProviderSelectionFragment : BaseFragment<FragmentProviderSelectionBinding>
         if (authorizationType == AuthorizationType.Local) {
             binding.header.setText(R.string.select_your_institution_title)
             binding.description.visibility = View.GONE
-        } else {
+        } else if (authorizationType == AuthorizationType.Distributed){
             binding.header.setText(R.string.select_your_country_title)
             binding.description.visibility = View.VISIBLE
+        } else {
+            binding.header.setText(R.string.select_your_server_title)
+            binding.description.visibility = View.GONE
         }
         binding.viewModel = viewModel
         binding.providerList.setHasFixedSize(true)
@@ -147,7 +151,7 @@ class ProviderSelectionFragment : BaseFragment<FragmentProviderSelectionBinding>
             it.onChanged()
         }
 
-        viewModel.parentAction.observe(this, Observer { parentAction ->
+        viewModel.parentAction.observe(viewLifecycleOwner, Observer { parentAction ->
             when (parentAction) {
                 is ConnectionViewModel.ParentAction.InitiateConnection -> {
                     activity?.let { activity ->
@@ -185,7 +189,6 @@ class ProviderSelectionFragment : BaseFragment<FragmentProviderSelectionBinding>
     }
 
     companion object {
-
         private val TAG = ProviderSelectionFragment::class.java.name
         private const val EXTRA_AUTHORIZATION_TYPE = "extra_authorization_type"
 

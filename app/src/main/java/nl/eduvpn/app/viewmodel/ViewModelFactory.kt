@@ -54,8 +54,7 @@ class ViewModelFactory(
                     vpnService
             ) as T
             modelClass.isAssignableFrom(OrganizationSelectionViewModel::class.java) -> OrganizationSelectionViewModel(
-                    apiService,
-                    serializerService
+                    preferencesService
             ) as T
             else -> throw RuntimeException("Unexpected model class: ${modelClass::class.java.name}")
         }

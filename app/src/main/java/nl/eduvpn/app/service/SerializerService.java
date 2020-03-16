@@ -49,7 +49,6 @@ import nl.eduvpn.app.entity.Instance;
 import nl.eduvpn.app.entity.InstanceList;
 import nl.eduvpn.app.entity.KeyPair;
 import nl.eduvpn.app.entity.Organization;
-import nl.eduvpn.app.entity.OrganizationServer;
 import nl.eduvpn.app.entity.Profile;
 import nl.eduvpn.app.entity.SavedAuthState;
 import nl.eduvpn.app.entity.SavedKeyPair;
@@ -234,7 +233,7 @@ public class SerializerService {
                     authorizationType = AuthorizationType.Distributed;
                 }
             }
-            return new Instance(baseUri, displayName, logoUri, authorizationType, isCustom);
+            return new Instance(baseUri, displayName, logoUri, authorizationType, isCustom, null);
         } catch (JSONException ex) {
             throw new UnknownFormatException(ex);
         }
@@ -712,6 +711,33 @@ public class SerializerService {
     }
 
     /**
+     * Serializes an organization into a JSON object.
+     * @param organization The organization to serialize
+     * @return The organization as a JSON object.
+     * @throws UnknownFormatException Thrown if there was an error while serializing.
+     */
+    public JSONObject serializeOrganization(Organization organization) throws UnknownFormatException {
+        JSONObject result = new JSONObject();
+        try {
+            JSONObject translation = new JSONObject();
+            translation.put(Constants.LOCALE.getLanguage(), organization.getDisplayName());
+            result.put("display_name", translation);
+            translation = new JSONObject();
+            String keywordString = TextUtils.join(" ", organization.getKeywordList());
+            if (keywordString.isEmpty()) {
+                result.put("keyword_list", null);
+            } else {
+                translation.put(Constants.LOCALE.getLanguage(), keywordString);
+                result.put("keyword_list", translation);
+            }
+            result.put("server_info_url", organization.getServerInfoUrl());
+        } catch (JSONException ex) {
+            throw new UnknownFormatException(ex);
+        }
+        return result;
+    }
+
+    /**
      * Deserializes an organization from JSON.
      *
      * @param jsonObject The JSON object to deserialize.
@@ -772,20 +798,7 @@ public class SerializerService {
             JSONObject result = new JSONObject();
             JSONArray organizationsArray = new JSONArray();
             for (Organization organization : organizationList) {
-                JSONObject organizationObject = new JSONObject();
-                JSONObject translation = new JSONObject();
-                translation.put(Constants.LOCALE.getLanguage(), organization.getDisplayName());
-                organizationObject.put("display_name", translation);
-                translation = new JSONObject();
-                String keywordString = TextUtils.join(" ", organization.getKeywordList());
-                if (keywordString.isEmpty()) {
-                    organizationObject.put("keyword_list", null);
-                } else {
-                    translation.put(Constants.LOCALE.getLanguage(), keywordString);
-                    organizationObject.put("keyword_list", translation);
-                }
-                organizationObject.put("server_info_url", organization.getServerInfoUrl());
-                organizationsArray.put(organizationObject);
+                organizationsArray.put(serializeOrganization(organization));
             }
             result.put("organization_list", organizationsArray);
             return result;
@@ -801,44 +814,15 @@ public class SerializerService {
      * @return The list of organizations servers created from the JSON.
      * @throws UnknownFormatException Thrown if there was an error while deserializing.
      */
-    public List<OrganizationServer> deserializeOrganizationServerList(JSONObject jsonObject) throws UnknownFormatException {
+    public List<Instance> deserializeInstancesFromOrganizationServerList(JSONObject jsonObject) throws UnknownFormatException {
         try {
-            List<OrganizationServer> result = new ArrayList<>();
+            List<Instance> result = new ArrayList<>();
             JSONArray itemsList = jsonObject.getJSONArray("server_list");
             for (int i = 0; i < itemsList.length(); ++i) {
                 JSONObject serializedItem = itemsList.getJSONObject(i);
-                OrganizationServer organization = deserializeOrganizationServer(serializedItem);
-                result.add(organization);
+                Instance instance = deserializeOrganizationServerToInstance(serializedItem);
+                result.add(instance);
             }
-            return result;
-        } catch (JSONException ex) {
-            throw new UnknownFormatException(ex);
-        }
-    }
-
-    /**
-     * Serializes a list of organization servers into a JSON format.
-     *
-     * @param serverList The list of organization servers to serialize.
-     * @return The messages as a JSON object.
-     * @throws UnknownFormatException Thrown if there was an error constructing the JSON.
-     */
-    public JSONObject serializeOrganizationServerList(List<OrganizationServer> serverList) throws UnknownFormatException {
-        try {
-            JSONObject result = new JSONObject();
-            JSONArray organizationsArray = new JSONArray();
-            for (OrganizationServer server : serverList) {
-                JSONObject serverObject = new JSONObject();
-                JSONObject translation = new JSONObject();
-                translation.put(Constants.LOCALE.getLanguage(), server.getDisplayName());
-                serverObject.put("display_name", translation);
-                serverObject.put("base_url", server.getBaseUrl());
-                if (server.getServerGroupUrl() != null) {
-                    serverObject.put("server_group_url", server.getServerGroupUrl());
-                }
-                organizationsArray.put(serverObject);
-            }
-            result.put("server_list", organizationsArray);
             return result;
         } catch (JSONException ex) {
             throw new UnknownFormatException(ex);
@@ -852,7 +836,7 @@ public class SerializerService {
      * @return The organization instance.
      * @throws UnknownFormatException Thrown if the JSON has an unknown format.
      */
-    public OrganizationServer deserializeOrganizationServer(JSONObject jsonObject) throws UnknownFormatException {
+    public Instance deserializeOrganizationServerToInstance(JSONObject jsonObject) throws UnknownFormatException {
         try {
             String displayName = _findTranslation(jsonObject.getJSONObject("display_name"));
             if (displayName == null) {
@@ -863,7 +847,7 @@ public class SerializerService {
             if (jsonObject.has("server_group_url") && !jsonObject.isNull("server_group_url")) {
                 serverGroupUrl = jsonObject.getString("server_group_url");
             }
-            return new OrganizationServer(displayName, baseUrl, serverGroupUrl);
+            return new Instance(baseUrl, displayName, null, AuthorizationType.Organization, false, serverGroupUrl);
         } catch (JSONException ex) {
             throw new UnknownFormatException(ex);
         }

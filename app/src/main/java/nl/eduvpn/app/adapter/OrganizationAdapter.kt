@@ -22,21 +22,20 @@ import androidx.recyclerview.widget.RecyclerView
 import nl.eduvpn.app.adapter.viewholder.OrganizationViewHolder
 import nl.eduvpn.app.databinding.ListItemOrganizationBinding
 import nl.eduvpn.app.entity.Organization
-import nl.eduvpn.app.service.ConfigurationService
+import nl.eduvpn.app.service.OrganizationService
 import java.util.Observable
-import kotlin.math.min
 
 /**
  * Adapter for the providers list.
  * Created by Daniel Zolnai on 2016-10-07.
  */
-class OrganizationAdapter(private val configurationService: ConfigurationService) : RecyclerView.Adapter<OrganizationViewHolder>() {
+class OrganizationAdapter(private val organizationService: OrganizationService) : RecyclerView.Adapter<OrganizationViewHolder>() {
 
     private val unfilteredList: MutableList<Organization> = mutableListOf()
     private val filteredList: MutableList<Organization> = mutableListOf()
     private var layoutInflater: LayoutInflater? = null
     val isDiscoveryPending: Boolean
-        get() = configurationService.isPendingOrganizationsDiscovery
+        get() = organizationService.isPendingOrganizationsDiscovery
 
 
     var searchFilter: String? = null
@@ -47,10 +46,10 @@ class OrganizationAdapter(private val configurationService: ConfigurationService
 
 
     init {
-        unfilteredList.addAll(configurationService.organizationList)
-        configurationService.addObserver { _: Observable?, _: Any? ->
+        unfilteredList.addAll(organizationService.organizationList)
+        organizationService.addObserver { _: Observable?, _: Any? ->
             unfilteredList.clear()
-            unfilteredList.addAll(configurationService.organizationList)
+            unfilteredList.addAll(organizationService.organizationList)
             updateFilteredList()
         }
     }
@@ -65,6 +64,7 @@ class OrganizationAdapter(private val configurationService: ConfigurationService
                 it.displayName.contains(filter, ignoreCase = true) || it.keywordList.any { keyword -> keyword.equals(filter, ignoreCase = true) }
             })
         }
+        filteredList.sortBy { it.displayName }
         notifyDataSetChanged()
     }
 

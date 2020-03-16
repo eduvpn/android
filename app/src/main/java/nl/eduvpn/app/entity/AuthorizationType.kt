@@ -22,5 +22,5 @@ package nl.eduvpn.app.entity
  * Created by Daniel Zolnai on 2017-07-31.
  */
 enum class AuthorizationType {
-        Local, Distributed
+        Local, Distributed, Organization
 }

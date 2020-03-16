@@ -30,15 +30,19 @@ public class Instance {
     private String _displayName;
     private String _logoUri;
     private boolean _isCustom;
+    @Nullable
     private AuthorizationType _authorizationType;
+    @Nullable
+    private String _serverGroupUrl;
 
     public Instance(@NonNull String baseUri, @NonNull String displayName, @Nullable String logoUri,
-                    AuthorizationType authorizationType, boolean isCustom) {
+                    @Nullable AuthorizationType authorizationType, boolean isCustom, @Nullable String serverGroupUrl) {
         _baseUri = baseUri;
         _displayName = displayName;
         _logoUri = logoUri;
         _isCustom = isCustom;
         _authorizationType = authorizationType;
+        _serverGroupUrl = serverGroupUrl;
     }
 
     @NonNull
@@ -64,15 +68,21 @@ public class Instance {
         return _logoUri;
     }
 
+    @Nullable
     public AuthorizationType getAuthorizationType() {
         return _authorizationType;
+    }
+
+    @Nullable
+    public String getServerGroupUrl() {
+        return _serverGroupUrl;
     }
 
     public boolean isCustom() {
         return _isCustom;
     }
 
-    public void setAuthorizationType(AuthorizationType authorizationType) {
+    public void setAuthorizationType(@Nullable AuthorizationType authorizationType) {
         _authorizationType = authorizationType;
     }
 }
