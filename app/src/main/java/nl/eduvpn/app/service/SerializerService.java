@@ -67,7 +67,7 @@ import nl.eduvpn.app.utils.TTLCache;
  */
 public class SerializerService {
 
-    public class UnknownFormatException extends Exception {
+    public static class UnknownFormatException extends Exception {
         UnknownFormatException(String message) {
             super(message);
         }
@@ -206,7 +206,16 @@ public class SerializerService {
             result.put("display_name", instance.getDisplayName());
             result.put("logo", instance.getLogoUri());
             result.put("is_custom", instance.isCustom());
-            result.put("authorization_type", instance.getAuthorizationType() == AuthorizationType.Local ? 0 : 1);
+            int authType;
+            if (instance.getAuthorizationType() == AuthorizationType.Local) {
+                authType = 0;
+            } else if (instance.getAuthorizationType() == AuthorizationType.Distributed) {
+                authType = 1;
+            } else {
+                authType = 2;
+            }
+            result.put("authorization_type", authType);
+            result.put("server_group_url", instance.getServerGroupUrl());
         } catch (JSONException ex) {
             throw new UnknownFormatException(ex);
         }
@@ -254,7 +263,11 @@ public class SerializerService {
                     authorizationType = AuthorizationType.Distributed;
                 }
             }
-            return new Instance(baseUri, displayName, logoUri, authorizationType, isCustom, null);
+            String serverGroupUrl = null;
+            if (jsonObject.has("server_group_url")) {
+                serverGroupUrl = jsonObject.getString("server_group_url");
+            }
+            return new Instance(baseUri, displayName, logoUri, authorizationType, isCustom, serverGroupUrl);
         } catch (JSONException ex) {
             throw new UnknownFormatException(ex);
         }

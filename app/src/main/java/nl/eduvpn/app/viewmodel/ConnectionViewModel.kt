@@ -23,6 +23,8 @@ import android.content.Context
 import androidx.annotation.StringRes
 import androidx.lifecycle.MutableLiveData
 import de.blinkt.openvpn.VpnProfile
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.schedulers.Schedulers
 import net.openid.appauth.AuthState
 import nl.eduvpn.app.BuildConfig
 import nl.eduvpn.app.Constants
@@ -109,7 +111,7 @@ open class ConnectionViewModel(
                             // This is a distributed token. We add it to the list.
                             Log.i(TAG, "Distributed token found for different instance.")
                             preferencesService.currentInstance = instance
-                            preferencesService.currentDiscoveredAPI =discoveredAPI
+                            preferencesService.currentDiscoveredAPI = discoveredAPI
                             preferencesService.currentAuthState = savedToken.authState
                             historyService.cacheAuthorizationState(instance, savedToken.authState)
                         }
@@ -351,7 +353,6 @@ open class ConnectionViewModel(
     }
 
 
-
     override fun update(o: Observable?, arg: Any?) {
         if (o is HistoryService) {
             refreshInstances()
@@ -362,7 +363,43 @@ open class ConnectionViewModel(
 
     private fun refreshInstances() {
         val newInstances = historyService.savedAuthStateList.map { it.instance }.toMutableList()
-        instances.value = newInstances
+        val groupUrls = newInstances.mapNotNull { it.serverGroupUrl }
+        if (groupUrls.isEmpty()) {
+            instances.value = newInstances
+        } else {
+            connectionState.value = ConnectionState.DiscoveringGroupServers
+            val groupObservable = io.reactivex.Observable.just(groupUrls)
+            disposables.add(groupObservable.flatMapIterable { list -> list }
+                    .flatMap { url ->
+                        return@flatMap io.reactivex.Observable.create<List<Instance>> { emitter ->
+                            apiService.getJSON(url, null, object : APIService.Callback<JSONObject> {
+                                override fun onSuccess(result: JSONObject) {
+                                    emitter.onNext(serializerService.deserializeInstancesFromOrganizationServerList(result))
+                                    emitter.onComplete()
+                                }
+
+                                override fun onError(errorMessage: String?) {
+                                    emitter.onError(Throwable(errorMessage))
+                                }
+                            })
+                        }
+                    }.toList()
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe({
+                        // TODO remove original instances
+                        val singleList = it.reduce { acc, list -> acc + list }
+                        instances.value = newInstances + singleList
+                        connectionState.value = ConnectionState.Ready
+                    }, {
+                        // TODO error handling
+                        Log.w(TAG, "Unable to fetch additional instances from server group URL", it)
+                        instances.value = newInstances
+                        connectionState.value = ConnectionState.Ready
+                    })
+            )
+
+        }
     }
 
     fun deleteAllDataForInstance(instance: Instance) {

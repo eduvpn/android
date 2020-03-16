@@ -125,5 +125,6 @@
     <string name="fetching_organization_servers">Fetching organizations...</string>
     <string name="error_fetching_organization_servers">Error fetching organization servers</string>
     <string name="error_fetching_organizations">Error fetching organizations</string>
+    <string name="discovering_group_servers">Discovering group servers...</string>
 
 </resources>

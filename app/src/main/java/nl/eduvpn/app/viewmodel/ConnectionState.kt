@@ -25,6 +25,7 @@ enum class ConnectionState(@StringRes val displayString: Int?) {
         Ready(null),
         FetchingOrganizations(R.string.fetching_organization_servers),
         DiscoveringApi(R.string.api_discovery_message),
+        DiscoveringGroupServers(R.string.discovering_group_servers),
         FetchingProfiles(R.string.loading_available_profiles),
         Authorizing(R.string.loading_browser_for_authorization),
         ProfileCheckingCertificate(R.string.vpn_profile_checking_certificate),
