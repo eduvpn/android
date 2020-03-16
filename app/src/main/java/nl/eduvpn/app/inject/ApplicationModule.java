@@ -71,9 +71,9 @@ public class ApplicationModule {
 
     @Provides
     @Singleton
-    protected OrganizationService provideOrganizationService(PreferencesService preferencesService, SerializerService serializerService,
+    protected OrganizationService provideOrganizationService(SerializerService serializerService,
                                                              SecurityService securityService, OkHttpClient okHttpClient) {
-        return new OrganizationService(preferencesService, serializerService, securityService, okHttpClient);
+        return new OrganizationService( serializerService, securityService, okHttpClient);
     }
 
     @Provides
@@ -161,9 +161,10 @@ public class ApplicationModule {
                                                        HistoryService historyService,
                                                        PreferencesService preferencesService,
                                                        ConnectionService connectionService,
-                                                       VPNService vpnService) {
+                                                       VPNService vpnService,
+                                                       OrganizationService organizationService) {
         return new ViewModelFactory(context, apiService, serializerService,
                 configurationService, historyService, preferencesService, connectionService,
-                vpnService);
+                vpnService, organizationService);
     }
 }

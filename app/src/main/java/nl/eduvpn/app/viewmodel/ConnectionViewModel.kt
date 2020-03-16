@@ -53,7 +53,7 @@ import java.util.Observer
  * This viewmodel takes care of the entire flow, from connecting to the servers to fetching profiles.
  */
 @Suppress("ConstantConditionIf")
-class ConnectionViewModel(
+open class ConnectionViewModel(
         private val context: Context,
         private val apiService: APIService,
         private val serializerService: SerializerService,

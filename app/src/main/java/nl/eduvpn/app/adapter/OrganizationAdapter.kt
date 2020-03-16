@@ -22,21 +22,16 @@ import androidx.recyclerview.widget.RecyclerView
 import nl.eduvpn.app.adapter.viewholder.OrganizationViewHolder
 import nl.eduvpn.app.databinding.ListItemOrganizationBinding
 import nl.eduvpn.app.entity.Organization
-import nl.eduvpn.app.service.OrganizationService
-import java.util.Observable
 
 /**
  * Adapter for the providers list.
  * Created by Daniel Zolnai on 2016-10-07.
  */
-class OrganizationAdapter(private val organizationService: OrganizationService) : RecyclerView.Adapter<OrganizationViewHolder>() {
+class OrganizationAdapter : RecyclerView.Adapter<OrganizationViewHolder>() {
 
     private val unfilteredList: MutableList<Organization> = mutableListOf()
     private val filteredList: MutableList<Organization> = mutableListOf()
     private var layoutInflater: LayoutInflater? = null
-    val isDiscoveryPending: Boolean
-        get() = organizationService.isPendingOrganizationsDiscovery
-
 
     var searchFilter: String? = null
         set(value) {
@@ -44,14 +39,10 @@ class OrganizationAdapter(private val organizationService: OrganizationService) 
             updateFilteredList()
         }
 
-
-    init {
-        unfilteredList.addAll(organizationService.organizationList)
-        organizationService.addObserver { _: Observable?, _: Any? ->
-            unfilteredList.clear()
-            unfilteredList.addAll(organizationService.organizationList)
-            updateFilteredList()
-        }
+    fun setOrganizations(organizations: List<Organization>) {
+        unfilteredList.clear()
+        unfilteredList.addAll(organizations)
+        updateFilteredList()
     }
 
     private fun updateFilteredList() {

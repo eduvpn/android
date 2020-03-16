@@ -52,6 +52,7 @@ import nl.eduvpn.app.entity.Organization;
 import nl.eduvpn.app.entity.Profile;
 import nl.eduvpn.app.entity.SavedAuthState;
 import nl.eduvpn.app.entity.SavedKeyPair;
+import nl.eduvpn.app.entity.SavedOrganization;
 import nl.eduvpn.app.entity.SavedProfile;
 import nl.eduvpn.app.entity.Settings;
 import nl.eduvpn.app.entity.message.Maintenance;
@@ -172,6 +173,26 @@ public class SerializerService {
     }
 
     /**
+     * Deserializes a JSON to an InstanceList instance.
+     *
+     * @param instanceArray The JSON array to deserialize.
+     * @return The JSON as a list of instances.
+     * @throws UnknownFormatException Thrown if there was a problem while parsing the JSON.
+     */
+    public List<Instance> deserializeInstances(JSONArray instanceArray) throws UnknownFormatException {
+        try {
+            List<Instance> instances = new ArrayList<>();
+            for (int i = 0; i < instanceArray.length(); ++i) {
+                JSONObject instanceObject = instanceArray.getJSONObject(i);
+                instances.add(deserializeInstance(instanceObject));
+            }
+            return instances;
+        } catch (JSONException ex) {
+            throw new UnknownFormatException(ex);
+        }
+    }
+
+    /**
      * Serializes an instance to a JSON format.
      *
      * @param instance The instance to serialize.
@@ -261,6 +282,22 @@ public class SerializerService {
         } catch (JSONException ex) {
             throw new UnknownFormatException(ex);
         }
+    }
+
+    /**
+     * Serializes a list of instances.
+     *
+     * @param instanceList The object to serialize.
+     * @return The result in a JSON representation.
+     * @throws UnknownFormatException Thrown if there was a problem when serializing.
+     */
+    public JSONArray serializeInstances(List<Instance> instanceList) throws UnknownFormatException {
+        JSONArray serializedInstances = new JSONArray();
+        for (Instance instance : instanceList) {
+            JSONObject serializedInstance = serializeInstance(instance);
+            serializedInstances.put(serializedInstance);
+        }
+        return serializedInstances;
     }
 
     /**
@@ -687,6 +724,39 @@ public class SerializerService {
         }
     }
 
+    /**
+     * Serializes an organizations with its servers.
+     *
+     * @param savedOrganization The organizations and its servers to serialize.
+     * @return The servers and organization in JSON format.
+     * @throws UnknownFormatException Thrown if there was an error while serializing.
+     */
+    public JSONObject serializeSavedOrganization(SavedOrganization savedOrganization) throws UnknownFormatException {
+        try {
+            JSONObject result = new JSONObject();
+            result.put("organization", serializeOrganization(savedOrganization.getOrganization()));
+            result.put("servers", serializeInstances(savedOrganization.getServers()));
+            return result;
+        } catch (JSONException ex) {
+            throw new UnknownFormatException(ex);
+        }
+    }
+
+    /**
+     * Deserializes a SavedOrganization from JSON.
+     * @param jsonObject The saved organization and servers in json format.
+     * @return The deserialized saved organization.
+     * @throws UnknownFormatException Thrown if there was an error while deserializing.
+     */
+    public SavedOrganization deserializeSavedOrganization(JSONObject jsonObject) throws UnknownFormatException {
+        try {
+            JSONObject organizationJson = jsonObject.getJSONObject("organization");
+            JSONArray serversJson = jsonObject.getJSONArray("servers");
+            return new SavedOrganization(deserializeOrganization(organizationJson), deserializeInstances(serversJson));
+        } catch (JSONException ex) {
+            throw new UnknownFormatException(ex);
+        }
+    }
 
     /**
      * Deserializes a list of saved key pairs.
@@ -712,6 +782,7 @@ public class SerializerService {
 
     /**
      * Serializes an organization into a JSON object.
+     *
      * @param organization The organization to serialize
      * @return The organization as a JSON object.
      * @throws UnknownFormatException Thrown if there was an error while serializing.

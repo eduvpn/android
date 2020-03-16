@@ -31,8 +31,10 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import nl.eduvpn.app.entity.AuthorizationType;
 import nl.eduvpn.app.entity.Instance;
+import nl.eduvpn.app.entity.Organization;
 import nl.eduvpn.app.entity.SavedAuthState;
 import nl.eduvpn.app.entity.SavedKeyPair;
+import nl.eduvpn.app.entity.SavedOrganization;
 import nl.eduvpn.app.entity.SavedProfile;
 import nl.eduvpn.app.utils.Log;
 
@@ -47,6 +49,7 @@ public class HistoryService extends Observable {
     private List<SavedProfile> _savedProfileList;
     private List<SavedAuthState> _savedAuthStateList;
     private List<SavedKeyPair> _savedKeyPairList;
+    private SavedOrganization _savedOrganization;
 
     private final PreferencesService _preferencesService;
 
@@ -304,6 +307,12 @@ public class HistoryService extends Observable {
             }
         }
         return null;
+    }
+
+    public void storeSavedOrganization(@NonNull SavedOrganization savedOrganization) {
+        _savedOrganization = savedOrganization;
+        _preferencesService.storeSavedOrganization(savedOrganization);
+
     }
 
     /**

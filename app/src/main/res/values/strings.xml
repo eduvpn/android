@@ -122,7 +122,8 @@
     <string name="error_no_internet_connection">No internet connection</string>
     <string name="error_no_internet_connection_message">It seems that you have no connection to the internet. Please check your connection, and try again.\nOriginal error: %s</string>
     <string name="select_your_organization_search_hint">Search for your organization...</string>
-    <string name="fetching_organization_servers">Fetching organization servers...</string>
+    <string name="fetching_organization_servers">Fetching organizations...</string>
     <string name="error_fetching_organization_servers">Error fetching organization servers</string>
+    <string name="error_fetching_organizations">Error fetching organizations</string>
 
 </resources>

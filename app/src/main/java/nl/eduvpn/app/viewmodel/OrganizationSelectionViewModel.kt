@@ -18,19 +18,40 @@
 
 package nl.eduvpn.app.viewmodel
 
+import androidx.annotation.StringRes
 import androidx.lifecycle.MutableLiveData
+import nl.eduvpn.app.R
 import nl.eduvpn.app.base.BaseViewModel
 import nl.eduvpn.app.entity.Organization
+import nl.eduvpn.app.service.OrganizationService
 import nl.eduvpn.app.service.PreferencesService
 
-class OrganizationSelectionViewModel(private val preferencesService: PreferencesService) : BaseViewModel() {
+class OrganizationSelectionViewModel(
+        organizationService: OrganizationService,
+        private val preferencesService: PreferencesService) : BaseViewModel() {
 
     sealed class ParentAction {
         object OpenProviderSelector : ParentAction()
+        data class DisplayError(@StringRes val title: Int, val message: String) : ParentAction()
     }
 
     val state = MutableLiveData<ConnectionState>().also { it.value = ConnectionState.Ready }
     val parentAction = MutableLiveData<ParentAction>()
+
+    val organizations = MutableLiveData<List<Organization>>()
+
+    init {
+        state.value = ConnectionState.FetchingOrganizations
+        disposables.add(
+                organizationService.fetchOrganizations()
+                        .subscribe({ organizationList ->
+                            state.value = ConnectionState.Ready
+                            organizations.value = organizationList
+                        }, { throwable ->
+                            parentAction.value = ParentAction.DisplayError(R.string.error_fetching_organizations, throwable.toString())
+                        })
+        )
+    }
 
 
     fun selectOrganization(organization: Organization) {
