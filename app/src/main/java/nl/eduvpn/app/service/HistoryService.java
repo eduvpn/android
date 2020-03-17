@@ -363,6 +363,7 @@ public class HistoryService extends Observable {
 
             }
         }
+        _save();
     }
 
     /**
