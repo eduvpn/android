@@ -198,7 +198,7 @@ open class ConnectionViewModel(
             return
         }
         preferencesService.currentInstance = instance
-        preferencesService.storeCurrentProfile(profile)
+        preferencesService.setCurrentProfile(profile)
         preferencesService.currentAuthState = authState
         // Always download a new profile.
         // Just to be sure,
@@ -264,7 +264,7 @@ open class ConnectionViewModel(
      * @param discoveredAPI The discovered API URLs.
      * @param savedKeyPair  The private key and certificate used to generate the profile.
      * @param profile       The profile to create.
-     * @param dialog        Loading dialog which should be dismissed when finished.
+     * @param authState     Authorization state which helps us connect tot the API.
      */
     private fun downloadProfileWithKeyPair(instance: Instance, discoveredAPI: DiscoveredAPI,
                                            savedKeyPair: SavedKeyPair, profile: Profile,
@@ -361,16 +361,22 @@ open class ConnectionViewModel(
         }
     }
 
+    /**
+     * Refreshes the instances for the server selector. Also downloads the instance groups.
+     */
     private fun refreshInstances() {
-        val newInstances = historyService.savedAuthStateList.map { it.instance }.toMutableList()
-        val groupUrls = newInstances.mapNotNull { it.serverGroupUrl }
-        if (groupUrls.isEmpty()) {
-            instances.value = newInstances
+        val cachedInstances = historyService.savedAuthStateList.map { it.instance }.toMutableList()
+        val groupUrlInstances = cachedInstances.filter { it.serverGroupUrl != null }.map { Pair(it, it.serverGroupUrl!!) }
+        if (groupUrlInstances.isEmpty()) {
+            instances.value = cachedInstances
         } else {
+            val regularInstances = cachedInstances.filter { it.serverGroupUrl == null }
             connectionState.value = ConnectionState.DiscoveringGroupServers
-            val groupObservable = io.reactivex.Observable.just(groupUrls)
+            val groupObservable = io.reactivex.Observable.just(groupUrlInstances)
             disposables.add(groupObservable.flatMapIterable { list -> list }
-                    .flatMap { url ->
+                    .flatMap { instanceUrlPair ->
+                        val originalInstance = instanceUrlPair.first
+                        val url = instanceUrlPair.second
                         return@flatMap io.reactivex.Observable.create<List<Instance>> { emitter ->
                             apiService.getJSON(url, null, object : APIService.Callback<JSONObject> {
                                 override fun onSuccess(result: JSONObject) {
@@ -379,7 +385,8 @@ open class ConnectionViewModel(
                                 }
 
                                 override fun onError(errorMessage: String?) {
-                                    emitter.onError(Throwable(errorMessage))
+                                    Log.w(TAG, "Unable to download group URL servers for instance.", Throwable(errorMessage))
+                                    emitter.onNext(listOf(originalInstance))
                                 }
                             })
                         }
@@ -387,23 +394,18 @@ open class ConnectionViewModel(
                     .subscribeOn(Schedulers.io())
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe({
-                        // TODO remove original instances
-                        val singleList = it.reduce { acc, list -> acc + list }
-                        instances.value = newInstances + singleList
+                        val mergedInstanceGroups = it.reduce { acc, list -> acc + list }
+                        instances.value = regularInstances + mergedInstanceGroups
                         connectionState.value = ConnectionState.Ready
                     }, {
                         // TODO error handling
                         Log.w(TAG, "Unable to fetch additional instances from server group URL", it)
-                        instances.value = newInstances
+                        instances.value = cachedInstances
                         connectionState.value = ConnectionState.Ready
                     })
             )
 
         }
-    }
-
-    fun deleteAllDataForInstance(instance: Instance) {
-        historyService.removeAllDataForInstance(instance)
     }
 
     fun getProfileInstance(): Instance {

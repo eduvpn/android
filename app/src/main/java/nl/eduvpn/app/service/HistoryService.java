@@ -31,7 +31,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import nl.eduvpn.app.entity.AuthorizationType;
 import nl.eduvpn.app.entity.Instance;
-import nl.eduvpn.app.entity.Organization;
 import nl.eduvpn.app.entity.SavedAuthState;
 import nl.eduvpn.app.entity.SavedKeyPair;
 import nl.eduvpn.app.entity.SavedOrganization;
@@ -151,23 +150,6 @@ public class HistoryService extends Observable {
         return Collections.unmodifiableList(_savedProfileList);
     }
 
-    /**
-     * Returns the saved tokens for a specific auth type.
-     *
-     * @param authorizationType The authorization type filter.
-     * @return The list of saved tokens for specific instances.
-     */
-    @NonNull
-    public List<SavedAuthState> getSavedTokensForAuthorizationType(AuthorizationType authorizationType) {
-        List<SavedAuthState> result = new ArrayList<>();
-        for (SavedAuthState savedAuthState : _savedAuthStateList) {
-            if (savedAuthState.getInstance().getAuthorizationType() == authorizationType) {
-                result.add(savedAuthState);
-            }
-        }
-        return Collections.unmodifiableList(result);
-    }
-
 
     /**
      * Stores a saved profile, so the user can select it the next time.
@@ -245,31 +227,6 @@ public class HistoryService extends Observable {
     }
 
     /**
-     * Removes the saved profiles for an instance.
-     *
-     * @param instance The instance which should be removed.
-     */
-    public void removeSavedProfilesForInstance(@NonNull Instance instance) {
-        Iterator<SavedProfile> savedProfileIterator = _savedProfileList.iterator();
-        while (savedProfileIterator.hasNext()) {
-            SavedProfile savedProfile = savedProfileIterator.next();
-            if (instance.getAuthorizationType() == AuthorizationType.Distributed &&
-                    savedProfile.getInstance().getAuthorizationType() == AuthorizationType.Distributed) {
-                savedProfileIterator.remove();
-                Log.i(TAG, "Deleted profile for distributed auth instance " + savedProfile.getInstance().getSanitizedBaseURI());
-            } else if (instance.getAuthorizationType() == AuthorizationType.Local &&
-                    savedProfile.getInstance().getSanitizedBaseURI().equals(instance.getSanitizedBaseURI())) {
-                savedProfileIterator.remove();
-                Log.i(TAG, "Deleted profile for local auth instance " + savedProfile.getInstance().getSanitizedBaseURI());
-            }
-        }
-        _save();
-        setChanged();
-        notifyObservers(NOTIFICATION_PROFILES_CHANGED);
-        clearChanged();
-    }
-
-    /**
      * Returns a saved token for a given sanitized base URI.
      *
      * @param instance The instance to get the token for.
@@ -312,7 +269,6 @@ public class HistoryService extends Observable {
     public void storeSavedOrganization(@NonNull SavedOrganization savedOrganization) {
         _savedOrganization = savedOrganization;
         _preferencesService.storeSavedOrganization(savedOrganization);
-
     }
 
     /**
@@ -402,29 +358,24 @@ public class HistoryService extends Observable {
 
             }
         }
-        _save();
     }
 
-    /**
-     * Removes all saved data for an instance.
-     *
-     * @param instance The instance to remove the data for.
-     */
-    public void removeAllDataForInstance(Instance instance) {
-        if (instance.getAuthorizationType() == AuthorizationType.Distributed) {
-            // Remove all distributed instance related data
-            List<SavedAuthState> authStates = new ArrayList<>(getSavedAuthStateList());
-            for (SavedAuthState savedAuthState : authStates) {
-                if (savedAuthState.getInstance().getAuthorizationType() == AuthorizationType.Distributed) {
-                    removeSavedKeyPairs(savedAuthState.getInstance());
-                    _removeAuthorizations(savedAuthState.getInstance());
-                    removeSavedProfilesForInstance(savedAuthState.getInstance()); // This will trigger a profiles changed event
-                }
-            }
-        } else {
-            removeSavedKeyPairs(instance);
-            _removeAuthorizations(instance);
-            removeSavedProfilesForInstance(instance); // This will trigger a profiles changed event
-        }
+
+    /***
+     * Removes all saved data in this app.
+     ***/
+    public void removeAllData() {
+        _savedProfileList = new ArrayList<>();
+        _savedAuthStateList = new ArrayList<>();
+        _savedKeyPairList = new ArrayList<>();
+        _savedOrganization = null;
+        _preferencesService.setCurrentOrganization(null);
+        _preferencesService.setCurrentAuthState(null);
+        _preferencesService.setCurrentDiscoveredAPI(null);
+        _preferencesService.setCurrentInstance(null);
+        _preferencesService.setCurrentProfile(null);
+        _preferencesService.storeInstanceList(AuthorizationType.Local, null);
+        _preferencesService.storeInstanceList(AuthorizationType.Distributed, null);
+        _save();
     }
 }

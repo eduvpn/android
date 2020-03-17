@@ -31,7 +31,9 @@ import java.io.StringReader;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -398,6 +400,14 @@ public class VPNService extends Observable implements VpnStatus.StateListener {
                 }
             }
         });
+    }
+
+    public void removeProfiles() {
+        ProfileManager profileManager = ProfileManager.getInstance(_context);
+        List<VpnProfile> profiles = new ArrayList<>(profileManager.getProfiles());
+        for (VpnProfile profile : profiles) {
+            profileManager.removeProfile(_context, profile);
+        }
     }
 
     /**

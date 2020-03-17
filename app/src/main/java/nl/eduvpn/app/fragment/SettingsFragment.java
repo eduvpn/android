@@ -17,6 +17,7 @@
 
 package nl.eduvpn.app.fragment;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
@@ -26,13 +27,17 @@ import javax.inject.Inject;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import nl.eduvpn.app.EduVPNApplication;
 import nl.eduvpn.app.LicenseActivity;
 import nl.eduvpn.app.R;
+import nl.eduvpn.app.SettingsActivity;
 import nl.eduvpn.app.base.BaseFragment;
 import nl.eduvpn.app.databinding.FragmentSettingsBinding;
 import nl.eduvpn.app.entity.Settings;
+import nl.eduvpn.app.service.HistoryService;
 import nl.eduvpn.app.service.PreferencesService;
+import nl.eduvpn.app.service.VPNService;
 
 /**
  * Fragment which displays the available settings to the user.
@@ -42,6 +47,12 @@ public class SettingsFragment extends BaseFragment<FragmentSettingsBinding> {
 
     @Inject
     protected PreferencesService _preferencesService;
+
+    @Inject
+    protected HistoryService _historyService;
+
+    @Inject
+    protected VPNService _vpnService;
 
     private Settings _originalSettings;
 
@@ -63,9 +74,23 @@ public class SettingsFragment extends BaseFragment<FragmentSettingsBinding> {
         binding.useCustomTabsSwitch.setOnClickListener(v -> onSettingChanged());
         binding.forceTcpSwitch.setOnClickListener(v -> onSettingChanged());
         binding.saveButton.setOnClickListener(v -> onSaveButtonClicked());
-        binding.licensesContainer.setOnClickListener(v -> {
-            startActivity(new Intent(requireContext(), LicenseActivity.class));
-        });
+        binding.licensesContainer.setOnClickListener(v -> startActivity(new Intent(requireContext(), LicenseActivity.class)));
+        binding.resetAppDataContainer.setOnClickListener(v -> onResetDataClicked());
+    }
+
+    private void onResetDataClicked() {
+        AlertDialog resetDataDialog = new AlertDialog.Builder(requireContext())
+                .setTitle(R.string.reset_data_dialog_title)
+                .setMessage(R.string.reset_data_dialog_message)
+                .setPositiveButton(R.string.reset_data_dialog_yes, (dialog, which) -> {
+                    dialog.dismiss();
+                    _historyService.removeAllData();
+                    _vpnService.removeProfiles();
+                    requireActivity().setResult(SettingsActivity.RESULT_APP_DATA_CLEARED);
+                    requireActivity().finish();
+                })
+                .setNegativeButton(R.string.reset_data_dialog_no, (dialog, which) -> dialog.dismiss()).create();
+        resetDataDialog.show();
     }
 
     public void onSettingChanged() {

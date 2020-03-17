@@ -159,11 +159,15 @@ public class PreferencesService {
      *
      * @param organization The organization to save.
      */
-    public void setCurrentOrganization(@NonNull Organization organization) {
+    public void setCurrentOrganization(@Nullable Organization organization) {
         try {
-            _getSharedPreferences().edit()
-                    .putString(KEY_ORGANIZATION, _serializerService.serializeOrganization(organization).toString())
-                    .apply();
+            if (organization == null) {
+                _getSharedPreferences().edit().remove(KEY_ORGANIZATION).apply();
+            } else {
+                _getSharedPreferences().edit()
+                        .putString(KEY_ORGANIZATION, _serializerService.serializeOrganization(organization).toString())
+                        .apply();
+            }
         } catch (SerializerService.UnknownFormatException ex) {
             Log.e(TAG, "Cannot save organization!", ex);
         }
@@ -194,11 +198,15 @@ public class PreferencesService {
      *
      * @param instance The instance to save.
      */
-    public void setCurrentInstance(@NonNull Instance instance) {
+    public void setCurrentInstance(@Nullable Instance instance) {
         try {
-            _getSharedPreferences().edit()
-                    .putString(KEY_INSTANCE, _serializerService.serializeInstance(instance).toString())
-                    .apply();
+            if (instance == null) {
+                _getSharedPreferences().edit().remove(KEY_INSTANCE).apply();
+            } else {
+                _getSharedPreferences().edit()
+                        .putString(KEY_INSTANCE, _serializerService.serializeInstance(instance).toString())
+                        .apply();
+            }
         } catch (SerializerService.UnknownFormatException ex) {
             Log.e(TAG, "Can not save connection instance!", ex);
         }
@@ -227,11 +235,15 @@ public class PreferencesService {
      *
      * @param profile The profile to save.
      */
-    public void storeCurrentProfile(@NonNull Profile profile) {
+    public void setCurrentProfile(@Nullable Profile profile) {
         try {
-            _getSharedPreferences().edit()
-                    .putString(KEY_PROFILE, _serializerService.serializeProfile(profile).toString())
-                    .apply();
+            if (profile == null) {
+                _getSharedPreferences().edit().remove(KEY_PROFILE).apply();
+            } else {
+                _getSharedPreferences().edit()
+                        .putString(KEY_PROFILE, _serializerService.serializeProfile(profile).toString())
+                        .apply();
+            }
         } catch (SerializerService.UnknownFormatException ex) {
             Log.e(TAG, "Unable to serialize profile!", ex);
         }
@@ -240,7 +252,7 @@ public class PreferencesService {
     /**
      * Returns the previously saved profile.
      *
-     * @return The lastly saved profile with {@link #storeCurrentProfile(Profile)}.
+     * @return The lastly saved profile with {@link #setCurrentProfile(Profile)}.
      */
     @Nullable
     public Profile getCurrentProfile() {
@@ -450,7 +462,7 @@ public class PreferencesService {
     /**
      * Stores the instance list for a specific connection type
      */
-    public void storeInstanceList(AuthorizationType authorizationType, InstanceList instanceListToSave) {
+    public void storeInstanceList(AuthorizationType authorizationType, @Nullable InstanceList instanceListToSave) {
         String key;
         if (authorizationType == AuthorizationType.Distributed) {
             key = KEY_INSTANCE_LIST_INSTITUTE_ACCESS;
@@ -460,8 +472,12 @@ public class PreferencesService {
             throw new RuntimeException("Unexpected connection type!");
         }
         try {
-            String serializedInstanceList = _serializerService.serializeInstanceList(instanceListToSave).toString();
-            _getSharedPreferences().edit().putString(key, serializedInstanceList).apply();
+            if (instanceListToSave == null) {
+                _getSharedPreferences().edit().remove(key).apply();
+            } else {
+                String serializedInstanceList = _serializerService.serializeInstanceList(instanceListToSave).toString();
+                _getSharedPreferences().edit().putString(key, serializedInstanceList).apply();
+            }
         } catch (SerializerService.UnknownFormatException ex) {
             Log.e(TAG, "Cannot save instance list for connection type: " + authorizationType, ex);
         }

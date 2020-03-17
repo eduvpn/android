@@ -30,6 +30,8 @@ import nl.eduvpn.app.fragment.SettingsFragment;
  */
 public class SettingsActivity extends BaseActivity<ActivitySettingsBinding> {
 
+    public static final int RESULT_APP_DATA_CLEARED = 101;
+
     @Override
     protected int getLayout() {
         return R.layout.activity_settings;

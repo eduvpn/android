@@ -27,6 +27,7 @@ import net.openid.appauth.AuthorizationResponse;
 
 import javax.inject.Inject;
 
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import nl.eduvpn.app.base.BaseActivity;
 import nl.eduvpn.app.databinding.ActivityMainBinding;
@@ -45,6 +46,8 @@ import nl.eduvpn.app.utils.Log;
 public class MainActivity extends BaseActivity<ActivityMainBinding> {
 
     private static final String TAG = MainActivity.class.getName();
+
+    private static final int REQUEST_CODE_SETTINGS = 1001;
 
     @Inject
     protected HistoryService _historyService;
@@ -164,6 +167,18 @@ public class MainActivity extends BaseActivity<ActivityMainBinding> {
 
     protected void onSettingsButtonClicked() {
         Intent intent = new Intent(this, SettingsActivity.class);
-        startActivity(intent);
+        startActivityForResult(intent, REQUEST_CODE_SETTINGS);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        if (requestCode == REQUEST_CODE_SETTINGS && resultCode == SettingsActivity.RESULT_APP_DATA_CLEARED) {
+            if (_vpnService.getStatus() != VPNService.VPNStatus.DISCONNECTED) {
+                _vpnService.disconnect();
+            }
+            openFragment(new OrganizationSelectionFragment(), false);
+        } else {
+            super.onActivityResult(requestCode, resultCode, data);
+        }
     }
 }

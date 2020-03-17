@@ -112,9 +112,6 @@
     <string name="licenses_title">Software licenses</string>
     <string name="settings_licenses_title">Software licenses</string>
     <string name="settings_licenses_description">Acknowledgement for 3rd party software used to build this application.</string>
-    <string name="delete_server">Delete server</string>
-    <string name="delete_server_message">Are you sure you want to remove the server \'%1$s\' (%2$s) with all its profiles?</string>
-    <string name="delete_server_cancel">Cancel</string>
     <string name="select_a_server_title">Select a server</string>
     <string name="error_parsing_profiles">Unable to parse the profile list.</string>
     <string name="select_a_profile_title">Select a profile</string>
@@ -126,5 +123,11 @@
     <string name="error_fetching_organization_servers">Error fetching organization servers</string>
     <string name="error_fetching_organizations">Error fetching organizations</string>
     <string name="discovering_group_servers">Discovering group servers...</string>
+    <string name="reset_app_data_title">Reset app data</string>
+    <string name="reset_app_data_description">This will delete all your saved profiles and authorization data. After the reset, you will have to choose an organization again.</string>
+    <string name="reset_data_dialog_title">Are you sure?</string>
+    <string name="reset_data_dialog_message">Do you want to remove all VPN profiles and connection-related data?</string>
+    <string name="reset_data_dialog_yes">Yes</string>
+    <string name="reset_data_dialog_no">No</string>
 
 </resources>
