@@ -20,6 +20,7 @@ package nl.eduvpn.app.viewmodel
 
 import android.content.Context
 import androidx.lifecycle.MutableLiveData
+import nl.eduvpn.app.R
 import nl.eduvpn.app.entity.Instance
 import nl.eduvpn.app.entity.Organization
 import nl.eduvpn.app.service.*
@@ -56,7 +57,7 @@ class ProviderSelectionViewModel(context: Context,
                     currentOrganizationInstances.value = instanceList
                     preferencesService.storeOrganizationInstanceList(instanceList)
                 }, { throwable ->
-                    // TODO show error
+                    parentAction.value = ParentAction.DisplayError(R.string.error_server_discovery_title, throwable.toString())
                 })
         )
     }

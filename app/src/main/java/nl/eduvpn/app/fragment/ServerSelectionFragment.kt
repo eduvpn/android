@@ -36,6 +36,7 @@ import nl.eduvpn.app.entity.Instance
 import nl.eduvpn.app.utils.ErrorDialog
 import nl.eduvpn.app.utils.ItemClickSupport
 import nl.eduvpn.app.viewmodel.ConnectionViewModel
+import nl.eduvpn.app.viewmodel.ServerSelectionViewModel
 
 class ServerSelectionFragment : BaseFragment<FragmentServerSelectionBinding>() {
     override val layout = R.layout.fragment_server_selection
@@ -43,7 +44,7 @@ class ServerSelectionFragment : BaseFragment<FragmentServerSelectionBinding>() {
     private var previousListSize = 0
 
     private val viewModel by lazy {
-        ViewModelProviders.of(this, viewModelFactory).get(ConnectionViewModel::class.java)
+        ViewModelProviders.of(this, viewModelFactory).get(ServerSelectionViewModel::class.java)
     }
 
     override fun onAttach(context: Context) {
@@ -57,27 +58,6 @@ class ServerSelectionFragment : BaseFragment<FragmentServerSelectionBinding>() {
         binding.viewModel = viewModel
         binding.serverList.adapter = adapter
         binding.serverList.layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
-        if (BuildConfig.NEW_ORGANIZATION_LIST_ENABLED) {
-            if (viewModel.organizationSelected()) {
-                binding.addServerButton.visibility = View.GONE
-            } else {
-                binding.addServerButton.setText(R.string.select_organization)
-                binding.addServerButton.setOnClickListener {
-                    (activity as? MainActivity)?.openFragment(OrganizationSelectionFragment(), true)
-                }
-                binding.addServerButton.visibility = View.VISIBLE
-            }
-        } else {
-            binding.addServerButton.setOnClickListener {
-                @Suppress("ConstantConditionIf")
-                if (BuildConfig.API_DISCOVERY_ENABLED) {
-                    (activity as? MainActivity)?.openFragment(OrganizationSelectionFragment(), true)
-                } else {
-                    (activity as? MainActivity)?.openFragment(CustomProviderFragment(), true)
-                }
-            }
-        }
-
         viewModel.instances.observe(viewLifecycleOwner, Observer {
 
             if (it.isEmpty() && previousListSize > 0)  {
@@ -113,13 +93,16 @@ class ServerSelectionFragment : BaseFragment<FragmentServerSelectionBinding>() {
 
         ItemClickSupport.addTo(binding.serverList).setOnItemClickListener { _, position, _ ->
             val item = adapter.getItem(position)
-            viewModel.discoverApi(item)
+            viewModel.discoverApi(item.instance)
         }
         if (!BuildConfig.NEW_ORGANIZATION_LIST_ENABLED) {
             ItemClickSupport.addTo(binding.serverList).setOnItemLongClickListener { _, position, _ ->
                 val item = adapter.getItem(position)
-                displayDeleteDialog(item)
+                displayDeleteDialog(item.instance)
             }
+        }
+        binding.warning.setOnClickListener {
+            ErrorDialog.show(it.context, R.string.warning_title, viewModel.warning.value!!)
         }
     }
 
@@ -140,6 +123,26 @@ class ServerSelectionFragment : BaseFragment<FragmentServerSelectionBinding>() {
     override fun onResume() {
         super.onResume()
         viewModel.onResume()
+        if (BuildConfig.NEW_ORGANIZATION_LIST_ENABLED) {
+            if (viewModel.organizationSelected()) {
+                binding.addServerButton.visibility = View.GONE
+            } else {
+                binding.addServerButton.setText(R.string.select_organization)
+                binding.addServerButton.setOnClickListener {
+                    (activity as? MainActivity)?.openFragment(OrganizationSelectionFragment(), true)
+                }
+                binding.addServerButton.visibility = View.VISIBLE
+            }
+        } else {
+            binding.addServerButton.setOnClickListener {
+                @Suppress("ConstantConditionIf")
+                if (BuildConfig.API_DISCOVERY_ENABLED) {
+                    (activity as? MainActivity)?.openFragment(OrganizationSelectionFragment(), true)
+                } else {
+                    (activity as? MainActivity)?.openFragment(CustomProviderFragment(), true)
+                }
+            }
+        }
     }
 
     companion object {

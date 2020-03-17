@@ -54,7 +54,7 @@ public class PreferencesServiceTest {
 
     @Test
     public void testInstanceSave() {
-        Instance instance = new Instance("http://example.com", "Example", "http://example.com/image.jpg", AuthorizationType.Distributed, true);
+        Instance instance = new Instance("http://example.com", "Example", "http://example.com/image.jpg", AuthorizationType.Distributed, true, "https://server-group-url.com/");
         _preferencesService.setCurrentInstance(instance);
         Instance retrievedInstance = _preferencesService.getCurrentInstance();
         assertNotNull(retrievedInstance);
@@ -62,6 +62,7 @@ public class PreferencesServiceTest {
         assertEquals(instance.getLogoUri(), retrievedInstance.getLogoUri());
         assertEquals(instance.getBaseURI(), retrievedInstance.getBaseURI());
         assertEquals(instance.isCustom(), retrievedInstance.isCustom());
+        assertEquals(instance.getServerGroupUrl(), retrievedInstance.getServerGroupUrl());
     }
 
     @Test
@@ -79,7 +80,7 @@ public class PreferencesServiceTest {
     public void testMigration() throws SerializerService.UnknownFormatException {
         // We only test a few properties
         DiscoveredAPI discoveredAPI = new DiscoveredAPI("http://example.com/", "http://example.com/auth_endpoint", "http://example.com/token_endpoint");
-        Instance instance = new Instance("base_uri", "display_name", "logo_uri", AuthorizationType.Distributed, false);
+        Instance instance = new Instance("base_uri", "display_name", "logo_uri", AuthorizationType.Distributed, false, "http://servergroup.com");
         SharedPreferences.Editor editor = _oldPreferences.edit();
 
         SerializerService serializerService = new SerializerService();
@@ -102,6 +103,8 @@ public class PreferencesServiceTest {
         assertEquals(instanceResult.getBaseURI(), instanceResult.getBaseURI());
         assertEquals(instanceResult.getDisplayName(), instanceResult.getDisplayName());
         assertEquals(instanceResult.getAuthorizationType(), instanceResult.getAuthorizationType());
+        assertEquals(instanceResult.isCustom(), instanceResult.isCustom());
+        assertEquals(instanceResult.getServerGroupUrl(), instanceResult.getServerGroupUrl());
     }
 
 }

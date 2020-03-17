@@ -22,6 +22,7 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.functions.BiFunction
 import io.reactivex.schedulers.Schedulers
 import nl.eduvpn.app.BuildConfig
+import nl.eduvpn.app.Constants
 import nl.eduvpn.app.entity.Instance
 import nl.eduvpn.app.entity.Organization
 import nl.eduvpn.app.entity.exception.InvalidSignatureException
@@ -103,13 +104,24 @@ class OrganizationService(private val serializerService: SerializerService,
             val request = Request.Builder().url(url).build()
             val response = okHttpClient.newCall(request).execute()
             val responseBody = response.body
-            if (responseBody != null) {
+            val responseCode = response.code
+            var isGone = false
+            for (code in Constants.GONE_HTTP_CODES) {
+                if (responseCode == code) {
+                    isGone = true
+                }
+            }
+            if (isGone) {
+                return@Callable Single.error(OrganizationDeletedException())
+            } else if (responseBody != null) {
                 val result = responseBody.string()
                 responseBody.close()
                 return@Callable Single.just(result)
             } else {
-                return@Callable Single.error<String>(IOException("Response body is empty!"))
+                return@Callable Single.error(IOException("Response body is empty!"))
             }
         }).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
     }
+
+    class OrganizationDeletedException : IllegalStateException()
 }

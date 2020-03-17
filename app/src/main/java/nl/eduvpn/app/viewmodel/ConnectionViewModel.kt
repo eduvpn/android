@@ -31,6 +31,7 @@ import nl.eduvpn.app.Constants
 import nl.eduvpn.app.R
 import nl.eduvpn.app.base.BaseViewModel
 import nl.eduvpn.app.entity.DiscoveredAPI
+import nl.eduvpn.app.entity.DiscoveredInstance
 import nl.eduvpn.app.entity.Instance
 import nl.eduvpn.app.entity.Profile
 import nl.eduvpn.app.entity.SavedKeyPair
@@ -74,9 +75,12 @@ open class ConnectionViewModel(
     }
 
     val connectionState = MutableLiveData<ConnectionState>().also { it.value = ConnectionState.Ready }
+
+    val warning = MutableLiveData<String>()
+
     val parentAction = MutableLiveData<ParentAction>()
 
-    val instances = MutableLiveData<List<Instance>>()
+    val instances = MutableLiveData<List<DiscoveredInstance>>()
 
     init {
         if (BuildConfig.API_DISCOVERY_ENABLED) {
@@ -133,7 +137,7 @@ open class ConnectionViewModel(
         })
     }
 
-    fun onResume() {
+    open fun onResume() {
         if (connectionState.value == ConnectionState.Authorizing) {
             connectionState.value = ConnectionState.Ready
         }
@@ -198,7 +202,7 @@ open class ConnectionViewModel(
             return
         }
         preferencesService.currentInstance = instance
-        preferencesService.setCurrentProfile(profile)
+        preferencesService.currentProfile = profile
         preferencesService.currentAuthState = authState
         // Always download a new profile.
         // Just to be sure,
@@ -367,8 +371,9 @@ open class ConnectionViewModel(
     private fun refreshInstances() {
         val cachedInstances = historyService.savedAuthStateList.map { it.instance }.toMutableList()
         val groupUrlInstances = cachedInstances.filter { it.serverGroupUrl != null }.map { Pair(it, it.serverGroupUrl!!) }
+        warning.value = null
         if (groupUrlInstances.isEmpty()) {
-            instances.value = cachedInstances
+            instances.value = cachedInstances.map { DiscoveredInstance(it, false) }
         } else {
             val regularInstances = cachedInstances.filter { it.serverGroupUrl == null }
             connectionState.value = ConnectionState.DiscoveringGroupServers
@@ -377,16 +382,34 @@ open class ConnectionViewModel(
                     .flatMap { instanceUrlPair ->
                         val originalInstance = instanceUrlPair.first
                         val url = instanceUrlPair.second
-                        return@flatMap io.reactivex.Observable.create<List<Instance>> { emitter ->
+                        val cachedGroupInstances = preferencesService.getGroupInstancesForInstance(originalInstance)
+                        return@flatMap io.reactivex.Observable.create<List<DiscoveredInstance>> { emitter ->
                             apiService.getJSON(url, null, object : APIService.Callback<JSONObject> {
                                 override fun onSuccess(result: JSONObject) {
-                                    emitter.onNext(serializerService.deserializeInstancesFromOrganizationServerList(result))
+                                    val discoveredInstances = serializerService.deserializeInstancesFromOrganizationServerList(result)
+                                    val allInstanceUrls = discoveredInstances.map { it.sanitizedBaseURI }.toSet()
+                                    val extraInstancesInCache = cachedGroupInstances?.filter { it.sanitizedBaseURI !in allInstanceUrls }
+                                    if (extraInstancesInCache.isNullOrEmpty()) {
+                                        preferencesService.setGroupInstancesForInstance(originalInstance, discoveredInstances)
+                                        emitter.onNext(discoveredInstances.map { DiscoveredInstance(it, false) })
+                                    } else {
+                                        val allInstances: List<DiscoveredInstance> = discoveredInstances.map { DiscoveredInstance(it, false) } + extraInstancesInCache.map { DiscoveredInstance(it, true) }
+                                        preferencesService.setGroupInstancesForInstance(originalInstance, discoveredInstances + extraInstancesInCache)
+                                        emitter.onNext(allInstances)
+                                    }
                                     emitter.onComplete()
                                 }
 
                                 override fun onError(errorMessage: String?) {
                                     Log.w(TAG, "Unable to download group URL servers for instance.", Throwable(errorMessage))
-                                    emitter.onNext(listOf(originalInstance))
+                                    if (cachedGroupInstances != null) {
+                                        warning.value = context.getString(R.string.warning_group_fetch_failed_with_cache, originalInstance.displayName)
+                                        emitter.onNext(cachedGroupInstances.map { DiscoveredInstance(it, true) })
+                                    } else {
+                                        warning.value = context.getString(R.string.warning_group_fetch_failed_no_cache, originalInstance.displayName)
+                                        emitter.onNext(listOf(DiscoveredInstance(originalInstance, false)))
+                                    }
+                                    emitter.onComplete()
                                 }
                             })
                         }
@@ -395,12 +418,12 @@ open class ConnectionViewModel(
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe({
                         val mergedInstanceGroups = it.reduce { acc, list -> acc + list }
-                        instances.value = regularInstances + mergedInstanceGroups
+                        instances.value = regularInstances.map { instance -> DiscoveredInstance(instance, false) } + mergedInstanceGroups
                         connectionState.value = ConnectionState.Ready
                     }, {
-                        // TODO error handling
+                        warning.value = context.getString(R.string.warning_group_fetch_unexpected_error)
                         Log.w(TAG, "Unable to fetch additional instances from server group URL", it)
-                        instances.value = cachedInstances
+                        instances.value = cachedInstances.map { instance -> DiscoveredInstance(instance, true) }
                         connectionState.value = ConnectionState.Ready
                     })
             )
@@ -422,13 +445,15 @@ open class ConnectionViewModel(
         vpnService.connect(activity, vpnProfile)
     }
 
-    fun organizationSelected() : Boolean {
+    fun organizationSelected(): Boolean {
         return historyService.savedOrganization != null
     }
 
 
+
+
     companion object {
-        private const val TAG = "VPN-Connection"
+        private val TAG = ConnectionViewModel::class.java.name
     }
 
 }

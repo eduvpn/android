@@ -23,6 +23,7 @@ import android.util.Pair;
 import net.openid.appauth.AuthState;
 import net.openid.appauth.AuthorizationServiceConfiguration;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
@@ -46,10 +47,10 @@ import nl.eduvpn.app.entity.Instance;
 import nl.eduvpn.app.entity.InstanceList;
 import nl.eduvpn.app.entity.KeyPair;
 import nl.eduvpn.app.entity.Organization;
-import nl.eduvpn.app.entity.OrganizationServer;
 import nl.eduvpn.app.entity.Profile;
 import nl.eduvpn.app.entity.SavedAuthState;
 import nl.eduvpn.app.entity.SavedKeyPair;
+import nl.eduvpn.app.entity.SavedOrganization;
 import nl.eduvpn.app.entity.SavedProfile;
 import nl.eduvpn.app.entity.Settings;
 import nl.eduvpn.app.entity.message.Maintenance;
@@ -57,9 +58,7 @@ import nl.eduvpn.app.entity.message.Message;
 import nl.eduvpn.app.entity.message.Notification;
 import nl.eduvpn.app.utils.TTLCache;
 
-import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 /**
  * Unit tests for the serializer service.
@@ -101,7 +100,7 @@ public class SerializerServiceTest {
 
     @Test
     public void testInstanceSerialization() throws SerializerService.UnknownFormatException {
-        Instance instance = new Instance("baseUri", "displayName", "logoUri", AuthorizationType.Distributed, true);
+        Instance instance = new Instance("baseUri", "displayName", "logoUri", AuthorizationType.Distributed, true, "http://servergroupurl.com/");
         JSONObject serializedInstance = _serializerService.serializeInstance(instance);
         Instance deserializedInstance = _serializerService.deserializeInstance(serializedInstance);
         assertEquals(instance.getDisplayName(), deserializedInstance.getDisplayName());
@@ -123,8 +122,8 @@ public class SerializerServiceTest {
 
     @Test
     public void testInstanceListSerialization() throws SerializerService.UnknownFormatException {
-        Instance instance1 = new Instance("baseUri", "displayName", "logoUri", AuthorizationType.Distributed, true);
-        Instance instance2 = new Instance("baseUri2", "displayName2", "logoUri2", AuthorizationType.Distributed, true);
+        Instance instance1 = new Instance("baseUri", "displayName", "logoUri", AuthorizationType.Distributed, true, "http://servergroupurl.com/");
+        Instance instance2 = new Instance("baseUri2", "displayName2", "logoUri2", AuthorizationType.Local, true, null);
         InstanceList instanceList = new InstanceList(Arrays.asList(instance1, instance2), 231);
         JSONObject serializedInstanceList = _serializerService.serializeInstanceList(instanceList);
         InstanceList deserializedInstanceList = _serializerService.deserializeInstanceList(serializedInstanceList);
@@ -181,8 +180,8 @@ public class SerializerServiceTest {
     @SuppressWarnings("ConstantConditions")
     @Test
     public void testSavedTokenListSerialization() throws SerializerService.UnknownFormatException {
-        Instance instance1 = new Instance("baseUri1", "displayName1", null, AuthorizationType.Distributed, true);
-        Instance instance2 = new Instance("baseUri2", "displayName2", null, AuthorizationType.Local, true);
+        Instance instance1 = new Instance("baseUri1", "displayName1", null, AuthorizationType.Distributed, true, null);
+        Instance instance2 = new Instance("baseUri2", "displayName2", null, AuthorizationType.Local, true, "http://servergroupurl.com/");
         AuthState state1 = new AuthState(new AuthorizationServiceConfiguration(Uri.parse("http://eduvpn.org/auth"), Uri.parse("http://eduvpn.org/token"), null));
         AuthState state2 = new AuthState(new AuthorizationServiceConfiguration(Uri.parse("http://example.com/auth"), Uri.parse("http://example.com/token"), null));
         SavedAuthState token1 = new SavedAuthState(instance1, state1);
@@ -200,8 +199,8 @@ public class SerializerServiceTest {
 
     @Test
     public void testSavedProfileListSerialization() throws SerializerService.UnknownFormatException {
-        Instance instance1 = new Instance("baseUri1", "displayName1", "logoUri1", AuthorizationType.Distributed, true);
-        Instance instance2 = new Instance("baseUri2", "displayName2", "logoUri2", AuthorizationType.Local, true);
+        Instance instance1 = new Instance("baseUri1", "displayName1", "logoUri1", AuthorizationType.Distributed, true, null);
+        Instance instance2 = new Instance("baseUri2", "displayName2", "logoUri2", AuthorizationType.Local, true, "http://servergroupurl.com/");
         Profile profile1 = new Profile("displayName1", "profileId1");
         Profile profile2 = new Profile("displayName2", "profileId2");
         SavedProfile savedProfile1 = new SavedProfile(instance1, profile1, "profileUUID1");
@@ -242,7 +241,7 @@ public class SerializerServiceTest {
     @Test
     public void testSavedKeyPairSerialization() throws SerializerService.UnknownFormatException {
         KeyPair keyPair = new KeyPair(false, "cert1", "pk1");
-        Instance instance = new Instance("http://example.com/", "example.com", null, AuthorizationType.Distributed, false);
+        Instance instance = new Instance("http://example.com/", "example.com", null, AuthorizationType.Distributed, false, "http://servergroupurl.com/");
 
         SavedKeyPair savedKeyPair = new SavedKeyPair(instance, keyPair);
         JSONObject serializedSavedKeyPair = _serializerService.serializeSavedKeyPair(savedKeyPair);
@@ -256,7 +255,7 @@ public class SerializerServiceTest {
         assertEquals(savedKeyPair.getInstance().getLogoUri(), deserializedSavedKeyPair.getInstance().getLogoUri());
         assertEquals(savedKeyPair.getInstance().isCustom(), deserializedSavedKeyPair.getInstance().isCustom());
         keyPair = new KeyPair(true, "example certificate", "example private key");
-        instance = new Instance("http://something.else/", "something.else", "http://www.example.com/logo", AuthorizationType.Local, true);
+        instance = new Instance("http://something.else/", "something.else", "http://www.example.com/logo", AuthorizationType.Local, true, null);
         savedKeyPair = new SavedKeyPair(instance, keyPair);
         serializedSavedKeyPair = _serializerService.serializeSavedKeyPair(savedKeyPair);
         deserializedSavedKeyPair = _serializerService.deserializeSavedKeyPair(serializedSavedKeyPair);
@@ -268,15 +267,16 @@ public class SerializerServiceTest {
         assertEquals(savedKeyPair.getInstance().getDisplayName(), deserializedSavedKeyPair.getInstance().getDisplayName());
         assertEquals(savedKeyPair.getInstance().getLogoUri(), deserializedSavedKeyPair.getInstance().getLogoUri());
         assertEquals(savedKeyPair.getInstance().isCustom(), deserializedSavedKeyPair.getInstance().isCustom());
+        assertEquals(savedKeyPair.getInstance().getServerGroupUrl(), deserializedSavedKeyPair.getInstance().getServerGroupUrl());
     }
 
     @Test
     public void testSavedKeyPairListSerialization() throws SerializerService.UnknownFormatException {
         KeyPair keyPair1 = new KeyPair(false, "cert1", "pk1");
-        Instance instance1 = new Instance("http://example.com/", "example.com", null, AuthorizationType.Distributed, false);
+        Instance instance1 = new Instance("http://example.com/", "example.com", null, AuthorizationType.Distributed, false, "http://servergroupurl.com/");
         SavedKeyPair savedKeyPair1 = new SavedKeyPair(instance1, keyPair1);
         KeyPair keyPair2 = new KeyPair(true, "example certificate", "example private key");
-        Instance instance2 = new Instance("http://something.else/", "something.else", "http://www.example.com/logo", AuthorizationType.Local, true);
+        Instance instance2 = new Instance("http://something.else/", "something.else", "http://www.example.com/logo", AuthorizationType.Local, true, null);
         SavedKeyPair savedKeyPair2 = new SavedKeyPair(instance2, keyPair2);
         List<SavedKeyPair> savedKeyPairList = Arrays.asList(savedKeyPair1, savedKeyPair2);
         JSONObject serializedSavedKeyPairList = _serializerService.serializeSavedKeyPairList(savedKeyPairList);
@@ -291,6 +291,7 @@ public class SerializerServiceTest {
             assertEquals(savedKeyPairList.get(i).getInstance().getDisplayName(), deserializedSavedKeyPairList.get(i).getInstance().getDisplayName());
             assertEquals(savedKeyPairList.get(i).getInstance().getLogoUri(), deserializedSavedKeyPairList.get(i).getInstance().getLogoUri());
             assertEquals(savedKeyPairList.get(i).getInstance().isCustom(), deserializedSavedKeyPairList.get(i).getInstance().isCustom());
+            assertEquals(savedKeyPairList.get(i).getInstance().getServerGroupUrl(), deserializedSavedKeyPairList.get(i).getInstance().getServerGroupUrl());
         }
     }
 
@@ -310,17 +311,41 @@ public class SerializerServiceTest {
     }
 
     @Test
-    public void testOrganizationServerListSerialization() throws SerializerService.UnknownFormatException {
-        OrganizationServer server1 = new OrganizationServer("display name - 1", "http://base.url/1", "https://group.info/url");
-        OrganizationServer server2 = new OrganizationServer("display name - 2", "https://baseurl2.com/", null);
-        OrganizationServer server3 = new OrganizationServer("display name - 3", "http://bas3url.com/vpn", null);
-        List<OrganizationServer> servers = Arrays.asList(server1, server2, server3);
-        JSONObject serializedServerList = _serializerService.serializeOrganizationServerList(servers);
-        List<OrganizationServer> deserializedServerList = _serializerService.deserializeInstancesFromOrganizationServerList(serializedServerList);
-        for (int i = 0; i < servers.size(); ++i) {
-            assertEquals(servers.get(i).getDisplayName(), deserializedServerList.get(i).getDisplayName());
-            assertEquals(servers.get(i).getBaseUrl(), deserializedServerList.get(i).getBaseUrl());
-            assertEquals(servers.get(i).getServerGroupUrl(), deserializedServerList.get(i).getServerGroupUrl());
+    public void testInstancesSerialization() throws SerializerService.UnknownFormatException {
+        Instance instance1 = new Instance("http://base.uri/", "Display name 1", null, AuthorizationType.Local, false, "https://server.group/url");
+        Instance instance2 = new Instance("http://base.uri/instance2", "Display name 2", null, AuthorizationType.Local, true, null);
+        Instance instance3 = new Instance("https://base.uri/3/", "Display name 3", "https://logo.uri/", AuthorizationType.Organization, false, "https://server.com/groupurl");
+        List<Instance> instances = Arrays.asList(instance1, instance2, instance3);
+        JSONArray serializedInstances = _serializerService.serializeInstances(instances);
+        List<Instance> deserializedInstances = _serializerService.deserializeInstances(serializedInstances);
+        for (int i = 0; i < deserializedInstances.size(); ++i) {
+            assertEquals(instances.get(i).getBaseURI(), deserializedInstances.get(i).getBaseURI());
+            assertEquals(instances.get(i).getDisplayName(), deserializedInstances.get(i).getDisplayName());
+            assertEquals(instances.get(i).getLogoUri(), deserializedInstances.get(i).getLogoUri());
+            assertEquals(instances.get(i).isCustom(), deserializedInstances.get(i).isCustom());
+            assertEquals(instances.get(i).getAuthorizationType(), deserializedInstances.get(i).getAuthorizationType());
+            assertEquals(instances.get(i).getServerGroupUrl(), deserializedInstances.get(i).getServerGroupUrl());
+        }
+    }
+
+    @Test
+    public void testSavedOrganizationSerialization() throws SerializerService.UnknownFormatException {
+        Organization organization = new Organization("display name", Arrays.asList("keyword1", "keyword2"), "https://serverinfourl.com/info");
+        Instance instance1 = new Instance("http://base.uri/", "Display name 1", null, AuthorizationType.Local, false, "https://server.group/url");
+        Instance instance2 = new Instance("http://base.uri/instance2", "Display name 2", null, AuthorizationType.Local, true, null);
+        SavedOrganization savedOrganization = new SavedOrganization(organization, Arrays.asList(instance1, instance2));
+        JSONObject serializedSavedOrganization = _serializerService.serializeSavedOrganization(savedOrganization);
+        SavedOrganization deserializedSavedOrganization = _serializerService.deserializeSavedOrganization(serializedSavedOrganization);
+        assertEquals(savedOrganization.getOrganization().getDisplayName(), deserializedSavedOrganization.getOrganization().getDisplayName());
+        assertEquals(savedOrganization.getOrganization().getServerInfoUrl(), deserializedSavedOrganization.getOrganization().getServerInfoUrl());
+        assertEquals(savedOrganization.getOrganization().getKeywordList(), deserializedSavedOrganization.getOrganization().getKeywordList());
+        for (int i = 0; i < savedOrganization.getServers().size(); ++i) {
+            assertEquals(savedOrganization.getServers().get(i).getBaseURI(), deserializedSavedOrganization.getServers().get(i).getBaseURI());
+            assertEquals(savedOrganization.getServers().get(i).getDisplayName(), deserializedSavedOrganization.getServers().get(i).getDisplayName());
+            assertEquals(savedOrganization.getServers().get(i).getLogoUri(), deserializedSavedOrganization.getServers().get(i).getLogoUri());
+            assertEquals(savedOrganization.getServers().get(i).isCustom(), deserializedSavedOrganization.getServers().get(i).isCustom());
+            assertEquals(savedOrganization.getServers().get(i).getAuthorizationType(), deserializedSavedOrganization.getServers().get(i).getAuthorizationType());
+            assertEquals(savedOrganization.getServers().get(i).getServerGroupUrl(), deserializedSavedOrganization.getServers().get(i).getServerGroupUrl());
         }
     }
 
