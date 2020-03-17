@@ -23,19 +23,20 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import nl.eduvpn.app.adapter.viewholder.ServerViewHolder
 import nl.eduvpn.app.databinding.ListItemServerBinding
+import nl.eduvpn.app.entity.DiscoveredInstance
 import nl.eduvpn.app.entity.Instance
 
 /**
  * Adapter for the providers list.
  * Created by Daniel Zolnai on 2016-10-07.
  */
-class ServerAdapter : ListAdapter<Instance, ServerViewHolder>(object : DiffUtil.ItemCallback<Instance>() {
-    override fun areItemsTheSame(oldItem: Instance, newItem: Instance): Boolean {
-        return oldItem.sanitizedBaseURI == newItem.sanitizedBaseURI
+class ServerAdapter : ListAdapter<DiscoveredInstance, ServerViewHolder>(object : DiffUtil.ItemCallback<DiscoveredInstance>() {
+    override fun areItemsTheSame(oldItem: DiscoveredInstance, newItem: DiscoveredInstance): Boolean {
+        return oldItem.instance.sanitizedBaseURI == newItem.instance.sanitizedBaseURI
     }
 
-    override fun areContentsTheSame(oldItem: Instance, newItem: Instance): Boolean {
-        return oldItem.sanitizedBaseURI == newItem.sanitizedBaseURI && oldItem.displayName == newItem.displayName
+    override fun areContentsTheSame(oldItem: DiscoveredInstance, newItem: DiscoveredInstance): Boolean {
+        return oldItem == newItem
     }
 }) {
 
@@ -48,7 +49,7 @@ class ServerAdapter : ListAdapter<Instance, ServerViewHolder>(object : DiffUtil.
         holder.bind(instance)
     }
 
-    public override fun getItem(position: Int): Instance {
+    public override fun getItem(position: Int): DiscoveredInstance {
         return super.getItem(position)
     }
 }

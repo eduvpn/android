@@ -48,6 +48,7 @@ public class HistoryService extends Observable {
     private List<SavedProfile> _savedProfileList;
     private List<SavedAuthState> _savedAuthStateList;
     private List<SavedKeyPair> _savedKeyPairList;
+
     private SavedOrganization _savedOrganization;
 
     private final PreferencesService _preferencesService;
@@ -84,6 +85,7 @@ public class HistoryService extends Observable {
             Log.i(TAG, "No saved key pair found.");
             _savedKeyPairList = new ArrayList<>();
         }
+        _savedOrganization = _preferencesService.getSavedOrganization();
     }
 
     /**
@@ -92,6 +94,7 @@ public class HistoryService extends Observable {
     private void _save() {
         _preferencesService.storeSavedProfileList(_savedProfileList);
         _preferencesService.storeSavedAuthStateList(_savedAuthStateList);
+        _preferencesService.storeSavedOrganization(_savedOrganization);
     }
 
     /**
@@ -383,6 +386,7 @@ public class HistoryService extends Observable {
                 }
             }
         } else {
+            _preferencesService.setGroupInstancesForInstance(instance, null);
             removeSavedKeyPairs(instance);
             _removeAuthorizations(instance);
             removeSavedProfilesForInstance(instance); // This will trigger a profiles changed event

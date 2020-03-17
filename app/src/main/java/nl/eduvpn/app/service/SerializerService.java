@@ -261,6 +261,8 @@ public class SerializerService {
                 int authorizationTypeInt = jsonObject.getInt("authorization_type");
                 if (authorizationTypeInt == 1) {
                     authorizationType = AuthorizationType.Distributed;
+                } else if (authorizationTypeInt == 2) {
+                    authorizationType = AuthorizationType.Organization;
                 }
             }
             String serverGroupUrl = null;

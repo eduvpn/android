@@ -18,8 +18,7 @@
 
 package nl.eduvpn.app.entity
 
-data class OrganizationServer(
-        val displayName: String,
-        val baseUrl: String,
-        val serverGroupUrl: String?
+data class DiscoveredInstance(
+        val instance: Instance,
+        val isCachedOnly: Boolean
 )

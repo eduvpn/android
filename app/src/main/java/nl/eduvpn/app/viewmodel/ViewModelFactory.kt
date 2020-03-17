@@ -59,6 +59,17 @@ class ViewModelFactory(
                     vpnService,
                     organizationService
             ) as T
+            modelClass.isAssignableFrom(ServerSelectionViewModel::class.java) -> ServerSelectionViewModel(
+                    context,
+                    apiService,
+                    serializerService,
+                    configurationService,
+                    historyService,
+                    preferencesService,
+                    connectionService,
+                    vpnService,
+                    organizationService
+            ) as T
             modelClass.isAssignableFrom(OrganizationSelectionViewModel::class.java) -> OrganizationSelectionViewModel(
                     organizationService,
                     preferencesService

@@ -136,4 +136,11 @@
     <string name="add_server_description">Tap here if you want to add a server using its URL instead of using the organization discovery method.</string>
     <string name="select_organization">Select organization</string>
 
+    <string name="warning_group_fetch_failed_no_cache">Discovering the server group for the server \'%s\' has failed. Not all instances might be visible in the list below.</string>
+    <string name="warning_group_fetch_failed_with_cache">Server group discovery failed for the server \'%s\'. Group instances were loaded from cache and might be outdated.</string>
+    <string name="warning_group_fetch_unexpected_error">An unexpected error happened during the discovery of grouped servers. The displayed list might be incomplete.</string>
+    <string name="warning_title">Warning</string>
+    <string name="error_server_discovery_title">Discovery error</string>
+    <string name="error_organization_not_listed">Organization not listed anymore.</string>
+    <string name="error_server_not_found_in_organization">The server %s is not listed in the organization servers anymore.</string>
 </resources>

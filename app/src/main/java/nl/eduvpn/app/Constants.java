@@ -35,5 +35,7 @@ public class Constants {
     public static final String API_PROFILE_CONFIG = "profile_config";
     public static final String API_CHECK_CERTIFICATE = "check_certificate";
 
+    public static final int[] GONE_HTTP_CODES = new int[] {404, 410};
+
     public static final Locale LOCALE = Locale.getDefault();
 }

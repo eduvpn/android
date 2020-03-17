@@ -33,6 +33,7 @@ import io.reactivex.ObservableSource;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
 import nl.eduvpn.app.BuildConfig;
+import nl.eduvpn.app.Constants;
 import nl.eduvpn.app.entity.AuthorizationType;
 import nl.eduvpn.app.entity.Instance;
 import nl.eduvpn.app.entity.InstanceList;
@@ -204,23 +205,6 @@ public class ConfigurationService extends java.util.Observable {
         }).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread());
     }
 
-    private Observable<String> _createOrganizationListObservable() {
-        return Observable.defer((Callable<ObservableSource<String>>)() -> {
-            String listRequestUrl = BuildConfig.ORGANIZATION_LIST_URL;
-            Request request = new Request.Builder().url(listRequestUrl).build();
-            Response response = _okHttpClient.newCall(request).execute();
-            ResponseBody responseBody = response.body();
-            if (responseBody != null) {
-                //noinspection WrongConstant
-                String result = responseBody.string();
-                responseBody.close();
-                return Observable.just(result);
-            } else {
-                return Observable.error(new IOException("Response body is empty!"));
-            }
-        }).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread());
-    }
-
     /**
      * Returns if provider discovery is still pending for a given authorization type.
      *
@@ -262,5 +246,4 @@ public class ConfigurationService extends java.util.Observable {
             return Collections.unmodifiableList(_instituteAccessList.getInstanceList());
         }
     }
-
 }
