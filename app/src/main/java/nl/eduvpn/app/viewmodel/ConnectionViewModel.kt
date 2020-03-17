@@ -408,6 +408,11 @@ open class ConnectionViewModel(
         }
     }
 
+    fun deleteAllDataForInstance(instance: Instance) {
+        historyService.removeAllDataForInstance(instance)
+    }
+
+
     fun getProfileInstance(): Instance {
         return preferencesService.currentInstance
     }
@@ -415,6 +420,10 @@ open class ConnectionViewModel(
     fun openVpnConnectionToProfile(activity: Activity, vpnProfile: VpnProfile) {
         connectionState.value = ConnectionState.Ready
         vpnService.connect(activity, vpnProfile)
+    }
+
+    fun organizationSelected() : Boolean {
+        return historyService.savedOrganization != null
     }
 
 

@@ -31,6 +31,7 @@ import nl.eduvpn.app.fragment.SettingsFragment;
 public class SettingsActivity extends BaseActivity<ActivitySettingsBinding> {
 
     public static final int RESULT_APP_DATA_CLEARED = 101;
+    public static final int RESULT_ADD_CUSTOM_SERVER = 102;
 
     @Override
     protected int getLayout() {

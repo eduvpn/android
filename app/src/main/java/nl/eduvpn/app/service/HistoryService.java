@@ -266,6 +266,11 @@ public class HistoryService extends Observable {
         return null;
     }
 
+    @Nullable
+    public SavedOrganization getSavedOrganization() {
+        return _savedOrganization;
+    }
+
     public void storeSavedOrganization(@NonNull SavedOrganization savedOrganization) {
         _savedOrganization = savedOrganization;
         _preferencesService.storeSavedOrganization(savedOrganization);
@@ -360,22 +365,68 @@ public class HistoryService extends Observable {
         }
     }
 
+    /**
+     * Removes all saved data for an instance.
+     *
+     * @param instance The instance to remove the data for.
+     */
+    public void removeAllDataForInstance(Instance instance) {
+        if (instance.getAuthorizationType() == AuthorizationType.Distributed) {
+            // Remove all distributed instance related data
+            List<SavedAuthState> authStates = new ArrayList<>(getSavedAuthStateList());
+            for (SavedAuthState savedAuthState : authStates) {
+                if (savedAuthState.getInstance().getAuthorizationType() == AuthorizationType.Distributed) {
+                    removeSavedKeyPairs(savedAuthState.getInstance());
+                    _removeAuthorizations(savedAuthState.getInstance());
+                    removeSavedProfilesForInstance(savedAuthState.getInstance()); // This will trigger a profiles changed event
+                }
+            }
+        } else {
+            removeSavedKeyPairs(instance);
+            _removeAuthorizations(instance);
+            removeSavedProfilesForInstance(instance); // This will trigger a profiles changed event
+        }
+    }
+
+    /**
+     * Removes the saved profiles for an instance.
+     *
+     * @param instance The instance which should be removed.
+     */
+    public void removeSavedProfilesForInstance(@NonNull Instance instance) {
+        Iterator<SavedProfile> savedProfileIterator = _savedProfileList.iterator();
+        while (savedProfileIterator.hasNext()) {
+            SavedProfile savedProfile = savedProfileIterator.next();
+            if (instance.getAuthorizationType() == AuthorizationType.Distributed &&
+                    savedProfile.getInstance().getAuthorizationType() == AuthorizationType.Distributed) {
+                savedProfileIterator.remove();
+                Log.i(TAG, "Deleted profile for distributed auth instance " + savedProfile.getInstance().getSanitizedBaseURI());
+            } else if (instance.getAuthorizationType() == AuthorizationType.Local &&
+                    savedProfile.getInstance().getSanitizedBaseURI().equals(instance.getSanitizedBaseURI())) {
+                savedProfileIterator.remove();
+                Log.i(TAG, "Deleted profile for local auth instance " + savedProfile.getInstance().getSanitizedBaseURI());
+            }
+        }
+        _save();
+        setChanged();
+        notifyObservers(NOTIFICATION_PROFILES_CHANGED);
+        clearChanged();
+    }
+
 
     /***
      * Removes all saved data in this app.
      ***/
-    public void removeAllData() {
-        _savedProfileList = new ArrayList<>();
-        _savedAuthStateList = new ArrayList<>();
-        _savedKeyPairList = new ArrayList<>();
+    public void removeOrganizationData() {
         _savedOrganization = null;
         _preferencesService.setCurrentOrganization(null);
-        _preferencesService.setCurrentAuthState(null);
-        _preferencesService.setCurrentDiscoveredAPI(null);
-        _preferencesService.setCurrentInstance(null);
-        _preferencesService.setCurrentProfile(null);
-        _preferencesService.storeInstanceList(AuthorizationType.Local, null);
-        _preferencesService.storeInstanceList(AuthorizationType.Distributed, null);
+        List<Instance> organizationInstances = _preferencesService.getOrganizationInstanceList();
+        _preferencesService.storeOrganizationInstanceList(null);
+        if (organizationInstances != null) {
+            for (Instance instance : organizationInstances) {
+                removeAllDataForInstance(instance);
+            }
+        }
         _save();
     }
 }

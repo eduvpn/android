@@ -33,7 +33,7 @@
                 tools:context=".SettingsActivity">
 
                 <LinearLayout
-                    android:id="@+id/resetAppDataContainer"
+                    android:id="@+id/addServerContainer"
                     android:orientation="vertical"
                     android:background="?attr/selectableItemBackground"
                     android:layout_width="match_parent"
@@ -41,9 +41,31 @@
                     android:layout_height="wrap_content">
 
                     <TextView
+                        android:id="@+id/addServerTitle"
+                        style="@style/SettingsLabelTitle"
+                        android:text="@string/add_server_title" />
+                    <TextView
+                        android:id="@+id/addServerDescription"
+                        style="@style/SettingsLabelDescription"
+                        android:text="@string/add_server_description" />
+
+                    <View
+                        android:id="@+id/addServerSeparator"
+                        style="@style/SettingsSeparator"/>
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/resetAppDataContainer"
+                    android:orientation="vertical"
+                    android:background="?attr/selectableItemBackground"
+                    android:layout_width="match_parent"
+                    android:layout_below="@id/addServerContainer"
+                    android:layout_height="wrap_content">
+
+                    <TextView
                         android:id="@+id/resetDataTitle"
                         style="@style/SettingsLabelTitle"
-                        android:layout_alignParentTop="true"
                         android:text="@string/reset_app_data_title" />
                     <TextView
                         android:id="@+id/resetDataDescription"

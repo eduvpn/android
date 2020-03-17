@@ -17,7 +17,6 @@
 
 package nl.eduvpn.app.fragment;
 
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
@@ -76,6 +75,12 @@ public class SettingsFragment extends BaseFragment<FragmentSettingsBinding> {
         binding.saveButton.setOnClickListener(v -> onSaveButtonClicked());
         binding.licensesContainer.setOnClickListener(v -> startActivity(new Intent(requireContext(), LicenseActivity.class)));
         binding.resetAppDataContainer.setOnClickListener(v -> onResetDataClicked());
+        binding.addServerContainer.setOnClickListener(v -> onAddServerClicked());
+    }
+
+    private void onAddServerClicked() {
+        requireActivity().setResult(SettingsActivity.RESULT_ADD_CUSTOM_SERVER);
+        requireActivity().finish();
     }
 
     private void onResetDataClicked() {
@@ -84,8 +89,7 @@ public class SettingsFragment extends BaseFragment<FragmentSettingsBinding> {
                 .setMessage(R.string.reset_data_dialog_message)
                 .setPositiveButton(R.string.reset_data_dialog_yes, (dialog, which) -> {
                     dialog.dismiss();
-                    _historyService.removeAllData();
-                    _vpnService.removeProfiles();
+                    _historyService.removeOrganizationData();
                     requireActivity().setResult(SettingsActivity.RESULT_APP_DATA_CLEARED);
                     requireActivity().finish();
                 })

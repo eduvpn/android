@@ -58,7 +58,15 @@ class ServerSelectionFragment : BaseFragment<FragmentServerSelectionBinding>() {
         binding.serverList.adapter = adapter
         binding.serverList.layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
         if (BuildConfig.NEW_ORGANIZATION_LIST_ENABLED) {
-            binding.addServerButton.visibility = View.GONE
+            if (viewModel.organizationSelected()) {
+                binding.addServerButton.visibility = View.GONE
+            } else {
+                binding.addServerButton.setText(R.string.select_organization)
+                binding.addServerButton.setOnClickListener {
+                    (activity as? MainActivity)?.openFragment(OrganizationSelectionFragment(), true)
+                }
+                binding.addServerButton.visibility = View.VISIBLE
+            }
         } else {
             binding.addServerButton.setOnClickListener {
                 @Suppress("ConstantConditionIf")
@@ -107,7 +115,27 @@ class ServerSelectionFragment : BaseFragment<FragmentServerSelectionBinding>() {
             val item = adapter.getItem(position)
             viewModel.discoverApi(item)
         }
+        if (!BuildConfig.NEW_ORGANIZATION_LIST_ENABLED) {
+            ItemClickSupport.addTo(binding.serverList).setOnItemLongClickListener { _, position, _ ->
+                val item = adapter.getItem(position)
+                displayDeleteDialog(item)
+            }
+        }
     }
+
+    private fun displayDeleteDialog(instance: Instance): Boolean {
+        AlertDialog.Builder(requireContext())
+                .setTitle(R.string.delete_server)
+                .setMessage(getString(R.string.delete_server_message, instance.displayName, instance.sanitizedBaseURI))
+                .setPositiveButton(R.string.button_remove) { dialog, _ ->
+                    viewModel.deleteAllDataForInstance(instance)
+                    dialog.dismiss()
+                }
+                .setNegativeButton(R.string.delete_server_cancel) { dialog, _ -> dialog.dismiss() }
+                .show()
+        return true
+    }
+
 
     override fun onResume() {
         super.onResume()

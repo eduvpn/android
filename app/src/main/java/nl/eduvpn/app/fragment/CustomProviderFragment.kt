@@ -17,6 +17,7 @@
 
 package nl.eduvpn.app.fragment
 
+import android.app.Activity
 import android.content.Context
 import android.os.Bundle
 import android.view.View
@@ -24,7 +25,6 @@ import android.view.inputmethod.InputMethodManager
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import nl.eduvpn.app.EduVPNApplication
-import nl.eduvpn.app.MainActivity
 import nl.eduvpn.app.R
 import nl.eduvpn.app.base.BaseFragment
 import nl.eduvpn.app.databinding.FragmentCustomProviderBinding
@@ -32,6 +32,7 @@ import nl.eduvpn.app.entity.AuthorizationType
 import nl.eduvpn.app.entity.Instance
 import nl.eduvpn.app.utils.ErrorDialog
 import nl.eduvpn.app.viewmodel.ConnectionViewModel
+
 
 /**
  * Fragment where you can give the URL to a custom provider.
@@ -57,7 +58,7 @@ class CustomProviderFragment : BaseFragment<FragmentCustomProviderBinding>() {
         val inputMethodManager = requireActivity().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
         inputMethodManager.showSoftInput(binding.customProviderUrl, InputMethodManager.SHOW_IMPLICIT)
 
-        viewModel.parentAction.observe(this, Observer { parentAction ->
+        viewModel.parentAction.observe(viewLifecycleOwner, Observer { parentAction ->
             when (parentAction) {
                 is ConnectionViewModel.ParentAction.InitiateConnection -> {
                     activity?.let { activity ->
@@ -75,6 +76,9 @@ class CustomProviderFragment : BaseFragment<FragmentCustomProviderBinding>() {
     }
 
     private fun onConnectClicked() {
+        // Hide the keyboard
+        val imm = requireActivity().getSystemService(Activity.INPUT_METHOD_SERVICE) as InputMethodManager
+        imm.hideSoftInputFromWindow(requireActivity().currentFocus?.windowToken, 0)
         val prefix = getString(R.string.custom_provider_prefix)
         val postfix = binding.customProviderUrl.text.toString()
         val url = prefix + postfix

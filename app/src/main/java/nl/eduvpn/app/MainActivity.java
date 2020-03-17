@@ -31,6 +31,7 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import nl.eduvpn.app.base.BaseActivity;
 import nl.eduvpn.app.databinding.ActivityMainBinding;
+import nl.eduvpn.app.entity.Settings;
 import nl.eduvpn.app.fragment.ConnectionStatusFragment;
 import nl.eduvpn.app.fragment.CustomProviderFragment;
 import nl.eduvpn.app.fragment.OrganizationSelectionFragment;
@@ -172,11 +173,18 @@ public class MainActivity extends BaseActivity<ActivityMainBinding> {
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        if (requestCode == REQUEST_CODE_SETTINGS && resultCode == SettingsActivity.RESULT_APP_DATA_CLEARED) {
-            if (_vpnService.getStatus() != VPNService.VPNStatus.DISCONNECTED) {
-                _vpnService.disconnect();
+        if (requestCode == REQUEST_CODE_SETTINGS ) {
+            if (resultCode == SettingsActivity.RESULT_APP_DATA_CLEARED) {
+                if (_vpnService.getStatus() != VPNService.VPNStatus.DISCONNECTED) {
+                    _vpnService.disconnect();
+                }
+                openFragment(new OrganizationSelectionFragment(), false);
+            } else if (resultCode == SettingsActivity.RESULT_ADD_CUSTOM_SERVER) {
+                if (_vpnService.getStatus() != VPNService.VPNStatus.DISCONNECTED) {
+                    _vpnService.disconnect();
+                }
+                openFragment(new CustomProviderFragment(), false);
             }
-            openFragment(new OrganizationSelectionFragment(), false);
         } else {
             super.onActivityResult(requestCode, resultCode, data);
         }
