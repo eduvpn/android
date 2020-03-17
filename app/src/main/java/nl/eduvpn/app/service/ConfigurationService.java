@@ -31,13 +31,11 @@ import androidx.annotation.NonNull;
 import io.reactivex.Observable;
 import io.reactivex.ObservableSource;
 import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.functions.BiFunction;
 import io.reactivex.schedulers.Schedulers;
 import nl.eduvpn.app.BuildConfig;
 import nl.eduvpn.app.entity.AuthorizationType;
 import nl.eduvpn.app.entity.Instance;
 import nl.eduvpn.app.entity.InstanceList;
-import nl.eduvpn.app.entity.Organization;
 import nl.eduvpn.app.entity.exception.InvalidSignatureException;
 import nl.eduvpn.app.utils.Log;
 import okhttp3.OkHttpClient;
@@ -58,15 +56,13 @@ public class ConfigurationService extends java.util.Observable {
     private final SecurityService _securityService;
     private final OkHttpClient _okHttpClient;
 
-    private List<Organization> _organizationList;
+
     private InstanceList _secureInternetList;
     private InstanceList _instituteAccessList;
 
 
-    private boolean _organizationsPendingDiscovery = true;
     private boolean _secureInternetPendingDiscovery = true;
     private boolean _instituteAccessPendingDiscovery = true;
-
 
     public ConfigurationService(PreferencesService preferencesService, SerializerService serializerService,
                                 SecurityService securityService, OkHttpClient okHttpClient) {
@@ -79,46 +75,18 @@ public class ConfigurationService extends java.util.Observable {
             _fetchLatestConfiguration();
         } else {
             // Otherwise the user can only enter custom URLs.
-            if (BuildConfig.NEW_ORGANIZATION_LIST_ENABLED) {
-                _organizationsPendingDiscovery = false;
-            } else {
-                _secureInternetPendingDiscovery = false;
-                _instituteAccessPendingDiscovery = false;
-            }
+            _secureInternetPendingDiscovery = false;
+            _instituteAccessPendingDiscovery = false;
         }
 
-    }
-
-    /**
-     * Returns the list of organizations.
-     *
-     * @return The currently cached list of organizations.
-     */
-    @NonNull
-    public List<Organization> getOrganizationList() {
-        if (_organizationList == null) {
-            return Collections.emptyList();
-        } else {
-            return Collections.unmodifiableList(_organizationList);
-        }
     }
 
     private void _loadSavedLists() {
         // Loads the saved configuration from the storage.
         // If none found, it will default to the one in the app.
-        if (BuildConfig.NEW_ORGANIZATION_LIST_ENABLED) {
-            _organizationList = _preferencesService.getOrganizationList();
-        } else {
-            _secureInternetList = _preferencesService.getInstanceList(AuthorizationType.Distributed);
-            _instituteAccessList = _preferencesService.getInstanceList(AuthorizationType.Local);
-        }
-    }
 
-    private void _saveList(@NonNull List<Organization> organizationList) {
-        _preferencesService.storeOrganizationList(organizationList);
-        setChanged();
-        notifyObservers();
-        clearChanged();
+        _secureInternetList = _preferencesService.getInstanceList(AuthorizationType.Distributed);
+        _instituteAccessList = _preferencesService.getInstanceList(AuthorizationType.Local);
     }
 
     private void _saveListIfChanged(@NonNull InstanceList instanceList, AuthorizationType authorizationType) {
@@ -134,18 +102,6 @@ public class ConfigurationService extends java.util.Observable {
             Log.d(TAG, "Previously saved instance list for connection type " + authorizationType + " has the same version as " +
                     "the newly downloaded one, new one does not have to be cached.");
         }
-    }
-
-    /**
-     * Parses the JSON string of the instance list to a POJO object.
-     *
-     * @param organizationList The string with the JSON representation.
-     * @return An InstanceList object containing the same information.
-     * @throws JSONException Thrown if the JSON was malformed or had an unknown list version.
-     */
-    private List<Organization> _parseOrganizationList(String organizationList) throws Exception {
-        JSONObject organizationListJson = new JSONObject(organizationList);
-        return _serializerService.deserializeOrganizationList(organizationListJson);
     }
 
     /**
@@ -170,15 +126,10 @@ public class ConfigurationService extends java.util.Observable {
      * Downloads, parses, and saves the latest configuration retrieved from the URL defined in the build configuration.
      */
     private void _fetchLatestConfiguration() {
-        if (BuildConfig.NEW_ORGANIZATION_LIST_ENABLED) {
-            _organizationsPendingDiscovery = true;
-            _fetchOrganizations();
-        } else {
-            _secureInternetPendingDiscovery = true;
-            _instituteAccessPendingDiscovery = true;
-            _fetchConfigurationForAuthorizationType(AuthorizationType.Distributed);
-            _fetchConfigurationForAuthorizationType(AuthorizationType.Local);
-        }
+        _secureInternetPendingDiscovery = true;
+        _instituteAccessPendingDiscovery = true;
+        _fetchConfigurationForAuthorizationType(AuthorizationType.Distributed);
+        _fetchConfigurationForAuthorizationType(AuthorizationType.Local);
     }
 
     @SuppressLint("CheckResult")
@@ -216,38 +167,6 @@ public class ConfigurationService extends java.util.Observable {
                     notifyObservers();
                     clearChanged();
                     Log.e(TAG, "Error encountered while fetching instance list for authorization type: " + authorizationType, throwable);
-                });
-    }
-
-    @SuppressLint("CheckResult")
-    private void _fetchOrganizations() {
-        Observable<String> organizationListObservable = _createOrganizationListObservable();
-        Observable<String> signatureObservable = _createSignatureObservable(BuildConfig.ORGANIZATION_LIST_URL);
-        Observable.zip(organizationListObservable, signatureObservable, (instanceList, signature) -> {
-            try {
-                if (_securityService.verifyMinisign(instanceList, signature)) {
-                    return _parseOrganizationList(instanceList);
-                } else {
-                    throw new InvalidSignatureException("Signature validation failed for organization list!");
-                }
-            } catch (Exception ex) {
-                return _parseOrganizationList(instanceList);
-                // TODO: replace line above with line below [see README.md why]
-                // throw new InvalidSignatureException("Signature validation failed for organization list!");
-            }
-        }).subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(instanceList -> {
-                    _organizationList = instanceList;
-                    _organizationsPendingDiscovery = false;
-                    _saveList(instanceList);
-                    Log.i(TAG, "Successfully refreshed organization list.");
-                }, throwable -> {
-                    _organizationsPendingDiscovery = false;
-                    setChanged();
-                    notifyObservers();
-                    clearChanged();
-                    Log.e(TAG, "Error encountered while fetching organization list", throwable);
                 });
     }
 
@@ -300,15 +219,6 @@ public class ConfigurationService extends java.util.Observable {
                 return Observable.error(new IOException("Response body is empty!"));
             }
         }).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread());
-    }
-
-    /**
-     * Returns if organization discovery is still pending.
-     *
-     * @return True if discovery is still not completed, and that's why the list is not complete.
-     */
-    public boolean isPendingOrganizationsDiscovery() {
-        return _organizationsPendingDiscovery;
     }
 
     /**

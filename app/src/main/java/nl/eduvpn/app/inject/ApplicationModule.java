@@ -34,6 +34,7 @@ import nl.eduvpn.app.service.APIService;
 import nl.eduvpn.app.service.ConfigurationService;
 import nl.eduvpn.app.service.ConnectionService;
 import nl.eduvpn.app.service.HistoryService;
+import nl.eduvpn.app.service.OrganizationService;
 import nl.eduvpn.app.service.PreferencesService;
 import nl.eduvpn.app.service.SecurityService;
 import nl.eduvpn.app.service.SerializerService;
@@ -66,6 +67,13 @@ public class ApplicationModule {
     protected ConfigurationService provideConfigurationService(PreferencesService preferencesService, SerializerService serializerService,
                                                                SecurityService securityService, OkHttpClient okHttpClient) {
         return new ConfigurationService(preferencesService, serializerService, securityService, okHttpClient);
+    }
+
+    @Provides
+    @Singleton
+    protected OrganizationService provideOrganizationService(SerializerService serializerService,
+                                                             SecurityService securityService, OkHttpClient okHttpClient) {
+        return new OrganizationService( serializerService, securityService, okHttpClient);
     }
 
     @Provides
@@ -153,9 +161,10 @@ public class ApplicationModule {
                                                        HistoryService historyService,
                                                        PreferencesService preferencesService,
                                                        ConnectionService connectionService,
-                                                       VPNService vpnService) {
+                                                       VPNService vpnService,
+                                                       OrganizationService organizationService) {
         return new ViewModelFactory(context, apiService, serializerService,
                 configurationService, historyService, preferencesService, connectionService,
-                vpnService);
+                vpnService, organizationService);
     }
 }

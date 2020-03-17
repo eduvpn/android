@@ -316,7 +316,7 @@ public class SerializerServiceTest {
         OrganizationServer server3 = new OrganizationServer("display name - 3", "http://bas3url.com/vpn", null);
         List<OrganizationServer> servers = Arrays.asList(server1, server2, server3);
         JSONObject serializedServerList = _serializerService.serializeOrganizationServerList(servers);
-        List<OrganizationServer> deserializedServerList = _serializerService.deserializeOrganizationServerList(serializedServerList);
+        List<OrganizationServer> deserializedServerList = _serializerService.deserializeInstancesFromOrganizationServerList(serializedServerList);
         for (int i = 0; i < servers.size(); ++i) {
             assertEquals(servers.get(i).getDisplayName(), deserializedServerList.get(i).getDisplayName());
             assertEquals(servers.get(i).getBaseUrl(), deserializedServerList.get(i).getBaseUrl());

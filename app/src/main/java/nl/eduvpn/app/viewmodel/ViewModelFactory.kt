@@ -21,13 +21,7 @@ package nl.eduvpn.app.viewmodel
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import nl.eduvpn.app.service.APIService
-import nl.eduvpn.app.service.ConfigurationService
-import nl.eduvpn.app.service.ConnectionService
-import nl.eduvpn.app.service.HistoryService
-import nl.eduvpn.app.service.PreferencesService
-import nl.eduvpn.app.service.SerializerService
-import nl.eduvpn.app.service.VPNService
+import nl.eduvpn.app.service.*
 
 class ViewModelFactory(
         private val context: Context,
@@ -37,7 +31,8 @@ class ViewModelFactory(
         private val historyService: HistoryService,
         private val preferencesService: PreferencesService,
         private val connectionService: ConnectionService,
-        private val vpnService: VPNService
+        private val vpnService: VPNService,
+        private val organizationService: OrganizationService
 ) : ViewModelProvider.NewInstanceFactory() {
 
     @Suppress("UNCHECKED_CAST")
@@ -53,9 +48,20 @@ class ViewModelFactory(
                     connectionService,
                     vpnService
             ) as T
-            modelClass.isAssignableFrom(OrganizationSelectionViewModel::class.java) -> OrganizationSelectionViewModel(
+            modelClass.isAssignableFrom(ProviderSelectionViewModel::class.java) -> ProviderSelectionViewModel(
+                    context,
                     apiService,
-                    serializerService
+                    serializerService,
+                    configurationService,
+                    historyService,
+                    preferencesService,
+                    connectionService,
+                    vpnService,
+                    organizationService
+            ) as T
+            modelClass.isAssignableFrom(OrganizationSelectionViewModel::class.java) -> OrganizationSelectionViewModel(
+                    organizationService,
+                    preferencesService
             ) as T
             else -> throw RuntimeException("Unexpected model class: ${modelClass::class.java.name}")
         }

@@ -22,35 +22,40 @@ import androidx.annotation.StringRes
 import androidx.lifecycle.MutableLiveData
 import nl.eduvpn.app.R
 import nl.eduvpn.app.base.BaseViewModel
-import nl.eduvpn.app.entity.InstanceList
 import nl.eduvpn.app.entity.Organization
-import nl.eduvpn.app.entity.OrganizationServer
-import nl.eduvpn.app.service.APIService
-import nl.eduvpn.app.service.SerializerService
-import org.json.JSONObject
+import nl.eduvpn.app.service.OrganizationService
+import nl.eduvpn.app.service.PreferencesService
 
-class OrganizationSelectionViewModel(private val apiService: APIService,
-                                     private val serializerService: SerializerService) : BaseViewModel() {
+class OrganizationSelectionViewModel(
+        organizationService: OrganizationService,
+        private val preferencesService: PreferencesService) : BaseViewModel() {
 
     sealed class ParentAction {
+        object OpenProviderSelector : ParentAction()
         data class DisplayError(@StringRes val title: Int, val message: String) : ParentAction()
-        data class OpenServerSelector(val servers: List<OrganizationServer>) : ParentAction()
     }
 
     val state = MutableLiveData<ConnectionState>().also { it.value = ConnectionState.Ready }
     val parentAction = MutableLiveData<ParentAction>()
 
+    val organizations = MutableLiveData<List<Organization>>()
+
+    init {
+        state.value = ConnectionState.FetchingOrganizations
+        disposables.add(
+                organizationService.fetchOrganizations()
+                        .subscribe({ organizationList ->
+                            state.value = ConnectionState.Ready
+                            organizations.value = organizationList
+                        }, { throwable ->
+                            parentAction.value = ParentAction.DisplayError(R.string.error_fetching_organizations, throwable.toString())
+                        })
+        )
+    }
+
 
     fun selectOrganization(organization: Organization) {
-        apiService.getJSON(organization.serverInfoUrl, null, object: APIService.Callback<JSONObject> {
-            override fun onSuccess(result: JSONObject) {
-                val serversList = serializerService.deserializeOrganizationServerList(result)
-                parentAction.postValue(ParentAction.OpenServerSelector(serversList))
-            }
-
-            override fun onError(errorMessage: String) {
-                parentAction.postValue(ParentAction.DisplayError(R.string.error_fetching_organization_servers, errorMessage))
-            }
-        })
+        preferencesService.setCurrentOrganization(organization)
+        parentAction.postValue(ParentAction.OpenProviderSelector)
     }
 }

@@ -23,6 +23,7 @@ import android.content.SharedPreferences;
 
 import net.openid.appauth.AuthState;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -41,6 +42,7 @@ import nl.eduvpn.app.entity.Organization;
 import nl.eduvpn.app.entity.Profile;
 import nl.eduvpn.app.entity.SavedAuthState;
 import nl.eduvpn.app.entity.SavedKeyPair;
+import nl.eduvpn.app.entity.SavedOrganization;
 import nl.eduvpn.app.entity.SavedProfile;
 import nl.eduvpn.app.entity.Settings;
 import nl.eduvpn.app.utils.Log;
@@ -61,11 +63,12 @@ public class PreferencesService {
     private static final String KEY_AUTH_STATE = "auth_state";
     private static final String KEY_APP_SETTINGS = "app_settings";
 
+    static final String KEY_ORGANIZATION = "organization";
     static final String KEY_INSTANCE = "instance";
     static final String KEY_PROFILE = "profile";
     static final String KEY_DISCOVERED_API = "discovered_api";
 
-    static final String KEY_ORGANIZATION_LIST = "organization_list";
+    static final String KEY_ORGANIZATION_INSTANCE_LIST = "organization_instance_list";
 
     static final String KEY_INSTANCE_LIST_PREFIX = "instance_list_";
     @Deprecated
@@ -77,6 +80,8 @@ public class PreferencesService {
     static final String KEY_SAVED_PROFILES = "saved_profiles";
     static final String KEY_SAVED_AUTH_STATES = "saved_auth_state";
     static final String KEY_SAVED_KEY_PAIRS = "saved_key_pairs";
+    static final String KEY_SAVED_ORGANIZATION = "saved_organization";
+
     static final String KEY_STORAGE_VERSION = "storage_version";
 
     private SerializerService _serializerService;
@@ -148,6 +153,41 @@ public class PreferencesService {
     void _clearPreferences() {
         _sharedPreferences.edit().clear().putInt(KEY_STORAGE_VERSION, 2).commit();
     }
+
+    /**
+     * Saves the organization the app is connecting to.
+     *
+     * @param organization The organization to save.
+     */
+    public void setCurrentOrganization(@NonNull Organization organization) {
+        try {
+            _getSharedPreferences().edit()
+                    .putString(KEY_ORGANIZATION, _serializerService.serializeOrganization(organization).toString())
+                    .apply();
+        } catch (SerializerService.UnknownFormatException ex) {
+            Log.e(TAG, "Cannot save organization!", ex);
+        }
+    }
+
+    /**
+     * Returns a saved organization.
+     *
+     * @return The organization to connect to. Null if none found.
+     */
+    public @Nullable
+    Organization getCurrentOrganization() {
+        String serializedOrganization = _getSharedPreferences().getString(KEY_ORGANIZATION, null);
+        if (serializedOrganization == null) {
+            return null;
+        }
+        try {
+            return _serializerService.deserializeOrganization(new JSONObject(serializedOrganization));
+        } catch (SerializerService.UnknownFormatException | JSONException ex) {
+            Log.e(TAG, "Unable to deserialize instance!", ex);
+            return null;
+        }
+    }
+
 
     /**
      * Saves the instance the app will connect to.
@@ -395,14 +435,14 @@ public class PreferencesService {
     }
 
     /**
-     * Stores the organization list
+     * Stores the organization instance list
      */
-    public void storeOrganizationList(List<Organization> organizationListToSave) {
+    public void storeOrganizationInstanceList(List<Instance> organizationInstanceListToSave) {
         try {
-            String serializedOrganizationList = _serializerService.serializeOrganizationList(organizationListToSave).toString();
-            _getSharedPreferences().edit().putString(KEY_ORGANIZATION_LIST, serializedOrganizationList).apply();
+            String serializedInstanceList = _serializerService.serializeInstances(organizationInstanceListToSave).toString();
+            _getSharedPreferences().edit().putString(KEY_ORGANIZATION_INSTANCE_LIST, serializedInstanceList).apply();
         } catch (SerializerService.UnknownFormatException ex) {
-            Log.e(TAG, "Cannot save organization list.", ex);
+            Log.e(TAG, "Cannot save organization instance list.", ex);
         }
     }
 
@@ -442,18 +482,18 @@ public class PreferencesService {
     }
 
     /**
-     * Retrieves the organization list
+     * Retrieves the organization instances list
      */
     @Nullable
-    public List<Organization> getOrganizationList() {
+    public List<Instance> getOrganizationInstanceList() {
         try {
-            String serializedOrganizationList = _getSharedPreferences().getString(KEY_ORGANIZATION_LIST, null);
+            String serializedOrganizationList = _getSharedPreferences().getString(KEY_ORGANIZATION_INSTANCE_LIST, null);
             if (serializedOrganizationList == null) {
                 return null;
             }
-            return _serializerService.deserializeOrganizationList(new JSONObject(serializedOrganizationList));
+            return _serializerService.deserializeInstances(new JSONArray(serializedOrganizationList));
         } catch (Exception ex) {
-            Log.e(TAG, "Cannot deserialize previously saved organization list.", ex);
+            Log.e(TAG, "Cannot deserialize previously saved organization instances list.", ex);
             return null;
         }
     }
@@ -494,5 +534,39 @@ public class PreferencesService {
         } catch (SerializerService.UnknownFormatException ex) {
             Log.e(TAG, "Cannot store saved key pair list.", ex);
         }
+    }
+
+    /**
+     * Stores an organization together with its servers.
+     *
+     * @param savedOrganization The organization and its servers to save.
+     */
+    public void storeSavedOrganization(SavedOrganization savedOrganization) {
+        try {
+            String serializedSavedOrganization = _serializerService.serializeSavedOrganization(savedOrganization).toString();
+            _getSharedPreferences().edit().putString(KEY_SAVED_ORGANIZATION, serializedSavedOrganization).apply();
+        } catch (SerializerService.UnknownFormatException ex) {
+            Log.e(TAG, "Cannot store saved organization.", ex);
+        }
+    }
+
+    /**
+     * Retrieves a previously stored saved organization.
+     *
+     * @return The previously stored saved organization. Null if deserialization failed or no stored one found.
+     */
+    @Nullable
+    public SavedOrganization getSavedOrganization() {
+        try {
+            String savedOrganizationJson = _getSharedPreferences().getString(KEY_SAVED_ORGANIZATION, null);
+            if (savedOrganizationJson == null) {
+                return null;
+            }
+            return _serializerService.deserializeSavedOrganization(new JSONObject(savedOrganizationJson));
+        } catch (Exception ex) {
+            Log.e(TAG, "Cannot deserialize saved organization.", ex);
+            return null;
+        }
+
     }
 }

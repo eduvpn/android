@@ -36,6 +36,7 @@ import net.openid.appauth.TokenResponse;
 import net.openid.appauth.browser.BrowserBlacklist;
 import net.openid.appauth.browser.VersionedBrowserMatcher;
 
+import java.util.List;
 import java.util.concurrent.Callable;
 
 import androidx.annotation.NonNull;
@@ -50,6 +51,8 @@ import nl.eduvpn.app.MainActivity;
 import nl.eduvpn.app.R;
 import nl.eduvpn.app.entity.DiscoveredAPI;
 import nl.eduvpn.app.entity.Instance;
+import nl.eduvpn.app.entity.Organization;
+import nl.eduvpn.app.entity.SavedOrganization;
 import nl.eduvpn.app.utils.ErrorDialog;
 import nl.eduvpn.app.utils.Log;
 import nl.eduvpn.app.BuildConfig;
@@ -198,6 +201,13 @@ public class ConnectionService {
         _preferencesService.setCurrentAuthState(authState);
         // Save the access token for later use.
         _historyService.cacheAuthorizationState(_preferencesService.getCurrentInstance(), authState);
+        Organization organization = _preferencesService.getCurrentOrganization();
+        List<Instance> instances = _preferencesService.getOrganizationInstanceList();
+        if (organization != null && instances != null) {
+            _historyService.storeSavedOrganization(new SavedOrganization(organization, instances));
+        } else {
+            Log.w(TAG, "Organization and instances were not available, so no caching was done.");
+        }
         Toast.makeText(activity, R.string.provider_added_new_configs_available, Toast.LENGTH_LONG).show();
     }
 

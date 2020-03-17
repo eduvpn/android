@@ -21,7 +21,6 @@ import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.View
-import android.widget.Toast
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -32,10 +31,10 @@ import nl.eduvpn.app.R
 import nl.eduvpn.app.adapter.OrganizationAdapter
 import nl.eduvpn.app.base.BaseFragment
 import nl.eduvpn.app.databinding.FragmentOrganizationSelectionBinding
-import nl.eduvpn.app.service.ConfigurationService
-import nl.eduvpn.app.utils.ErrorDialog
+import nl.eduvpn.app.entity.AuthorizationType
+import nl.eduvpn.app.service.OrganizationService
 import nl.eduvpn.app.utils.ItemClickSupport
-import nl.eduvpn.app.viewmodel.ConnectionViewModel
+import nl.eduvpn.app.viewmodel.ConnectionState
 import nl.eduvpn.app.viewmodel.OrganizationSelectionViewModel
 import javax.inject.Inject
 
@@ -46,7 +45,7 @@ import javax.inject.Inject
 class OrganizationSelectionFragment : BaseFragment<FragmentOrganizationSelectionBinding>() {
 
     @Inject
-    internal lateinit var configurationService: ConfigurationService
+    internal lateinit var organizationService: OrganizationService
 
     private var dataObserver: RecyclerView.AdapterDataObserver? = null
 
@@ -62,7 +61,7 @@ class OrganizationSelectionFragment : BaseFragment<FragmentOrganizationSelection
         binding.viewModel = viewModel
         binding.organizationList.setHasFixedSize(true)
         binding.organizationList.layoutManager = LinearLayoutManager(view.context, LinearLayoutManager.VERTICAL, false)
-        val adapter = OrganizationAdapter(configurationService)
+        val adapter = OrganizationAdapter()
         binding.organizationList.adapter = adapter
         binding.search.addTextChangedListener(object : TextWatcher {
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
@@ -85,9 +84,8 @@ class OrganizationSelectionFragment : BaseFragment<FragmentOrganizationSelection
             override fun onChanged() {
                 when {
                     adapter.itemCount > 0 -> binding.organizationDiscoveryStatus.visibility = View.GONE
-                    adapter.isDiscoveryPending -> {
-                        binding.organizationDiscoveryStatus.setText(R.string.discovering_organizations)
-                        binding.organizationDiscoveryStatus.visibility = View.VISIBLE
+                    viewModel.state.value != ConnectionState.Ready -> {
+                        binding.organizationDiscoveryStatus.visibility = View.GONE
                     }
                     else -> {
                         binding.organizationDiscoveryStatus.setText(R.string.no_organization_found)
@@ -101,15 +99,13 @@ class OrganizationSelectionFragment : BaseFragment<FragmentOrganizationSelection
             // Trigger initial status
             it.onChanged()
         }
-
+        viewModel.organizations.observe(viewLifecycleOwner, Observer { organizations ->
+            adapter.setOrganizations(organizations)
+        })
         viewModel.parentAction.observe(viewLifecycleOwner, Observer { parentAction ->
             when (parentAction) {
-                is OrganizationSelectionViewModel.ParentAction.DisplayError -> {
-                    ErrorDialog.show(requireContext(), parentAction.title, parentAction.message)
-                }
-                is OrganizationSelectionViewModel.ParentAction.OpenServerSelector -> {
-                    // TODO
-                    Toast.makeText(requireContext(), "TODO", Toast.LENGTH_LONG).show()
+                is OrganizationSelectionViewModel.ParentAction.OpenProviderSelector -> {
+                    (activity as? MainActivity)?.openFragment(ProviderSelectionFragment.newInstance(AuthorizationType.Organization), true)
                 }
             }
         })

@@ -67,7 +67,7 @@ class ServerSelectionFragment : BaseFragment<FragmentServerSelectionBinding>() {
             }
         }
 
-        viewModel.instances.observe(this, Observer {
+        viewModel.instances.observe(viewLifecycleOwner, Observer {
 
             if (it.isEmpty() && previousListSize > 0)  {
                 // Go to the add server screen
@@ -78,7 +78,7 @@ class ServerSelectionFragment : BaseFragment<FragmentServerSelectionBinding>() {
             }
         })
 
-        viewModel.parentAction.observe(this, Observer { parentAction ->
+        viewModel.parentAction.observe(viewLifecycleOwner, Observer { parentAction ->
             when (parentAction) {
                 is ConnectionViewModel.ParentAction.InitiateConnection -> {
                     activity?.let { activity ->

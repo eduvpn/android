@@ -35,19 +35,12 @@
 
 package nl.eduvpn.app.adapter;
 
-import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
 
-import com.squareup.picasso.Picasso;
-
 import java.util.List;
-import java.util.Observable;
-import java.util.Observer;
 
 import androidx.annotation.NonNull;
-import androidx.recyclerview.widget.RecyclerView;
-import nl.eduvpn.app.R;
 import nl.eduvpn.app.adapter.viewholder.ProviderViewHolder;
 import nl.eduvpn.app.databinding.ListItemProviderBinding;
 import nl.eduvpn.app.entity.AuthorizationType;
@@ -58,19 +51,17 @@ import nl.eduvpn.app.service.ConfigurationService;
  * Adapter for the providers list.
  * Created by Daniel Zolnai on 2016-10-07.
  */
-public class ProviderAdapter extends RecyclerView.Adapter<ProviderViewHolder> {
+public class AuthTypeProviderAdapter extends InstanceAdapter {
 
     private List<Instance> _instanceList;
     private LayoutInflater _layoutInflater;
     private AuthorizationType _authorizationType;
-    private ConfigurationService _configurationService;
 
-    public ProviderAdapter(final ConfigurationService configurationService, AuthorizationType authorizationType) {
-        _configurationService = configurationService;
+    public AuthTypeProviderAdapter(final ConfigurationService configurationService, AuthorizationType authorizationType) {
         _authorizationType = authorizationType;
         if (authorizationType == AuthorizationType.Local) {
             _instanceList = configurationService.getInstituteAccessList();
-        } else {
+        } else if (authorizationType == AuthorizationType.Distributed) {
             _instanceList = configurationService.getSecureInternetList();
         }
         configurationService.addObserver((o, arg) -> {
@@ -82,12 +73,6 @@ public class ProviderAdapter extends RecyclerView.Adapter<ProviderViewHolder> {
             notifyDataSetChanged();
         });
     }
-
-    public boolean isDiscoveryPending() {
-        return _configurationService.isPendingDiscovery(_authorizationType);
-    }
-
-
 
     /**
      * Returns the item at the given position.
@@ -112,7 +97,7 @@ public class ProviderAdapter extends RecyclerView.Adapter<ProviderViewHolder> {
         if (_layoutInflater == null) {
             _layoutInflater = LayoutInflater.from(parent.getContext());
         }
-        return new ProviderViewHolder(ListItemProviderBinding.inflate(_layoutInflater, parent, false ));
+        return new ProviderViewHolder(ListItemProviderBinding.inflate(_layoutInflater, parent, false));
     }
 
     @Override

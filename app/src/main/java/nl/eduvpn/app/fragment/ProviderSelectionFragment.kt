@@ -46,15 +46,20 @@ import com.google.android.material.snackbar.Snackbar
 import nl.eduvpn.app.EduVPNApplication
 import nl.eduvpn.app.MainActivity
 import nl.eduvpn.app.R
-import nl.eduvpn.app.adapter.ProviderAdapter
+import nl.eduvpn.app.adapter.AuthTypeProviderAdapter
+import nl.eduvpn.app.adapter.OrganizationServerProviderAdapter
 import nl.eduvpn.app.base.BaseFragment
 import nl.eduvpn.app.databinding.FragmentProviderSelectionBinding
 import nl.eduvpn.app.entity.AuthorizationType
+import nl.eduvpn.app.entity.Organization
 import nl.eduvpn.app.service.ConfigurationService
+import nl.eduvpn.app.service.OrganizationService
+import nl.eduvpn.app.service.PreferencesService
 import nl.eduvpn.app.utils.ErrorDialog
 import nl.eduvpn.app.utils.ItemClickSupport
 import nl.eduvpn.app.utils.Log
 import nl.eduvpn.app.viewmodel.ConnectionViewModel
+import nl.eduvpn.app.viewmodel.ProviderSelectionViewModel
 import javax.inject.Inject
 
 /**
@@ -66,6 +71,12 @@ class ProviderSelectionFragment : BaseFragment<FragmentProviderSelectionBinding>
     @Inject
     internal lateinit var configurationService: ConfigurationService
 
+    @Inject
+    internal lateinit var organizationService: OrganizationService
+
+    @Inject
+    internal lateinit var preferencesService: PreferencesService
+
     private lateinit var authorizationType: AuthorizationType
 
     private var dataObserver: RecyclerView.AdapterDataObserver? = null
@@ -73,7 +84,7 @@ class ProviderSelectionFragment : BaseFragment<FragmentProviderSelectionBinding>
     override val layout = R.layout.fragment_provider_selection
 
     private val viewModel by lazy {
-        ViewModelProviders.of(this, viewModelFactory).get(ConnectionViewModel::class.java)
+        ViewModelProviders.of(this, viewModelFactory).get(ProviderSelectionViewModel::class.java)
     }
 
 
@@ -97,17 +108,24 @@ class ProviderSelectionFragment : BaseFragment<FragmentProviderSelectionBinding>
         if (authorizationType == AuthorizationType.Local) {
             binding.header.setText(R.string.select_your_institution_title)
             binding.description.visibility = View.GONE
-        } else {
+        } else if (authorizationType == AuthorizationType.Distributed) {
             binding.header.setText(R.string.select_your_country_title)
             binding.description.visibility = View.VISIBLE
+        } else {
+            binding.header.setText(R.string.select_your_server_title)
+            binding.description.visibility = View.GONE
         }
         binding.viewModel = viewModel
         binding.providerList.setHasFixedSize(true)
         binding.providerList.layoutManager = LinearLayoutManager(view.context, LinearLayoutManager.VERTICAL, false)
-        val adapter = ProviderAdapter(configurationService, authorizationType)
+        val adapter = if (authorizationType == AuthorizationType.Organization) {
+            OrganizationServerProviderAdapter()
+        } else {
+            AuthTypeProviderAdapter(configurationService, authorizationType)
+        }
         binding.providerList.adapter = adapter
-        ItemClickSupport.addTo(binding.providerList).setOnItemClickListener { recyclerView, position, _ ->
-            val instance = (recyclerView.adapter as ProviderAdapter).getItem(position)
+        ItemClickSupport.addTo(binding.providerList).setOnItemClickListener { _, position, _ ->
+            val instance = adapter.getItem(position)
             if (instance == null) {
                 // Should never happen
                 val mainView = getView()
@@ -121,7 +139,7 @@ class ProviderSelectionFragment : BaseFragment<FragmentProviderSelectionBinding>
         }
         // When clicked long on an item, display its name in a toast.
         ItemClickSupport.addTo(binding.providerList).setOnItemLongClickListener { recyclerView, position, _ ->
-            val instance = (recyclerView.adapter as ProviderAdapter).getItem(position)
+            val instance = (recyclerView.adapter as AuthTypeProviderAdapter).getItem(position)
             val name = instance?.displayName ?: getString(R.string.display_other_name)
             Toast.makeText(recyclerView.context, name, Toast.LENGTH_LONG).show()
             true
@@ -130,7 +148,7 @@ class ProviderSelectionFragment : BaseFragment<FragmentProviderSelectionBinding>
             override fun onChanged() {
                 when {
                     adapter.itemCount > 0 -> binding.providerStatus.visibility = View.GONE
-                    adapter.isDiscoveryPending -> {
+                    configurationService.isPendingDiscovery(authorizationType) -> {
                         binding.providerStatus.setText(R.string.discovering_providers)
                         binding.providerStatus.visibility = View.VISIBLE
                     }
@@ -147,7 +165,7 @@ class ProviderSelectionFragment : BaseFragment<FragmentProviderSelectionBinding>
             it.onChanged()
         }
 
-        viewModel.parentAction.observe(this, Observer { parentAction ->
+        viewModel.parentAction.observe(viewLifecycleOwner, Observer { parentAction ->
             when (parentAction) {
                 is ConnectionViewModel.ParentAction.InitiateConnection -> {
                     activity?.let { activity ->
@@ -168,8 +186,13 @@ class ProviderSelectionFragment : BaseFragment<FragmentProviderSelectionBinding>
                 }
             }
         })
-
+        if (adapter is OrganizationServerProviderAdapter) {
+            viewModel.currentOrganizationInstances.observe(viewLifecycleOwner, Observer {
+                adapter.setInstances(it)
+            })
+        }
     }
+
 
     override fun onResume() {
         super.onResume()
@@ -185,7 +208,6 @@ class ProviderSelectionFragment : BaseFragment<FragmentProviderSelectionBinding>
     }
 
     companion object {
-
         private val TAG = ProviderSelectionFragment::class.java.name
         private const val EXTRA_AUTHORIZATION_TYPE = "extra_authorization_type"
 

@@ -14,13 +14,23 @@
  *     You should have received a copy of the GNU General Public License
  *     along with eduVPN.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package nl.eduvpn.app.entity
 
 /**
- * The type of the VPN which the user will connect to.
- * Created by Daniel Zolnai on 2017-07-31.
+ * A configuration for an instance.
+ * Created by Daniel Zolnai on 2016-10-07.
  */
-enum class AuthorizationType {
-        Local, Distributed, Organization
+data class Instance(
+        val baseURI: String,
+        val displayName: String,
+        val logoUri: String?,
+        var authorizationType: AuthorizationType?,
+        val isCustom: Boolean,
+        val serverGroupUrl: String?) {
+
+    val sanitizedBaseURI: String
+        get() = if (baseURI.endsWith("/")) {
+            baseURI.substring(0, baseURI.length - 1)
+        } else baseURI
+
 }

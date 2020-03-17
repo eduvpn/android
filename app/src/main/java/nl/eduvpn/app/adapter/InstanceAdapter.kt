@@ -16,18 +16,12 @@
  *
  */
 
-package nl.eduvpn.app.viewmodel
+package nl.eduvpn.app.adapter
 
-import androidx.annotation.StringRes
-import nl.eduvpn.app.R
+import androidx.recyclerview.widget.RecyclerView
+import nl.eduvpn.app.adapter.viewholder.ProviderViewHolder
+import nl.eduvpn.app.entity.Instance
 
-enum class ConnectionState(@StringRes val displayString: Int?) {
-        Ready(null),
-        FetchingOrganizations(R.string.fetching_organization_servers),
-        DiscoveringApi(R.string.api_discovery_message),
-        DiscoveringGroupServers(R.string.discovering_group_servers),
-        FetchingProfiles(R.string.loading_available_profiles),
-        Authorizing(R.string.loading_browser_for_authorization),
-        ProfileCheckingCertificate(R.string.vpn_profile_checking_certificate),
-        ProfileDownloadingKeyPair(R.string.vpn_profile_creating_keypair)
-    }
+abstract class InstanceAdapter : RecyclerView.Adapter<ProviderViewHolder>() {
+    abstract fun getItem(position: Int) : Instance?
+}
