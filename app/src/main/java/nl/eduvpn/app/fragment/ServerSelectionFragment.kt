@@ -57,13 +57,24 @@ class ServerSelectionFragment : BaseFragment<FragmentServerSelectionBinding>() {
         binding.viewModel = viewModel
         binding.serverList.adapter = adapter
         binding.serverList.layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
-
-        binding.addServerButton.setOnClickListener {
-            @Suppress("ConstantConditionIf")
-            if (BuildConfig.API_DISCOVERY_ENABLED) {
-                (activity as? MainActivity)?.openFragment(OrganizationSelectionFragment(), true)
+        if (BuildConfig.NEW_ORGANIZATION_LIST_ENABLED) {
+            if (viewModel.organizationSelected()) {
+                binding.addServerButton.visibility = View.GONE
             } else {
-                (activity as? MainActivity)?.openFragment(CustomProviderFragment(), true)
+                binding.addServerButton.setText(R.string.select_organization)
+                binding.addServerButton.setOnClickListener {
+                    (activity as? MainActivity)?.openFragment(OrganizationSelectionFragment(), true)
+                }
+                binding.addServerButton.visibility = View.VISIBLE
+            }
+        } else {
+            binding.addServerButton.setOnClickListener {
+                @Suppress("ConstantConditionIf")
+                if (BuildConfig.API_DISCOVERY_ENABLED) {
+                    (activity as? MainActivity)?.openFragment(OrganizationSelectionFragment(), true)
+                } else {
+                    (activity as? MainActivity)?.openFragment(CustomProviderFragment(), true)
+                }
             }
         }
 
@@ -104,12 +115,13 @@ class ServerSelectionFragment : BaseFragment<FragmentServerSelectionBinding>() {
             val item = adapter.getItem(position)
             viewModel.discoverApi(item)
         }
-        ItemClickSupport.addTo(binding.serverList).setOnItemLongClickListener { _, position, _ ->
-            val item = adapter.getItem(position)
-            displayDeleteDialog(item)
+        if (!BuildConfig.NEW_ORGANIZATION_LIST_ENABLED) {
+            ItemClickSupport.addTo(binding.serverList).setOnItemLongClickListener { _, position, _ ->
+                val item = adapter.getItem(position)
+                displayDeleteDialog(item)
+            }
         }
     }
-
 
     private fun displayDeleteDialog(instance: Instance): Boolean {
         AlertDialog.Builder(requireContext())
@@ -123,7 +135,6 @@ class ServerSelectionFragment : BaseFragment<FragmentServerSelectionBinding>() {
                 .show()
         return true
     }
-
 
 
     override fun onResume() {

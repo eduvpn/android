@@ -31,7 +31,9 @@ import java.io.StringReader;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -167,6 +169,11 @@ public class VPNService extends Observable implements VpnStatus.StateListener {
                 profile.mName = preferredName;
             }
             ProfileManager profileManager = ProfileManager.getInstance(_context);
+            // We only have one profile at a time saved.
+            List<VpnProfile> profiles = new ArrayList<>(profileManager.getProfiles());
+            for (VpnProfile savedProfile : profiles) {
+                profileManager.removeProfile(_context, savedProfile);
+            }
             profileManager.addProfile(profile);
             profileManager.saveProfile(_context, profile);
             profileManager.saveProfileList(_context);
