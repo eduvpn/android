@@ -251,6 +251,24 @@ public class HistoryService extends Observable {
                 }
             }
         }
+        // Third pass: if organization auth instance, we need to find the parent instance
+        if (instance.getAuthorizationType() == AuthorizationType.Organization) {
+            for (SavedAuthState savedAuthState : _savedAuthStateList) {
+                if (savedAuthState.getInstance().getAuthorizationType() == AuthorizationType.Organization) {
+                    if (savedAuthState.getInstance().getSanitizedBaseURI().equalsIgnoreCase(instance.getSanitizedBaseURI())) {
+                        return savedAuthState;
+                    }
+                    if (savedAuthState.getInstance().getPeerList() != null) {
+                        for (Instance peer : savedAuthState.getInstance().getPeerList()) {
+                            if (peer.getSanitizedBaseURI().equalsIgnoreCase(instance.getSanitizedBaseURI())) {
+                                return savedAuthState;
+                            }
+                        }
+                    }
+
+                }
+            }
+        }
         return null;
     }
 
@@ -386,7 +404,6 @@ public class HistoryService extends Observable {
                 }
             }
         } else {
-            _preferencesService.setGroupInstancesForInstance(instance, null);
             removeSavedKeyPairs(instance);
             _removeAuthorizations(instance);
             removeSavedProfilesForInstance(instance); // This will trigger a profiles changed event
