@@ -131,11 +131,18 @@ public class HistoryService extends Observable {
                     existingInstances.add(savedAuthState.getInstance());
                 }
             }
+        } else if (instance.getAuthorizationType() == AuthorizationType.Organization) {
+            for (SavedAuthState savedAuthState : _savedAuthStateList) {
+                if (savedAuthState.getInstance().getAuthorizationType() == AuthorizationType.Organization &&
+                        !savedAuthState.getInstance().getSanitizedBaseURI().equals(instance.getSanitizedBaseURI())) {
+                    existingInstances.add(savedAuthState.getInstance());
+                }
+            }
         }
         _removeAuthorizations(instance);
         _savedAuthStateList.add(new SavedAuthState(instance, authState));
-        for (Instance existingDistributedInstance : existingInstances) {
-            _savedAuthStateList.add(new SavedAuthState(existingDistributedInstance, authState));
+        for (Instance existingSharedInstance : existingInstances) {
+            _savedAuthStateList.add(new SavedAuthState(existingSharedInstance, authState));
         }
         _save();
         setChanged();
