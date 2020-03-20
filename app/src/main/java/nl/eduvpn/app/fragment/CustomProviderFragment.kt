@@ -17,13 +17,10 @@
 
 package nl.eduvpn.app.fragment
 
-import android.app.Activity
-import android.content.Context
 import android.os.Bundle
 import android.view.View
-import android.view.inputmethod.InputMethodManager
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProviders
 import nl.eduvpn.app.EduVPNApplication
 import nl.eduvpn.app.R
 import nl.eduvpn.app.base.BaseFragment
@@ -31,6 +28,8 @@ import nl.eduvpn.app.databinding.FragmentCustomProviderBinding
 import nl.eduvpn.app.entity.AuthorizationType
 import nl.eduvpn.app.entity.Instance
 import nl.eduvpn.app.utils.ErrorDialog
+import nl.eduvpn.app.utils.hideKeyboard
+import nl.eduvpn.app.utils.showKeyboard
 import nl.eduvpn.app.viewmodel.ConnectionViewModel
 
 
@@ -42,9 +41,7 @@ class CustomProviderFragment : BaseFragment<FragmentCustomProviderBinding>() {
 
     override val layout = R.layout.fragment_custom_provider
 
-    private val viewModel by lazy {
-        ViewModelProviders.of(this, viewModelFactory).get(ConnectionViewModel::class.java)
-    }
+    private val viewModel by viewModels<ConnectionViewModel> { viewModelFactory }
 
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -55,8 +52,8 @@ class CustomProviderFragment : BaseFragment<FragmentCustomProviderBinding>() {
 
         // Put the cursor in the field and show the keyboard automatically.
         binding.customProviderUrl.requestFocus()
-        val inputMethodManager = requireActivity().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-        inputMethodManager.showSoftInput(binding.customProviderUrl, InputMethodManager.SHOW_IMPLICIT)
+
+        binding.customProviderUrl.showKeyboard()
 
         viewModel.parentAction.observe(viewLifecycleOwner, Observer { parentAction ->
             when (parentAction) {
@@ -77,8 +74,7 @@ class CustomProviderFragment : BaseFragment<FragmentCustomProviderBinding>() {
 
     private fun onConnectClicked() {
         // Hide the keyboard
-        val imm = requireActivity().getSystemService(Activity.INPUT_METHOD_SERVICE) as InputMethodManager
-        imm.hideSoftInputFromWindow(requireActivity().currentFocus?.windowToken, 0)
+        binding.customProviderUrl.hideKeyboard(true)
         val prefix = getString(R.string.custom_provider_prefix)
         val postfix = binding.customProviderUrl.text.toString()
         val url = prefix + postfix

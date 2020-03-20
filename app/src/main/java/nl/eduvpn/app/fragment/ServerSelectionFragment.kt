@@ -23,8 +23,8 @@ import android.os.Bundle
 import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
 import nl.eduvpn.app.BuildConfig
 import nl.eduvpn.app.EduVPNApplication
@@ -45,9 +45,7 @@ class ServerSelectionFragment : BaseFragment<FragmentServerSelectionBinding>() {
 
     private var previousListSize = 0
 
-    private val viewModel by lazy {
-        ViewModelProviders.of(this, viewModelFactory).get(ServerSelectionViewModel::class.java)
-    }
+    private val viewModel by viewModels<ServerSelectionViewModel> { viewModelFactory }
 
     override fun onAttach(context: Context) {
         super.onAttach(context)

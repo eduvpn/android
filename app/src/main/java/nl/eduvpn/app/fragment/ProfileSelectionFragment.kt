@@ -19,8 +19,8 @@ package nl.eduvpn.app.fragment
 
 import android.os.Bundle
 import android.view.View
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
 import nl.eduvpn.app.EduVPNApplication
 import nl.eduvpn.app.MainActivity
@@ -40,9 +40,7 @@ import java.util.ArrayList
  */
 class ProfileSelectionFragment : BaseFragment<FragmentProfileSelectionBinding>() {
 
-    private val viewModel by lazy {
-        ViewModelProviders.of(this, viewModelFactory).get(ConnectionViewModel::class.java)
-    }
+    private val viewModel by viewModels<ConnectionViewModel> { viewModelFactory }
 
     override val layout = R.layout.fragment_profile_selection
 

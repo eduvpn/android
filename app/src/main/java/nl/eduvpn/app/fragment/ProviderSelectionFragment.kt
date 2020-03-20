@@ -38,8 +38,8 @@ package nl.eduvpn.app.fragment
 import android.os.Bundle
 import android.view.View
 import android.widget.Toast
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
@@ -51,7 +51,6 @@ import nl.eduvpn.app.adapter.OrganizationServerProviderAdapter
 import nl.eduvpn.app.base.BaseFragment
 import nl.eduvpn.app.databinding.FragmentProviderSelectionBinding
 import nl.eduvpn.app.entity.AuthorizationType
-import nl.eduvpn.app.entity.Organization
 import nl.eduvpn.app.service.ConfigurationService
 import nl.eduvpn.app.service.OrganizationService
 import nl.eduvpn.app.service.PreferencesService
@@ -83,10 +82,7 @@ class ProviderSelectionFragment : BaseFragment<FragmentProviderSelectionBinding>
 
     override val layout = R.layout.fragment_provider_selection
 
-    private val viewModel by lazy {
-        ViewModelProviders.of(this, viewModelFactory).get(ProviderSelectionViewModel::class.java)
-    }
-
+    private val viewModel by viewModels<ProviderSelectionViewModel> { viewModelFactory }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
