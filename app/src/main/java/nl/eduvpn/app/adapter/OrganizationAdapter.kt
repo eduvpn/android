@@ -52,7 +52,7 @@ class OrganizationAdapter : RecyclerView.Adapter<OrganizationViewHolder>() {
             filteredList.addAll(unfilteredList)
         } else {
             filteredList.addAll(unfilteredList.filter {
-                it.displayName.contains(filter, ignoreCase = true) || it.keywordList.any { keyword -> keyword.equals(filter, ignoreCase = true) }
+                it.displayName.contains(filter, ignoreCase = true) || it.keywordList.any { keyword -> keyword.contains(filter, ignoreCase = true) }
             })
         }
         filteredList.sortBy { it.displayName }
