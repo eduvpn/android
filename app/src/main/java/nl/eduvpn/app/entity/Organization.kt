@@ -21,5 +21,5 @@ package nl.eduvpn.app.entity
 data class Organization(
         val displayName: String,
         val keywordList: List<String>,
-        val serverInfoUrl: String
+        val serverList: String
 )

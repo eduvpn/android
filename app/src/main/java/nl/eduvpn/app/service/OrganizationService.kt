@@ -44,27 +44,26 @@ class OrganizationService(private val serializerService: SerializerService,
         if (organization == null) {
             return Single.just(emptyList())
         }
-        return Single.zip(createGetJsonSingle(organization.serverInfoUrl), createSignatureSingle(organization.serverInfoUrl), BiFunction<String, String, List<Instance>> { serverInfoList, signature ->
+        val instanceListUrl = BuildConfig.ORGANIZATION_LIST_BASE_URL + organization.serverList
+        return Single.zip(createGetJsonSingle(instanceListUrl), createSignatureSingle(instanceListUrl), BiFunction<String, String, List<Instance>> { serverInfoList, signature ->
             try {
                 if (securityService.verifyMinisign(serverInfoList, signature)) {
                     val organizationListJson = JSONObject(serverInfoList)
                     return@BiFunction serializerService.deserializeInstancesFromOrganizationServerList(organizationListJson)
                 } else {
-                    throw InvalidSignatureException("Signature validation failed for organization list!")
+                    throw InvalidSignatureException("Signature validation failed for organization instance list!")
                 }
             } catch (ex: Exception) {
-                val organizationListJson = JSONObject(serverInfoList)
-                return@BiFunction serializerService.deserializeInstancesFromOrganizationServerList(organizationListJson)
-                // TODO: replace line above with line below [see README.md why]
-                // throw new InvalidSignatureException("Signature validation failed for organization list!");
+                throw InvalidSignatureException("Signature validation failed for organization instance list!")
             }
         }).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
     }
 
     fun fetchOrganizations(): Single<List<Organization>> {
-        val organizationListObservable = createGetJsonSingle(BuildConfig.ORGANIZATION_LIST_URL)
-        val signatureObservable = createSignatureSingle(BuildConfig.ORGANIZATION_LIST_URL)
+        val listUrl = BuildConfig.ORGANIZATION_LIST_BASE_URL + "organization_list.json"
+        val organizationListObservable = createGetJsonSingle(listUrl)
+        val signatureObservable = createSignatureSingle(listUrl)
         return Single.zip(organizationListObservable, signatureObservable, BiFunction<String, String, List<Organization>> { organizationList: String, signature: String ->
             try {
                 if (securityService.verifyMinisign(organizationList, signature)) {
@@ -74,10 +73,7 @@ class OrganizationService(private val serializerService: SerializerService,
                     throw InvalidSignatureException("Signature validation failed for organization list!")
                 }
             } catch (ex: Exception) {
-                val organizationListJson = JSONObject(organizationList)
-                return@BiFunction serializerService.deserializeOrganizationList(organizationListJson)
-                // TODO: replace line above with line below [see README.md why]
-                // throw new InvalidSignatureException("Signature validation failed for organization list!");
+                throw InvalidSignatureException("Signature validation failed for organization list!")
             }
         }).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())

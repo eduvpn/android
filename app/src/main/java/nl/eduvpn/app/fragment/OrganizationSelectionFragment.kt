@@ -21,8 +21,8 @@ import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.View
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import nl.eduvpn.app.EduVPNApplication
@@ -34,6 +34,7 @@ import nl.eduvpn.app.databinding.FragmentOrganizationSelectionBinding
 import nl.eduvpn.app.entity.AuthorizationType
 import nl.eduvpn.app.service.OrganizationService
 import nl.eduvpn.app.utils.ItemClickSupport
+import nl.eduvpn.app.utils.hideKeyboard
 import nl.eduvpn.app.viewmodel.ConnectionState
 import nl.eduvpn.app.viewmodel.OrganizationSelectionViewModel
 import javax.inject.Inject
@@ -51,9 +52,7 @@ class OrganizationSelectionFragment : BaseFragment<FragmentOrganizationSelection
 
     override val layout = R.layout.fragment_organization_selection
 
-    private val viewModel by lazy {
-        ViewModelProviders.of(this, viewModelFactory).get(OrganizationSelectionViewModel::class.java)
-    }
+    private val viewModel by viewModels<OrganizationSelectionViewModel> { viewModelFactory }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -78,6 +77,7 @@ class OrganizationSelectionFragment : BaseFragment<FragmentOrganizationSelection
         })
         ItemClickSupport.addTo(binding.organizationList).setOnItemClickListener { _, position, _ ->
             val organization = adapter.getItem(position) ?: return@setOnItemClickListener
+            binding.search.hideKeyboard()
             viewModel.selectOrganization(organization)
         }
         dataObserver = object : RecyclerView.AdapterDataObserver() {

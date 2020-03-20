@@ -23,8 +23,6 @@ import android.content.Context
 import androidx.annotation.StringRes
 import androidx.lifecycle.MutableLiveData
 import de.blinkt.openvpn.VpnProfile
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.schedulers.Schedulers
 import net.openid.appauth.AuthState
 import nl.eduvpn.app.BuildConfig
 import nl.eduvpn.app.Constants
@@ -370,65 +368,10 @@ open class ConnectionViewModel(
      */
     private fun refreshInstances() {
         val cachedInstances = historyService.savedAuthStateList.map { it.instance }.toMutableList()
-        val groupUrlInstances = cachedInstances.filter { it.serverGroupUrl != null }.map { Pair(it, it.serverGroupUrl!!) }
-        warning.value = null
-        if (groupUrlInstances.isEmpty()) {
-            instances.value = cachedInstances.map { DiscoveredInstance(it, false) }
-        } else {
-            val regularInstances = cachedInstances.filter { it.serverGroupUrl == null }
-            connectionState.value = ConnectionState.DiscoveringGroupServers
-            val groupObservable = io.reactivex.Observable.just(groupUrlInstances)
-            disposables.add(groupObservable.flatMapIterable { list -> list }
-                    .flatMap { instanceUrlPair ->
-                        val originalInstance = instanceUrlPair.first
-                        val url = instanceUrlPair.second
-                        val cachedGroupInstances = preferencesService.getGroupInstancesForInstance(originalInstance)
-                        return@flatMap io.reactivex.Observable.create<List<DiscoveredInstance>> { emitter ->
-                            apiService.getJSON(url, null, object : APIService.Callback<JSONObject> {
-                                override fun onSuccess(result: JSONObject) {
-                                    val discoveredInstances = serializerService.deserializeInstancesFromOrganizationServerList(result)
-                                    val allInstanceUrls = discoveredInstances.map { it.sanitizedBaseURI }.toSet()
-                                    val extraInstancesInCache = cachedGroupInstances?.filter { it.sanitizedBaseURI !in allInstanceUrls }
-                                    if (extraInstancesInCache.isNullOrEmpty()) {
-                                        preferencesService.setGroupInstancesForInstance(originalInstance, discoveredInstances)
-                                        emitter.onNext(discoveredInstances.map { DiscoveredInstance(it, false) })
-                                    } else {
-                                        val allInstances: List<DiscoveredInstance> = discoveredInstances.map { DiscoveredInstance(it, false) } + extraInstancesInCache.map { DiscoveredInstance(it, true) }
-                                        preferencesService.setGroupInstancesForInstance(originalInstance, discoveredInstances + extraInstancesInCache)
-                                        emitter.onNext(allInstances)
-                                    }
-                                    emitter.onComplete()
-                                }
-
-                                override fun onError(errorMessage: String?) {
-                                    Log.w(TAG, "Unable to download group URL servers for instance.", Throwable(errorMessage))
-                                    if (cachedGroupInstances != null) {
-                                        warning.value = context.getString(R.string.warning_group_fetch_failed_with_cache, originalInstance.displayName)
-                                        emitter.onNext(cachedGroupInstances.map { DiscoveredInstance(it, true) })
-                                    } else {
-                                        warning.value = context.getString(R.string.warning_group_fetch_failed_no_cache, originalInstance.displayName)
-                                        emitter.onNext(listOf(DiscoveredInstance(originalInstance, false)))
-                                    }
-                                    emitter.onComplete()
-                                }
-                            })
-                        }
-                    }.toList()
-                    .subscribeOn(Schedulers.io())
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe({
-                        val mergedInstanceGroups = it.reduce { acc, list -> acc + list }
-                        instances.value = regularInstances.map { instance -> DiscoveredInstance(instance, false) } + mergedInstanceGroups
-                        connectionState.value = ConnectionState.Ready
-                    }, {
-                        warning.value = context.getString(R.string.warning_group_fetch_unexpected_error)
-                        Log.w(TAG, "Unable to fetch additional instances from server group URL", it)
-                        instances.value = cachedInstances.map { instance -> DiscoveredInstance(instance, true) }
-                        connectionState.value = ConnectionState.Ready
-                    })
-            )
-
-        }
+        // TODO display dropdown
+        instances.value = cachedInstances.map {
+            DiscoveredInstance(it, false)
+        } + cachedInstances.map { it.peerList ?: emptyList() }.fold(emptyList<Instance>()) { acc, list -> acc + list }.map { DiscoveredInstance(it, false) }
     }
 
     fun deleteAllDataForInstance(instance: Instance) {
@@ -448,8 +391,6 @@ open class ConnectionViewModel(
     fun organizationSelected(): Boolean {
         return historyService.savedOrganization != null
     }
-
-
 
 
     companion object {

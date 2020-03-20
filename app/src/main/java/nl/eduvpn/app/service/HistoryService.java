@@ -131,11 +131,18 @@ public class HistoryService extends Observable {
                     existingInstances.add(savedAuthState.getInstance());
                 }
             }
+        } else if (instance.getAuthorizationType() == AuthorizationType.Organization) {
+            for (SavedAuthState savedAuthState : _savedAuthStateList) {
+                if (savedAuthState.getInstance().getAuthorizationType() == AuthorizationType.Organization &&
+                        !savedAuthState.getInstance().getSanitizedBaseURI().equals(instance.getSanitizedBaseURI())) {
+                    existingInstances.add(savedAuthState.getInstance());
+                }
+            }
         }
         _removeAuthorizations(instance);
         _savedAuthStateList.add(new SavedAuthState(instance, authState));
-        for (Instance existingDistributedInstance : existingInstances) {
-            _savedAuthStateList.add(new SavedAuthState(existingDistributedInstance, authState));
+        for (Instance existingSharedInstance : existingInstances) {
+            _savedAuthStateList.add(new SavedAuthState(existingSharedInstance, authState));
         }
         _save();
         setChanged();
@@ -215,6 +222,10 @@ public class HistoryService extends Observable {
                     savedAuthState.getInstance().getSanitizedBaseURI().equals(instance.getSanitizedBaseURI())) {
                 savedTokenIterator.remove();
                 Log.i(TAG, "Deleted saved token for local auth instance " + savedAuthState.getInstance().getSanitizedBaseURI());
+            } else if (instance.getAuthorizationType() == AuthorizationType.Organization &&
+            savedAuthState.getInstance().getSanitizedBaseURI().equalsIgnoreCase(instance.getSanitizedBaseURI())) {
+                savedTokenIterator.remove();
+                Log.i(TAG, "Deleted saved token for organization auth instance " + savedAuthState.getInstance().getSanitizedBaseURI());
             }
         }
         _save();
@@ -248,6 +259,24 @@ public class HistoryService extends Observable {
             for (SavedAuthState savedAuthState : _savedAuthStateList) {
                 if (savedAuthState.getInstance().getAuthorizationType() == AuthorizationType.Distributed) {
                     return savedAuthState;
+                }
+            }
+        }
+        // Third pass: if organization auth instance, we need to find the parent instance
+        if (instance.getAuthorizationType() == AuthorizationType.Organization) {
+            for (SavedAuthState savedAuthState : _savedAuthStateList) {
+                if (savedAuthState.getInstance().getAuthorizationType() == AuthorizationType.Organization) {
+                    if (savedAuthState.getInstance().getSanitizedBaseURI().equalsIgnoreCase(instance.getSanitizedBaseURI())) {
+                        return savedAuthState;
+                    }
+                    if (savedAuthState.getInstance().getPeerList() != null) {
+                        for (Instance peer : savedAuthState.getInstance().getPeerList()) {
+                            if (peer.getSanitizedBaseURI().equalsIgnoreCase(instance.getSanitizedBaseURI())) {
+                                return savedAuthState;
+                            }
+                        }
+                    }
+
                 }
             }
         }
@@ -386,7 +415,6 @@ public class HistoryService extends Observable {
                 }
             }
         } else {
-            _preferencesService.setGroupInstancesForInstance(instance, null);
             removeSavedKeyPairs(instance);
             _removeAuthorizations(instance);
             removeSavedProfilesForInstance(instance); // This will trigger a profiles changed event

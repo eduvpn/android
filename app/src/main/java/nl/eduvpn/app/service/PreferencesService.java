@@ -72,8 +72,6 @@ public class PreferencesService {
 
     static final String KEY_INSTANCE_LIST_PREFIX = "instance_list_";
 
-    static final String KEY_GROUP_INSTANCE_LIST_PREFIX = "group_instance_list_";
-
     @Deprecated
     static final String KEY_INSTANCE_LIST_SECURE_INTERNET = KEY_INSTANCE_LIST_PREFIX + "secure_internet";
     @Deprecated
@@ -595,54 +593,5 @@ public class PreferencesService {
             return null;
         }
 
-    }
-
-    /**
-     * Saves the group instances for a specific instance.
-     * @param instance The instance to save the group instances for.
-     * @param groupInstances The group instances which were discovered using the group server URL.
-     */
-    public void setGroupInstancesForInstance(@NonNull Instance instance, @Nullable List<Instance> groupInstances) {
-        String groupUrl = instance.getServerGroupUrl();
-        if (groupUrl == null) {
-            // Should not have called this method.
-            return;
-        }
-        String key = KEY_GROUP_INSTANCE_LIST_PREFIX + groupUrl;
-        if (groupInstances == null) {
-            _getSharedPreferences().edit().remove(key).apply();
-            return;
-        }
-        try {
-            String serializedGroupInstances = _serializerService.serializeInstances(groupInstances).toString();
-            _getSharedPreferences().edit().putString(key, serializedGroupInstances).apply();
-        } catch (SerializerService.UnknownFormatException ex) {
-            Log.e(TAG, "Cannot serialize group instances for instance.", ex);
-        }
-    }
-
-    /**
-     * Retrieves the group instances for a specific instance
-     * @param instance The instance to retrieve the cached group instances for.
-     * @return The group instances if found, else null.
-     */
-    @Nullable
-    public List<Instance> getGroupInstancesForInstance(Instance instance) {
-        String groupUrl = instance.getServerGroupUrl();
-        if (groupUrl == null) {
-            // Should not have called this method.
-            return null;
-        }
-        String key = KEY_GROUP_INSTANCE_LIST_PREFIX + groupUrl;
-        String serializedGroupInstances = _getSharedPreferences().getString(key, null);
-        if (serializedGroupInstances == null) {
-            return null;
-        }
-        try {
-            return _serializerService.deserializeInstances(new JSONArray(serializedGroupInstances));
-        } catch (SerializerService.UnknownFormatException | JSONException ex) {
-            Log.e(TAG, "Cannot deserialize group instances for instance.", ex);
-            return null;
-        }
     }
 }
