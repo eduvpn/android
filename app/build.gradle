@@ -17,7 +17,7 @@ android {
         versionCode 12
         versionName "1.3.2"
 
-        buildConfigField "String", "ORGANIZATION_LIST_URL", "\"https://argon.tuxed.net/fkooman/eduVPN/discovery/v2/organization_list.json\""
+        buildConfigField "String", "ORGANIZATION_LIST_BASE_URL", "\"https://disco.eduvpn.org/\""
         buildConfigField "String", "SECURE_INTERNET_DISCOVERY_URL", "\"https://static.eduvpn.nl/disco/secure_internet.json\""
         buildConfigField "String", "INSTITUTE_ACCESS_DISCOVERY_URL", "\"https://static.eduvpn.nl/disco/institute_access.json\""
 

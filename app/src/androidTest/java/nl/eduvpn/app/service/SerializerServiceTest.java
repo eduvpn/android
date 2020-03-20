@@ -306,7 +306,7 @@ public class SerializerServiceTest {
         for (int i = 0; i < organizations.size(); ++i) {
             assertEquals(organizations.get(i).getDisplayName(), deserializedOrganizationList.get(i).getDisplayName());
             assertEquals(organizations.get(i).getKeywordList(), deserializedOrganizationList.get(i).getKeywordList());
-            assertEquals(organizations.get(i).getServerInfoUrl(), deserializedOrganizationList.get(i).getServerInfoUrl());
+            assertEquals(organizations.get(i).getServerList(), deserializedOrganizationList.get(i).getServerList());
         }
     }
 
@@ -337,7 +337,7 @@ public class SerializerServiceTest {
         JSONObject serializedSavedOrganization = _serializerService.serializeSavedOrganization(savedOrganization);
         SavedOrganization deserializedSavedOrganization = _serializerService.deserializeSavedOrganization(serializedSavedOrganization);
         assertEquals(savedOrganization.getOrganization().getDisplayName(), deserializedSavedOrganization.getOrganization().getDisplayName());
-        assertEquals(savedOrganization.getOrganization().getServerInfoUrl(), deserializedSavedOrganization.getOrganization().getServerInfoUrl());
+        assertEquals(savedOrganization.getOrganization().getServerList(), deserializedSavedOrganization.getOrganization().getServerList());
         assertEquals(savedOrganization.getOrganization().getKeywordList(), deserializedSavedOrganization.getOrganization().getKeywordList());
         for (int i = 0; i < savedOrganization.getServers().size(); ++i) {
             assertEquals(savedOrganization.getServers().get(i).getBaseURI(), deserializedSavedOrganization.getServers().get(i).getBaseURI());
