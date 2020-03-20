@@ -51,13 +51,10 @@ class OrganizationService(private val serializerService: SerializerService,
                     val organizationListJson = JSONObject(serverInfoList)
                     return@BiFunction serializerService.deserializeInstancesFromOrganizationServerList(organizationListJson)
                 } else {
-                    throw InvalidSignatureException("Signature validation failed for organization list!")
+                    throw InvalidSignatureException("Signature validation failed for organization instance list!")
                 }
             } catch (ex: Exception) {
-                val organizationListJson = JSONObject(serverInfoList)
-                return@BiFunction serializerService.deserializeInstancesFromOrganizationServerList(organizationListJson)
-                // TODO: replace line above with line below [see README.md why]
-                // throw new InvalidSignatureException("Signature validation failed for organization list!");
+                throw InvalidSignatureException("Signature validation failed for organization instance list!")
             }
         }).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -76,10 +73,7 @@ class OrganizationService(private val serializerService: SerializerService,
                     throw InvalidSignatureException("Signature validation failed for organization list!")
                 }
             } catch (ex: Exception) {
-                val organizationListJson = JSONObject(organizationList)
-                return@BiFunction serializerService.deserializeOrganizationList(organizationListJson)
-                // TODO: replace line above with line below [see README.md why]
-                // throw new InvalidSignatureException("Signature validation failed for organization list!");
+                throw InvalidSignatureException("Signature validation failed for organization list!")
             }
         }).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
