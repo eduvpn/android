@@ -143,4 +143,5 @@
     <string name="error_server_discovery_title">Discovery error</string>
     <string name="error_organization_not_listed">Organization not listed anymore.</string>
     <string name="error_server_not_found_in_organization">The server %s is not listed in the organization servers anymore.</string>
+    <string name="delete_organization_server_from_settings">You can reset your organization from the settings screen.</string>
 </resources>

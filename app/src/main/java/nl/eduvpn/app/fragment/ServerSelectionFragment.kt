@@ -21,6 +21,7 @@ package nl.eduvpn.app.fragment
 import android.content.Context
 import android.os.Bundle
 import android.view.View
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
@@ -32,6 +33,7 @@ import nl.eduvpn.app.R
 import nl.eduvpn.app.adapter.ServerAdapter
 import nl.eduvpn.app.base.BaseFragment
 import nl.eduvpn.app.databinding.FragmentServerSelectionBinding
+import nl.eduvpn.app.entity.AuthorizationType
 import nl.eduvpn.app.entity.Instance
 import nl.eduvpn.app.utils.ErrorDialog
 import nl.eduvpn.app.utils.ItemClickSupport
@@ -60,7 +62,7 @@ class ServerSelectionFragment : BaseFragment<FragmentServerSelectionBinding>() {
         binding.serverList.layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
         viewModel.instances.observe(viewLifecycleOwner, Observer {
 
-            if (it.isEmpty() && previousListSize > 0)  {
+            if (it.isEmpty() && previousListSize > 0) {
                 // Go to the add server screen
                 binding.addServerButton.performClick()
             } else {
@@ -95,11 +97,14 @@ class ServerSelectionFragment : BaseFragment<FragmentServerSelectionBinding>() {
             val item = adapter.getItem(position)
             viewModel.discoverApi(item.instance)
         }
-        if (!BuildConfig.NEW_ORGANIZATION_LIST_ENABLED) {
-            ItemClickSupport.addTo(binding.serverList).setOnItemLongClickListener { _, position, _ ->
-                val item = adapter.getItem(position)
+        ItemClickSupport.addTo(binding.serverList).setOnItemLongClickListener { _, position, _ ->
+            val item = adapter.getItem(position)
+            if (item.instance.authorizationType == AuthorizationType.Organization) {
+                Toast.makeText(requireContext(), R.string.delete_organization_server_from_settings, Toast.LENGTH_LONG).show()
+            } else {
                 displayDeleteDialog(item.instance)
             }
+            true
         }
         binding.warning.setOnClickListener {
             ErrorDialog.show(it.context, R.string.warning_title, viewModel.warning.value!!)
