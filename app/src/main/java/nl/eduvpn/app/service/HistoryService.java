@@ -215,6 +215,10 @@ public class HistoryService extends Observable {
                     savedAuthState.getInstance().getSanitizedBaseURI().equals(instance.getSanitizedBaseURI())) {
                 savedTokenIterator.remove();
                 Log.i(TAG, "Deleted saved token for local auth instance " + savedAuthState.getInstance().getSanitizedBaseURI());
+            } else if (instance.getAuthorizationType() == AuthorizationType.Organization &&
+            savedAuthState.getInstance().getSanitizedBaseURI().equalsIgnoreCase(instance.getSanitizedBaseURI())) {
+                savedTokenIterator.remove();
+                Log.i(TAG, "Deleted saved token for organization auth instance " + savedAuthState.getInstance().getSanitizedBaseURI());
             }
         }
         _save();
