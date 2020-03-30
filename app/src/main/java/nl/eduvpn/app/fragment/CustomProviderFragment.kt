@@ -22,6 +22,7 @@ import android.view.View
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.observe
 import nl.eduvpn.app.EduVPNApplication
+import nl.eduvpn.app.MainActivity
 import nl.eduvpn.app.R
 import nl.eduvpn.app.base.BaseFragment
 import nl.eduvpn.app.databinding.FragmentCustomProviderBinding
@@ -64,6 +65,13 @@ class CustomProviderFragment : BaseFragment<FragmentCustomProviderBinding>() {
                             viewModel.initiateConnection(activity, parentAction.instance, parentAction.discoveredAPI)
                         }
                     }
+                }
+                is ConnectionViewModel.ParentAction.ConnectWithProfile -> {
+                    viewModel.openVpnConnectionToProfile(requireActivity(), parentAction.vpnProfile)
+                    (activity as? MainActivity)?.openFragment(ConnectionStatusFragment(), false)
+                }
+                is ConnectionViewModel.ParentAction.OpenProfileSelector -> {
+                    (activity as? MainActivity)?.openFragment(ProfileSelectionFragment.newInstance(parentAction.profiles), true)
                 }
                 is ConnectionViewModel.ParentAction.DisplayError -> {
                     ErrorDialog.show(requireContext(), parentAction.title, parentAction.message)
