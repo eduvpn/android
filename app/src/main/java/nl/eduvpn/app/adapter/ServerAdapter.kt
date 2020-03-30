@@ -224,7 +224,7 @@ class ServerAdapter(context: Context) : ListAdapter<DiscoveredInstance, ServerVi
                             .fit()
                             .into(binding.serverIcon)
                 } else {
-                    binding.serverIcon.setImageResource(R.drawable.external_provider)
+                    binding.serverIcon.setImageResource(R.drawable.ic_institute)
                 }
                 val hasPeers = instance.peerList?.isNotEmpty() == true
                 binding.groupArrow.isVisible = hasPeers

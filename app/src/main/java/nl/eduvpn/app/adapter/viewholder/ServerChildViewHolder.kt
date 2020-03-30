@@ -19,15 +19,11 @@
 package nl.eduvpn.app.adapter.viewholder
 
 import android.text.TextUtils
-import android.view.View
 import androidx.core.view.isVisible
 import com.squareup.picasso.Picasso
-import nl.eduvpn.app.BuildConfig
 import nl.eduvpn.app.R
-import nl.eduvpn.app.databinding.ListItemProviderBinding
 import nl.eduvpn.app.databinding.ListItemServerBinding
 import nl.eduvpn.app.entity.DiscoveredInstance
-import nl.eduvpn.app.entity.Instance
 import nl.eduvpn.app.utils.FormattingUtils
 
 /**
@@ -40,17 +36,13 @@ class ServerChildViewHolder(private val binding: ListItemServerBinding) : Server
         val instance = discoveredInstance.instance
         binding.serverName.text = instance.displayName
         binding.serverUrl.text = FormattingUtils.formatInstanceUrl(instance)
-        if (BuildConfig.NEW_ORGANIZATION_LIST_ENABLED) {
-            binding.serverIcon.isVisible = false
+        if (!TextUtils.isEmpty(instance.logoUri)) {
+            Picasso.get()
+                    .load(instance.logoUri)
+                    .fit()
+                    .into(binding.serverIcon)
         } else {
-            if (!TextUtils.isEmpty(instance.logoUri)) {
-                Picasso.get()
-                        .load(instance.logoUri)
-                        .fit()
-                        .into(binding.serverIcon)
-            } else {
-                binding.serverIcon.setImageResource(R.drawable.external_provider)
-            }
+            binding.serverIcon.setImageResource(R.drawable.ic_secure_internet)
         }
         binding.extraInsetLeft.isVisible = true
         binding.groupArrow.isVisible = false
