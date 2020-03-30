@@ -129,7 +129,7 @@ class ServerAdapter(context: Context) : ListAdapter<DiscoveredInstance, ServerVi
             // Detail
             val visibleIndex = position - expandedDetailPosition - 1
             val apiObjectIndex = detailIndexMapping[visibleIndex]!!
-            DiscoveredInstance(expandedItem?.instance?.peerList?.getOrNull(apiObjectIndex)!!, expandedItem?.isCachedOnly!!)
+            DiscoveredInstance(expandedItem!!.instance.peerList?.getOrNull(apiObjectIndex)!!, expandedItem!!.peerListInstancesCachedOnly[apiObjectIndex])
         } else if (isDetailExpanded() && position > expandedDetailPosition) {
             getItem(position - expandedItemCount)
         } else {

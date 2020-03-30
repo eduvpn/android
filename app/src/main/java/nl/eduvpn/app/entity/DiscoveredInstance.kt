@@ -20,5 +20,6 @@ package nl.eduvpn.app.entity
 
 data class DiscoveredInstance(
         val instance: Instance,
-        val isCachedOnly: Boolean
+        val isCachedOnly: Boolean,
+        val peerListInstancesCachedOnly: List<Boolean> = emptyList()
 )

@@ -55,6 +55,7 @@ public class HistoryService extends Observable {
 
     public static final Integer NOTIFICATION_TOKENS_CHANGED = 1;
     public static final Integer NOTIFICATION_PROFILES_CHANGED = 2;
+    public static final Integer NOTIFICATION_SAVED_ORGANIZATION_CHANGED = 3;
 
     /**
      * Constructor.
@@ -306,6 +307,9 @@ public class HistoryService extends Observable {
     public void storeSavedOrganization(@NonNull SavedOrganization savedOrganization) {
         _savedOrganization = savedOrganization;
         _preferencesService.storeSavedOrganization(savedOrganization);
+        setChanged();
+        notifyObservers(NOTIFICATION_SAVED_ORGANIZATION_CHANGED);
+        clearChanged();
     }
 
     /**

@@ -19,15 +19,19 @@
 package nl.eduvpn.app.viewmodel
 
 import android.content.Context
+import androidx.lifecycle.MutableLiveData
+import nl.eduvpn.app.BuildConfig
 import nl.eduvpn.app.R
-import nl.eduvpn.app.entity.AuthorizationType
+import nl.eduvpn.app.entity.*
 import nl.eduvpn.app.service.*
 import nl.eduvpn.app.utils.Log
+import java.util.Observable
+import java.util.Observer
 
 class ServerSelectionViewModel(private val context: Context,
                                apiService: APIService,
                                serializerService: SerializerService,
-                               configurationService: ConfigurationService,
+                               private val configurationService: ConfigurationService,
                                private val historyService: HistoryService,
                                preferencesService: PreferencesService,
                                connectionService: ConnectionService,
@@ -35,43 +39,111 @@ class ServerSelectionViewModel(private val context: Context,
                                private val organizationService: OrganizationService) : ConnectionViewModel(
         context, apiService,
         serializerService,
-        configurationService,
         historyService,
         preferencesService,
         connectionService,
-        vpnService) {
+        vpnService), Observer {
+
+    val instances = MutableLiveData<List<DiscoveredInstance>>()
+
+
+    init {
+        if (BuildConfig.API_DISCOVERY_ENABLED) {
+            configurationService.addObserver(this)
+        }
+        historyService.addObserver(this)
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        if (BuildConfig.API_DISCOVERY_ENABLED) {
+            configurationService.deleteObserver(this)
+        }
+        historyService.deleteObserver(this)
+    }
+
 
     override fun onResume() {
         super.onResume()
-        val organization = historyService.savedOrganization ?: return
+        refresh()
+    }
+
+    private fun refresh() {
+        val organization = historyService.savedOrganization
+        if (organization == null) {
+            refreshInstances()
+        } else {
+            refreshOrganization(organization)
+        }
+    }
+
+    /**
+     * Refreshes the current organization, and then the instances afterwards
+     */
+    private fun refreshOrganization(organization: SavedOrganization) {
         disposables.add(organizationService.getInstanceListForOrganization(organization.organization)
-                .subscribe({ latestServers ->
+                .subscribe({ currentInstances ->
                     // Organization servers seem to be OK. Check if our instance is also part of it.
-                    val instances = historyService.savedAuthStateList
+                    val oldInstances = historyService.savedAuthStateList
                             .map { it.instance }
                             .filter { it.authorizationType == AuthorizationType.Organization }
-                    // Finding a match
-                    if (instances.size != 1) {
-                        Log.w(TAG, "An organization should only have one instance!")
+                    // Checking if there are missing ones
+                    val newInstanceUrls = currentInstances.map { it.sanitizedBaseURI }.toSet()
+                    val missingInstances = oldInstances.filter { it.sanitizedBaseURI !in newInstanceUrls }
+
+                    if (missingInstances.size == 1) {
+                        warning.value = context.getString(R.string.error_server_not_found_in_organization_single, missingInstances[0].displayName)
+                    } else if (missingInstances.size > 1) {
+                        warning.value = context.getString(R.string.error_server_not_found_in_organization_multiple, missingInstances.joinToString(separator = ", ") { it.displayName })
                     }
-                    val appInstance = instances.getOrNull(0)
-                    if (appInstance == null) {
-                        Log.w(TAG, "No organization instance found!")
-                        return@subscribe
-                    }
-                    val foundInLatestServers = latestServers.any { it.sanitizedBaseURI == appInstance.sanitizedBaseURI }
-                    if (!foundInLatestServers) {
-                        warning.value = context.getString(R.string.error_server_not_found_in_organization, appInstance.displayName)
-                    }
+                    // Old and new:
+                    val allInstances =
+                            currentInstances.map { discoveredInstanceFromOldAndNew(it, oldInstances) }
+                            missingInstances.map { DiscoveredInstance(it, true, it.peerList?.map { false } ?: emptyList()) }
+                    refreshInstances(allInstances)
                 }, { throwable ->
                     if (throwable is OrganizationService.OrganizationDeletedException) {
                         warning.value = context.getString(R.string.error_organization_not_listed)
                     } else {
                         Log.i(TAG, "Unable to refresh organization servers.")
                     }
+                    refreshInstances(organization.servers.map { DiscoveredInstance(it, true) })
                 })
         )
     }
+
+    private fun discoveredInstanceFromOldAndNew(currentInstance: Instance, oldInstances: List<Instance>): DiscoveredInstance {
+        val newPeerList = currentInstance.peerList ?: emptyList()
+        val oldInstance = oldInstances.firstOrNull { it.sanitizedBaseURI == currentInstance.sanitizedBaseURI }
+                ?: return DiscoveredInstance(currentInstance, false, currentInstance.peerList?.map { false } ?: emptyList())
+
+        val newPeerUrls = newPeerList.map { it.sanitizedBaseURI }.toSet()
+        val missingPeers = oldInstance.peerList?.filter { it.sanitizedBaseURI !in newPeerUrls } ?: emptyList()
+
+        val displayPeers = newPeerList + missingPeers
+        val cacheStatuses = newPeerList.map { false } + missingPeers.map { true }
+
+        return DiscoveredInstance(currentInstance.copy(peerList = displayPeers), false, cacheStatuses)
+    }
+
+    /**
+     * Refreshes the instances for the server selector. Also downloads the instance groups.
+     */
+    private fun refreshInstances(organizationInstances: List<DiscoveredInstance> = emptyList()) {
+        val nonOrganizationInstances = historyService.savedAuthStateList.map { it.instance }.filter { it.authorizationType != AuthorizationType.Organization }
+        instances.value = nonOrganizationInstances.map {
+            DiscoveredInstance(it, false)
+        } + organizationInstances
+    }
+
+    override fun update(o: Observable?, arg: Any?) {
+        if (o is HistoryService) {
+            refresh()
+        } else if (o is ConfigurationService) {
+            refresh()
+        }
+    }
+
 
     companion object {
         private val TAG = ServerSelectionViewModel::class.java.name
