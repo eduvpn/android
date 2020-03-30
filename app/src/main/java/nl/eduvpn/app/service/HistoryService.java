@@ -111,6 +111,8 @@ public class HistoryService extends Observable {
                 return savedAuthState.getAuthState();
             } else if (instance.getAuthorizationType() == AuthorizationType.Distributed && savedAuthState.getInstance().getAuthorizationType() == AuthorizationType.Distributed) {
                 return savedAuthState.getAuthState();
+            } else if (instance.getAuthorizationType() == AuthorizationType.Organization && savedAuthState.getInstance().getAuthorizationType() == AuthorizationType.Organization) {
+                return  savedAuthState.getAuthState();
             }
         }
         return null;
@@ -134,14 +136,15 @@ public class HistoryService extends Observable {
             }
         } else if (instance.getAuthorizationType() == AuthorizationType.Organization) {
             for (SavedAuthState savedAuthState : _savedAuthStateList) {
-                if (savedAuthState.getInstance().getAuthorizationType() == AuthorizationType.Organization &&
-                        !savedAuthState.getInstance().getSanitizedBaseURI().equals(instance.getSanitizedBaseURI())) {
+                if (savedAuthState.getInstance().getAuthorizationType() == AuthorizationType.Organization) {
                     existingInstances.add(savedAuthState.getInstance());
                 }
             }
         }
         _removeAuthorizations(instance);
-        _savedAuthStateList.add(new SavedAuthState(instance, authState));
+        if (instance.getAuthorizationType() != AuthorizationType.Organization || existingInstances.size() == 0) {
+            _savedAuthStateList.add(new SavedAuthState(instance, authState));
+        }
         for (Instance existingSharedInstance : existingInstances) {
             _savedAuthStateList.add(new SavedAuthState(existingSharedInstance, authState));
         }
@@ -224,7 +227,7 @@ public class HistoryService extends Observable {
                 savedTokenIterator.remove();
                 Log.i(TAG, "Deleted saved token for local auth instance " + savedAuthState.getInstance().getSanitizedBaseURI());
             } else if (instance.getAuthorizationType() == AuthorizationType.Organization &&
-            savedAuthState.getInstance().getSanitizedBaseURI().equalsIgnoreCase(instance.getSanitizedBaseURI())) {
+                    savedAuthState.getInstance().getAuthorizationType() == AuthorizationType.Organization) {
                 savedTokenIterator.remove();
                 Log.i(TAG, "Deleted saved token for organization auth instance " + savedAuthState.getInstance().getSanitizedBaseURI());
             }

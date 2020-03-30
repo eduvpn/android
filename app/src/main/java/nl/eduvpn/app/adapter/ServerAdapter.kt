@@ -224,6 +224,8 @@ class ServerAdapter(context: Context) : ListAdapter<DiscoveredInstance, ServerVi
                             .load(instance.logoUri)
                             .fit()
                             .into(binding.serverIcon)
+                } else if (instance.isCustom) {
+                    binding.serverIcon.setImageResource(R.drawable.ic_custom_url)
                 } else if (instance.peerList?.isNotEmpty() == true ){
                     binding.serverIcon.setImageResource(R.drawable.ic_secure_internet)
                 } else {

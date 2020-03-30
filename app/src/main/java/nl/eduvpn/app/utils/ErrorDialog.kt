@@ -17,6 +17,7 @@
 
 package nl.eduvpn.app.utils
 
+import android.app.Activity
 import android.app.Dialog
 import android.content.Context
 import android.net.ConnectivityManager
@@ -41,7 +42,7 @@ object ErrorDialog {
      * @param message The message to show as a string.
      */
     @JvmStatic
-    fun show(context: Context, @StringRes title: Int, message: String): Dialog {
+    fun show(context: Context, @StringRes title: Int, message: String): Dialog? {
         return show(context, context.getString(title), message)
     }
 
@@ -53,7 +54,7 @@ object ErrorDialog {
      * @param message The message to show (string resource ID).
      */
     @JvmStatic
-    fun show(context: Context, @StringRes title: Int, @StringRes message: Int): Dialog {
+    fun show(context: Context, @StringRes title: Int, @StringRes message: Int): Dialog? {
         return show(context, context.getString(title), context.getString(message))
     }
 
@@ -65,7 +66,10 @@ object ErrorDialog {
      * @param message The message to show.
      */
     @JvmStatic
-    fun show(context: Context, title: String, message: String): Dialog {
+    fun show(context: Context, title: String, message: String): Dialog? {
+        if (context !is Activity || context.isFinishing) {
+            return null
+        }
         val dialog = Dialog(context, R.style.ErrorDialog)
         dialog.setCanceledOnTouchOutside(true)
         dialog.setContentView(R.layout.dialog_error)
