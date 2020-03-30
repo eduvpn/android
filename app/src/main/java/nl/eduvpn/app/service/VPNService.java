@@ -32,10 +32,7 @@ import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Collection;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 import java.util.Observable;
 import java.util.regex.Pattern;
@@ -80,7 +77,7 @@ public class VPNService extends Observable implements VpnStatus.StateListener {
     private ConnectionInfoCallback _connectionInfoCallback;
     private Handler _updatesHandler = new Handler();
     // These store the current connection statistics
-    private Date _connectionTime;
+    private Long _connectionTime;
     private Long _bytesIn;
     private Long _bytesOut;
     private String _serverIpV4;
@@ -352,7 +349,7 @@ public class VPNService extends Observable implements VpnStatus.StateListener {
         }
         if (getStatus() == VPNStatus.CONNECTED) {
             VpnStatus.addByteCountListener(_byteCountListener);
-            _connectionTime = new Date();
+            _connectionTime = System.currentTimeMillis();
             // Try to get the address from a lookup
             Pair<String, String> ips = _lookupVpnIpAddresses();
             if (ips != null) {
@@ -398,7 +395,7 @@ public class VPNService extends Observable implements VpnStatus.StateListener {
                 if (_connectionInfoCallback != null) {
                     Long secondsElapsed = null;
                     if (_connectionTime != null) {
-                        secondsElapsed = (Calendar.getInstance().getTimeInMillis() - _connectionTime.getTime()) / 1000L;
+                        secondsElapsed = (System.currentTimeMillis() - _connectionTime) / 1000L;
                     }
                     _connectionInfoCallback.updateStatus(secondsElapsed, _bytesIn, _bytesOut);
                     _updatesHandler.postDelayed(this, CONNECTION_INFO_UPDATE_INTERVAL_MS);
