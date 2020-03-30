@@ -22,7 +22,6 @@
     <string name="content_description_connection_status_icon">Connection status</string>
     <string name="content_description_provider_icon">Provider icon</string>
     <string name="content_description_application_logo">Application logo</string>
-    <string name="content_description_surfnet_logo">SURFnet logo</string>
     <string name="content_description_settings_button">Settings button</string>
     <string name="content_description_message_icon">Message icon</string>
     <string name="content_description_warning_icon">Warning icon</string>

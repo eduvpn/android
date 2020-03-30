@@ -2,9 +2,6 @@
     <dimen name="actionbar_size">80dp</dimen>
     <dimen name="actionbar_icon_size">48dp</dimen>
 
-    <dimen name="footer_height">44dp</dimen>
-    <dimen name="footer_icon_size">32dp</dimen>
-
     <dimen name="list_item_icon_width">64dp</dimen>
     <dimen name="list_item_icon_height">32dp</dimen>
 

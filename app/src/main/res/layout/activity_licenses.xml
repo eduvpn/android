@@ -25,29 +25,11 @@
         android:fitsSystemWindows="true"
         tools:context=".">
 
-        <FrameLayout
-            android:layout_width="match_parent"
-            android:layout_height="@dimen/footer_height"
-            android:layout_alignParentBottom="true"
-            android:layout_gravity="bottom"
-            android:background="@color/mainColor">
-
-            <ImageView
-                android:layout_width="wrap_content"
-                android:layout_height="@dimen/footer_icon_size"
-                android:layout_gravity="center_vertical|right"
-                android:layout_marginRight="16dp"
-                android:adjustViewBounds="true"
-                android:contentDescription="@string/content_description_surfnet_logo"
-                android:src="@drawable/surfnet_logo" />
-        </FrameLayout>
-
         <WebView
             android:id="@+id/webView"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_marginTop="@dimen/actionbar_size"
-            android:layout_marginBottom="@dimen/footer_height"
             tools:background="#ffffff" />
 
         <androidx.appcompat.widget.Toolbar
