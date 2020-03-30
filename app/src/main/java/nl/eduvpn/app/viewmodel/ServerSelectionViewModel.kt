@@ -112,7 +112,7 @@ class ServerSelectionViewModel(private val context: Context,
                     } else {
                         Log.i(TAG, "Unable to refresh organization servers.")
                     }
-                    refreshInstances(organization.servers.map { DiscoveredInstance(it, true) })
+                    refreshInstances(organization.servers.map { DiscoveredInstance(it, true, it.peerList?.map { true } ?: emptyList()) })
                 })
         )
     }
