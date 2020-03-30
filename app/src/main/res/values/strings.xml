@@ -52,6 +52,8 @@
     <string name="error_loading_system_messages">Unable to load system messages: %s</string>
     <string name="error_loading_user_messages">Unable to load user messages: %s</string>
     <string name="server_selection_add_server">Add Server</string>
+    <string name="server_selection_secure_internet">Secure Internet</string>
+
     <string name="saved_profile_display_name">%1$s - %2$s</string>
     <string name="error_confirm_button">OK</string>
     <string name="error_dialog_title">Unexpected problem</string>

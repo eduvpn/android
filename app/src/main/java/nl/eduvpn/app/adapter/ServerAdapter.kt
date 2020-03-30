@@ -194,13 +194,12 @@ class ServerAdapter(context: Context) : ListAdapter<DiscoveredInstance, ServerVi
         if (expandedItemCount > 0) {
             // Here we order the items as they should be, then we create an index mapping to convert between the API version
             // and our wanted version
-            val orderedPeerList = parentItem.instance.peerList?.sortedWith(compareBy { it.displayName })
-            orderedPeerList?.forEachIndexed { sortedIndex, item ->
+            val orderedPeerList = parentItem.instance.peerList?.sortedWith(compareBy { it.displayName })!!
+            orderedPeerList.forEachIndexed { sortedIndex, item ->
                 val indexInAPIObject = parentItem.instance.peerList.indexOf(item)
                 // Should always be a valid number
                 detailIndexMapping[sortedIndex] = indexInAPIObject
             }
-
             notifyItemRangeInserted(expandedDetailPosition + 1, expandedItemCount)
         } else {
             collapseDetail()
@@ -215,14 +214,18 @@ class ServerAdapter(context: Context) : ListAdapter<DiscoveredInstance, ServerVi
                     partialChanges.isEmpty() ||
                     !(partialChanges.contains(ServerItemAnimator.COLLAPSE_DETAIL) || partialChanges.contains(ServerItemAnimator.EXPAND_DETAIL))) {
                 val instance = discoveredInstance.instance
-
-                binding.serverName.text = instance.displayName
-                binding.serverUrl.text = FormattingUtils.formatInstanceUrl(instance)
+                if (instance.peerList?.isNotEmpty() == true) {
+                    binding.serverName.setText(R.string.server_selection_secure_internet)
+                } else {
+                    binding.serverName.text = FormattingUtils.formatDisplayName(instance)
+                }
                 if (!TextUtils.isEmpty(instance.logoUri)) {
                     Picasso.get()
                             .load(instance.logoUri)
                             .fit()
                             .into(binding.serverIcon)
+                } else if (instance.peerList?.isNotEmpty() == true ){
+                    binding.serverIcon.setImageResource(R.drawable.ic_secure_internet)
                 } else {
                     binding.serverIcon.setImageResource(R.drawable.ic_institute)
                 }
@@ -240,10 +243,10 @@ class ServerAdapter(context: Context) : ListAdapter<DiscoveredInstance, ServerVi
                 }
                 if (discoveredInstance.isCachedOnly) {
                     binding.serverName.alpha = 0.5f
-                    binding.serverUrl.alpha = 0.5f
+                    binding.serverIcon.alpha = 0.5f
                 } else {
                     binding.serverName.alpha = 1f
-                    binding.serverUrl.alpha = 1f
+                    binding.serverIcon.alpha = 1f
                 }
             }
             setExpanded(adapterPosition == expandedDetailPosition)

@@ -22,7 +22,10 @@ import android.content.Context
 import androidx.lifecycle.MutableLiveData
 import nl.eduvpn.app.BuildConfig
 import nl.eduvpn.app.R
-import nl.eduvpn.app.entity.*
+import nl.eduvpn.app.entity.AuthorizationType
+import nl.eduvpn.app.entity.DiscoveredInstance
+import nl.eduvpn.app.entity.Instance
+import nl.eduvpn.app.entity.SavedOrganization
 import nl.eduvpn.app.service.*
 import nl.eduvpn.app.utils.Log
 import java.util.Observable
@@ -99,7 +102,9 @@ class ServerSelectionViewModel(private val context: Context,
                     // Old and new:
                     val allInstances =
                             currentInstances.map { discoveredInstanceFromOldAndNew(it, oldInstances) }
-                            missingInstances.map { DiscoveredInstance(it, true, it.peerList?.map { false } ?: emptyList()) }
+                    missingInstances.map {
+                        DiscoveredInstance(it, true, it.peerList?.map { false } ?: emptyList())
+                    }
                     refreshInstances(allInstances)
                 }, { throwable ->
                     if (throwable is OrganizationService.OrganizationDeletedException) {
@@ -115,10 +120,12 @@ class ServerSelectionViewModel(private val context: Context,
     private fun discoveredInstanceFromOldAndNew(currentInstance: Instance, oldInstances: List<Instance>): DiscoveredInstance {
         val newPeerList = currentInstance.peerList ?: emptyList()
         val oldInstance = oldInstances.firstOrNull { it.sanitizedBaseURI == currentInstance.sanitizedBaseURI }
-                ?: return DiscoveredInstance(currentInstance, false, currentInstance.peerList?.map { false } ?: emptyList())
+                ?: return DiscoveredInstance(currentInstance, false, currentInstance.peerList?.map { false }
+                        ?: emptyList())
 
         val newPeerUrls = newPeerList.map { it.sanitizedBaseURI }.toSet()
-        val missingPeers = oldInstance.peerList?.filter { it.sanitizedBaseURI !in newPeerUrls } ?: emptyList()
+        val missingPeers = oldInstance.peerList?.filter { it.sanitizedBaseURI !in newPeerUrls }
+                ?: emptyList()
 
         val displayPeers = newPeerList + missingPeers
         val cacheStatuses = newPeerList.map { false } + missingPeers.map { true }
@@ -131,9 +138,11 @@ class ServerSelectionViewModel(private val context: Context,
      */
     private fun refreshInstances(organizationInstances: List<DiscoveredInstance> = emptyList()) {
         val nonOrganizationInstances = historyService.savedAuthStateList.map { it.instance }.filter { it.authorizationType != AuthorizationType.Organization }
-        instances.value = nonOrganizationInstances.map {
+        val allInstances = nonOrganizationInstances.map {
             DiscoveredInstance(it, false)
         } + organizationInstances
+
+        instances.value = allInstances.sortedWith(compareBy { it.instance.peerList?.isNotEmpty() == true })
     }
 
     override fun update(o: Observable?, arg: Any?) {

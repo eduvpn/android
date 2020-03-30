@@ -113,19 +113,24 @@ public class FormattingUtils {
      * @return The name to display.
      */
     public static String formatProfileName(Context context, Instance instance, Profile profile) {
-        String instanceName = formatInstanceUrl(instance);
+        String instanceName = formatDisplayName(instance);
         return context.getString(R.string.saved_profile_display_name, instanceName, profile.getDisplayName());
     }
 
     /**
-     * Formats the instance URL so that it only displays the hostname.
+     * Formats the display name that is shows the host name for custom instances and the display name otherwise.
      *
      * @param instance The instance to format.
      * @return A shorter more legible version of the URL.
      */
-    public static String formatInstanceUrl(Instance instance) {
-        URI uri = URI.create(instance.getSanitizedBaseURI());
-        return uri.getHost();
+    public static String formatDisplayName(Instance instance) {
+        if (instance.isCustom()) {
+            URI uri = URI.create(instance.getSanitizedBaseURI());
+            return uri.getHost();
+        } else {
+            return instance.getDisplayName();
+        }
+
     }
 
     /**
