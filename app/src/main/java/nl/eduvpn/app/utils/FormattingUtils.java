@@ -19,16 +19,16 @@ package nl.eduvpn.app.utils;
 
 import android.content.Context;
 
-import nl.eduvpn.app.R;
-import nl.eduvpn.app.entity.Instance;
-import nl.eduvpn.app.entity.Profile;
-import nl.eduvpn.app.entity.message.Maintenance;
-
 import java.net.URI;
 import java.text.DateFormat;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.Locale;
+
+import nl.eduvpn.app.R;
+import nl.eduvpn.app.entity.Instance;
+import nl.eduvpn.app.entity.Profile;
+import nl.eduvpn.app.entity.message.Maintenance;
 
 /**
  * Utility methods for different formatting cases.
@@ -119,16 +119,13 @@ public class FormattingUtils {
 
     /**
      * Formats the instance URL so that it only displays the hostname.
+     *
      * @param instance The instance to format.
      * @return A shorter more legible version of the URL.
      */
     public static String formatInstanceUrl(Instance instance) {
-        String instanceName = instance.getDisplayName();
-        if (instance.isCustom()) {
-            URI uri = URI.create(instance.getSanitizedBaseURI());
-            instanceName = uri.getHost();
-        }
-        return instanceName;
+        URI uri = URI.create(instance.getSanitizedBaseURI());
+        return uri.getHost();
     }
 
     /**

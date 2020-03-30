@@ -34,31 +34,8 @@ import nl.eduvpn.app.utils.FormattingUtils
  * Viewholder for the server list.
  * Created by Daniel Zolnai on 2019-11-05.
  */
-class ServerViewHolder(private val binding: ListItemServerBinding) : RecyclerView.ViewHolder(binding.root) {
+abstract class ServerViewHolder(private val binding: ListItemServerBinding) : RecyclerView.ViewHolder(binding.root) {
 
-    fun bind(discoveredInstance: DiscoveredInstance) {
-        val instance = discoveredInstance.instance
-        binding.serverName.text = instance.displayName
-        binding.serverUrl.text = FormattingUtils.formatInstanceUrl(instance)
-        if (BuildConfig.NEW_ORGANIZATION_LIST_ENABLED) {
-            binding.serverIcon.visibility = View.GONE
-        } else {
-            if (!TextUtils.isEmpty(instance.logoUri)) {
-                Picasso.get()
-                        .load(instance.logoUri)
-                        .fit()
-                        .into(binding.serverIcon)
-            } else {
-                binding.serverIcon.setImageResource(R.drawable.external_provider)
-            }
-        }
-        if (discoveredInstance.isCachedOnly) {
-            binding.serverName.alpha = 0.5f
-            binding.serverUrl.alpha = 0.5f
-        } else {
-            binding.serverName.alpha = 1f
-            binding.serverUrl.alpha = 1f
-        }
-    }
+
 
 }

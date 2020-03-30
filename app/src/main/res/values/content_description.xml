@@ -25,4 +25,5 @@
     <string name="content_description_settings_button">Settings button</string>
     <string name="content_description_message_icon">Message icon</string>
     <string name="content_description_warning_icon">Warning icon</string>
+    <string name="content_description_expand_arrow">Expand / collapse arrow</string>
 </resources>

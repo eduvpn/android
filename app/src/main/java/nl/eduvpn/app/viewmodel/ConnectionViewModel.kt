@@ -368,10 +368,9 @@ open class ConnectionViewModel(
      */
     private fun refreshInstances() {
         val cachedInstances = historyService.savedAuthStateList.map { it.instance }.toMutableList()
-        // TODO display dropdown
         instances.value = cachedInstances.map {
             DiscoveredInstance(it, false)
-        } + cachedInstances.map { it.peerList ?: emptyList() }.fold(emptyList<Instance>()) { acc, list -> acc + list }.map { DiscoveredInstance(it, false) }
+        }
     }
 
     fun deleteAllDataForInstance(instance: Instance) {

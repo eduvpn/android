@@ -56,7 +56,9 @@ public class ItemClickSupport {
         @Override
         public void onChildViewAttachedToWindow(@NonNull View view) {
             if (mOnItemClickListener != null) {
-                view.setOnClickListener(mOnClickListener);
+                if (!view.hasOnClickListeners()) {
+                    view.setOnClickListener(mOnClickListener);
+                }
             }
             if (mOnItemLongClickListener != null) {
                 view.setOnLongClickListener(mOnLongClickListener);
