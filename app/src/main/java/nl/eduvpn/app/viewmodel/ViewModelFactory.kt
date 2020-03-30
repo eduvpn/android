@@ -74,6 +74,16 @@ class ViewModelFactory(
                     organizationService,
                     preferencesService
             ) as T
+            modelClass.isAssignableFrom(CustomProviderViewModel::class.java) -> CustomProviderViewModel(
+                    context,
+                    apiService,
+                    serializerService,
+                    configurationService,
+                    historyService,
+                    preferencesService,
+                    connectionService,
+                    vpnService
+            ) as T
             else -> throw RuntimeException("Unexpected model class: ${modelClass::class.java.name}")
         }
     }

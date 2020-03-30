@@ -20,7 +20,7 @@ package nl.eduvpn.app.fragment
 import android.os.Bundle
 import android.view.View
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.Observer
+import androidx.lifecycle.observe
 import nl.eduvpn.app.EduVPNApplication
 import nl.eduvpn.app.R
 import nl.eduvpn.app.base.BaseFragment
@@ -31,6 +31,7 @@ import nl.eduvpn.app.utils.ErrorDialog
 import nl.eduvpn.app.utils.hideKeyboard
 import nl.eduvpn.app.utils.showKeyboard
 import nl.eduvpn.app.viewmodel.ConnectionViewModel
+import nl.eduvpn.app.viewmodel.CustomProviderViewModel
 
 
 /**
@@ -41,7 +42,7 @@ class CustomProviderFragment : BaseFragment<FragmentCustomProviderBinding>() {
 
     override val layout = R.layout.fragment_custom_provider
 
-    private val viewModel by viewModels<ConnectionViewModel> { viewModelFactory }
+    private val viewModel by viewModels<CustomProviderViewModel> { viewModelFactory }
 
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -55,7 +56,7 @@ class CustomProviderFragment : BaseFragment<FragmentCustomProviderBinding>() {
 
         binding.customProviderUrl.showKeyboard()
 
-        viewModel.parentAction.observe(viewLifecycleOwner, Observer { parentAction ->
+        viewModel.parentAction.observe(viewLifecycleOwner) { parentAction ->
             when (parentAction) {
                 is ConnectionViewModel.ParentAction.InitiateConnection -> {
                     activity?.let { activity ->
@@ -68,7 +69,10 @@ class CustomProviderFragment : BaseFragment<FragmentCustomProviderBinding>() {
                     ErrorDialog.show(requireContext(), parentAction.title, parentAction.message)
                 }
             }
-        })
+        }
+        viewModel.customProviderUrl.observe(viewLifecycleOwner) {
+            viewModel.validate()
+        }
 
     }
 
