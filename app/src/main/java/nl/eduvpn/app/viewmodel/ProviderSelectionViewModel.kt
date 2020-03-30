@@ -28,7 +28,6 @@ import nl.eduvpn.app.service.*
 class ProviderSelectionViewModel(context: Context,
                                  apiService: APIService,
                                  serializerService: SerializerService,
-                                 configurationService: ConfigurationService,
                                  historyService: HistoryService,
                                  private val preferencesService: PreferencesService,
                                  connectionService: ConnectionService,
@@ -37,7 +36,6 @@ class ProviderSelectionViewModel(context: Context,
         context,
         apiService,
         serializerService,
-        configurationService,
         historyService,
         preferencesService,
         connectionService,
@@ -45,6 +43,7 @@ class ProviderSelectionViewModel(context: Context,
 
     val currentOrganization = MutableLiveData<Organization>()
     val currentOrganizationInstances = MutableLiveData<List<Instance>>()
+    val isLoadingInstances = MutableLiveData<Boolean>(true)
 
     init {
         setCurrentOrganization(preferencesService.currentOrganization)
@@ -52,12 +51,15 @@ class ProviderSelectionViewModel(context: Context,
 
     fun setCurrentOrganization(organization: Organization?) {
         currentOrganization.value = organization
+        isLoadingInstances.value = true
         disposables.add(organizationService.getInstanceListForOrganization(organization)
                 .subscribe({ instanceList ->
                     currentOrganizationInstances.value = instanceList
                     preferencesService.storeOrganizationInstanceList(instanceList)
+                    isLoadingInstances.value = false
                 }, { throwable ->
                     parentAction.value = ParentAction.DisplayError(R.string.error_server_discovery_title, throwable.toString())
+                    isLoadingInstances.value = false
                 })
         )
     }

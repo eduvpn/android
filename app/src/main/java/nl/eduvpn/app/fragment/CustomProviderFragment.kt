@@ -20,8 +20,9 @@ package nl.eduvpn.app.fragment
 import android.os.Bundle
 import android.view.View
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.Observer
+import androidx.lifecycle.observe
 import nl.eduvpn.app.EduVPNApplication
+import nl.eduvpn.app.MainActivity
 import nl.eduvpn.app.R
 import nl.eduvpn.app.base.BaseFragment
 import nl.eduvpn.app.databinding.FragmentCustomProviderBinding
@@ -31,6 +32,7 @@ import nl.eduvpn.app.utils.ErrorDialog
 import nl.eduvpn.app.utils.hideKeyboard
 import nl.eduvpn.app.utils.showKeyboard
 import nl.eduvpn.app.viewmodel.ConnectionViewModel
+import nl.eduvpn.app.viewmodel.CustomProviderViewModel
 
 
 /**
@@ -41,7 +43,7 @@ class CustomProviderFragment : BaseFragment<FragmentCustomProviderBinding>() {
 
     override val layout = R.layout.fragment_custom_provider
 
-    private val viewModel by viewModels<ConnectionViewModel> { viewModelFactory }
+    private val viewModel by viewModels<CustomProviderViewModel> { viewModelFactory }
 
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -55,7 +57,7 @@ class CustomProviderFragment : BaseFragment<FragmentCustomProviderBinding>() {
 
         binding.customProviderUrl.showKeyboard()
 
-        viewModel.parentAction.observe(viewLifecycleOwner, Observer { parentAction ->
+        viewModel.parentAction.observe(viewLifecycleOwner) { parentAction ->
             when (parentAction) {
                 is ConnectionViewModel.ParentAction.InitiateConnection -> {
                     activity?.let { activity ->
@@ -64,11 +66,21 @@ class CustomProviderFragment : BaseFragment<FragmentCustomProviderBinding>() {
                         }
                     }
                 }
+                is ConnectionViewModel.ParentAction.ConnectWithProfile -> {
+                    viewModel.openVpnConnectionToProfile(requireActivity(), parentAction.vpnProfile)
+                    (activity as? MainActivity)?.openFragment(ConnectionStatusFragment(), false)
+                }
+                is ConnectionViewModel.ParentAction.OpenProfileSelector -> {
+                    (activity as? MainActivity)?.openFragment(ProfileSelectionFragment.newInstance(parentAction.profiles), true)
+                }
                 is ConnectionViewModel.ParentAction.DisplayError -> {
                     ErrorDialog.show(requireContext(), parentAction.title, parentAction.message)
                 }
             }
-        })
+        }
+        viewModel.customProviderUrl.observe(viewLifecycleOwner) {
+            viewModel.validate()
+        }
 
     }
 

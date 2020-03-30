@@ -144,7 +144,7 @@ class ProviderSelectionFragment : BaseFragment<FragmentProviderSelectionBinding>
             override fun onChanged() {
                 when {
                     adapter.itemCount > 0 -> binding.providerStatus.visibility = View.GONE
-                    configurationService.isPendingDiscovery(authorizationType) -> {
+                    configurationService.isPendingDiscovery(authorizationType) || viewModel.isLoadingInstances.value == true -> {
                         binding.providerStatus.setText(R.string.discovering_providers)
                         binding.providerStatus.visibility = View.VISIBLE
                     }

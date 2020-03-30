@@ -28,27 +28,14 @@ import nl.eduvpn.app.BuildConfig
 import nl.eduvpn.app.Constants
 import nl.eduvpn.app.R
 import nl.eduvpn.app.base.BaseViewModel
-import nl.eduvpn.app.entity.DiscoveredAPI
-import nl.eduvpn.app.entity.DiscoveredInstance
-import nl.eduvpn.app.entity.Instance
-import nl.eduvpn.app.entity.Profile
-import nl.eduvpn.app.entity.SavedKeyPair
-import nl.eduvpn.app.entity.SavedProfile
-import nl.eduvpn.app.service.APIService
-import nl.eduvpn.app.service.ConfigurationService
-import nl.eduvpn.app.service.ConnectionService
-import nl.eduvpn.app.service.HistoryService
-import nl.eduvpn.app.service.PreferencesService
-import nl.eduvpn.app.service.SerializerService
-import nl.eduvpn.app.service.VPNService
+import nl.eduvpn.app.entity.*
+import nl.eduvpn.app.service.*
 import nl.eduvpn.app.utils.ErrorDialog
 import nl.eduvpn.app.utils.FormattingUtils
 import nl.eduvpn.app.utils.Log
 import org.json.JSONObject
 import java.io.UnsupportedEncodingException
 import java.net.URLEncoder
-import java.util.Observable
-import java.util.Observer
 
 /**
  * This viewmodel takes care of the entire flow, from connecting to the servers to fetching profiles.
@@ -58,12 +45,11 @@ open class ConnectionViewModel(
         private val context: Context,
         private val apiService: APIService,
         private val serializerService: SerializerService,
-        private val configurationService: ConfigurationService,
         private val historyService: HistoryService,
         private val preferencesService: PreferencesService,
         private val connectionService: ConnectionService,
         private val vpnService: VPNService
-) : BaseViewModel(), Observer {
+) : BaseViewModel() {
 
     sealed class ParentAction {
         data class DisplayError(@StringRes val title: Int, val message: String) : ParentAction()
@@ -77,24 +63,6 @@ open class ConnectionViewModel(
     val warning = MutableLiveData<String>()
 
     val parentAction = MutableLiveData<ParentAction>()
-
-    val instances = MutableLiveData<List<DiscoveredInstance>>()
-
-    init {
-        if (BuildConfig.API_DISCOVERY_ENABLED) {
-            configurationService.addObserver(this)
-        }
-        historyService.addObserver(this)
-        refreshInstances()
-    }
-
-    override fun onCleared() {
-        super.onCleared()
-        if (BuildConfig.API_DISCOVERY_ENABLED) {
-            configurationService.deleteObserver(this)
-        }
-        historyService.deleteObserver(this)
-    }
 
 
     fun discoverApi(instance: Instance) {
@@ -352,26 +320,6 @@ open class ConnectionViewModel(
 
             }
         })
-    }
-
-
-    override fun update(o: Observable?, arg: Any?) {
-        if (o is HistoryService) {
-            refreshInstances()
-        } else if (o is ConfigurationService) {
-            refreshInstances()
-        }
-    }
-
-    /**
-     * Refreshes the instances for the server selector. Also downloads the instance groups.
-     */
-    private fun refreshInstances() {
-        val cachedInstances = historyService.savedAuthStateList.map { it.instance }.toMutableList()
-        // TODO display dropdown
-        instances.value = cachedInstances.map {
-            DiscoveredInstance(it, false)
-        } + cachedInstances.map { it.peerList ?: emptyList() }.fold(emptyList<Instance>()) { acc, list -> acc + list }.map { DiscoveredInstance(it, false) }
     }
 
     fun deleteAllDataForInstance(instance: Instance) {

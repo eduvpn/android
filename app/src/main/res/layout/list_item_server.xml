@@ -27,8 +27,17 @@
         android:focusable="true"
         android:background="?android:attr/selectableItemBackground">
 
+        <Space
+            android:id="@+id/extra_inset_left"
+            android:visibility="gone"
+            android:layout_alignParentLeft="true"
+            android:layout_width="32dp"
+            android:layout_height="wrap_content"/>
+
+
         <ImageView
-            android:id="@+id/serverIcon"
+            android:id="@+id/server_icon"
+            android:layout_toRightOf="@id/extra_inset_left"
             android:layout_width="@dimen/list_item_icon_width"
             android:layout_height="@dimen/list_item_icon_height"
             android:layout_centerVertical="true"
@@ -41,9 +50,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_centerVertical="true"
+            android:layout_toLeftOf="@id/group_arrow"
             android:layout_marginLeft="12dp"
             android:layout_marginRight="8dp"
-            android:layout_toRightOf="@+id/serverIcon"
+            android:layout_toRightOf="@+id/server_icon"
             android:orientation="vertical">
 
             <TextView
@@ -68,6 +78,16 @@
                 tools:ignore="Deprecated"
                 tools:text="cloud.eduvpn.nl" />
 
+
         </LinearLayout>
+
+        <ImageView
+            android:id="@+id/group_arrow"
+            android:layout_alignParentRight="true"
+            android:padding="8dp"
+            android:contentDescription="@string/content_description_expand_arrow"
+            android:src="@drawable/ic_chevron_right"
+            android:layout_width="@dimen/list_item_height"
+            android:layout_height="match_parent"/>
     </RelativeLayout>
 </layout>

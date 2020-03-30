@@ -42,7 +42,6 @@ class ViewModelFactory(
                     context,
                     apiService,
                     serializerService,
-                    configurationService,
                     historyService,
                     preferencesService,
                     connectionService,
@@ -52,7 +51,6 @@ class ViewModelFactory(
                     context,
                     apiService,
                     serializerService,
-                    configurationService,
                     historyService,
                     preferencesService,
                     connectionService,
@@ -73,6 +71,15 @@ class ViewModelFactory(
             modelClass.isAssignableFrom(OrganizationSelectionViewModel::class.java) -> OrganizationSelectionViewModel(
                     organizationService,
                     preferencesService
+            ) as T
+            modelClass.isAssignableFrom(CustomProviderViewModel::class.java) -> CustomProviderViewModel(
+                    context,
+                    apiService,
+                    serializerService,
+                    historyService,
+                    preferencesService,
+                    connectionService,
+                    vpnService
             ) as T
             else -> throw RuntimeException("Unexpected model class: ${modelClass::class.java.name}")
         }
