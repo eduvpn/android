@@ -26,6 +26,7 @@ import nl.eduvpn.app.Constants
 import nl.eduvpn.app.entity.Instance
 import nl.eduvpn.app.entity.Organization
 import nl.eduvpn.app.entity.exception.InvalidSignatureException
+import nl.eduvpn.app.utils.Log
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.json.JSONObject
@@ -45,7 +46,13 @@ class OrganizationService(private val serializerService: SerializerService,
             return Single.just(emptyList())
         }
         val instanceListUrl = BuildConfig.ORGANIZATION_LIST_BASE_URL + organization.serverList
-        return Single.zip(createGetJsonSingle(instanceListUrl), createSignatureSingle(instanceListUrl), BiFunction<String, String, List<Instance>> { serverInfoList, signature ->
+        return Single.zip(
+                createGetJsonSingle(instanceListUrl).onErrorReturnItem(""),
+                createSignatureSingle(instanceListUrl).onErrorReturnItem(""), BiFunction<String, String, List<Instance>> { serverInfoList, signature ->
+            if (serverInfoList.isEmpty() || signature.isEmpty()) {
+                Log.w(TAG, "Either server or signature fetch has failed.")
+                throw IllegalArgumentException("Either server or signature fetch has failed.")
+            }
             try {
                 if (securityService.verifyMinisign(serverInfoList, signature)) {
                     val organizationListJson = JSONObject(serverInfoList)
@@ -120,4 +127,8 @@ class OrganizationService(private val serializerService: SerializerService,
     }
 
     class OrganizationDeletedException : IllegalStateException()
+
+    companion object {
+        private val TAG = OrganizationService::class.java.name
+    }
 }

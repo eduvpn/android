@@ -29,7 +29,7 @@ android {
         buildConfigField "String", "MINISIGN_SIGNATURE_VALIDATION_PUBLIC_KEY", "\"RWSC3Lwn4f9mhG3XIwRUTEIqf7Ucu9+7/Rq+scUMxrjg5/kjskXKOJY/\""
 
         buildConfigField "boolean", "API_DISCOVERY_ENABLED", "true" // If false, you can only enter server URLs manually.
-        buildConfigField "boolean", "NEW_ORGANIZATION_LIST_ENABLED", "true" // If false, the servers will be fetched from the secure internet + institute access list
+        buildConfigField "boolean", "NEW_ORGANIZATION_LIST_ENABLED", "false" // If false, the servers will be fetched from the secure internet + institute access list
 
         // API
         buildConfigField "String", "OAUTH_CLIENT_ID", "\"org.eduvpn.app.android\""
@@ -65,10 +65,13 @@ android {
     flavorDimensions "product"
 
     productFlavors {
-        // Android Studio uses the alphabetically first flavor as the default, so I selected a name which would precede "dev" (sadly, "default" is a reserved keyword)
+        organization {
+            dimension "product"
+            buildConfigField "boolean", "NEW_ORGANIZATION_LIST_ENABLED", "true"
+            isDefault = true
+        }
         basic {
             dimension "product"
-            isDefault = true
         }
         dev {
             dimension "product"

@@ -9,6 +9,12 @@ You can clone this repository by executing the following command (provided you h
 Or if your git version is below 2.13:
 
     git clone --recursive https://github.com/eduvpn/android.git
+    
+# Organizations
+
+A future version of the app will contain automatic organization discovery, where you can select your institute from a wide list.
+This way you don't have to manually enter discovery URLs. To build this version of the app, build the `organization` flavor instead of `basic`.
+ 
 
 # Running with Android Studio
 

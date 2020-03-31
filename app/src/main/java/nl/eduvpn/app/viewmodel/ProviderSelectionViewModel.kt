@@ -54,7 +54,7 @@ class ProviderSelectionViewModel(context: Context,
         isLoadingInstances.value = true
         disposables.add(organizationService.getInstanceListForOrganization(organization)
                 .subscribe({ instanceList ->
-                    currentOrganizationInstances.value = instanceList
+                    currentOrganizationInstances.value = instanceList.sortedWith(compareBy { it.peerList?.isNotEmpty() == true })
                     preferencesService.storeOrganizationInstanceList(instanceList)
                     isLoadingInstances.value = false
                 }, { throwable ->
