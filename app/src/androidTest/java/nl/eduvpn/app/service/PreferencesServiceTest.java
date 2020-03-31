@@ -24,6 +24,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.util.ArrayList;
+
 import androidx.test.core.app.ApplicationProvider;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.filters.LargeTest;
@@ -54,7 +56,7 @@ public class PreferencesServiceTest {
 
     @Test
     public void testInstanceSave() {
-        Instance instance = new Instance("http://example.com", "Example", "http://example.com/image.jpg", AuthorizationType.Distributed, true, "https://server-group-url.com/");
+        Instance instance = new Instance("http://example.com", "Example", "http://example.com/image.jpg", AuthorizationType.Distributed, true, new ArrayList<>());
         _preferencesService.setCurrentInstance(instance);
         Instance retrievedInstance = _preferencesService.getCurrentInstance();
         assertNotNull(retrievedInstance);
@@ -62,7 +64,7 @@ public class PreferencesServiceTest {
         assertEquals(instance.getLogoUri(), retrievedInstance.getLogoUri());
         assertEquals(instance.getBaseURI(), retrievedInstance.getBaseURI());
         assertEquals(instance.isCustom(), retrievedInstance.isCustom());
-        assertEquals(instance.getServerGroupUrl(), retrievedInstance.getServerGroupUrl());
+        assertEquals(instance.getPeerList(), retrievedInstance.getPeerList());
     }
 
     @Test
@@ -80,7 +82,7 @@ public class PreferencesServiceTest {
     public void testMigration() throws SerializerService.UnknownFormatException {
         // We only test a few properties
         DiscoveredAPI discoveredAPI = new DiscoveredAPI("http://example.com/", "http://example.com/auth_endpoint", "http://example.com/token_endpoint");
-        Instance instance = new Instance("base_uri", "display_name", "logo_uri", AuthorizationType.Distributed, false, "http://servergroup.com");
+        Instance instance = new Instance("base_uri", "display_name", "logo_uri", AuthorizationType.Distributed, false, new ArrayList<>());
         SharedPreferences.Editor editor = _oldPreferences.edit();
 
         SerializerService serializerService = new SerializerService();
@@ -104,7 +106,7 @@ public class PreferencesServiceTest {
         assertEquals(instanceResult.getDisplayName(), instanceResult.getDisplayName());
         assertEquals(instanceResult.getAuthorizationType(), instanceResult.getAuthorizationType());
         assertEquals(instanceResult.isCustom(), instanceResult.isCustom());
-        assertEquals(instanceResult.getServerGroupUrl(), instanceResult.getServerGroupUrl());
+        assertEquals(instanceResult.getPeerList(), instanceResult.getPeerList());
     }
 
 }
