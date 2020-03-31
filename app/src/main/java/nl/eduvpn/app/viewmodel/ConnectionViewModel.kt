@@ -128,8 +128,10 @@ open class ConnectionViewModel(
                     connectionState.value = ConnectionState.Ready
                     if (profiles.size > 1) {
                         parentAction.value = ParentAction.OpenProfileSelector(profiles)
-                    } else {
+                    } else if (profiles.size == 1) {
                         selectProfileToConnectTo(profiles[0])
+                    } else {
+                        parentAction.value = ParentAction.DisplayError(R.string.error_no_profiles_from_server, context.getString(R.string.error_no_profiles_from_server_message))
                     }
                 } catch (ex: SerializerService.UnknownFormatException) {
                     Log.e(TAG, "Error parsing profile list.", ex)
