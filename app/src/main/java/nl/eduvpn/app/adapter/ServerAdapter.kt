@@ -69,6 +69,31 @@ class ServerAdapter(context: Context) : ListAdapter<DiscoveredInstance, ServerVi
 
     private var expandedItem: DiscoveredInstance? = null
 
+    override fun submitList(list: List<DiscoveredInstance>?) {
+        if (expandedItem == null) {
+            // Auto expand
+            list?.forEachIndexed { index, discoveredInstance ->
+                if (discoveredInstance.instance.peerList?.isNotEmpty() == true) {
+                    expandedItem = discoveredInstance
+                    expandedItemCount = discoveredInstance.instance.peerList.size
+                    expandedDetailPosition = index
+
+                    if (expandedItemCount > 0) {
+                        // Here we order the items as they should be, then we create an index mapping to convert between the API version
+                        // and our wanted version
+                        val orderedPeerList = discoveredInstance.instance.peerList.sortedWith(compareBy { it.displayName })
+                        orderedPeerList.forEachIndexed { sortedIndex, item ->
+                            val indexInAPIObject = discoveredInstance.instance.peerList.indexOf(item)
+                            // Should always be a valid number
+                            detailIndexMapping[sortedIndex] = indexInAPIObject
+                        }
+                    }
+                }
+            }
+        }
+        super.submitList(list)
+    }
+
     override fun getItemId(position: Int): Long {
         val itemId = if (isDetailExpanded() && position > expandedDetailPosition && position <= expandedDetailPosition + expandedItemCount) {
             // Detail
@@ -236,7 +261,7 @@ class ServerAdapter(context: Context) : ListAdapter<DiscoveredInstance, ServerVi
                             .into(binding.serverIcon)
                 } else if (instance.isCustom) {
                     binding.serverIcon.setImageResource(R.drawable.ic_custom_url)
-                } else if (instance.peerList?.isNotEmpty() == true ){
+                } else if (instance.peerList?.isNotEmpty() == true) {
                     binding.serverIcon.setImageResource(R.drawable.ic_secure_internet)
                 } else {
                     binding.serverIcon.setImageResource(R.drawable.ic_institute)

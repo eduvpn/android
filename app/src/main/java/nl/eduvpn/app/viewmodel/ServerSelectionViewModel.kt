@@ -53,6 +53,8 @@ class ServerSelectionViewModel(private val context: Context,
     // We avoid refreshing the organization too frequently.
     val organizationInstanceCache = MutableLiveData<Pair<Long, List<DiscoveredInstance>>>()
 
+    val waitingForInstanceToken = MutableLiveData<Instance>()
+
 
     init {
         if (BuildConfig.API_DISCOVERY_ENABLED) {
@@ -79,7 +81,7 @@ class ServerSelectionViewModel(private val context: Context,
         val organization = historyService.savedOrganization
         if (organization == null) {
             refreshInstances()
-        } else if (organizationInstanceCache.value == null || System.currentTimeMillis() - organizationInstanceCache.value!!.first > ORGANIZATION_CACHE_TTL_MS){
+        } else if (organizationInstanceCache.value == null || System.currentTimeMillis() - organizationInstanceCache.value!!.first > ORGANIZATION_CACHE_TTL_MS) {
             refreshOrganization(organization)
         } else {
             refreshInstances(organizationInstanceCache.value!!.second)
@@ -118,7 +120,9 @@ class ServerSelectionViewModel(private val context: Context,
                     } else {
                         Log.i(TAG, "Unable to refresh organization servers.")
                     }
-                    refreshInstances(organization.servers.map { DiscoveredInstance(it, true, it.peerList?.map { true } ?: emptyList()) })
+                    refreshInstances(organization.servers.map {
+                        DiscoveredInstance(it, true, it.peerList?.map { true } ?: emptyList())
+                    })
                 })
         )
     }
@@ -150,8 +154,20 @@ class ServerSelectionViewModel(private val context: Context,
         val allInstances = nonOrganizationInstances.map {
             DiscoveredInstance(it, false)
         } + organizationInstances
-
         instances.value = allInstances.sortedWith(compareBy { it.instance.peerList?.isNotEmpty() == true })
+        waitingForInstanceToken.value?.let { waitingFor ->
+            val isTopLevel = allInstances.firstOrNull { it.instance.sanitizedBaseURI == waitingFor.sanitizedBaseURI } != null
+            if (isTopLevel) {
+                if (waitingFor.peerList?.isNotEmpty() != true && historyService.getSavedToken(waitingFor) != null) {
+                    discoverApi(waitingFor)
+                }
+            } else {
+                val parentInstance = allInstances.firstOrNull { it.instance.peerList?.firstOrNull { it.sanitizedBaseURI == waitingFor.sanitizedBaseURI } != null }
+                if (parentInstance != null && historyService.getSavedToken(parentInstance.instance) != null) {
+                    discoverApi(waitingFor, parentInstance.instance)
+                }
+            }
+        }
     }
 
     override fun update(o: Observable?, arg: Any?) {
@@ -160,6 +176,11 @@ class ServerSelectionViewModel(private val context: Context,
         } else if (o is ConfigurationService) {
             refresh()
         }
+    }
+
+    fun didReturnFromAuth() {
+        val currentInstance = preferencesService.currentInstance
+        waitingForInstanceToken.value = currentInstance
     }
 
     companion object {

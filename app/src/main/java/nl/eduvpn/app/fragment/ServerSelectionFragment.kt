@@ -110,6 +110,10 @@ class ServerSelectionFragment : BaseFragment<FragmentServerSelectionBinding>() {
         binding.warning.setOnClickListener {
             ErrorDialog.show(it.context, R.string.warning_title, viewModel.warning.value!!)
         }
+        if (requireArguments().getBoolean(KEY_RETURNING_FROM_AUTH)) {
+            requireArguments().remove(KEY_RETURNING_FROM_AUTH)
+            viewModel.didReturnFromAuth()
+        }
     }
 
     private fun displayDeleteDialog(instance: Instance): Boolean {
