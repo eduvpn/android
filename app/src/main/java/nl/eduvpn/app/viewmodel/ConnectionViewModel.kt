@@ -65,7 +65,7 @@ open class ConnectionViewModel(
     val parentAction = MutableLiveData<ParentAction>()
 
 
-    fun discoverApi(instance: Instance) {
+    fun discoverApi(instance: Instance, parentInstance: Instance? = null) {
         // If no discovered API, fetch it first, then initiate the connection for the login
         connectionState.value = ConnectionState.DiscoveringApi
         // Discover the API
@@ -73,11 +73,11 @@ open class ConnectionViewModel(
             override fun onSuccess(result: JSONObject) {
                 try {
                     val discoveredAPI = serializerService.deserializeDiscoveredAPI(result)
-                    val savedToken = historyService.getSavedToken(instance)
+                    val savedToken = historyService.getSavedToken(parentInstance ?: instance)
                     if (savedToken == null) {
-                        authorize(instance, discoveredAPI)
+                        authorize(parentInstance ?: instance, discoveredAPI)
                     } else {
-                        if (savedToken.instance.sanitizedBaseURI != instance.sanitizedBaseURI) {
+                        if (savedToken.instance.sanitizedBaseURI != (parentInstance ?: instance).sanitizedBaseURI) {
                             // This is a distributed token. We add it to the list.
                             Log.i(TAG, "Distributed token found for different instance.")
                             preferencesService.currentInstance = instance
@@ -128,8 +128,10 @@ open class ConnectionViewModel(
                     connectionState.value = ConnectionState.Ready
                     if (profiles.size > 1) {
                         parentAction.value = ParentAction.OpenProfileSelector(profiles)
-                    } else {
+                    } else if (profiles.size == 1) {
                         selectProfileToConnectTo(profiles[0])
+                    } else {
+                        parentAction.value = ParentAction.DisplayError(R.string.error_no_profiles_from_server, context.getString(R.string.error_no_profiles_from_server_message))
                     }
                 } catch (ex: SerializerService.UnknownFormatException) {
                     Log.e(TAG, "Error parsing profile list.", ex)

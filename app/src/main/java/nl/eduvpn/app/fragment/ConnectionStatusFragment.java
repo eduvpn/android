@@ -111,12 +111,7 @@ public class ConnectionStatusFragment extends BaseFragment<FragmentConnectionSta
         binding.connectionInfoSwitchButton.setOnClickListener(this::onSwitcherButtonClicked);
 
         Instance provider = _preferencesService.getCurrentInstance();
-        if (!TextUtils.isEmpty(provider.getLogoUri())) {
-            Picasso.get()
-                    .load(provider.getLogoUri())
-                    .fit()
-                    .into(binding.providerIcon);
-        }
+        binding.providerName.setText(FormattingUtils.formatDisplayName(provider));
         // Load the user and system messages asynchronously.
         DiscoveredAPI discoveredAPI = _preferencesService.getCurrentDiscoveredAPI();
         AuthState authState = _preferencesService.getCurrentAuthState();

@@ -22,7 +22,10 @@ import android.content.Context
 import androidx.lifecycle.MutableLiveData
 import nl.eduvpn.app.BuildConfig
 import nl.eduvpn.app.R
-import nl.eduvpn.app.entity.*
+import nl.eduvpn.app.entity.AuthorizationType
+import nl.eduvpn.app.entity.DiscoveredInstance
+import nl.eduvpn.app.entity.Instance
+import nl.eduvpn.app.entity.SavedOrganization
 import nl.eduvpn.app.service.*
 import nl.eduvpn.app.utils.Log
 import java.util.Observable
@@ -33,7 +36,7 @@ class ServerSelectionViewModel(private val context: Context,
                                serializerService: SerializerService,
                                private val configurationService: ConfigurationService,
                                private val historyService: HistoryService,
-                               preferencesService: PreferencesService,
+                               private val preferencesService: PreferencesService,
                                connectionService: ConnectionService,
                                vpnService: VPNService,
                                private val organizationService: OrganizationService) : ConnectionViewModel(
@@ -44,7 +47,13 @@ class ServerSelectionViewModel(private val context: Context,
         connectionService,
         vpnService), Observer {
 
+
     val instances = MutableLiveData<List<DiscoveredInstance>>()
+
+    // We avoid refreshing the organization too frequently.
+    val organizationInstanceCache = MutableLiveData<Pair<Long, List<DiscoveredInstance>>>()
+
+    val waitingForInstanceToken = MutableLiveData<Instance>()
 
 
     init {
@@ -72,8 +81,10 @@ class ServerSelectionViewModel(private val context: Context,
         val organization = historyService.savedOrganization
         if (organization == null) {
             refreshInstances()
-        } else {
+        } else if (organizationInstanceCache.value == null || System.currentTimeMillis() - organizationInstanceCache.value!!.first > ORGANIZATION_CACHE_TTL_MS) {
             refreshOrganization(organization)
+        } else {
+            refreshInstances(organizationInstanceCache.value!!.second)
         }
     }
 
@@ -99,7 +110,9 @@ class ServerSelectionViewModel(private val context: Context,
                     // Old and new:
                     val allInstances =
                             currentInstances.map { discoveredInstanceFromOldAndNew(it, oldInstances) }
-                            missingInstances.map { DiscoveredInstance(it, true, it.peerList?.map { false } ?: emptyList()) }
+                    missingInstances.map {
+                        DiscoveredInstance(it, true, it.peerList?.map { false } ?: emptyList())
+                    }
                     refreshInstances(allInstances)
                 }, { throwable ->
                     if (throwable is OrganizationService.OrganizationDeletedException) {
@@ -107,7 +120,9 @@ class ServerSelectionViewModel(private val context: Context,
                     } else {
                         Log.i(TAG, "Unable to refresh organization servers.")
                     }
-                    refreshInstances(organization.servers.map { DiscoveredInstance(it, true) })
+                    refreshInstances(organization.servers.map {
+                        DiscoveredInstance(it, true, it.peerList?.map { true } ?: emptyList())
+                    })
                 })
         )
     }
@@ -115,10 +130,12 @@ class ServerSelectionViewModel(private val context: Context,
     private fun discoveredInstanceFromOldAndNew(currentInstance: Instance, oldInstances: List<Instance>): DiscoveredInstance {
         val newPeerList = currentInstance.peerList ?: emptyList()
         val oldInstance = oldInstances.firstOrNull { it.sanitizedBaseURI == currentInstance.sanitizedBaseURI }
-                ?: return DiscoveredInstance(currentInstance, false, currentInstance.peerList?.map { false } ?: emptyList())
+                ?: return DiscoveredInstance(currentInstance, false, currentInstance.peerList?.map { false }
+                        ?: emptyList())
 
         val newPeerUrls = newPeerList.map { it.sanitizedBaseURI }.toSet()
-        val missingPeers = oldInstance.peerList?.filter { it.sanitizedBaseURI !in newPeerUrls } ?: emptyList()
+        val missingPeers = oldInstance.peerList?.filter { it.sanitizedBaseURI !in newPeerUrls }
+                ?: emptyList()
 
         val displayPeers = newPeerList + missingPeers
         val cacheStatuses = newPeerList.map { false } + missingPeers.map { true }
@@ -130,10 +147,27 @@ class ServerSelectionViewModel(private val context: Context,
      * Refreshes the instances for the server selector. Also downloads the instance groups.
      */
     private fun refreshInstances(organizationInstances: List<DiscoveredInstance> = emptyList()) {
+        if (organizationInstances.isNotEmpty()) {
+            organizationInstanceCache.value = Pair(System.currentTimeMillis(), organizationInstances)
+        }
         val nonOrganizationInstances = historyService.savedAuthStateList.map { it.instance }.filter { it.authorizationType != AuthorizationType.Organization }
-        instances.value = nonOrganizationInstances.map {
+        val allInstances = nonOrganizationInstances.map {
             DiscoveredInstance(it, false)
         } + organizationInstances
+        instances.value = allInstances.sortedWith(compareBy { it.instance.peerList?.isNotEmpty() == true })
+        waitingForInstanceToken.value?.let { waitingFor ->
+            val isTopLevel = allInstances.firstOrNull { it.instance.sanitizedBaseURI == waitingFor.sanitizedBaseURI } != null
+            if (isTopLevel) {
+                if (waitingFor.peerList?.isNotEmpty() != true && historyService.getSavedToken(waitingFor) != null) {
+                    discoverApi(waitingFor)
+                }
+            } else {
+                val parentInstance = allInstances.firstOrNull { it.instance.peerList?.firstOrNull { it.sanitizedBaseURI == waitingFor.sanitizedBaseURI } != null }
+                if (parentInstance != null && historyService.getSavedToken(parentInstance.instance) != null) {
+                    discoverApi(waitingFor, parentInstance.instance)
+                }
+            }
+        }
     }
 
     override fun update(o: Observable?, arg: Any?) {
@@ -144,8 +178,13 @@ class ServerSelectionViewModel(private val context: Context,
         }
     }
 
+    fun didReturnFromAuth() {
+        val currentInstance = preferencesService.currentInstance
+        waitingForInstanceToken.value = currentInstance
+    }
 
     companion object {
         private val TAG = ServerSelectionViewModel::class.java.name
+        private const val ORGANIZATION_CACHE_TTL_MS = 15 * 60 * 1_000L // 15 minutes
     }
 }

@@ -32,12 +32,5 @@
             android:textSize="18sp"
             tools:text="Hogeschool van Amsterdam publieke beta / pilot" />
 
-        <View
-            android:layout_width="wrap_content"
-            android:layout_height="1dp"
-            android:layout_alignParentBottom="true"
-            android:layout_marginLeft="8dp"
-            android:layout_marginRight="8dp"
-            android:background="@color/mainColor" />
     </RelativeLayout>
 </layout>

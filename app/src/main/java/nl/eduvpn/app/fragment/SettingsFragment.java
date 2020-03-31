@@ -27,6 +27,7 @@ import javax.inject.Inject;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
+import nl.eduvpn.app.BuildConfig;
 import nl.eduvpn.app.EduVPNApplication;
 import nl.eduvpn.app.LicenseActivity;
 import nl.eduvpn.app.R;
@@ -66,6 +67,8 @@ public class SettingsFragment extends BaseFragment<FragmentSettingsBinding> {
         EduVPNApplication.get(view.getContext()).component().inject(this);
 
         _originalSettings = _preferencesService.getAppSettings();
+
+        binding.setOrganizationsEnabled(BuildConfig.NEW_ORGANIZATION_LIST_ENABLED);
 
         binding.useCustomTabsSwitch.setChecked(_originalSettings.useCustomTabs());
         binding.forceTcpSwitch.setChecked(_originalSettings.forceTcp());
