@@ -35,8 +35,12 @@ class ProviderViewHolder(private val binding: ListItemProviderBinding) : Recycle
                     .load(instance.logoUri)
                     .fit()
                     .into(binding.providerIcon)
+        } else if (instance.isCustom) {
+            binding.providerIcon.setImageResource(R.drawable.ic_custom_url)
+        } else if (instance.peerList?.isNotEmpty() == true) {
+            binding.providerIcon.setImageResource(R.drawable.ic_secure_internet)
         } else {
-            binding.providerIcon.setImageResource(R.drawable.external_provider)
+            binding.providerIcon.setImageResource(R.drawable.ic_institute)
         }
 
     }

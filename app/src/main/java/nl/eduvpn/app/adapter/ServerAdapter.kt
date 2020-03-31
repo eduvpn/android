@@ -206,6 +206,16 @@ class ServerAdapter(context: Context) : ListAdapter<DiscoveredInstance, ServerVi
         }
     }
 
+    fun findParent(child: DiscoveredInstance): DiscoveredInstance? {
+        val currentExpanded = expandedItem ?: return null
+        currentExpanded.instance.peerList?.forEach {
+            if (it.sanitizedBaseURI == child.instance.sanitizedBaseURI) {
+                return currentExpanded
+            }
+        }
+        return null
+    }
+
 
     inner class ServerParentViewHolder(private val binding: ListItemServerBinding) : ServerViewHolder(binding) {
 

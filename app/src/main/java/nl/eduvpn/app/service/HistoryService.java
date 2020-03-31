@@ -112,7 +112,23 @@ public class HistoryService extends Observable {
             } else if (instance.getAuthorizationType() == AuthorizationType.Distributed && savedAuthState.getInstance().getAuthorizationType() == AuthorizationType.Distributed) {
                 return savedAuthState.getAuthState();
             } else if (instance.getAuthorizationType() == AuthorizationType.Organization && savedAuthState.getInstance().getAuthorizationType() == AuthorizationType.Organization) {
-                return  savedAuthState.getAuthState();
+                if (instance.getPeerList() != null) {
+                    for (Instance peer : instance.getPeerList()) {
+                        if (peer.getSanitizedBaseURI().equals(instance.getSanitizedBaseURI())) {
+                            return savedAuthState.getAuthState();
+                        }
+                    }
+                }
+            }
+        }
+        // Second round: the instance might be an organization instance which is not part of the instance peer list cache because it has been added later.
+        if (instance.getAuthorizationType() == AuthorizationType.Organization) {
+            for (SavedAuthState savedAuthState : _savedAuthStateList) {
+                if (savedAuthState.getInstance().getAuthorizationType() == AuthorizationType.Organization &&
+                        savedAuthState.getInstance().getPeerList() != null &&
+                        savedAuthState.getInstance().getPeerList().size() > 0) {
+                    return savedAuthState.getAuthState();
+                }
             }
         }
         return null;
@@ -134,17 +150,9 @@ public class HistoryService extends Observable {
                     existingInstances.add(savedAuthState.getInstance());
                 }
             }
-        } else if (instance.getAuthorizationType() == AuthorizationType.Organization) {
-            for (SavedAuthState savedAuthState : _savedAuthStateList) {
-                if (savedAuthState.getInstance().getAuthorizationType() == AuthorizationType.Organization) {
-                    existingInstances.add(savedAuthState.getInstance());
-                }
-            }
         }
         _removeAuthorizations(instance);
-        if (instance.getAuthorizationType() != AuthorizationType.Organization || existingInstances.size() == 0) {
-            _savedAuthStateList.add(new SavedAuthState(instance, authState));
-        }
+        _savedAuthStateList.add(new SavedAuthState(instance, authState));
         for (Instance existingSharedInstance : existingInstances) {
             _savedAuthStateList.add(new SavedAuthState(existingSharedInstance, authState));
         }
@@ -227,7 +235,7 @@ public class HistoryService extends Observable {
                 savedTokenIterator.remove();
                 Log.i(TAG, "Deleted saved token for local auth instance " + savedAuthState.getInstance().getSanitizedBaseURI());
             } else if (instance.getAuthorizationType() == AuthorizationType.Organization &&
-                    savedAuthState.getInstance().getAuthorizationType() == AuthorizationType.Organization) {
+                    savedAuthState.getInstance().getSanitizedBaseURI().equals(instance.getSanitizedBaseURI())) {
                 savedTokenIterator.remove();
                 Log.i(TAG, "Deleted saved token for organization auth instance " + savedAuthState.getInstance().getSanitizedBaseURI());
             }

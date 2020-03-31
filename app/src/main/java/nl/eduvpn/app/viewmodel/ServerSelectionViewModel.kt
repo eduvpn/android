@@ -36,7 +36,7 @@ class ServerSelectionViewModel(private val context: Context,
                                serializerService: SerializerService,
                                private val configurationService: ConfigurationService,
                                private val historyService: HistoryService,
-                               preferencesService: PreferencesService,
+                               private val preferencesService: PreferencesService,
                                connectionService: ConnectionService,
                                vpnService: VPNService,
                                private val organizationService: OrganizationService) : ConnectionViewModel(
@@ -47,7 +47,11 @@ class ServerSelectionViewModel(private val context: Context,
         connectionService,
         vpnService), Observer {
 
+
     val instances = MutableLiveData<List<DiscoveredInstance>>()
+
+    // We avoid refreshing the organization too frequently.
+    val organizationInstanceCache = MutableLiveData<Pair<Long, List<DiscoveredInstance>>>()
 
 
     init {
@@ -75,8 +79,10 @@ class ServerSelectionViewModel(private val context: Context,
         val organization = historyService.savedOrganization
         if (organization == null) {
             refreshInstances()
-        } else {
+        } else if (organizationInstanceCache.value == null || System.currentTimeMillis() - organizationInstanceCache.value!!.first > ORGANIZATION_CACHE_TTL_MS){
             refreshOrganization(organization)
+        } else {
+            refreshInstances(organizationInstanceCache.value!!.second)
         }
     }
 
@@ -137,6 +143,9 @@ class ServerSelectionViewModel(private val context: Context,
      * Refreshes the instances for the server selector. Also downloads the instance groups.
      */
     private fun refreshInstances(organizationInstances: List<DiscoveredInstance> = emptyList()) {
+        if (organizationInstances.isNotEmpty()) {
+            organizationInstanceCache.value = Pair(System.currentTimeMillis(), organizationInstances)
+        }
         val nonOrganizationInstances = historyService.savedAuthStateList.map { it.instance }.filter { it.authorizationType != AuthorizationType.Organization }
         val allInstances = nonOrganizationInstances.map {
             DiscoveredInstance(it, false)
@@ -153,8 +162,8 @@ class ServerSelectionViewModel(private val context: Context,
         }
     }
 
-
     companion object {
         private val TAG = ServerSelectionViewModel::class.java.name
+        private const val ORGANIZATION_CACHE_TTL_MS = 15 * 60 * 1_000L // 15 minutes
     }
 }

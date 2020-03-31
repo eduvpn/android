@@ -25,6 +25,7 @@ import nl.eduvpn.app.R
 import nl.eduvpn.app.databinding.ListItemProfileBinding
 import nl.eduvpn.app.entity.Instance
 import nl.eduvpn.app.entity.Profile
+import nl.eduvpn.app.utils.FormattingUtils
 
 /**
  * View holder for the provider instance list.
@@ -34,14 +35,14 @@ class ProfileViewHolder(private val binding: ListItemProfileBinding) : RecyclerV
 
     fun bind(instance: Instance, profile: Profile) {
         binding.profileName.text = profile.displayName
-        binding.profileProvider.text = instance.displayName
+        binding.profileProvider.text = FormattingUtils.formatDisplayName(instance)
         if (!TextUtils.isEmpty(instance.logoUri)) {
             Picasso.get()
                     .load(instance.logoUri)
                     .fit()
                     .into(binding.profileIcon)
         } else {
-            binding.profileIcon.setImageResource(R.drawable.external_provider)
+            binding.profileIcon.setImageResource(R.drawable.ic_vpn_profile)
         }
     }
 }

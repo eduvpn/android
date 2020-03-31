@@ -4,7 +4,7 @@
     <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
-        android:layout_height="@dimen/profile_list_item_height"
+        android:layout_height="@dimen/list_item_height"
         android:clickable="true"
         android:focusable="true"
         android:background="?attr/selectableItemBackground">
