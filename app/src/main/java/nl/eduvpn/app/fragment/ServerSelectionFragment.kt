@@ -67,6 +67,7 @@ class ServerSelectionFragment : BaseFragment<FragmentServerSelectionBinding>() {
                 binding.addServerButton.performClick()
             } else {
                 (binding.serverList.adapter as? ServerAdapter)?.submitList(it)
+                binding.serverList.smoothScrollToPosition(0)
                 previousListSize = it.size
             }
         })

@@ -159,11 +159,13 @@ class ServerSelectionViewModel(private val context: Context,
             val isTopLevel = allInstances.firstOrNull { it.instance.sanitizedBaseURI == waitingFor.sanitizedBaseURI } != null
             if (isTopLevel) {
                 if (waitingFor.peerList?.isNotEmpty() != true && historyService.getSavedToken(waitingFor) != null) {
+                    waitingForInstanceToken.value = null
                     discoverApi(waitingFor)
                 }
             } else {
                 val parentInstance = allInstances.firstOrNull { it.instance.peerList?.firstOrNull { it.sanitizedBaseURI == waitingFor.sanitizedBaseURI } != null }
                 if (parentInstance != null && historyService.getSavedToken(parentInstance.instance) != null) {
+                    waitingForInstanceToken.value = null
                     discoverApi(waitingFor, parentInstance.instance)
                 }
             }

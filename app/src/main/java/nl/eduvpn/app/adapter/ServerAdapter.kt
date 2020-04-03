@@ -90,6 +90,11 @@ class ServerAdapter(context: Context) : ListAdapter<DiscoveredInstance, ServerVi
                     }
                 }
             }
+        } else {
+            val newPosition = list?.indexOfFirst { it.instance == expandedItem?.instance}
+            if (newPosition != null) {
+                expandedDetailPosition = newPosition
+            }
         }
         super.submitList(list)
     }
