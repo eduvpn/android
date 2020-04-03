@@ -114,6 +114,9 @@
             </intent-filter>
         </activity>
 
+        <activity-alias
+            android:name="nl.eduvpn.app.activities.LogWindow"
+            android:targetActivity="de.blinkt.openvpn.activities.LogWindow"/>
         <activity
             android:name="de.blinkt.openvpn.activities.LogWindow"
             android:allowTaskReparenting="true"
