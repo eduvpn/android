@@ -32,6 +32,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -166,6 +167,12 @@ public class SerializerService {
                 JSONObject instanceObject = instanceArray.getJSONObject(i);
                 instances.add(deserializeInstance(instanceObject));
             }
+            Collections.sort(instances, new Comparator<Instance>() {
+                @Override
+                public int compare(Instance o1, Instance o2) {
+                    return o1.getDisplayName().compareTo(o2.getDisplayName());
+                }
+            });
             return new InstanceList(instances, sequenceNumber);
         } catch (JSONException ex) {
             throw new UnknownFormatException(ex);
@@ -186,6 +193,12 @@ public class SerializerService {
                 JSONObject instanceObject = instanceArray.getJSONObject(i);
                 instances.add(deserializeInstance(instanceObject));
             }
+            Collections.sort(instances, new Comparator<Instance>() {
+                @Override
+                public int compare(Instance o1, Instance o2) {
+                    return o1.getDisplayName().compareTo(o2.getDisplayName());
+                }
+            });
             return instances;
         } catch (JSONException ex) {
             throw new UnknownFormatException(ex);
@@ -246,8 +259,11 @@ public class SerializerService {
             } else {
                 JSONObject translatedNames = jsonObject.getJSONObject("display_name");
                 String userLanguage = _getUserLanguage();
+                String countryName = userLanguage.split("-")[0];
                 if (translatedNames.has(userLanguage)) {
                     displayName = translatedNames.getString(userLanguage);
+                } else if (translatedNames.has(countryName)) {
+                    displayName = translatedNames.getString(countryName);
                 } else if (translatedNames.has("en-US")) {
                     displayName = translatedNames.getString("en-US");
                 } else {
