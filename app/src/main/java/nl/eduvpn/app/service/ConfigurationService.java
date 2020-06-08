@@ -73,7 +73,7 @@ public class ConfigurationService extends java.util.Observable {
         _okHttpClient = okHttpClient;
         _loadSavedLists();
         if (BuildConfig.API_DISCOVERY_ENABLED) {
-            _fetchLatestConfiguration();
+            //_fetchLatestConfiguration();
         } else {
             // Otherwise the user can only enter custom URLs.
             _secureInternetPendingDiscovery = false;
@@ -105,105 +105,6 @@ public class ConfigurationService extends java.util.Observable {
         }
     }
 
-    /**
-     * Parses the JSON string of the instance list to a POJO object.
-     *
-     * @param instanceListString The string with the JSON representation.
-     * @param authorizationType  The authorization types for these instances.
-     * @return An InstanceList object containing the same information.
-     * @throws JSONException Thrown if the JSON was malformed or had an unknown list version.
-     */
-    @Deprecated
-    private InstanceList _parseInstanceList(String instanceListString, AuthorizationType authorizationType) throws Exception {
-        JSONObject instanceListJson = new JSONObject(instanceListString);
-        InstanceList result = _serializerService.deserializeInstanceList(instanceListJson);
-        for (Instance instance : result.getInstanceList()) {
-            instance.setAuthorizationType(authorizationType);
-        }
-        return result;
-    }
-
-    /**
-     * Downloads, parses, and saves the latest configuration retrieved from the URL defined in the build configuration.
-     */
-    private void _fetchLatestConfiguration() {
-        _secureInternetPendingDiscovery = true;
-        _instituteAccessPendingDiscovery = true;
-        _fetchConfigurationForAuthorizationType(AuthorizationType.Distributed);
-        _fetchConfigurationForAuthorizationType(AuthorizationType.Local);
-    }
-
-    @SuppressLint("CheckResult")
-    private void _fetchConfigurationForAuthorizationType(AuthorizationType authorizationType) {
-        // Combine the result of the two
-        Observable<String> instanceListObservable = _createInstanceListObservable(authorizationType);
-        String listRequestUrl = authorizationType == AuthorizationType.Local ? BuildConfig.INSTITUTE_ACCESS_DISCOVERY_URL : BuildConfig.SECURE_INTERNET_DISCOVERY_URL;
-        Observable<String> signatureObservable = _createSignatureObservable(listRequestUrl);
-        // Combine the result of the two
-        Observable.zip(instanceListObservable, signatureObservable, (instanceList, signature) -> {
-            if (_securityService.verifyDeprecatedSignature(instanceList, signature)) {
-                return _parseInstanceList(instanceList, authorizationType);
-            } else {
-                throw new InvalidSignatureException("Signature validation failed for instance list! Authorization type: " + authorizationType);
-            }
-        }).subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(instanceList -> {
-                    if (authorizationType == AuthorizationType.Distributed) {
-                        _secureInternetList = instanceList;
-                        _secureInternetPendingDiscovery = false;
-                    } else {
-                        _instituteAccessList = instanceList;
-                        _instituteAccessPendingDiscovery = false;
-                    }
-                    _saveListIfChanged(instanceList, authorizationType);
-                    Log.i(TAG, "Successfully refreshed instance list for authorization type: " + authorizationType);
-                }, throwable -> {
-                    if (authorizationType == AuthorizationType.Distributed) {
-                        _secureInternetPendingDiscovery = false;
-                    } else {
-                        _instituteAccessPendingDiscovery = false;
-                    }
-                    setChanged();
-                    notifyObservers();
-                    clearChanged();
-                    Log.e(TAG, "Error encountered while fetching instance list for authorization type: " + authorizationType, throwable);
-                });
-    }
-
-    private Observable<String> _createSignatureObservable(final String signatureRequestUrl) {
-        return Observable.defer((Callable<ObservableSource<String>>)() -> {
-            String postfixedUrl = signatureRequestUrl + BuildConfig.SIGNATURE_URL_POSTFIX;
-            Request request = new Request.Builder().url(postfixedUrl).build();
-            Response response = _okHttpClient.newCall(request).execute();
-            ResponseBody responseBody = response.body();
-            if (responseBody != null) {
-                //noinspection WrongConstant
-                String result = responseBody.string();
-                responseBody.close();
-                return Observable.just(result);
-            } else {
-                return Observable.error(new IOException("Response body is empty!"));
-            }
-        }).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread());
-    }
-
-    private Observable<String> _createInstanceListObservable(AuthorizationType authorizationType) {
-        return Observable.defer((Callable<ObservableSource<String>>)() -> {
-            String listRequestUrl = authorizationType == AuthorizationType.Local ? BuildConfig.INSTITUTE_ACCESS_DISCOVERY_URL : BuildConfig.SECURE_INTERNET_DISCOVERY_URL;
-            Request request = new Request.Builder().url(listRequestUrl).build();
-            Response response = _okHttpClient.newCall(request).execute();
-            ResponseBody responseBody = response.body();
-            if (responseBody != null) {
-                //noinspection WrongConstant
-                String result = responseBody.string();
-                responseBody.close();
-                return Observable.just(result);
-            } else {
-                return Observable.error(new IOException("Response body is empty!"));
-            }
-        }).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread());
-    }
 
     /**
      * Returns if provider discovery is still pending for a given authorization type.

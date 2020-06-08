@@ -814,6 +814,7 @@ public class SerializerService {
     public JSONObject serializeOrganization(Organization organization) throws UnknownFormatException {
         JSONObject result = new JSONObject();
         try {
+            result.put("org_id", organization.getOrgId());
             JSONObject translation = new JSONObject();
             translation.put(Constants.LOCALE.getLanguage(), organization.getDisplayName());
             result.put("display_name", translation);
@@ -825,7 +826,7 @@ public class SerializerService {
                 translation.put(Constants.LOCALE.getLanguage(), keywordString);
                 result.put("keyword_list", translation);
             }
-            result.put("server_list", organization.getServerList());
+            result.put("secure_internet_home", organization.getSecureInternetHome());
         } catch (JSONException ex) {
             throw new UnknownFormatException(ex);
         }
@@ -841,7 +842,13 @@ public class SerializerService {
      */
     public Organization deserializeOrganization(JSONObject jsonObject) throws UnknownFormatException {
         try {
-            String displayName = _findTranslation(jsonObject.getJSONObject("display_name"));
+            String displayName = null;
+            if (jsonObject.get("display_name") instanceof String) {
+                displayName = jsonObject.getString("display_name");
+            } else {
+                displayName = _findTranslation(jsonObject.getJSONObject("display_name"));
+            }
+            String orgId = jsonObject.getString("org_id");
             if (displayName == null) {
                 displayName = "";
             }
@@ -852,8 +859,11 @@ public class SerializerService {
                     keywordList = Arrays.asList(keywordString.split(" "));
                 }
             }
-            String serverList = jsonObject.getString("server_list");
-            return new Organization(displayName, keywordList, serverList);
+            String secureInternetHome = null;
+            if (jsonObject.has("secure_internet_home") && !jsonObject.isNull("secure_internet_home")) {
+                secureInternetHome = jsonObject.getString("secure_internet_home");
+            }
+            return new Organization(orgId, displayName, keywordList, secureInternetHome);
         } catch (JSONException ex) {
             throw new UnknownFormatException(ex);
         }

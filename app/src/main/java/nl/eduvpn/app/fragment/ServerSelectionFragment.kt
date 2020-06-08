@@ -26,7 +26,6 @@ import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
-import nl.eduvpn.app.BuildConfig
 import nl.eduvpn.app.EduVPNApplication
 import nl.eduvpn.app.MainActivity
 import nl.eduvpn.app.R
@@ -134,25 +133,14 @@ class ServerSelectionFragment : BaseFragment<FragmentServerSelectionBinding>() {
     override fun onResume() {
         super.onResume()
         viewModel.onResume()
-        if (BuildConfig.NEW_ORGANIZATION_LIST_ENABLED) {
-            if (viewModel.organizationSelected()) {
-                binding.addServerButton.visibility = View.GONE
-            } else {
-                binding.addServerButton.setText(R.string.select_organization)
-                binding.addServerButton.setOnClickListener {
-                    (activity as? MainActivity)?.openFragment(OrganizationSelectionFragment(), true)
-                }
-                binding.addServerButton.visibility = View.VISIBLE
-            }
+        if (viewModel.organizationSelected()) {
+            binding.addServerButton.visibility = View.GONE
         } else {
+            binding.addServerButton.setText(R.string.select_organization)
             binding.addServerButton.setOnClickListener {
-                @Suppress("ConstantConditionIf")
-                if (BuildConfig.API_DISCOVERY_ENABLED) {
-                    (activity as? MainActivity)?.openFragment(TypeSelectorFragment(), true)
-                } else {
-                    (activity as? MainActivity)?.openFragment(CustomProviderFragment(), true)
-                }
+                (activity as? MainActivity)?.openFragment(OrganizationSelectionFragment(), true)
             }
+            binding.addServerButton.visibility = View.VISIBLE
         }
     }
 

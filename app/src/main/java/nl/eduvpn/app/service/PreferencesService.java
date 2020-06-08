@@ -124,7 +124,7 @@ public class PreferencesService {
                 Log.d(TAG, "Migrated over to storage version v2.");
             }
         }
-        if (version < 3 && BuildConfig.NEW_ORGANIZATION_LIST_ENABLED) {
+        if (version < 3) {
             SharedPreferences.Editor editor = newPreferences.edit();
             editor.remove(KEY_INSTANCE_LIST_SECURE_INTERNET);
             editor.remove(KEY_INSTANCE_LIST_INSTITUTE_ACCESS);

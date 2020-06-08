@@ -31,13 +31,10 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import nl.eduvpn.app.base.BaseActivity;
 import nl.eduvpn.app.databinding.ActivityMainBinding;
-import nl.eduvpn.app.entity.Settings;
 import nl.eduvpn.app.fragment.ConnectionStatusFragment;
 import nl.eduvpn.app.fragment.CustomProviderFragment;
 import nl.eduvpn.app.fragment.OrganizationSelectionFragment;
-import nl.eduvpn.app.fragment.ProviderSelectionFragment;
 import nl.eduvpn.app.fragment.ServerSelectionFragment;
-import nl.eduvpn.app.fragment.TypeSelectorFragment;
 import nl.eduvpn.app.service.ConnectionService;
 import nl.eduvpn.app.service.HistoryService;
 import nl.eduvpn.app.service.VPNService;
@@ -79,12 +76,7 @@ public class MainActivity extends BaseActivity<ActivityMainBinding> {
             } else {
                 // User has no previously saved profiles. Show the type selector.
                 if (BuildConfig.API_DISCOVERY_ENABLED) {
-                    // eduVPN flavor
-                    if (BuildConfig.NEW_ORGANIZATION_LIST_ENABLED) {
-                        openFragment(new OrganizationSelectionFragment(), false);
-                    } else {
-                        openFragment(new TypeSelectorFragment(), false);
-                    }
+                    openFragment(new OrganizationSelectionFragment(), false);
                 } else {
                     // Let's Connect! flavor
                     openFragment(new CustomProviderFragment(), false);
@@ -173,7 +165,7 @@ public class MainActivity extends BaseActivity<ActivityMainBinding> {
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        if (requestCode == REQUEST_CODE_SETTINGS ) {
+        if (requestCode == REQUEST_CODE_SETTINGS) {
             if (resultCode == SettingsActivity.RESULT_APP_DATA_CLEARED) {
                 if (_vpnService.getStatus() != VPNService.VPNStatus.DISCONNECTED) {
                     _vpnService.disconnect();

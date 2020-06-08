@@ -4,10 +4,6 @@
     <data>
 
         <import type="android.view.View" />
-
-        <variable
-            name="organizationsEnabled"
-            type="Boolean" />
     </data>
 
     <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
@@ -47,8 +43,7 @@
                     android:layout_height="wrap_content"
                     android:layout_alignParentTop="true"
                     android:background="?attr/selectableItemBackground"
-                    android:orientation="vertical"
-                    android:visibility="@{organizationsEnabled ? View.VISIBLE : View.GONE}">
+                    android:orientation="vertical">
 
                     <TextView
                         android:id="@+id/addServerTitle"
@@ -72,8 +67,7 @@
                     android:layout_height="wrap_content"
                     android:layout_below="@id/addServerContainer"
                     android:background="?attr/selectableItemBackground"
-                    android:orientation="vertical"
-                    android:visibility="@{organizationsEnabled ? View.VISIBLE : View.GONE}">
+                    android:orientation="vertical">
 
                     <TextView
                         android:id="@+id/resetDataTitle"
@@ -90,7 +84,6 @@
                 <View
                     android:id="@+id/resetDataSeparator"
                     style="@style/SettingsSeparator"
-                    android:visibility="@{organizationsEnabled ? View.VISIBLE : View.GONE}"
                     android:layout_below="@id/resetAppDataContainer" />
 
                 <TextView

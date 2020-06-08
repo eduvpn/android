@@ -45,7 +45,7 @@ class OrganizationService(private val serializerService: SerializerService,
         if (organization == null) {
             return Single.just(emptyList())
         }
-        val instanceListUrl = BuildConfig.ORGANIZATION_LIST_BASE_URL + organization.serverList
+        val instanceListUrl = BuildConfig.ORGANIZATION_LIST_BASE_URL + organization.secureInternetHome
         return Single.zip(
                 createGetJsonSingle(instanceListUrl).onErrorReturnItem(""),
                 createSignatureSingle(instanceListUrl).onErrorReturnItem(""), BiFunction<String, String, List<Instance>> { serverInfoList, signature ->
@@ -80,6 +80,7 @@ class OrganizationService(private val serializerService: SerializerService,
                     throw InvalidSignatureException("Signature validation failed for organization list!")
                 }
             } catch (ex: Exception) {
+                Log.w(TAG, "Unable to verify signature", ex)
                 throw InvalidSignatureException("Signature validation failed for organization list!")
             }
         }).subscribeOn(Schedulers.io())

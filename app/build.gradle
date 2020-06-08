@@ -20,16 +20,12 @@ android {
         versionName "1.3.2"
 
         buildConfigField "String", "ORGANIZATION_LIST_BASE_URL", "\"https://disco.eduvpn.org/\""
-        buildConfigField "String", "SECURE_INTERNET_DISCOVERY_URL", "\"https://static.eduvpn.nl/disco/secure_internet.json\""
-        buildConfigField "String", "INSTITUTE_ACCESS_DISCOVERY_URL", "\"https://static.eduvpn.nl/disco/institute_access.json\""
-
-        buildConfigField "String", "SIGNATURE_URL_POSTFIX", "\".sig\""
-
-        buildConfigField "String", "DEPRECATED_SIGNATURE_VALIDATION_PUBLIC_KEY", "\"E5On0JTtyUVZmcWd+I/FXRm32nSq8R2ioyW7dcu/U88=\""
-        buildConfigField "String", "MINISIGN_SIGNATURE_VALIDATION_PUBLIC_KEY", "\"RWSC3Lwn4f9mhG3XIwRUTEIqf7Ucu9+7/Rq+scUMxrjg5/kjskXKOJY/\""
-
+        buildConfigField "String", "SIGNATURE_URL_POSTFIX", "\".minisig\""
+        buildConfigField "String[]", "MINISIGN_SIGNATURE_VALIDATION_PUBLIC_KEY",
+                "{" +
+                "\"RWRtBSX1alxyGX+Xn3LuZnWUT0w//B6EmTJvgaAxBMYzlQeI+jdrO6KF\"" + // If you want to add more, follow this guide (list version): https://stackoverflow.com/a/42130853/1395437
+                "}"
         buildConfigField "boolean", "API_DISCOVERY_ENABLED", "true" // If false, you can only enter server URLs manually.
-        buildConfigField "boolean", "NEW_ORGANIZATION_LIST_ENABLED", "false" // If false, the servers will be fetched from the secure internet + institute access list
 
         // API
         buildConfigField "String", "OAUTH_CLIENT_ID", "\"org.eduvpn.app.android\""
@@ -65,19 +61,13 @@ android {
     flavorDimensions "product"
 
     productFlavors {
-        organization {
-            dimension "product"
-            buildConfigField "boolean", "NEW_ORGANIZATION_LIST_ENABLED", "true"
-            isDefault = true
-        }
         basic {
             dimension "product"
+            isDefault = true
         }
         dev {
             dimension "product"
             applicationId "nl.eduvpn.app.dev"
-            // Override the URLs for fetching the configs
-            buildConfigField "String", "SIGNATURE_VALIDATION_PUBLIC_KEY", "\"zzls4TZTXHEyV3yxaxag1DZw3tSpIdBoaaOjUGH/Rwg=\""
         }
         home {
             dimension "product"

@@ -68,8 +68,6 @@ public class SettingsFragment extends BaseFragment<FragmentSettingsBinding> {
 
         _originalSettings = _preferencesService.getAppSettings();
 
-        binding.setOrganizationsEnabled(BuildConfig.NEW_ORGANIZATION_LIST_ENABLED);
-
         binding.useCustomTabsSwitch.setChecked(_originalSettings.useCustomTabs());
         binding.forceTcpSwitch.setChecked(_originalSettings.forceTcp());
 
