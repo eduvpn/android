@@ -33,9 +33,11 @@ import nl.eduvpn.app.base.BaseFragment
 import nl.eduvpn.app.databinding.FragmentOrganizationSelectionBinding
 import nl.eduvpn.app.entity.AuthorizationType
 import nl.eduvpn.app.service.OrganizationService
+import nl.eduvpn.app.utils.ErrorDialog
 import nl.eduvpn.app.utils.ItemClickSupport
 import nl.eduvpn.app.utils.hideKeyboard
 import nl.eduvpn.app.viewmodel.ConnectionState
+import nl.eduvpn.app.viewmodel.ConnectionViewModel
 import nl.eduvpn.app.viewmodel.OrganizationSelectionViewModel
 import javax.inject.Inject
 
@@ -106,6 +108,9 @@ class OrganizationSelectionFragment : BaseFragment<FragmentOrganizationSelection
             when (parentAction) {
                 is OrganizationSelectionViewModel.ParentAction.OpenProviderSelector -> {
                     (activity as? MainActivity)?.openFragment(ProviderSelectionFragment.newInstance(AuthorizationType.Organization), true)
+                }
+                is OrganizationSelectionViewModel.ParentAction.DisplayError -> {
+                    ErrorDialog.show(requireContext(), parentAction.title, parentAction.message)
                 }
             }
         })

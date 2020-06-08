@@ -25,6 +25,7 @@ import nl.eduvpn.app.base.BaseViewModel
 import nl.eduvpn.app.entity.Organization
 import nl.eduvpn.app.service.OrganizationService
 import nl.eduvpn.app.service.PreferencesService
+import nl.eduvpn.app.utils.Log
 
 class OrganizationSelectionViewModel(
         organizationService: OrganizationService,
@@ -48,7 +49,9 @@ class OrganizationSelectionViewModel(
                             state.value = ConnectionState.Ready
                             organizations.value = organizationList
                         }, { throwable ->
+                            Log.w(TAG, "Unable to fetch organization list!", throwable)
                             parentAction.value = ParentAction.DisplayError(R.string.error_fetching_organizations, throwable.toString())
+                            state.value = ConnectionState.Ready
                         })
         )
     }
@@ -57,5 +60,9 @@ class OrganizationSelectionViewModel(
     fun selectOrganization(organization: Organization) {
         preferencesService.setCurrentOrganization(organization)
         parentAction.postValue(ParentAction.OpenProviderSelector)
+    }
+
+    companion object {
+        private val TAG = OrganizationSelectionViewModel::class.java.name
     }
 }
