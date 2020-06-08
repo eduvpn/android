@@ -112,8 +112,8 @@ android {
     }
 }
 
-def daggerVersion = "2.25.2"
-def okHttpVersion = "4.2.2"
+def daggerVersion = "2.28"
+def okHttpVersion = "4.7.2"
 def lifecycleVersion = "2.2.0"
 
 dependencies {
@@ -146,7 +146,7 @@ dependencies {
     implementation "com.github.joshjdevl.libsodiumjni:libsodium-jni-aar:2.0.2@aar"
     // Reactive extensions for asynchronous events
     implementation 'io.reactivex.rxjava2:rxandroid:2.1.1'
-    implementation 'io.reactivex.rxjava2:rxjava:2.2.12'
+    implementation 'io.reactivex.rxjava2:rxjava:2.2.19'
 
     // All testing related libraries
     testImplementation 'junit:junit:4.12'
