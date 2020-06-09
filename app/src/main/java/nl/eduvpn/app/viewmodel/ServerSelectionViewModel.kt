@@ -21,11 +21,12 @@ package nl.eduvpn.app.viewmodel
 import android.content.Context
 import androidx.lifecycle.MutableLiveData
 import nl.eduvpn.app.BuildConfig
+import nl.eduvpn.app.R
+import nl.eduvpn.app.adapter.OrganizationAdapter
 import nl.eduvpn.app.entity.AuthorizationType
-import nl.eduvpn.app.entity.DiscoveredInstance
 import nl.eduvpn.app.entity.Instance
-import nl.eduvpn.app.entity.SavedOrganization
 import nl.eduvpn.app.service.*
+import nl.eduvpn.app.utils.Log
 import java.util.Observable
 import java.util.Observer
 import javax.inject.Inject
@@ -48,12 +49,10 @@ class ServerSelectionViewModel @Inject constructor(
         vpnService), Observer {
 
 
-    val instances = MutableLiveData<List<DiscoveredInstance>>()
+    val adapterItems = MutableLiveData<List<OrganizationAdapter.OrganizationAdapterItem>>()
 
     // We avoid refreshing the organization too frequently.
-    val organizationInstanceCache = MutableLiveData<Pair<Long, List<DiscoveredInstance>>>()
-
-    val waitingForInstanceToken = MutableLiveData<Instance>()
+    val serverListCache = MutableLiveData<Pair<Long, List<Instance>>>()
 
 
     init {
@@ -81,67 +80,52 @@ class ServerSelectionViewModel @Inject constructor(
         val organization = historyService.savedOrganization
         if (organization == null) {
             refreshInstances()
-        } else if (organizationInstanceCache.value == null || System.currentTimeMillis() - organizationInstanceCache.value!!.first > ORGANIZATION_CACHE_TTL_MS) {
-            refreshOrganization(organization)
+        } else if (serverListCache.value == null || System.currentTimeMillis() - serverListCache.value!!.first > SERVER_LIST_CACHE_TTL) {
+            refreshServerList()
         } else {
-            refreshInstances(organizationInstanceCache.value!!.second)
+            refreshInstances(serverListCache.value!!.second)
         }
     }
 
     /**
      * Refreshes the current organization, and then the instances afterwards
      */
-    private fun refreshOrganization(organization: SavedOrganization) {
-        println(organization.servers)
-        /**
-        disposables.add(organizationService.getInstanceListForOrganization(organization.organization)
-        .subscribe({ currentInstances ->
-        // Organization servers seem to be OK. Check if our instance is also part of it.
-        val oldInstances = historyService.savedAuthStateList
-        .map { it.instance }
-        .filter { it.authorizationType == AuthorizationType.Organization }
-        // Checking if there are missing ones
-        val newInstanceUrls = currentInstances.map { it.sanitizedBaseURI }.toSet()
-        val missingInstances = oldInstances.filter { it.sanitizedBaseURI !in newInstanceUrls }
-
-        if (missingInstances.size == 1) {
-        warning.value = context.getString(R.string.error_server_not_found_in_organization_single, missingInstances[0].displayName)
-        } else if (missingInstances.size > 1) {
-        warning.value = context.getString(R.string.error_server_not_found_in_organization_multiple, missingInstances.joinToString(separator = ", ") { it.displayName })
-        }
-        // Old and new:
-        /**
-        val allInstances =
-        currentInstances.map { discoveredInstanceFromOldAndNew(it, oldInstances) }
-        missingInstances.map {
-        DiscoveredInstance(it, true, it.peerList?.map { false } ?: emptyList())
-        }
-        refreshInstances(allInstances)**/
-        }, { throwable ->
-        if (throwable is OrganizationService.OrganizationDeletedException) {
-        warning.value = context.getString(R.string.error_organization_not_listed)
-        } else {
-        Log.i(TAG, "Unable to refresh organization servers.")
-        }
-        refreshInstances(organization.servers.map {
-        DiscoveredInstance(it, true, emptyList())
-        })
-        })
-        )**/
+    private fun refreshServerList() {
+        disposables.add(organizationService.fetchServerList()
+                .subscribe({
+                    serverListCache.value = Pair(System.currentTimeMillis(), it)
+                    refreshInstances(it)
+                }, {
+                    Log.w(TAG, "Unable to fetch server list. Trying to show servers without it.", it)
+                    refreshInstances(serverListCache.value?.second ?: emptyList())
+                })
+        )
     }
 
     /**
-     * Refreshes the instances for the server selector. Also downloads the instance groups.
+     * Refreshes the instances for the server selector.
      */
-    private fun refreshInstances(organizationInstances: List<DiscoveredInstance> = emptyList()) {
-        if (organizationInstances.isNotEmpty()) {
-            organizationInstanceCache.value = Pair(System.currentTimeMillis(), organizationInstances)
+    private fun refreshInstances(serverList: List<Instance> = emptyList()) {
+        val savedInstances = historyService.savedAuthStateList.map { it.instance }
+        val distributedInstance = savedInstances.firstOrNull { it.authorizationType == AuthorizationType.Distributed }
+        val instituteAccessItems = savedInstances.filter { it.authorizationType == AuthorizationType.Local }
+        val result = mutableListOf<OrganizationAdapter.OrganizationAdapterItem>()
+        if (instituteAccessItems.isNotEmpty()) {
+            result += OrganizationAdapter.OrganizationAdapterItem.Header(R.drawable.ic_institute, R.string.header_institute_access)
+            result += instituteAccessItems.map { OrganizationAdapter.OrganizationAdapterItem.InstituteAccess(it) }
         }
-        val nonOrganizationInstances = historyService.savedAuthStateList.map { it.instance }.filter { it.authorizationType != AuthorizationType.Organization }
-        val allInstances = nonOrganizationInstances.map {
-            DiscoveredInstance(it, false)
-        } + organizationInstances
-        instances.value = allInstances
+        if (distributedInstance != null) {
+            val preferredCountry = preferencesService.preferredCountry
+            val countryMatch = if (preferencesService.preferredCountry == null) {
+                null
+            } else {
+                serverList.firstOrNull { it.authorizationType == AuthorizationType.Distributed && it.countryCode.equals(preferredCountry, ignoreCase = true) }
+            }
+            val displayedServer = countryMatch ?: distributedInstance
+            result += OrganizationAdapter.OrganizationAdapterItem.Header(R.drawable.ic_secure_internet, R.string.header_secure_internet)
+            result += OrganizationAdapter.OrganizationAdapterItem.SecureInternet(displayedServer, null)
+        }
+        adapterItems.value = result
     }
 
     override fun update(o: Observable?, arg: Any?) {
@@ -152,13 +136,8 @@ class ServerSelectionViewModel @Inject constructor(
         }
     }
 
-    fun didReturnFromAuth() {
-        val currentInstance = preferencesService.currentInstance
-        waitingForInstanceToken.value = currentInstance
-    }
-
     companion object {
         private val TAG = ServerSelectionViewModel::class.java.name
-        private const val ORGANIZATION_CACHE_TTL_MS = 15 * 60 * 1_000L // 15 minutes
+        private const val SERVER_LIST_CACHE_TTL = 15 * 60 * 1_000L // 15 minutes
     }
 }

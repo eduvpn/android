@@ -338,10 +338,6 @@ open class ConnectionViewModel(
         vpnService.connect(activity, vpnProfile)
     }
 
-    fun organizationSelected(): Boolean {
-        return historyService.savedOrganization != null
-    }
-
 
     companion object {
         private val TAG = ConnectionViewModel::class.java.name

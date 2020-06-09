@@ -18,53 +18,21 @@
 <layout>
 
     <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:app="http://schemas.android.com/apk/res-auto"
         xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:fitsSystemWindows="true"
-        tools:context=".">
+        tools:context=".LicenseActivity">
 
         <WebView
             android:id="@+id/webView"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_marginTop="@dimen/actionbar_size"
-            tools:background="#ffffff" />
+            tools:background="@color/backgroundColor" />
 
-        <androidx.appcompat.widget.Toolbar
+        <include
             android:id="@+id/toolbar"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="?attr/colorPrimary"
-            android:minHeight="@dimen/actionbar_size"
-            app:popupTheme="@style/AppTheme.PopupOverlay">
-
-            <RelativeLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent">
-
-                <ImageView
-                    android:id="@+id/actionbarLogo"
-                    android:layout_width="@dimen/actionbar_icon_size"
-                    android:layout_height="@dimen/actionbar_icon_size"
-                    android:layout_centerVertical="true"
-                    android:contentDescription="@string/content_description_application_logo"
-                    android:src="@mipmap/ic_launcher" />
-
-                <TextView
-                    android:id="@+id/actionbarTitle"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_centerVertical="true"
-                    android:layout_toRightOf="@+id/actionbarLogo"
-                    android:paddingLeft="8dp"
-                    android:text="@string/licenses_title"
-                    android:textColor="@color/textColorInverted"
-                    android:textSize="24sp"
-                    android:textStyle="bold" />
-
-            </RelativeLayout>
-        </androidx.appcompat.widget.Toolbar>
+            layout="@layout/include_toolbar" />
     </RelativeLayout>
 </layout>

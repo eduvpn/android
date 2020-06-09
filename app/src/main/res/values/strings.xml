@@ -48,7 +48,7 @@
     <string name="maintenance_message">The VPN service will be under maintenance starting from %1$s until %2$s.</string>
     <string name="error_loading_system_messages">Unable to load system messages: %s</string>
     <string name="error_loading_user_messages">Unable to load user messages: %s</string>
-    <string name="server_selection_add_server">Add Server</string>
+    <string name="server_selection_add_server">Add Other Server</string>
     <string name="server_selection_secure_internet">Secure Internet</string>
 
     <string name="saved_profile_display_name">%1$s - %2$s</string>
@@ -98,7 +98,7 @@
     <string name="add_other_address">Add Other Provider</string>
     <string name="error_selected_instance_not_found">Selected instance not found.</string>
     <string name="no_provider_found">No provider found.</string>
-    <string name="no_organization_found">No organization found.</string>
+    <string name="no_match_found">No match found.</string>
     <string name="discovering_organizations">Discovering organizations...</string>
     <string name="discovering_providers">Discovering providers...</string>
     <string name="description_secure_internet_provider">Select your institution\'s country here. Afterwards you can use other countries.</string>

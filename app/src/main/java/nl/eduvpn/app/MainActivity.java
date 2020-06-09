@@ -67,7 +67,7 @@ public class MainActivity extends BaseActivity<ActivityMainBinding> {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EduVPNApplication.get(this).component().inject(this);
-        setSupportActionBar(binding.toolbar);
+        setSupportActionBar(binding.toolbar.toolbar);
         _vpnService.onCreate(this);
         if (savedInstanceState == null) {
             // If there's an ongoing VPN connection, open the status screen.
@@ -87,7 +87,7 @@ public class MainActivity extends BaseActivity<ActivityMainBinding> {
         } // else the activity will automatically restore everything.
         // The app might have been reopened from a URL.
         onNewIntent(getIntent());
-        binding.settingsButton.setOnClickListener(v -> onSettingsButtonClicked());
+        binding.toolbar.settingsButton.setOnClickListener(v -> onSettingsButtonClicked());
     }
 
     @Override

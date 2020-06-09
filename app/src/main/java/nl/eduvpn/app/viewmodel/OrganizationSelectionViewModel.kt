@@ -74,7 +74,7 @@ class OrganizationSelectionViewModel @Inject constructor(
         Transformations.switchMap(servers) { servers ->
             Transformations.map(searchText) { searchText ->
                 val instituteAccessServers = servers.filter {
-                    it.authorizationType == AuthorizationType.Local && (searchText.isNullOrBlank() || it.displayName.contains(searchText, ignoreCase = true))
+                    it.authorizationType == AuthorizationType.Local && (searchText.isNullOrBlank() || it.displayName?.contains(searchText, ignoreCase = true) == true)
                 }.sortedBy { it.displayName }
                         .map { OrganizationAdapter.OrganizationAdapterItem.InstituteAccess(it) }
                 val secureInternetServers = organizations.filter {

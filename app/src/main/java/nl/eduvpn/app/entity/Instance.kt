@@ -22,9 +22,10 @@ package nl.eduvpn.app.entity
  */
 data class Instance(
         val baseURI: String,
-        val displayName: String,
+        val displayName: String?,
         val logoUri: String?,
-        var authorizationType: AuthorizationType?,
+        val authorizationType: AuthorizationType?,
+        val countryCode: String?,
         val isCustom: Boolean,
         val supportContact: List<String>) {
 

@@ -16,53 +16,9 @@
             android:layout_marginTop="@dimen/actionbar_size"
             tools:background="@color/backgroundColor" />
 
-
-        <androidx.appcompat.widget.Toolbar
+        <include
             android:id="@+id/toolbar"
-            android:elevation="0dp"
-            android:layout_width="match_parent"
-            android:layout_height="@dimen/actionbar_size"
-            android:background="@color/backgroundColor"
-            android:minHeight="@dimen/actionbar_size"
-            app:contentInsetStart="0dp"
-            app:contentInsetStartWithNavigation="0dp"
-            app:popupTheme="@style/AppTheme.PopupOverlay">
+            layout="@layout/include_toolbar"/>
 
-            <RelativeLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent">
-
-                <ImageView
-                    android:id="@+id/actionbarLogo"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_centerInParent="true"
-                    android:contentDescription="@string/content_description_application_logo"
-                    android:src="@drawable/ic_eduvpn_logo" />
-
-                <ImageView
-                    android:id="@+id/settingsButton"
-                    android:layout_width="@dimen/actionbar_icon_size"
-                    android:layout_height="@dimen/actionbar_icon_size"
-                    android:layout_alignParentRight="true"
-                    android:layout_alignParentTop="true"
-                    android:contentDescription="@string/content_description_settings_button"
-                    android:padding="8dp"
-                    android:src="@drawable/ic_settings"
-                    android:tint="@color/iconColor" />
-
-                <ImageView
-                    android:id="@+id/helpButton"
-                    android:layout_width="@dimen/actionbar_icon_size"
-                    android:layout_height="@dimen/actionbar_icon_size"
-                    android:layout_alignParentRight="true"
-                    android:layout_alignParentBottom="true"
-                    android:contentDescription="@string/content_description_settings_button"
-                    android:padding="8dp"
-                    android:src="@drawable/ic_help"
-                    android:tint="@color/iconColor" />
-
-            </RelativeLayout>
-        </androidx.appcompat.widget.Toolbar>
     </RelativeLayout>
 </layout>

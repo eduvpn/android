@@ -22,7 +22,6 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:animateLayoutChanges="true"
             android:orientation="vertical">
 
             <ImageView
@@ -100,7 +99,7 @@
                     android:layout_marginTop="24dp"
                     android:fontFamily="@font/open_sans_regular"
                     android:scrollbarStyle="outsideOverlay"
-                    android:text="@string/no_organization_found"
+                    android:text="@string/no_match_found"
                     android:textColor="@color/textColor"
                     android:textSize="18sp"
                     android:visibility="@{viewModel.noItemsFound ? View.VISIBLE : View.GONE}"/>

@@ -38,4 +38,5 @@ public class Constants {
     public static final int[] GONE_HTTP_CODES = new int[] {404, 410};
 
     public static final Locale LOCALE = Locale.getDefault();
+    public static final Locale ENGLISH_LOCALE = Locale.ENGLISH;
 }

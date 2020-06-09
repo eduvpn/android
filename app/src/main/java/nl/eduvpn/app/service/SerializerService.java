@@ -203,7 +203,9 @@ public class SerializerService {
         JSONObject result = new JSONObject();
         try {
             result.put("base_url", instance.getBaseURI());
-            result.put("display_name", instance.getDisplayName());
+            if (instance.getDisplayName() != null) {
+                result.put("display_name", instance.getDisplayName());
+            }
             result.put("logo", instance.getLogoUri());
             result.put("is_custom", instance.isCustom());
             String authType;
@@ -218,6 +220,9 @@ public class SerializerService {
             JSONArray supportContact = new JSONArray();
             for (String contact : instance.getSupportContact()) {
                 supportContact.put(contact);
+            }
+            if (instance.getCountryCode() != null) {
+                result.put("country_code", instance.getCountryCode());
             }
             result.put("support_contact", supportContact);
         } catch (JSONException ex) {
@@ -242,19 +247,21 @@ public class SerializerService {
             } else {
                 baseUri = jsonObject.getString("base_uri");
             }
-            String displayName;
-            if (jsonObject.get("display_name") instanceof String) {
-                displayName = jsonObject.getString("display_name");
-            } else {
-                JSONObject translatedNames = jsonObject.getJSONObject("display_name");
-                String userLanguage = _getUserLanguage();
-                if (translatedNames.has(userLanguage)) {
-                    displayName = translatedNames.getString(userLanguage);
-                } else if (translatedNames.has("en-US")) {
-                    displayName = translatedNames.getString("en-US");
+            String displayName = null;
+            if (jsonObject.has("display_name")) {
+                if (jsonObject.get("display_name") instanceof String) {
+                    displayName = jsonObject.getString("display_name");
                 } else {
-                    String firstKey = translatedNames.keys().next();
-                    displayName = translatedNames.getString(firstKey);
+                    JSONObject translatedNames = jsonObject.getJSONObject("display_name");
+                    String userLanguage = _getUserLanguage();
+                    if (translatedNames.has(userLanguage)) {
+                        displayName = translatedNames.getString(userLanguage);
+                    } else if (translatedNames.has("en-US")) {
+                        displayName = translatedNames.getString("en-US");
+                    } else {
+                        String firstKey = translatedNames.keys().next();
+                        displayName = translatedNames.getString(firstKey);
+                    }
                 }
             }
             String logoUri = null;
@@ -295,7 +302,11 @@ public class SerializerService {
                     supportContact.add(supportArray.getString(supportIndex));
                 }
             }
-            return new Instance(baseUri, displayName, logoUri, authorizationType, isCustom, supportContact);
+            String countryCode = null;
+            if (jsonObject.has("country_code")) {
+                countryCode = jsonObject.getString("country_code");
+            }
+            return new Instance(baseUri, displayName, logoUri, authorizationType, countryCode, isCustom, supportContact);
         } catch (JSONException ex) {
             throw new UnknownFormatException(ex);
         }

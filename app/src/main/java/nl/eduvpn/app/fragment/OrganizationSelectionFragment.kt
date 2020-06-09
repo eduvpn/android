@@ -81,7 +81,7 @@ class OrganizationSelectionFragment : BaseFragment<FragmentOrganizationSelection
                         binding.organizationDiscoveryStatus.visibility = View.GONE
                     }
                     else -> {
-                        binding.organizationDiscoveryStatus.setText(R.string.no_organization_found)
+                        binding.organizationDiscoveryStatus.setText(R.string.no_match_found)
                         binding.organizationDiscoveryStatus.visibility = View.VISIBLE
                     }
                 }

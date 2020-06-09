@@ -121,16 +121,17 @@
         <item name="android:textAllCaps">false</item>
     </style>
 
-    <style name="BigButton">
-        <item name="android:background">@drawable/button_bg</item>
+    <style name="BigButton" parent="Widget.MaterialComponents.Button.OutlinedButton">
+        <item name="android:fontFamily">@font/open_sans_bold</item>
+        <item name="backgroundTint">@color/buttonBackgroundColor</item>
+        <item name="android:paddingLeft">24dp</item>
+        <item name="android:paddingRight">24dp</item>
+        <item name="android:elevation">4dp</item>
         <item name="android:paddingTop">12dp</item>
         <item name="android:paddingBottom">12dp</item>
-        <item name="android:paddingLeft">48dp</item>
-        <item name="android:paddingRight">48dp</item>
-        <item name="android:textSize">22sp</item>
-        <item name="android:textStyle">bold</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:textAllCaps">true</item>
         <item name="android:textColor">@color/buttonTextColor</item>
-        <item name="android:textAllCaps">false</item>
     </style>
 
     <style name="SwitcherButton">
