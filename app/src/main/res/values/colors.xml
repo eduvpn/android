@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="mainColor">#00B3D0</color>
-    <color name="colorPrimary">#00B3D0</color>
-    <color name="colorPrimaryDark">#00A2C8</color>
-    <color name="colorPrimaryLight">#A6F3FF</color>
-    <color name="colorAccent">#00A2C8</color>
+    <color name="mainColor">#E24301</color>
+    <color name="colorPrimary">#E24301</color>
+    <color name="colorPrimaryDark">#9A2E00</color>
+    <color name="colorPrimaryLight">#EC5D22</color>
+    <color name="colorAccent">#E24301</color>
     <color name="colorSwitchThumbNormal">#808080</color>
     <color name="textColor">#101010</color>
     <color name="textColorInverted">#FFFFFF</color>
@@ -12,13 +12,14 @@
     <color name="switcherButtonTextColor">#101010</color>
     <color name="disabledColor">#E0E0E0</color>
     <color name="pressedColor">#00A2C8</color>
-    <color name="backgroundColor">#FFFFFF</color>
+    <color name="backgroundColor">#E9E9E9</color>
     <color name="backgroundPressedColor">#D0D0D0</color>
     <color name="hintColor">#C0C0C0</color>
     <color name="settingsDescriptionTextColor">#909090</color>
     <color name="swipeBackgroundColor">#00A2C8</color>
-    <color name="iconColor">#000000</color>
+    <color name="iconColor">#505050</color>
     <color name="iconColorInverted">#FFFFFF</color>
+    <color name="dividerColor">#CCCCCC</color>
     <color name="transparentGradientColor">#00FFFFFF</color>
     <color name="gradientColor">#FFFFFF</color>
     <color name="buttonBackgroundColor">#00B3D0</color>

@@ -34,12 +34,12 @@ class ServerChildViewHolder(private val binding: ListItemServerBinding) : Server
 
     fun bind(discoveredInstance: DiscoveredInstance) {
         val instance = discoveredInstance.instance
-        binding.serverName.text = FormattingUtils.formatDisplayName(instance)
+        binding.displayName.text = FormattingUtils.formatDisplayName(instance)/**
         if (!TextUtils.isEmpty(instance.logoUri)) {
             Picasso.get()
                     .load(instance.logoUri)
                     .fit()
-                    .into(binding.serverIcon)
+                    .into(binding.)
         } else {
             binding.serverIcon.setImageResource(R.drawable.ic_secure_internet)
         }
@@ -51,7 +51,7 @@ class ServerChildViewHolder(private val binding: ListItemServerBinding) : Server
         } else {
             binding.serverIcon.alpha = 1f
             binding.serverName.alpha = 1f
-        }
+        }**/
     }
 
 }

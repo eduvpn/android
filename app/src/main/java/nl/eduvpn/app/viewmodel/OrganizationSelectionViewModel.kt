@@ -18,48 +18,103 @@
 
 package nl.eduvpn.app.viewmodel
 
-import androidx.annotation.StringRes
+import android.content.Context
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.Transformations
+import io.reactivex.Single
+import io.reactivex.functions.BiFunction
 import nl.eduvpn.app.R
-import nl.eduvpn.app.base.BaseViewModel
+import nl.eduvpn.app.adapter.OrganizationAdapter
+import nl.eduvpn.app.entity.AuthorizationType
+import nl.eduvpn.app.entity.Instance
 import nl.eduvpn.app.entity.Organization
-import nl.eduvpn.app.service.OrganizationService
-import nl.eduvpn.app.service.PreferencesService
+import nl.eduvpn.app.service.*
 import nl.eduvpn.app.utils.Log
+import javax.inject.Inject
 
-class OrganizationSelectionViewModel(
+class OrganizationSelectionViewModel @Inject constructor(
         organizationService: OrganizationService,
-        private val preferencesService: PreferencesService) : BaseViewModel() {
-
-    sealed class ParentAction {
-        object OpenProviderSelector : ParentAction()
-        data class DisplayError(@StringRes val title: Int, val message: String) : ParentAction()
-    }
+        private val preferencesService: PreferencesService,
+        context: Context,
+        apiService: APIService,
+        serializerService: SerializerService,
+        historyService: HistoryService,
+        connectionService: ConnectionService,
+        vpnService: VPNService) : ConnectionViewModel(context, apiService, serializerService, historyService, preferencesService, connectionService, vpnService) {
 
     val state = MutableLiveData<ConnectionState>().also { it.value = ConnectionState.Ready }
-    val parentAction = MutableLiveData<ParentAction>()
 
-    val organizations = MutableLiveData<List<Organization>>()
+    private val organizations = MutableLiveData<List<Organization>>()
+    private val servers = MutableLiveData<List<Instance>>()
+
+    val artworkVisible = MutableLiveData(true)
+
+    val searchText = MutableLiveData("")
 
     init {
         state.value = ConnectionState.FetchingOrganizations
         disposables.add(
-                organizationService.fetchOrganizations()
-                        .subscribe({ organizationList ->
-                            state.value = ConnectionState.Ready
-                            organizations.value = organizationList
-                        }, { throwable ->
-                            Log.w(TAG, "Unable to fetch organization list!", throwable)
-                            parentAction.value = ParentAction.DisplayError(R.string.error_fetching_organizations, throwable.toString())
-                            state.value = ConnectionState.Ready
-                        })
+                Single.zip(organizationService.fetchOrganizations(), organizationService.fetchServerList(), BiFunction { orgList: List<Organization>, serverList: List<Instance> ->
+                    Pair(orgList, serverList)
+                }).subscribe({ organizationServerListPair ->
+                    val organizationList = organizationServerListPair.first
+                    val serverList = organizationServerListPair.second
+                    state.value = ConnectionState.Ready
+                    organizations.value = organizationList
+                    servers.value = serverList
+                }, { throwable ->
+                    Log.w(TAG, "Unable to fetch organization list!", throwable)
+                    parentAction.value = ParentAction.DisplayError(R.string.error_fetching_organizations, throwable.toString())
+                    state.value = ConnectionState.Ready
+                })
         )
     }
 
+    val adapterItems = Transformations.switchMap(organizations) { organizations ->
+        Transformations.switchMap(servers) { servers ->
+            Transformations.map(searchText) { searchText ->
+                val instituteAccessServers = servers.filter {
+                    it.authorizationType == AuthorizationType.Local && (searchText.isNullOrBlank() || it.displayName.contains(searchText, ignoreCase = true))
+                }.sortedBy { it.displayName }
+                        .map { OrganizationAdapter.OrganizationAdapterItem.InstituteAccess(it) }
+                val secureInternetServers = organizations.filter {
+                    if (searchText.isNullOrBlank()) {
+                        true
+                    } else {
+                        it.displayName.contains(searchText, ignoreCase = true) || it.keywordList.any { keyword -> keyword.contains(searchText, ignoreCase = true) }
+                    }
+                }.mapNotNull { organization ->
+                    val matchingServer = servers
+                            .firstOrNull {
+                                it.authorizationType == AuthorizationType.Distributed &&
+                                        it.baseURI == organization.secureInternetHome
+                            }
+                    if (matchingServer != null) {
+                        OrganizationAdapter.OrganizationAdapterItem.SecureInternet(matchingServer, organization)
+                    } else {
+                        null
+                    }
+                }
+                val resultList = mutableListOf<OrganizationAdapter.OrganizationAdapterItem>()
+                if (instituteAccessServers.isNotEmpty()) {
+                    resultList += OrganizationAdapter.OrganizationAdapterItem.Header(R.drawable.ic_institute, R.string.header_institute_access)
+                    resultList += instituteAccessServers
+                }
+                if (secureInternetServers.isNotEmpty()) {
+                    resultList += OrganizationAdapter.OrganizationAdapterItem.Header(R.drawable.ic_secure_internet, R.string.header_secure_internet)
+                    resultList += secureInternetServers
+                }
+                resultList
+            }
+        }
+    }
 
-    fun selectOrganization(organization: Organization) {
-        preferencesService.setCurrentOrganization(organization)
-        parentAction.postValue(ParentAction.OpenProviderSelector)
+
+    fun selectOrganizationAndInstance(organization: Organization?, instance: Instance) {
+        if (organization != null) {
+            preferencesService.currentOrganization = organization
+        }
+        discoverApi(instance)
     }
 
     companion object {

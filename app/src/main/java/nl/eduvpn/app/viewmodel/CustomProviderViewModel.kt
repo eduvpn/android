@@ -19,18 +19,17 @@ package nl.eduvpn.app.viewmodel
 
 import android.content.Context
 import androidx.lifecycle.MutableLiveData
-import nl.eduvpn.app.R
-import nl.eduvpn.app.entity.Instance
-import nl.eduvpn.app.entity.Organization
 import nl.eduvpn.app.service.*
+import javax.inject.Inject
 
-class CustomProviderViewModel(context: Context,
-                              apiService: APIService,
-                              serializerService: SerializerService,
-                              historyService: HistoryService,
-                              preferencesService: PreferencesService,
-                              connectionService: ConnectionService,
-                              vpnService: VPNService) : ConnectionViewModel(
+class CustomProviderViewModel @Inject constructor(
+        context: Context,
+        apiService: APIService,
+        serializerService: SerializerService,
+        historyService: HistoryService,
+        preferencesService: PreferencesService,
+        connectionService: ConnectionService,
+        vpnService: VPNService) : ConnectionViewModel(
         context,
         apiService,
         serializerService,

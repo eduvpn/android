@@ -12,7 +12,7 @@
     <string name="select_your_country_title">Select your Country</string>
     <string name="select_your_institution_title">Select your Institution</string>
     <string name="select_your_server_title">Select your Server</string>
-    <string name="select_your_organization_title">Select your Organization</string>
+    <string name="select_your_organization_title">Find your institute</string>
     <string name="custom_provider_title">Add Provider</string>
     <string name="custom_provider_prefix">https://</string>
     <string name="custom_provider_connect">Sign In</string>
@@ -123,7 +123,7 @@
     <string name="select_your_organization_search_hint">Search for your organization...</string>
     <string name="fetching_organization_servers">Fetching organizations...</string>
     <string name="error_fetching_organization_servers">Error fetching organization servers</string>
-    <string name="error_fetching_organizations">Error fetching organizations</string>
+    <string name="error_fetching_organizations">Error fetching organization / server list</string>
     <string name="discovering_group_servers">Discovering group servers...</string>
     <string name="reset_app_data_title">Reset Organization</string>
     <string name="reset_app_data_description">This will delete all your saved profiles and authorization data. After the reset, you will have to choose an organization again.</string>

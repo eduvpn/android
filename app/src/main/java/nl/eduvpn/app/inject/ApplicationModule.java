@@ -47,7 +47,7 @@ import okhttp3.OkHttpClient;
  * Application module providing the different dependencies
  * Created by Daniel Zolnai on 2016-10-07.
  */
-@Module
+@Module(includes = { ViewModelModule.class })
 public class ApplicationModule {
 
     private final EduVPNApplication _application;
@@ -73,7 +73,7 @@ public class ApplicationModule {
     @Singleton
     protected OrganizationService provideOrganizationService(SerializerService serializerService,
                                                              SecurityService securityService, OkHttpClient okHttpClient) {
-        return new OrganizationService( serializerService, securityService, okHttpClient);
+        return new OrganizationService(serializerService, securityService, okHttpClient);
     }
 
     @Provides
@@ -150,21 +150,5 @@ public class ApplicationModule {
                     }
                 });
         return clientBuilder.build();
-    }
-
-    @Provides
-    @Singleton
-    protected ViewModelFactory provideViewModelFactory(Context context,
-                                                       APIService apiService,
-                                                       SerializerService serializerService,
-                                                       ConfigurationService configurationService,
-                                                       HistoryService historyService,
-                                                       PreferencesService preferencesService,
-                                                       ConnectionService connectionService,
-                                                       VPNService vpnService,
-                                                       OrganizationService organizationService) {
-        return new ViewModelFactory(context, apiService, serializerService,
-                configurationService, historyService, preferencesService, connectionService,
-                vpnService, organizationService);
     }
 }

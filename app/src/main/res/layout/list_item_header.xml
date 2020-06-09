@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!--
+<?xml version="1.0" encoding="utf-8"?><!--
   ~ This file is part of eduVPN.
   ~
   ~ eduVPN is free software: you can redistribute it and/or modify
@@ -23,29 +22,32 @@
         xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
         android:layout_height="@dimen/organization_list_item_height"
-        android:background="?attr/selectableItemBackground"
         android:orientation="vertical">
 
+        <ImageView
+            android:id="@+id/icon"
+            android:layout_width="32dp"
+            android:layout_marginLeft="12dp"
+            android:layout_height="32dp"
+            android:adjustViewBounds="true"
+            android:layout_gravity="left|center_vertical"
+            tools:src="@drawable/ic_institute"
+            android:tint="@color/textColor" />
+
         <TextView
-            android:id="@+id/display_name"
+            android:id="@+id/header_name"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="12dp"
-            android:layout_marginRight="8dp"
             android:layout_gravity="left|center_vertical"
+            android:layout_marginLeft="60dp"
+            android:layout_marginRight="8dp"
             android:ellipsize="middle"
-            android:singleLine="false"
+            android:fontFamily="@font/open_sans_bold"
             android:maxLines="2"
+            android:singleLine="false"
             android:textColor="@color/textColor"
             android:textSize="18sp"
-            tools:text="The Royal Danish Academy of Fine Arts, Schools of Visual Arts" />
+            tools:text="Institute Access" />
 
-        <View
-            android:layout_width="wrap_content"
-            android:layout_height="1dp"
-            android:layout_gravity="bottom"
-            android:layout_marginLeft="8dp"
-            android:layout_marginRight="8dp"
-            android:background="@color/mainColor" />
     </FrameLayout>
 </layout>

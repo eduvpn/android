@@ -106,6 +106,6 @@ class CustomProviderFragment : BaseFragment<FragmentCustomProviderBinding>() {
      * @return A new instance.
      */
     private fun createCustomProviderInstance(baseUri: String): Instance {
-        return Instance(baseUri, getString(R.string.custom_provider_display_name), null, AuthorizationType.Local, true, null)
+        return Instance(baseUri, getString(R.string.custom_provider_display_name), null, AuthorizationType.Local, true, emptyList())
     }
 }

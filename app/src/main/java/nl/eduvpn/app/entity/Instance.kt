@@ -26,7 +26,7 @@ data class Instance(
         val logoUri: String?,
         var authorizationType: AuthorizationType?,
         val isCustom: Boolean,
-        val peerList: List<Instance>?) {
+        val supportContact: List<String>) {
 
     val sanitizedBaseURI: String
         get() = if (baseURI.endsWith("/")) {

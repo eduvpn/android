@@ -30,7 +30,6 @@ import nl.eduvpn.app.EduVPNApplication
 import nl.eduvpn.app.MainActivity
 import nl.eduvpn.app.R
 import nl.eduvpn.app.adapter.ServerAdapter
-import nl.eduvpn.app.adapter.animator.ServerItemAnimator
 import nl.eduvpn.app.base.BaseFragment
 import nl.eduvpn.app.databinding.FragmentServerSelectionBinding
 import nl.eduvpn.app.entity.AuthorizationType
@@ -58,7 +57,6 @@ class ServerSelectionFragment : BaseFragment<FragmentServerSelectionBinding>() {
         binding.viewModel = viewModel
         binding.serverList.adapter = adapter
         binding.serverList.layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
-        binding.serverList.itemAnimator = ServerItemAnimator()
         viewModel.instances.observe(viewLifecycleOwner, Observer {
 
             if (it.isEmpty() && previousListSize > 0) {
@@ -94,12 +92,11 @@ class ServerSelectionFragment : BaseFragment<FragmentServerSelectionBinding>() {
         })
 
         ItemClickSupport.addTo(binding.serverList).setOnItemClickListener { _, position, _ ->
-            val item = adapter.getDiscoveredInstance(position)
-            val parent = adapter.findParent(item)
-            viewModel.discoverApi(item.instance, parent?.instance)
+            val item = adapter.getItem(position)
+            viewModel.discoverApi(item.instance, null)
         }
         ItemClickSupport.addTo(binding.serverList).setOnItemLongClickListener { _, position, _ ->
-            val item = adapter.getDiscoveredInstance(position)
+            val item = adapter.getItem(position)
             if (item.instance.authorizationType == AuthorizationType.Organization) {
                 Toast.makeText(requireContext(), R.string.delete_organization_server_from_settings, Toast.LENGTH_LONG).show()
             } else {

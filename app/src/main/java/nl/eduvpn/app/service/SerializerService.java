@@ -154,7 +154,7 @@ public class SerializerService {
      */
     public InstanceList deserializeInstanceList(JSONObject json) throws UnknownFormatException {
         try {
-            Integer sequenceNumber;
+            int sequenceNumber;
             if (json.has("seq")) {
                 sequenceNumber = json.getInt("seq");
             } else {
@@ -202,22 +202,24 @@ public class SerializerService {
     public JSONObject serializeInstance(Instance instance) throws UnknownFormatException {
         JSONObject result = new JSONObject();
         try {
-            result.put("base_uri", instance.getBaseURI());
+            result.put("base_url", instance.getBaseURI());
             result.put("display_name", instance.getDisplayName());
             result.put("logo", instance.getLogoUri());
             result.put("is_custom", instance.isCustom());
-            int authType;
+            String authType;
             if (instance.getAuthorizationType() == AuthorizationType.Local) {
-                authType = 0;
+                authType = "institute_access";
             } else if (instance.getAuthorizationType() == AuthorizationType.Distributed) {
-                authType = 1;
+                authType = "secure_internet";
             } else {
-                authType = 2;
+                authType = "organization";
             }
-            result.put("authorization_type", authType);
-            if (instance.getPeerList() != null) {
-                result.put("peer_list", serializeInstances(instance.getPeerList()));
+            result.put("server_type", authType);
+            JSONArray supportContact = new JSONArray();
+            for (String contact : instance.getSupportContact()) {
+                supportContact.put(contact);
             }
+            result.put("support_contact", supportContact);
         } catch (JSONException ex) {
             throw new UnknownFormatException(ex);
         }
@@ -264,8 +266,20 @@ public class SerializerService {
                 isCustom = jsonObject.getBoolean("is_custom");
             }
             AuthorizationType authorizationType = AuthorizationType.Local;
-            if (jsonObject.has("authorization_type")) {
-                //noinspection WrongConstant
+
+            if (jsonObject.has("server_type")) {
+                // New version
+                String authorizationTypeString = jsonObject.getString("server_type");
+                if ("secure_internet".equals(authorizationTypeString)) {
+                    authorizationType = AuthorizationType.Distributed;
+                } else if ("institute_access".equals(authorizationTypeString)) {
+                    //noinspection ConstantConditions
+                    authorizationType = AuthorizationType.Local;
+                } else if ("organization".equals(authorizationTypeString)) {
+                    authorizationType = AuthorizationType.Organization;
+                }
+            } else if (jsonObject.has("authorization_type")) {
+                // Old version
                 int authorizationTypeInt = jsonObject.getInt("authorization_type");
                 if (authorizationTypeInt == 1) {
                     authorizationType = AuthorizationType.Distributed;
@@ -273,11 +287,15 @@ public class SerializerService {
                     authorizationType = AuthorizationType.Organization;
                 }
             }
-            List<Instance> peerList = null;
-            if (jsonObject.has("peer_list")) {
-                peerList = deserializeInstances(jsonObject.getJSONArray("peer_list"));
+            List<String> supportContact = new ArrayList<>();
+            if (jsonObject.has("support_contact")) {
+                int supportIndex = 0;
+                JSONArray supportArray = jsonObject.getJSONArray("support_contact");
+                for (supportIndex = 0; supportIndex < supportArray.length(); ++supportIndex) {
+                    supportContact.add(supportArray.getString(supportIndex));
+                }
             }
-            return new Instance(baseUri, displayName, logoUri, authorizationType, isCustom, peerList);
+            return new Instance(baseUri, displayName, logoUri, authorizationType, isCustom, supportContact);
         } catch (JSONException ex) {
             throw new UnknownFormatException(ex);
         }
@@ -334,11 +352,11 @@ public class SerializerService {
     public DiscoveredAPI deserializeDiscoveredAPI(JSONObject result) throws UnknownFormatException {
         try {
             // we only support version 1 at the moment
-            JSONObject apiObject = result.getJSONObject("api");
+            JSONObject apiObject = result.optJSONObject("api");
             if (apiObject == null) {
                 throw new UnknownFormatException("'api' is missing!");
             }
-            JSONObject apiVersionedObject = apiObject.getJSONObject("http://eduvpn.org/api#2");
+            JSONObject apiVersionedObject = apiObject.optJSONObject("http://eduvpn.org/api#2");
             if (apiVersionedObject == null) {
                 throw new UnknownFormatException("'http://eduvpn.org/api#2' is missing!");
             }
@@ -842,7 +860,7 @@ public class SerializerService {
      */
     public Organization deserializeOrganization(JSONObject jsonObject) throws UnknownFormatException {
         try {
-            String displayName = null;
+            String displayName;
             if (jsonObject.get("display_name") instanceof String) {
                 displayName = jsonObject.getString("display_name");
             } else {
@@ -919,45 +937,16 @@ public class SerializerService {
      * @return The list of organizations servers created from the JSON.
      * @throws UnknownFormatException Thrown if there was an error while deserializing.
      */
-    public List<Instance> deserializeInstancesFromOrganizationServerList(JSONObject jsonObject) throws UnknownFormatException {
+    public List<Instance> deserializeInstancesFromServerList(JSONObject jsonObject) throws UnknownFormatException {
         try {
             List<Instance> result = new ArrayList<>();
             JSONArray itemsList = jsonObject.getJSONArray("server_list");
             for (int i = 0; i < itemsList.length(); ++i) {
                 JSONObject serializedItem = itemsList.getJSONObject(i);
-                Instance instance = deserializeOrganizationServerToInstance(serializedItem);
+                Instance instance = deserializeInstance(serializedItem);
                 result.add(instance);
             }
             return result;
-        } catch (JSONException ex) {
-            throw new UnknownFormatException(ex);
-        }
-    }
-
-    /**
-     * Deserializes an organization server from JSON.
-     *
-     * @param jsonObject The JSON object to deserialize.
-     * @return The organization instance.
-     * @throws UnknownFormatException Thrown if the JSON has an unknown format.
-     */
-    public Instance deserializeOrganizationServerToInstance(JSONObject jsonObject) throws UnknownFormatException {
-        try {
-            String displayName = _findTranslation(jsonObject.getJSONObject("display_name"));
-            if (displayName == null) {
-                displayName = "";
-            }
-            String baseUrl = jsonObject.getString("base_url");
-            List<Instance> peerList = null;
-            if (jsonObject.has("peer_list") && !jsonObject.isNull("peer_list")) {
-                JSONArray peerListArray = jsonObject.getJSONArray("peer_list");
-                peerList = new ArrayList<>();
-                for (int i = 0; i < peerListArray.length(); ++i) {
-                    Instance peerListInstance = deserializeOrganizationServerToInstance(peerListArray.getJSONObject(i));
-                    peerList.add(peerListInstance);
-                }
-            }
-            return new Instance(baseUrl, displayName, null, AuthorizationType.Organization, false, peerList);
         } catch (JSONException ex) {
             throw new UnknownFormatException(ex);
         }

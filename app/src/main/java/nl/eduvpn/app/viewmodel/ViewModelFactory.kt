@@ -18,70 +18,28 @@
 
 package nl.eduvpn.app.viewmodel
 
-import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import nl.eduvpn.app.service.*
+import javax.inject.Inject
+import javax.inject.Provider
 
-class ViewModelFactory(
-        private val context: Context,
-        private val apiService: APIService,
-        private val serializerService: SerializerService,
-        private val configurationService: ConfigurationService,
-        private val historyService: HistoryService,
-        private val preferencesService: PreferencesService,
-        private val connectionService: ConnectionService,
-        private val vpnService: VPNService,
-        private val organizationService: OrganizationService
-) : ViewModelProvider.NewInstanceFactory() {
+/**
+ * Factory for [ViewModel]'s
+ */
+class ViewModelFactory @Inject constructor(
+        private val viewModelsMap: Map<Class<out ViewModel>, @JvmSuppressWildcards Provider<ViewModel>>
+) : ViewModelProvider.Factory {
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        val creator = viewModelsMap[modelClass]
+                ?: viewModelsMap.entries.firstOrNull {
+                    modelClass.isAssignableFrom(it.key)
+                }?.value ?: throw IllegalArgumentException("Unknown ViewModel class $modelClass")
 
-    @Suppress("UNCHECKED_CAST")
-    override fun <T : ViewModel?> create(modelClass: Class<T>): T {
-        return when {
-            modelClass.isAssignableFrom(ConnectionViewModel::class.java) -> ConnectionViewModel(
-                    context,
-                    apiService,
-                    serializerService,
-                    historyService,
-                    preferencesService,
-                    connectionService,
-                    vpnService
-            ) as T
-            modelClass.isAssignableFrom(ProviderSelectionViewModel::class.java) -> ProviderSelectionViewModel(
-                    context,
-                    apiService,
-                    serializerService,
-                    historyService,
-                    preferencesService,
-                    connectionService,
-                    vpnService,
-                    organizationService
-            ) as T
-            modelClass.isAssignableFrom(ServerSelectionViewModel::class.java) -> ServerSelectionViewModel(
-                    context,
-                    apiService,
-                    serializerService,
-                    configurationService,
-                    historyService,
-                    preferencesService,
-                    connectionService,
-                    vpnService,
-                    organizationService
-            ) as T
-            modelClass.isAssignableFrom(OrganizationSelectionViewModel::class.java) -> OrganizationSelectionViewModel(
-                    organizationService,
-                    preferencesService
-            ) as T
-            modelClass.isAssignableFrom(CustomProviderViewModel::class.java) -> CustomProviderViewModel(
-                    context,
-                    apiService,
-                    serializerService,
-                    historyService,
-                    preferencesService,
-                    connectionService,
-                    vpnService
-            ) as T
-            else -> throw RuntimeException("Unexpected model class: ${modelClass::class.java.name}")
+        return try {
+            @Suppress("UNCHECKED_CAST")
+            creator.get() as T
+        } catch (e: Exception) {
+            throw RuntimeException(e)
         }
     }
 }

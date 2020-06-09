@@ -20,6 +20,7 @@ package nl.eduvpn.app;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.Toast;
 
 import net.openid.appauth.AuthorizationException;
@@ -28,6 +29,7 @@ import net.openid.appauth.AuthorizationResponse;
 import javax.inject.Inject;
 
 import androidx.annotation.Nullable;
+import androidx.core.view.ViewCompat;
 import androidx.fragment.app.Fragment;
 import nl.eduvpn.app.base.BaseActivity;
 import nl.eduvpn.app.databinding.ActivityMainBinding;

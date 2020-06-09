@@ -18,76 +18,77 @@ package nl.eduvpn.app.adapter
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import androidx.recyclerview.widget.RecyclerView
+import androidx.annotation.DrawableRes
+import androidx.annotation.StringRes
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
+import nl.eduvpn.app.adapter.viewholder.OrganizationHeaderViewHolder
+import nl.eduvpn.app.adapter.viewholder.OrganizationServerViewHolder
 import nl.eduvpn.app.adapter.viewholder.OrganizationViewHolder
-import nl.eduvpn.app.databinding.ListItemOrganizationBinding
+import nl.eduvpn.app.databinding.ListItemHeaderBinding
+import nl.eduvpn.app.databinding.ListItemServerBinding
+import nl.eduvpn.app.entity.Instance
 import nl.eduvpn.app.entity.Organization
 
 /**
  * Adapter for the providers list.
  * Created by Daniel Zolnai on 2016-10-07.
  */
-class OrganizationAdapter : RecyclerView.Adapter<OrganizationViewHolder>() {
-
-    private val unfilteredList: MutableList<Organization> = mutableListOf()
-    private val filteredList: MutableList<Organization> = mutableListOf()
-    private var layoutInflater: LayoutInflater? = null
-
-    var searchFilter: String? = null
-        set(value) {
-            field = value
-            updateFilteredList()
-        }
-
-    fun setOrganizations(organizations: List<Organization>) {
-        unfilteredList.clear()
-        unfilteredList.addAll(organizations)
-        updateFilteredList()
+class OrganizationAdapter : ListAdapter<OrganizationAdapter.OrganizationAdapterItem, OrganizationViewHolder>(object : DiffUtil.ItemCallback<OrganizationAdapterItem>() {
+    override fun areContentsTheSame(oldItem: OrganizationAdapterItem, newItem: OrganizationAdapterItem): Boolean {
+        return oldItem == newItem
     }
 
-    private fun updateFilteredList() {
-        filteredList.clear()
-        val filter = searchFilter
-        if (filter.isNullOrEmpty()) {
-            filteredList.addAll(unfilteredList)
+    override fun areItemsTheSame(oldItem: OrganizationAdapterItem, newItem: OrganizationAdapterItem): Boolean {
+        return oldItem == newItem
+    }
+}) {
+
+    sealed class OrganizationAdapterItem {
+        data class Header(@DrawableRes val icon: Int, @StringRes val headerName: Int) : OrganizationAdapterItem()
+        data class InstituteAccess(val server: Instance) : OrganizationAdapterItem()
+        data class SecureInternet(val server: Instance, val organization: Organization) : OrganizationAdapterItem()
+    }
+
+    override fun getItemViewType(position: Int): Int {
+        return if (getItem(position) is OrganizationAdapterItem.Header) {
+            VIEW_TYPE_HEADER
         } else {
-            filteredList.addAll(unfilteredList.filter {
-                it.displayName.contains(filter, ignoreCase = true) || it.keywordList.any { keyword -> keyword.contains(filter, ignoreCase = true) }
-            })
+            VIEW_TYPE_SERVER
         }
-        filteredList.sortBy { it.displayName }
-        notifyDataSetChanged()
-    }
-
-    /**
-     * Returns the item at the given position.
-     *
-     * @param position The position of the item.
-     * @return The item at the given position. Null if 'Other' item or invalid query.
-     */
-    fun getItem(position: Int): Organization? {
-        return if (position < filteredList.size) {
-            filteredList[position]
-        } else {
-            null
-        }
-    }
-
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): OrganizationViewHolder {
-        if (layoutInflater == null) {
-            layoutInflater = LayoutInflater.from(parent.context)
-        }
-        return OrganizationViewHolder(ListItemOrganizationBinding.inflate(layoutInflater!!, parent, false))
     }
 
     override fun onBindViewHolder(holder: OrganizationViewHolder, position: Int) {
-        getItem(position)?.let {
-            holder.bind(it)
+        val item = getItem(position)
+        if (holder is OrganizationHeaderViewHolder) {
+            holder.bind(getItem(position) as OrganizationAdapterItem.Header)
+        } else if (holder is OrganizationServerViewHolder) {
+            if (item is OrganizationAdapterItem.InstituteAccess) {
+                holder.bind(item.server)
+            } else if (item is OrganizationAdapterItem.SecureInternet) {
+                holder.bind(item.organization)
+            } else {
+                throw RuntimeException("Unexpected item type: $item")
+            }
+
         }
     }
 
-    override fun getItemCount(): Int {
-        return filteredList.size
+    public override fun getItem(position: Int): OrganizationAdapterItem {
+        return super.getItem(position)
+    }
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): OrganizationViewHolder {
+        return if (viewType == VIEW_TYPE_HEADER) {
+            OrganizationHeaderViewHolder(ListItemHeaderBinding.inflate(LayoutInflater.from(parent.context), parent, false))
+        } else {
+            OrganizationServerViewHolder(ListItemServerBinding.inflate(LayoutInflater.from(parent.context), parent, false))
+        }
+    }
+
+    companion object {
+        private const val VIEW_TYPE_HEADER = 0
+        private const val VIEW_TYPE_SERVER = 1
     }
 
 }

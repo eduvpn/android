@@ -18,57 +18,42 @@
 
 <layout>
 
-    <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
-        android:layout_height="@dimen/list_item_height"
-        android:background="?android:attr/selectableItemBackground"
-        android:clickable="true"
-        android:focusable="true">
-
-        <Space
-            android:id="@+id/extra_inset_left"
-            android:layout_width="32dp"
-            android:layout_height="wrap_content"
-            android:layout_alignParentLeft="true"
-            android:visibility="gone" />
-
-
-        <ImageView
-            android:id="@+id/server_icon"
-            android:layout_width="@dimen/list_item_icon_width"
-            android:layout_height="@dimen/list_item_icon_height"
-            android:layout_centerVertical="true"
-            android:layout_marginLeft="8dp"
-            android:layout_toRightOf="@id/extra_inset_left"
-            android:adjustViewBounds="true"
-            android:contentDescription="@string/content_description_provider_icon"
-            android:src="@drawable/external_provider" />
+        android:layout_height="@dimen/organization_list_item_height"
+        android:background="?attr/selectableItemBackground"
+        android:orientation="vertical">
 
         <TextView
-            android:id="@+id/serverName"
+            android:id="@+id/display_name"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_centerVertical="true"
+            android:layout_gravity="left|center_vertical"
             android:layout_marginLeft="12dp"
-            android:layout_marginRight="8dp"
-            android:layout_toLeftOf="@id/group_arrow"
-            android:layout_toRightOf="@+id/server_icon"
+            android:layout_marginRight="32dp"
             android:ellipsize="middle"
+            android:fontFamily="@font/open_sans_regular"
             android:maxLines="2"
-            android:singleLine="true"
+            android:singleLine="false"
             android:textColor="@color/textColor"
             android:textSize="18sp"
-            tools:ignore="Deprecated"
-            tools:text="Secure Browsing" />
+            tools:text="The Royal Danish Academy of Fine Arts, Schools of Visual Arts" />
+
+        <View
+            android:layout_width="wrap_content"
+            android:layout_height="1dp"
+            android:layout_gravity="top"
+            android:layout_marginLeft="8dp"
+            android:layout_marginRight="8dp"
+            android:background="@color/dividerColor" />
 
         <ImageView
-            android:id="@+id/group_arrow"
-            android:layout_width="@dimen/list_item_height"
-            android:layout_height="match_parent"
-            android:layout_alignParentRight="true"
-            android:contentDescription="@string/content_description_expand_arrow"
-            android:padding="8dp"
-            android:src="@drawable/ic_chevron_right" />
-    </RelativeLayout>
+            android:layout_width="wrap_content"
+            android:layout_height="32dp"
+            android:adjustViewBounds="true"
+            android:layout_gravity="right|center_vertical"
+            android:src="@drawable/ic_chevron_right"
+            android:tint="@color/iconColor" />
+    </FrameLayout>
 </layout>

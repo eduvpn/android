@@ -18,8 +18,6 @@
 package nl.eduvpn.app.fragment
 
 import android.os.Bundle
-import android.text.Editable
-import android.text.TextWatcher
 import android.view.View
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
@@ -31,7 +29,6 @@ import nl.eduvpn.app.R
 import nl.eduvpn.app.adapter.OrganizationAdapter
 import nl.eduvpn.app.base.BaseFragment
 import nl.eduvpn.app.databinding.FragmentOrganizationSelectionBinding
-import nl.eduvpn.app.entity.AuthorizationType
 import nl.eduvpn.app.service.OrganizationService
 import nl.eduvpn.app.utils.ErrorDialog
 import nl.eduvpn.app.utils.ItemClickSupport
@@ -64,23 +61,17 @@ class OrganizationSelectionFragment : BaseFragment<FragmentOrganizationSelection
         binding.organizationList.layoutManager = LinearLayoutManager(view.context, LinearLayoutManager.VERTICAL, false)
         val adapter = OrganizationAdapter()
         binding.organizationList.adapter = adapter
-        binding.search.addTextChangedListener(object : TextWatcher {
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                adapter.searchFilter = s?.toString()
-            }
-
-            override fun afterTextChanged(s: Editable?) {
-                // Unused.
-            }
-
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
-                // Unused.
-            }
-        })
         ItemClickSupport.addTo(binding.organizationList).setOnItemClickListener { _, position, _ ->
-            val organization = adapter.getItem(position) ?: return@setOnItemClickListener
-            binding.search.hideKeyboard()
-            viewModel.selectOrganization(organization)
+            val item = adapter.getItem(position)
+            if (item is OrganizationAdapter.OrganizationAdapterItem.Header) {
+                return@setOnItemClickListener
+            } else if (item is OrganizationAdapter.OrganizationAdapterItem.SecureInternet) {
+                binding.search.hideKeyboard()
+                viewModel.selectOrganizationAndInstance(item.organization, item.server)
+            } else if (item is OrganizationAdapter.OrganizationAdapterItem.InstituteAccess) {
+                binding.search.hideKeyboard()
+                viewModel.selectOrganizationAndInstance(null, item.server)
+            }
         }
         dataObserver = object : RecyclerView.AdapterDataObserver() {
             override fun onChanged() {
@@ -101,21 +92,34 @@ class OrganizationSelectionFragment : BaseFragment<FragmentOrganizationSelection
             // Trigger initial status
             it.onChanged()
         }
-        viewModel.organizations.observe(viewLifecycleOwner, Observer { organizations ->
-            adapter.setOrganizations(organizations)
+        viewModel.adapterItems.observe(viewLifecycleOwner, Observer {
+            adapter.submitList(it)
         })
         viewModel.parentAction.observe(viewLifecycleOwner, Observer { parentAction ->
             when (parentAction) {
-                is OrganizationSelectionViewModel.ParentAction.OpenProviderSelector -> {
-                    (activity as? MainActivity)?.openFragment(ProviderSelectionFragment.newInstance(AuthorizationType.Organization), true)
+                is ConnectionViewModel.ParentAction.InitiateConnection -> {
+                    activity?.let { activity ->
+                        if (!activity.isFinishing) {
+                            viewModel.initiateConnection(activity, parentAction.instance, parentAction.discoveredAPI)
+                        }
+                    }
                 }
-                is OrganizationSelectionViewModel.ParentAction.DisplayError -> {
+                is ConnectionViewModel.ParentAction.ConnectWithProfile -> {
+                    viewModel.openVpnConnectionToProfile(requireActivity(), parentAction.vpnProfile)
+                    (activity as? MainActivity)?.openFragment(ConnectionStatusFragment(), false)
+                }
+                is ConnectionViewModel.ParentAction.DisplayError -> {
                     ErrorDialog.show(requireContext(), parentAction.title, parentAction.message)
                 }
             }
         })
-
+        binding.search.setOnFocusChangeListener { _, hasFocus ->
+            if (hasFocus) {
+                viewModel.artworkVisible.value = false
+            }
+        }
     }
+
 
     override fun onDestroyView() {
         super.onDestroyView()

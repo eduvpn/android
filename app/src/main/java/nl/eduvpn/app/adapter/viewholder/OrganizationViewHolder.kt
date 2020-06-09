@@ -35,14 +35,30 @@
 package nl.eduvpn.app.adapter.viewholder
 
 import androidx.recyclerview.widget.RecyclerView
-import nl.eduvpn.app.databinding.ListItemOrganizationBinding
+import androidx.viewbinding.ViewBinding
+import nl.eduvpn.app.adapter.OrganizationAdapter
+import nl.eduvpn.app.databinding.ListItemHeaderBinding
+import nl.eduvpn.app.databinding.ListItemServerBinding
+import nl.eduvpn.app.entity.Instance
 import nl.eduvpn.app.entity.Organization
 
 /**
- * Viewholder for the provider instance list.
+ * Viewholder for the organization adapter items.
  * Created by Daniel Zolnai on 2016-10-07.
  */
-class OrganizationViewHolder(private val binding: ListItemOrganizationBinding) : RecyclerView.ViewHolder(binding.root) {
+abstract class OrganizationViewHolder(binding: ViewBinding) : RecyclerView.ViewHolder(binding.root)
+
+class OrganizationHeaderViewHolder(private val binding: ListItemHeaderBinding) : OrganizationViewHolder(binding) {
+    fun bind(header: OrganizationAdapter.OrganizationAdapterItem.Header) {
+        binding.headerName.setText(header.headerName)
+        binding.icon.setImageResource(header.icon)
+    }
+}
+
+class OrganizationServerViewHolder(private val binding: ListItemServerBinding) : OrganizationViewHolder(binding) {
+    fun bind(instance: Instance) {
+        binding.displayName.text = instance.displayName
+    }
     fun bind(organization: Organization) {
         binding.displayName.text = organization.displayName
     }
