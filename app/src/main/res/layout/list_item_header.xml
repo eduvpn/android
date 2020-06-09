@@ -22,17 +22,18 @@
         xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
         android:layout_height="@dimen/organization_list_item_height"
+        android:clipToPadding="false"
         android:orientation="vertical">
 
         <androidx.appcompat.widget.AppCompatImageView
             android:id="@+id/icon"
             android:layout_width="32dp"
-            android:layout_marginLeft="12dp"
             android:layout_height="32dp"
-            android:adjustViewBounds="true"
             android:layout_gravity="left|center_vertical"
-            tools:src="@drawable/ic_institute"
-            android:tint="@color/textColor" />
+            android:layout_marginLeft="12dp"
+            android:adjustViewBounds="true"
+            android:tint="@color/textColor"
+            tools:src="@drawable/ic_institute" />
 
         <TextView
             android:id="@+id/header_name"
@@ -48,6 +49,18 @@
             android:textColor="@color/textColor"
             android:textSize="18sp"
             tools:text="Institute Access" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/change_location"
+            tools:visibility="visible"
+            android:clickable="true"
+            android:focusable="true"
+            style="@style/SmallButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="right|center_vertical"
+            android:text="@string/header_button_change_location"
+            android:visibility="gone" />
 
     </FrameLayout>
 </layout>

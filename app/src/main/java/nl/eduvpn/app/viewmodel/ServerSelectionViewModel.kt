@@ -21,12 +21,14 @@ package nl.eduvpn.app.viewmodel
 import android.content.Context
 import androidx.lifecycle.MutableLiveData
 import nl.eduvpn.app.BuildConfig
+import nl.eduvpn.app.Constants
 import nl.eduvpn.app.R
 import nl.eduvpn.app.adapter.OrganizationAdapter
 import nl.eduvpn.app.entity.AuthorizationType
 import nl.eduvpn.app.entity.Instance
 import nl.eduvpn.app.service.*
 import nl.eduvpn.app.utils.Log
+import java.util.Locale
 import java.util.Observable
 import java.util.Observer
 import javax.inject.Inject
@@ -77,10 +79,7 @@ class ServerSelectionViewModel @Inject constructor(
     }
 
     private fun refresh() {
-        val organization = historyService.savedOrganization
-        if (organization == null) {
-            refreshInstances()
-        } else if (serverListCache.value == null || System.currentTimeMillis() - serverListCache.value!!.first > SERVER_LIST_CACHE_TTL) {
+        if (serverListCache.value == null || System.currentTimeMillis() - serverListCache.value!!.first > SERVER_LIST_CACHE_TTL) {
             refreshServerList()
         } else {
             refreshInstances(serverListCache.value!!.second)
@@ -109,7 +108,9 @@ class ServerSelectionViewModel @Inject constructor(
         val savedInstances = historyService.savedAuthStateList.map { it.instance }
         val distributedInstance = savedInstances.firstOrNull { it.authorizationType == AuthorizationType.Distributed }
         val customServers = savedInstances.filter { it.authorizationType == AuthorizationType.Local && it.isCustom }.sortedBy { it.sanitizedBaseURI }
-        val instituteAccessItems = savedInstances.filter { it.authorizationType == AuthorizationType.Local && !it.isCustom }.sortedBy { it.displayName ?: it.countryCode }
+        val instituteAccessItems = savedInstances.filter { it.authorizationType == AuthorizationType.Local && !it.isCustom }.sortedBy {
+            it.displayName ?: it.countryCode
+        }
         val result = mutableListOf<OrganizationAdapter.OrganizationAdapterItem>()
         if (instituteAccessItems.isNotEmpty()) {
             result += OrganizationAdapter.OrganizationAdapterItem.Header(R.drawable.ic_institute, R.string.header_institute_access)
@@ -123,7 +124,7 @@ class ServerSelectionViewModel @Inject constructor(
                 serverList.firstOrNull { it.authorizationType == AuthorizationType.Distributed && it.countryCode.equals(preferredCountry, ignoreCase = true) }
             }
             val displayedServer = countryMatch ?: distributedInstance
-            result += OrganizationAdapter.OrganizationAdapterItem.Header(R.drawable.ic_secure_internet, R.string.header_secure_internet)
+            result += OrganizationAdapter.OrganizationAdapterItem.Header(R.drawable.ic_secure_internet, R.string.header_secure_internet, includeLocationButton = true)
             result += OrganizationAdapter.OrganizationAdapterItem.SecureInternet(displayedServer, null)
         }
         if (customServers.isNotEmpty()) {
@@ -139,6 +140,26 @@ class ServerSelectionViewModel @Inject constructor(
         } else if (o is ConfigurationService) {
             refresh()
         }
+    }
+
+    fun requestCountryList(): List<Pair<Instance, String>>? {
+        val allInstances = serverListCache.value?.second
+        return allInstances?.filter {
+            it.authorizationType == AuthorizationType.Distributed && it.countryCode != null
+        }?.map {
+            val countryCode = it.countryCode!!
+            val countryName = Locale("en", countryCode).getDisplayCountry(Constants.ENGLISH_LOCALE)
+            val firstLetter: Int = Character.codePointAt(countryCode, 0) - 0x41 + 0x1F1E6
+            val secondLetter: Int = Character.codePointAt(countryCode, 1) - 0x41 + 0x1F1E6
+            val countryEmoji = String(Character.toChars(firstLetter)) + String(Character.toChars(secondLetter))
+
+            Pair(it, "$countryEmoji   $countryName")
+        }
+    }
+
+    fun changePreferredCountry(selectedInstance: Instance) {
+        preferencesService.preferredCountry = selectedInstance.countryCode
+        refresh()
     }
 
     companion object {

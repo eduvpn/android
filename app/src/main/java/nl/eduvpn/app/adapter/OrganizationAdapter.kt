@@ -34,7 +34,7 @@ import nl.eduvpn.app.entity.Organization
  * Adapter for the providers list.
  * Created by Daniel Zolnai on 2016-10-07.
  */
-class OrganizationAdapter : ListAdapter<OrganizationAdapter.OrganizationAdapterItem, OrganizationViewHolder>(object : DiffUtil.ItemCallback<OrganizationAdapterItem>() {
+class OrganizationAdapter(private val onChangeLocationClickListener: (() -> Unit)? = null) : ListAdapter<OrganizationAdapter.OrganizationAdapterItem, OrganizationViewHolder>(object : DiffUtil.ItemCallback<OrganizationAdapterItem>() {
     override fun areContentsTheSame(oldItem: OrganizationAdapterItem, newItem: OrganizationAdapterItem): Boolean {
         return oldItem == newItem
     }
@@ -45,7 +45,7 @@ class OrganizationAdapter : ListAdapter<OrganizationAdapter.OrganizationAdapterI
 }) {
 
     sealed class OrganizationAdapterItem {
-        data class Header(@DrawableRes val icon: Int, @StringRes val headerName: Int) : OrganizationAdapterItem()
+        data class Header(@DrawableRes val icon: Int, @StringRes val headerName: Int, val includeLocationButton: Boolean = false) : OrganizationAdapterItem()
         data class InstituteAccess(val server: Instance) : OrganizationAdapterItem()
         data class SecureInternet(val server: Instance, val organization: Organization?) : OrganizationAdapterItem()
         data class AddServer(val url: String) : OrganizationAdapterItem()
@@ -63,6 +63,7 @@ class OrganizationAdapter : ListAdapter<OrganizationAdapter.OrganizationAdapterI
         val item = getItem(position)
         if (holder is OrganizationHeaderViewHolder) {
             holder.bind(getItem(position) as OrganizationAdapterItem.Header)
+            holder.setOnChangeLocationClickListener(onChangeLocationClickListener)
         } else if (holder is OrganizationServerViewHolder) {
             if (item is OrganizationAdapterItem.InstituteAccess) {
                 holder.bind(item.server)
@@ -77,7 +78,6 @@ class OrganizationAdapter : ListAdapter<OrganizationAdapter.OrganizationAdapterI
             } else {
                 throw RuntimeException("Unexpected item type: $item")
             }
-
         }
     }
 

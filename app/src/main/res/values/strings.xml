@@ -148,4 +148,7 @@
     <string name="error_no_profiles_from_server_message">The server did not return any VPN profiles which the application could connect to.</string>
     <string name="header_other_servers">Other Servers</string>
     <string name="header_connect_your_own_server">Connect your own server</string>
+    <string name="header_button_change_location">Change Location</string>
+    <string name="error_countries_are_not_available">Unable to load list of countries.</string>
+    <string name="unexpected_error">Unexpected error</string>
 </resources>

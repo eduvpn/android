@@ -34,6 +34,7 @@
  */
 package nl.eduvpn.app.adapter.viewholder
 
+import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewbinding.ViewBinding
 import nl.eduvpn.app.Constants
@@ -56,6 +57,13 @@ class OrganizationHeaderViewHolder(private val binding: ListItemHeaderBinding) :
     fun bind(header: OrganizationAdapter.OrganizationAdapterItem.Header) {
         binding.headerName.setText(header.headerName)
         binding.icon.setImageResource(header.icon)
+        binding.changeLocation.isVisible = header.includeLocationButton
+    }
+
+    fun setOnChangeLocationClickListener(clickListener: (() -> Unit)?) {
+        binding.changeLocation.setOnClickListener {
+            clickListener?.invoke()
+        }
     }
 }
 
