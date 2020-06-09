@@ -59,9 +59,9 @@ class OrganizationSelectionViewModel @Inject constructor(
                 }).subscribe({ organizationServerListPair ->
                     val organizationList = organizationServerListPair.first
                     val serverList = organizationServerListPair.second
-                    state.value = ConnectionState.Ready
                     organizations.value = organizationList
                     servers.value = serverList
+                    state.value = ConnectionState.Ready
                 }, { throwable ->
                     Log.w(TAG, "Unable to fetch organization list!", throwable)
                     parentAction.value = ParentAction.DisplayError(R.string.error_fetching_organizations, throwable.toString())
@@ -106,6 +106,12 @@ class OrganizationSelectionViewModel @Inject constructor(
                 }
                 resultList
             }
+        }
+    }
+
+    val noItemsFound = Transformations.switchMap(state) { state ->
+        Transformations.map(adapterItems) { items ->
+            items.isEmpty() && state == ConnectionState.Ready
         }
     }
 
