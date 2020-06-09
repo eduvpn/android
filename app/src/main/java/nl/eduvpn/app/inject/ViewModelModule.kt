@@ -38,11 +38,6 @@ interface ViewModelModule {
 
     @Binds
     @IntoMap
-    @ViewModelKey(CustomProviderViewModel::class)
-    fun bindCustomProviderViewModel(customProviderViewModel: CustomProviderViewModel): ViewModel
-
-    @Binds
-    @IntoMap
     @ViewModelKey(ProviderSelectionViewModel::class)
     fun bindProviderSelectionViewModel(providerSelectionViewModel: ProviderSelectionViewModel): ViewModel
 

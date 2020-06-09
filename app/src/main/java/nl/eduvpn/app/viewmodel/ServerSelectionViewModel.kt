@@ -108,7 +108,8 @@ class ServerSelectionViewModel @Inject constructor(
     private fun refreshInstances(serverList: List<Instance> = emptyList()) {
         val savedInstances = historyService.savedAuthStateList.map { it.instance }
         val distributedInstance = savedInstances.firstOrNull { it.authorizationType == AuthorizationType.Distributed }
-        val instituteAccessItems = savedInstances.filter { it.authorizationType == AuthorizationType.Local }
+        val customServers = savedInstances.filter { it.authorizationType == AuthorizationType.Local && it.isCustom }.sortedBy { it.sanitizedBaseURI }
+        val instituteAccessItems = savedInstances.filter { it.authorizationType == AuthorizationType.Local && !it.isCustom }.sortedBy { it.displayName ?: it.countryCode }
         val result = mutableListOf<OrganizationAdapter.OrganizationAdapterItem>()
         if (instituteAccessItems.isNotEmpty()) {
             result += OrganizationAdapter.OrganizationAdapterItem.Header(R.drawable.ic_institute, R.string.header_institute_access)
@@ -124,6 +125,10 @@ class ServerSelectionViewModel @Inject constructor(
             val displayedServer = countryMatch ?: distributedInstance
             result += OrganizationAdapter.OrganizationAdapterItem.Header(R.drawable.ic_secure_internet, R.string.header_secure_internet)
             result += OrganizationAdapter.OrganizationAdapterItem.SecureInternet(displayedServer, null)
+        }
+        if (customServers.isNotEmpty()) {
+            result += OrganizationAdapter.OrganizationAdapterItem.Header(R.drawable.ic_server, R.string.header_other_servers)
+            result += customServers.map { OrganizationAdapter.OrganizationAdapterItem.InstituteAccess(it) }
         }
         adapterItems.value = result
     }

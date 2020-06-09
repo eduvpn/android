@@ -19,6 +19,8 @@ android {
         versionCode 12
         versionName "1.3.2"
 
+        vectorDrawables.useSupportLibrary = true
+
         buildConfigField "String", "ORGANIZATION_LIST_BASE_URL", "\"https://disco.eduvpn.org/\""
         buildConfigField "String", "SIGNATURE_URL_POSTFIX", "\".minisig\""
         buildConfigField "String[]", "MINISIGN_SIGNATURE_VALIDATION_PUBLIC_KEY",

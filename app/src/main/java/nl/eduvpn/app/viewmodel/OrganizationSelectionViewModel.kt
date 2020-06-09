@@ -73,6 +73,13 @@ class OrganizationSelectionViewModel @Inject constructor(
     val adapterItems = Transformations.switchMap(organizations) { organizations ->
         Transformations.switchMap(servers) { servers ->
             Transformations.map(searchText) { searchText ->
+                val resultList = mutableListOf<OrganizationAdapter.OrganizationAdapterItem>()
+                // Search contains at least two dots
+                if (searchText.count { ".".contains(it) } > 1) {
+                    resultList += OrganizationAdapter.OrganizationAdapterItem.Header(R.drawable.ic_server, R.string.header_connect_your_own_server)
+                    resultList += OrganizationAdapter.OrganizationAdapterItem.AddServer(searchText)
+                    return@map resultList
+                }
                 val instituteAccessServers = servers.filter {
                     it.authorizationType == AuthorizationType.Local && (searchText.isNullOrBlank() || it.displayName?.contains(searchText, ignoreCase = true) == true)
                 }.sortedBy { it.displayName }
@@ -95,7 +102,6 @@ class OrganizationSelectionViewModel @Inject constructor(
                         null
                     }
                 }
-                val resultList = mutableListOf<OrganizationAdapter.OrganizationAdapterItem>()
                 if (instituteAccessServers.isNotEmpty()) {
                     resultList += OrganizationAdapter.OrganizationAdapterItem.Header(R.drawable.ic_institute, R.string.header_institute_access)
                     resultList += instituteAccessServers

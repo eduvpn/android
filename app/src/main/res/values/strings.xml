@@ -146,4 +146,6 @@
     <string name="delete_organization_server_from_settings">You can reset your organization from the settings screen.</string>
     <string name="error_no_profiles_from_server">No profiles found</string>
     <string name="error_no_profiles_from_server_message">The server did not return any VPN profiles which the application could connect to.</string>
+    <string name="header_other_servers">Other Servers</string>
+    <string name="header_connect_your_own_server">Connect your own server</string>
 </resources>

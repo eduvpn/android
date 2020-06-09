@@ -36,7 +36,7 @@ class ProviderViewHolder(private val binding: ListItemProviderBinding) : Recycle
                     .fit()
                     .into(binding.providerIcon)
         } else if (instance.isCustom) {
-            binding.providerIcon.setImageResource(R.drawable.ic_custom_url)
+            binding.providerIcon.setImageResource(R.drawable.ic_server)
         } else {
             binding.providerIcon.setImageResource(R.drawable.ic_institute)
         }

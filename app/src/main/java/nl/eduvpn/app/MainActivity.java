@@ -20,7 +20,6 @@ package nl.eduvpn.app;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
-import android.view.View;
 import android.widget.Toast;
 
 import net.openid.appauth.AuthorizationException;
@@ -29,12 +28,10 @@ import net.openid.appauth.AuthorizationResponse;
 import javax.inject.Inject;
 
 import androidx.annotation.Nullable;
-import androidx.core.view.ViewCompat;
 import androidx.fragment.app.Fragment;
 import nl.eduvpn.app.base.BaseActivity;
 import nl.eduvpn.app.databinding.ActivityMainBinding;
 import nl.eduvpn.app.fragment.ConnectionStatusFragment;
-import nl.eduvpn.app.fragment.CustomProviderFragment;
 import nl.eduvpn.app.fragment.OrganizationSelectionFragment;
 import nl.eduvpn.app.fragment.ServerSelectionFragment;
 import nl.eduvpn.app.service.ConnectionService;
@@ -76,13 +73,7 @@ public class MainActivity extends BaseActivity<ActivityMainBinding> {
             } else if (!_historyService.getSavedAuthStateList().isEmpty()) {
                 openFragment(ServerSelectionFragment.Companion.newInstance(false), false);
             } else {
-                // User has no previously saved profiles. Show the type selector.
-                if (BuildConfig.API_DISCOVERY_ENABLED) {
-                    openFragment(new OrganizationSelectionFragment(), false);
-                } else {
-                    // Let's Connect! flavor
-                    openFragment(new CustomProviderFragment(), false);
-                }
+                openFragment(new OrganizationSelectionFragment(), false);
             }
         } // else the activity will automatically restore everything.
         // The app might have been reopened from a URL.
@@ -173,11 +164,6 @@ public class MainActivity extends BaseActivity<ActivityMainBinding> {
                     _vpnService.disconnect();
                 }
                 openFragment(new OrganizationSelectionFragment(), false);
-            } else if (resultCode == SettingsActivity.RESULT_ADD_CUSTOM_SERVER) {
-                if (_vpnService.getStatus() != VPNService.VPNStatus.DISCONNECTED) {
-                    _vpnService.disconnect();
-                }
-                openFragment(new CustomProviderFragment(), false);
             }
         } else {
             super.onActivityResult(requestCode, resultCode, data);

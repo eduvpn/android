@@ -48,6 +48,7 @@ class OrganizationAdapter : ListAdapter<OrganizationAdapter.OrganizationAdapterI
         data class Header(@DrawableRes val icon: Int, @StringRes val headerName: Int) : OrganizationAdapterItem()
         data class InstituteAccess(val server: Instance) : OrganizationAdapterItem()
         data class SecureInternet(val server: Instance, val organization: Organization?) : OrganizationAdapterItem()
+        data class AddServer(val url: String) : OrganizationAdapterItem()
     }
 
     override fun getItemViewType(position: Int): Int {
@@ -66,11 +67,13 @@ class OrganizationAdapter : ListAdapter<OrganizationAdapter.OrganizationAdapterI
             if (item is OrganizationAdapterItem.InstituteAccess) {
                 holder.bind(item.server)
             } else if (item is OrganizationAdapterItem.SecureInternet) {
-                if (item.organization != null ) {
+                if (item.organization != null) {
                     holder.bind(item.organization)
                 } else {
                     holder.bind(item.server)
                 }
+            } else if (item is OrganizationAdapterItem.AddServer) {
+                holder.bind(item.url)
             } else {
                 throw RuntimeException("Unexpected item type: $item")
             }

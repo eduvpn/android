@@ -42,6 +42,8 @@ import nl.eduvpn.app.databinding.ListItemHeaderBinding
 import nl.eduvpn.app.databinding.ListItemServerBinding
 import nl.eduvpn.app.entity.Instance
 import nl.eduvpn.app.entity.Organization
+import nl.eduvpn.app.utils.FormattingUtils
+import java.text.Format
 import java.util.Locale
 
 /**
@@ -61,11 +63,16 @@ class OrganizationServerViewHolder(private val binding: ListItemServerBinding) :
     fun bind(instance: Instance) {
         if (instance.countryCode != null) {
             binding.displayName.text = Locale("en", instance.countryCode).getDisplayCountry(Constants.ENGLISH_LOCALE)
-        }else {
-            binding.displayName.text = instance.displayName
+        } else {
+            binding.displayName.text = FormattingUtils.formatDisplayName(instance)
         }
     }
+
     fun bind(organization: Organization) {
         binding.displayName.text = organization.displayName
+    }
+
+    fun bind(url: String) {
+        binding.displayName.text = url
     }
 }
