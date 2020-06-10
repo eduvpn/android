@@ -34,10 +34,9 @@ import java.util.Observer
 import javax.inject.Inject
 
 class ServerSelectionViewModel @Inject constructor(
-        private val context: Context,
+        context: Context,
         apiService: APIService,
         serializerService: SerializerService,
-        private val configurationService: ConfigurationService,
         private val historyService: HistoryService,
         private val preferencesService: PreferencesService,
         connectionService: ConnectionService,
@@ -54,21 +53,15 @@ class ServerSelectionViewModel @Inject constructor(
     val adapterItems = MutableLiveData<List<OrganizationAdapter.OrganizationAdapterItem>>()
 
     // We avoid refreshing the organization too frequently.
-    val serverListCache = MutableLiveData<Pair<Long, List<Instance>>>()
+    private val serverListCache = MutableLiveData<Pair<Long, List<Instance>>>()
 
 
     init {
-        if (BuildConfig.API_DISCOVERY_ENABLED) {
-            configurationService.addObserver(this)
-        }
         historyService.addObserver(this)
     }
 
     override fun onCleared() {
         super.onCleared()
-        if (BuildConfig.API_DISCOVERY_ENABLED) {
-            configurationService.deleteObserver(this)
-        }
         historyService.deleteObserver(this)
     }
 
@@ -136,8 +129,6 @@ class ServerSelectionViewModel @Inject constructor(
 
     override fun update(o: Observable?, arg: Any?) {
         if (o is HistoryService) {
-            refresh()
-        } else if (o is ConfigurationService) {
             refresh()
         }
     }

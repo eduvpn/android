@@ -31,7 +31,6 @@ import dagger.Module;
 import dagger.Provides;
 import nl.eduvpn.app.EduVPNApplication;
 import nl.eduvpn.app.service.APIService;
-import nl.eduvpn.app.service.ConfigurationService;
 import nl.eduvpn.app.service.ConnectionService;
 import nl.eduvpn.app.service.HistoryService;
 import nl.eduvpn.app.service.OrganizationService;
@@ -40,7 +39,6 @@ import nl.eduvpn.app.service.SecurityService;
 import nl.eduvpn.app.service.SerializerService;
 import nl.eduvpn.app.service.VPNService;
 import nl.eduvpn.app.utils.Log;
-import nl.eduvpn.app.viewmodel.ViewModelFactory;
 import okhttp3.OkHttpClient;
 
 /**
@@ -60,13 +58,6 @@ public class ApplicationModule {
     @Singleton
     protected Context provideApplicationContext() {
         return _application.getApplicationContext();
-    }
-
-    @Provides
-    @Singleton
-    protected ConfigurationService provideConfigurationService(PreferencesService preferencesService, SerializerService serializerService,
-                                                               SecurityService securityService, OkHttpClient okHttpClient) {
-        return new ConfigurationService(preferencesService, serializerService, securityService, okHttpClient);
     }
 
     @Provides

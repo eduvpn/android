@@ -22,7 +22,6 @@ import nl.eduvpn.app.MainActivity
 import nl.eduvpn.app.fragment.ConnectionStatusFragment
 import nl.eduvpn.app.fragment.OrganizationSelectionFragment
 import nl.eduvpn.app.fragment.ProfileSelectionFragment
-import nl.eduvpn.app.fragment.ProviderSelectionFragment
 import nl.eduvpn.app.fragment.ServerSelectionFragment
 import nl.eduvpn.app.fragment.SettingsFragment
 import javax.inject.Singleton
@@ -47,5 +46,4 @@ interface EduVPNComponent {
     fun inject(homeFragment: ProfileSelectionFragment)
     fun inject(settingsFragment: SettingsFragment)
     fun inject(serverSelectionFragment: ServerSelectionFragment)
-    fun inject(providerSelectionFragment: ProviderSelectionFragment)
 }
