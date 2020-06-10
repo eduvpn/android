@@ -20,10 +20,8 @@ import dagger.Component
 import nl.eduvpn.app.EduVPNApplication
 import nl.eduvpn.app.MainActivity
 import nl.eduvpn.app.fragment.ConnectionStatusFragment
-import nl.eduvpn.app.fragment.CustomProviderFragment
 import nl.eduvpn.app.fragment.OrganizationSelectionFragment
 import nl.eduvpn.app.fragment.ProfileSelectionFragment
-import nl.eduvpn.app.fragment.ProviderSelectionFragment
 import nl.eduvpn.app.fragment.ServerSelectionFragment
 import nl.eduvpn.app.fragment.SettingsFragment
 import javax.inject.Singleton
@@ -44,10 +42,8 @@ interface EduVPNComponent {
 
     fun inject(organizationSelectionFragment: OrganizationSelectionFragment)
     fun inject(mainActivity: MainActivity)
-    fun inject(customProviderFragment: CustomProviderFragment)
     fun inject(connectionStatusFragment: ConnectionStatusFragment)
     fun inject(homeFragment: ProfileSelectionFragment)
     fun inject(settingsFragment: SettingsFragment)
     fun inject(serverSelectionFragment: ServerSelectionFragment)
-    fun inject(providerSelectionFragment: ProviderSelectionFragment)
 }

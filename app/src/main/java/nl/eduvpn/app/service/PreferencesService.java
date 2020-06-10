@@ -32,7 +32,6 @@ import java.util.List;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
-import nl.eduvpn.app.BuildConfig;
 import nl.eduvpn.app.Constants;
 import nl.eduvpn.app.entity.AuthorizationType;
 import nl.eduvpn.app.entity.DiscoveredAPI;
@@ -82,6 +81,7 @@ public class PreferencesService {
     static final String KEY_SAVED_AUTH_STATES = "saved_auth_state";
     static final String KEY_SAVED_KEY_PAIRS = "saved_key_pairs";
     static final String KEY_SAVED_ORGANIZATION = "saved_organization";
+    static final String KEY_PREFERRED_COUNTRY = "preferred_country";
 
     static final String KEY_STORAGE_VERSION = "storage_version";
 
@@ -124,7 +124,7 @@ public class PreferencesService {
                 Log.d(TAG, "Migrated over to storage version v2.");
             }
         }
-        if (version < 3 && BuildConfig.NEW_ORGANIZATION_LIST_ENABLED) {
+        if (version < 3) {
             SharedPreferences.Editor editor = newPreferences.edit();
             editor.remove(KEY_INSTANCE_LIST_SECURE_INTERNET);
             editor.remove(KEY_INSTANCE_LIST_INSTITUTE_ACCESS);
@@ -593,5 +593,28 @@ public class PreferencesService {
             return null;
         }
 
+    }
+
+    /**
+     * Returns the previously stored preferred country.
+     *
+     * @return The preferred country, if saved previously. Null if no saved one yet.
+     */
+    @Nullable
+    public String getPreferredCountry() {
+        return _getSharedPreferences().getString(KEY_PREFERRED_COUNTRY, null);
+    }
+
+    /**
+     * Saves the preferred country selected by the user.
+     *
+     * @param preferredCountry The country selected by the user.
+     */
+    public void setPreferredCountry(@Nullable String preferredCountry) {
+        if (preferredCountry == null) {
+            _getSharedPreferences().edit().remove(KEY_PREFERRED_COUNTRY).apply();
+        } else {
+            _getSharedPreferences().edit().putString(KEY_PREFERRED_COUNTRY, preferredCountry).apply();
+        }
     }
 }

@@ -12,7 +12,7 @@
     <string name="select_your_country_title">Select your Country</string>
     <string name="select_your_institution_title">Select your Institution</string>
     <string name="select_your_server_title">Select your Server</string>
-    <string name="select_your_organization_title">Select your Organization</string>
+    <string name="select_your_organization_title">Find your institute</string>
     <string name="custom_provider_title">Add Provider</string>
     <string name="custom_provider_prefix">https://</string>
     <string name="custom_provider_connect">Sign In</string>
@@ -48,7 +48,7 @@
     <string name="maintenance_message">The VPN service will be under maintenance starting from %1$s until %2$s.</string>
     <string name="error_loading_system_messages">Unable to load system messages: %s</string>
     <string name="error_loading_user_messages">Unable to load user messages: %s</string>
-    <string name="server_selection_add_server">Add Server</string>
+    <string name="server_selection_add_server">Add Other Server</string>
     <string name="server_selection_secure_internet">Secure Internet</string>
 
     <string name="saved_profile_display_name">%1$s - %2$s</string>
@@ -98,7 +98,7 @@
     <string name="add_other_address">Add Other Provider</string>
     <string name="error_selected_instance_not_found">Selected instance not found.</string>
     <string name="no_provider_found">No provider found.</string>
-    <string name="no_organization_found">No organization found.</string>
+    <string name="no_match_found">No match found.</string>
     <string name="discovering_organizations">Discovering organizations...</string>
     <string name="discovering_providers">Discovering providers...</string>
     <string name="description_secure_internet_provider">Select your institution\'s country here. Afterwards you can use other countries.</string>
@@ -123,7 +123,7 @@
     <string name="select_your_organization_search_hint">Search for your organization...</string>
     <string name="fetching_organization_servers">Fetching organizations...</string>
     <string name="error_fetching_organization_servers">Error fetching organization servers</string>
-    <string name="error_fetching_organizations">Error fetching organizations</string>
+    <string name="error_fetching_organizations">Error fetching organization / server list</string>
     <string name="discovering_group_servers">Discovering group servers...</string>
     <string name="reset_app_data_title">Reset Organization</string>
     <string name="reset_app_data_description">This will delete all your saved profiles and authorization data. After the reset, you will have to choose an organization again.</string>
@@ -146,4 +146,9 @@
     <string name="delete_organization_server_from_settings">You can reset your organization from the settings screen.</string>
     <string name="error_no_profiles_from_server">No profiles found</string>
     <string name="error_no_profiles_from_server_message">The server did not return any VPN profiles which the application could connect to.</string>
+    <string name="header_other_servers">Other Servers</string>
+    <string name="header_connect_your_own_server">Connect your own server</string>
+    <string name="header_button_change_location">Change Location</string>
+    <string name="error_countries_are_not_available">Unable to load list of countries.</string>
+    <string name="unexpected_error">Unexpected error</string>
 </resources>

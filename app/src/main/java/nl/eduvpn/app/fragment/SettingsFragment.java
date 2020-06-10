@@ -68,8 +68,6 @@ public class SettingsFragment extends BaseFragment<FragmentSettingsBinding> {
 
         _originalSettings = _preferencesService.getAppSettings();
 
-        binding.setOrganizationsEnabled(BuildConfig.NEW_ORGANIZATION_LIST_ENABLED);
-
         binding.useCustomTabsSwitch.setChecked(_originalSettings.useCustomTabs());
         binding.forceTcpSwitch.setChecked(_originalSettings.forceTcp());
 
@@ -78,12 +76,6 @@ public class SettingsFragment extends BaseFragment<FragmentSettingsBinding> {
         binding.saveButton.setOnClickListener(v -> onSaveButtonClicked());
         binding.licensesContainer.setOnClickListener(v -> startActivity(new Intent(requireContext(), LicenseActivity.class)));
         binding.resetAppDataContainer.setOnClickListener(v -> onResetDataClicked());
-        binding.addServerContainer.setOnClickListener(v -> onAddServerClicked());
-    }
-
-    private void onAddServerClicked() {
-        requireActivity().setResult(SettingsActivity.RESULT_ADD_CUSTOM_SERVER);
-        requireActivity().finish();
     }
 
     private void onResetDataClicked() {

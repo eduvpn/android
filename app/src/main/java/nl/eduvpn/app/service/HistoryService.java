@@ -111,24 +111,6 @@ public class HistoryService extends Observable {
                 return savedAuthState.getAuthState();
             } else if (instance.getAuthorizationType() == AuthorizationType.Distributed && savedAuthState.getInstance().getAuthorizationType() == AuthorizationType.Distributed) {
                 return savedAuthState.getAuthState();
-            } else if (instance.getAuthorizationType() == AuthorizationType.Organization && savedAuthState.getInstance().getAuthorizationType() == AuthorizationType.Organization) {
-                if (instance.getPeerList() != null) {
-                    for (Instance peer : instance.getPeerList()) {
-                        if (peer.getSanitizedBaseURI().equals(instance.getSanitizedBaseURI())) {
-                            return savedAuthState.getAuthState();
-                        }
-                    }
-                }
-            }
-        }
-        // Second round: the instance might be an organization instance which is not part of the instance peer list cache because it has been added later.
-        if (instance.getAuthorizationType() == AuthorizationType.Organization) {
-            for (SavedAuthState savedAuthState : _savedAuthStateList) {
-                if (savedAuthState.getInstance().getAuthorizationType() == AuthorizationType.Organization &&
-                        savedAuthState.getInstance().getPeerList() != null &&
-                        savedAuthState.getInstance().getPeerList().size() > 0) {
-                    return savedAuthState.getAuthState();
-                }
             }
         }
         return null;
@@ -271,24 +253,6 @@ public class HistoryService extends Observable {
             for (SavedAuthState savedAuthState : _savedAuthStateList) {
                 if (savedAuthState.getInstance().getAuthorizationType() == AuthorizationType.Distributed) {
                     return savedAuthState;
-                }
-            }
-        }
-        // Third pass: if organization auth instance, we need to find the parent instance
-        if (instance.getAuthorizationType() == AuthorizationType.Organization) {
-            for (SavedAuthState savedAuthState : _savedAuthStateList) {
-                if (savedAuthState.getInstance().getAuthorizationType() == AuthorizationType.Organization) {
-                    if (savedAuthState.getInstance().getSanitizedBaseURI().equalsIgnoreCase(instance.getSanitizedBaseURI())) {
-                        return savedAuthState;
-                    }
-                    if (savedAuthState.getInstance().getPeerList() != null) {
-                        for (Instance peer : savedAuthState.getInstance().getPeerList()) {
-                            if (peer.getSanitizedBaseURI().equalsIgnoreCase(instance.getSanitizedBaseURI())) {
-                                return savedAuthState;
-                            }
-                        }
-                    }
-
                 }
             }
         }

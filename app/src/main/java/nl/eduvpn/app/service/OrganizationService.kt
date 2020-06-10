@@ -41,30 +41,26 @@ class OrganizationService(private val serializerService: SerializerService,
                           private val securityService: SecurityService,
                           private val okHttpClient: OkHttpClient) {
 
-    fun getInstanceListForOrganization(organization: Organization?): Single<List<Instance>> {
-        if (organization == null) {
-            return Single.just(emptyList())
-        }
-        val instanceListUrl = BuildConfig.ORGANIZATION_LIST_BASE_URL + organization.serverList
-        return Single.zip(
-                createGetJsonSingle(instanceListUrl).onErrorReturnItem(""),
-                createSignatureSingle(instanceListUrl).onErrorReturnItem(""), BiFunction<String, String, List<Instance>> { serverInfoList, signature ->
-            if (serverInfoList.isEmpty() || signature.isEmpty()) {
-                Log.w(TAG, "Either server or signature fetch has failed.")
-                throw IllegalArgumentException("Either server or signature fetch has failed.")
-            }
+
+    fun fetchServerList() : Single<List<Instance>> {
+        val serverListUrl = BuildConfig.ORGANIZATION_LIST_BASE_URL + "server_list.json"
+        val serverListObservable = createGetJsonSingle(serverListUrl)
+        val signatureObservable = createSignatureSingle(serverListUrl)
+        return Single.zip(serverListObservable, signatureObservable, BiFunction<String, String, List<Instance>> { serverList: String, signature: String ->
             try {
-                if (securityService.verifyMinisign(serverInfoList, signature)) {
-                    val organizationListJson = JSONObject(serverInfoList)
-                    return@BiFunction serializerService.deserializeInstancesFromOrganizationServerList(organizationListJson)
+                if (securityService.verifyMinisign(serverList, signature)) {
+                    val organizationListJson = JSONObject(serverList)
+                    return@BiFunction serializerService.deserializeInstancesFromServerList(organizationListJson)
                 } else {
-                    throw InvalidSignatureException("Signature validation failed for organization instance list!")
+                    throw InvalidSignatureException("Signature validation failed for server list!")
                 }
             } catch (ex: Exception) {
-                throw InvalidSignatureException("Signature validation failed for organization instance list!")
+                Log.w(TAG, "Unable to verify signature", ex)
+                throw InvalidSignatureException("Signature validation failed for server list!")
             }
         }).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
+
     }
 
     fun fetchOrganizations(): Single<List<Organization>> {
@@ -80,6 +76,7 @@ class OrganizationService(private val serializerService: SerializerService,
                     throw InvalidSignatureException("Signature validation failed for organization list!")
                 }
             } catch (ex: Exception) {
+                Log.w(TAG, "Unable to verify signature", ex)
                 throw InvalidSignatureException("Signature validation failed for organization list!")
             }
         }).subscribeOn(Schedulers.io())

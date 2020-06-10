@@ -90,6 +90,7 @@
         <Button
             android:id="@+id/viewLogButton"
             style="@style/SmallButton"
+            android:layout_height="wrap_content"
             android:layout_width="wrap_content"
             android:layout_alignParentBottom="true"
             android:layout_centerHorizontal="true"

@@ -16,11 +16,14 @@
  *
  */
 
-package nl.eduvpn.app.entity
+package nl.eduvpn.app.inject
 
-data class Organization(
-        val orgId: String,
-        val displayName: String,
-        val keywordList: List<String>,
-        val secureInternetHome: String?
-)
+import androidx.lifecycle.ViewModel
+import dagger.MapKey
+import kotlin.reflect.KClass
+
+@MapKey
+@MustBeDocumented
+@Retention(AnnotationRetention.RUNTIME)
+@Target(AnnotationTarget.FUNCTION, AnnotationTarget.PROPERTY_GETTER, AnnotationTarget.PROPERTY_SETTER)
+annotation class ViewModelKey(val value: KClass<out ViewModel>)

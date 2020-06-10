@@ -14,56 +14,11 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_marginTop="@dimen/actionbar_size"
-            tools:background="#F0F0F0" />
+            tools:background="@color/backgroundColor" />
 
-
-        <androidx.appcompat.widget.Toolbar
+        <include
             android:id="@+id/toolbar"
-            android:elevation="8dp"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="?attr/colorPrimary"
-            android:minHeight="@dimen/actionbar_size"
-            app:popupTheme="@style/AppTheme.PopupOverlay">
+            layout="@layout/include_toolbar"/>
 
-            <RelativeLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent">
-
-                <ImageView
-                    android:id="@+id/actionbarLogo"
-                    android:layout_width="@dimen/actionbar_icon_size"
-                    android:layout_height="@dimen/actionbar_icon_size"
-                    android:layout_centerVertical="true"
-                    android:contentDescription="@string/content_description_application_logo"
-                    android:src="@mipmap/ic_launcher" />
-
-                <TextView
-                    android:id="@+id/actionbarTitle"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_centerVertical="true"
-                    android:layout_toLeftOf="@+id/settingsButton"
-                    android:layout_toRightOf="@+id/actionbarLogo"
-                    android:paddingLeft="8dp"
-                    android:text="@string/actionbar_title"
-                    android:textColor="@color/textColorInverted"
-                    android:textSize="24sp"
-                    android:textStyle="bold" />
-
-                <ImageView
-                    android:id="@+id/settingsButton"
-                    android:layout_width="@dimen/actionbar_icon_size"
-                    android:layout_height="@dimen/actionbar_icon_size"
-                    android:layout_alignParentRight="true"
-                    android:layout_centerVertical="true"
-                    android:layout_marginRight="16dp"
-                    android:contentDescription="@string/content_description_settings_button"
-                    android:padding="8dp"
-                    android:src="@drawable/settings"
-                    android:tint="@color/iconColorInverted" />
-
-            </RelativeLayout>
-        </androidx.appcompat.widget.Toolbar>
     </RelativeLayout>
 </layout>

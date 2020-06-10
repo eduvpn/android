@@ -31,7 +31,6 @@ import dagger.Module;
 import dagger.Provides;
 import nl.eduvpn.app.EduVPNApplication;
 import nl.eduvpn.app.service.APIService;
-import nl.eduvpn.app.service.ConfigurationService;
 import nl.eduvpn.app.service.ConnectionService;
 import nl.eduvpn.app.service.HistoryService;
 import nl.eduvpn.app.service.OrganizationService;
@@ -40,14 +39,13 @@ import nl.eduvpn.app.service.SecurityService;
 import nl.eduvpn.app.service.SerializerService;
 import nl.eduvpn.app.service.VPNService;
 import nl.eduvpn.app.utils.Log;
-import nl.eduvpn.app.viewmodel.ViewModelFactory;
 import okhttp3.OkHttpClient;
 
 /**
  * Application module providing the different dependencies
  * Created by Daniel Zolnai on 2016-10-07.
  */
-@Module
+@Module(includes = { ViewModelModule.class })
 public class ApplicationModule {
 
     private final EduVPNApplication _application;
@@ -64,16 +62,9 @@ public class ApplicationModule {
 
     @Provides
     @Singleton
-    protected ConfigurationService provideConfigurationService(PreferencesService preferencesService, SerializerService serializerService,
-                                                               SecurityService securityService, OkHttpClient okHttpClient) {
-        return new ConfigurationService(preferencesService, serializerService, securityService, okHttpClient);
-    }
-
-    @Provides
-    @Singleton
     protected OrganizationService provideOrganizationService(SerializerService serializerService,
                                                              SecurityService securityService, OkHttpClient okHttpClient) {
-        return new OrganizationService( serializerService, securityService, okHttpClient);
+        return new OrganizationService(serializerService, securityService, okHttpClient);
     }
 
     @Provides
@@ -150,21 +141,5 @@ public class ApplicationModule {
                     }
                 });
         return clientBuilder.build();
-    }
-
-    @Provides
-    @Singleton
-    protected ViewModelFactory provideViewModelFactory(Context context,
-                                                       APIService apiService,
-                                                       SerializerService serializerService,
-                                                       ConfigurationService configurationService,
-                                                       HistoryService historyService,
-                                                       PreferencesService preferencesService,
-                                                       ConnectionService connectionService,
-                                                       VPNService vpnService,
-                                                       OrganizationService organizationService) {
-        return new ViewModelFactory(context, apiService, serializerService,
-                configurationService, historyService, preferencesService, connectionService,
-                vpnService, organizationService);
     }
 }

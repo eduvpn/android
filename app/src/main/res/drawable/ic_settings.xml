@@ -1,0 +1,44 @@
+<!--
+  ~ This file is part of eduVPN.
+  ~
+  ~ eduVPN is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as published by
+  ~ the Free Software Foundation, either version 3 of the License, or
+  ~ (at your option) any later version.
+  ~
+  ~ eduVPN is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with eduVPN.  If not, see <http://www.gnu.org/licenses/>.
+  ~
+  -->
+
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="25dp"
+    android:height="25dp"
+    android:viewportWidth="25"
+    android:viewportHeight="25">
+    <path
+        android:fillColor="#FF000000"
+        android:fillType="nonZero"
+        android:pathData="M12.5,2.5c5.523,0 10,4.477 10,10s-4.477,10 -10,10 -10,-4.477 -10,-10 4.477,-10 10,-10zM12.5,6.667c-3.222,0 -5.833,2.611 -5.833,5.833s2.611,5.833 5.833,5.833 5.833,-2.611 5.833,-5.833 -2.611,-5.833 -5.833,-5.833z" />
+    <path
+        android:fillColor="#FF000000"
+        android:fillType="evenOdd"
+        android:pathData="M10,0L15,0L15,3.333L10,3.333zM10,21.667L15,21.667L15,25L10,25z" />
+    <path
+        android:fillColor="#FF000000"
+        android:fillType="evenOdd"
+        android:pathData="M25,10L25,15L21.667,15L21.667,10zM3.333,10L3.333,15L0,15L0,10z" />
+    <path
+        android:fillColor="#FF000000"
+        android:fillType="evenOdd"
+        android:pathData="M1.8934,5.429L5.4289,1.8934L7.7857,4.2502L4.2501,7.7857zM17.2142,20.7498L20.7498,17.2143L23.1066,19.5711L19.571,23.1066z" />
+    <path
+        android:fillColor="#FF000000"
+        android:fillType="evenOdd"
+        android:pathData="M19.571,1.8934L23.1066,5.4289L20.7498,7.7857L17.2142,4.2502zM4.2501,17.2143L7.7857,20.7498L5.4289,23.1066L1.8933,19.571z" />
+</vector>

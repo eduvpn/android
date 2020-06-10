@@ -31,13 +31,9 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import nl.eduvpn.app.base.BaseActivity;
 import nl.eduvpn.app.databinding.ActivityMainBinding;
-import nl.eduvpn.app.entity.Settings;
 import nl.eduvpn.app.fragment.ConnectionStatusFragment;
-import nl.eduvpn.app.fragment.CustomProviderFragment;
 import nl.eduvpn.app.fragment.OrganizationSelectionFragment;
-import nl.eduvpn.app.fragment.ProviderSelectionFragment;
 import nl.eduvpn.app.fragment.ServerSelectionFragment;
-import nl.eduvpn.app.fragment.TypeSelectorFragment;
 import nl.eduvpn.app.service.ConnectionService;
 import nl.eduvpn.app.service.HistoryService;
 import nl.eduvpn.app.service.VPNService;
@@ -68,7 +64,7 @@ public class MainActivity extends BaseActivity<ActivityMainBinding> {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EduVPNApplication.get(this).component().inject(this);
-        setSupportActionBar(binding.toolbar);
+        setSupportActionBar(binding.toolbar.toolbar);
         _vpnService.onCreate(this);
         if (savedInstanceState == null) {
             // If there's an ongoing VPN connection, open the status screen.
@@ -77,23 +73,12 @@ public class MainActivity extends BaseActivity<ActivityMainBinding> {
             } else if (!_historyService.getSavedAuthStateList().isEmpty()) {
                 openFragment(ServerSelectionFragment.Companion.newInstance(false), false);
             } else {
-                // User has no previously saved profiles. Show the type selector.
-                if (BuildConfig.API_DISCOVERY_ENABLED) {
-                    // eduVPN flavor
-                    if (BuildConfig.NEW_ORGANIZATION_LIST_ENABLED) {
-                        openFragment(new OrganizationSelectionFragment(), false);
-                    } else {
-                        openFragment(new TypeSelectorFragment(), false);
-                    }
-                } else {
-                    // Let's Connect! flavor
-                    openFragment(new CustomProviderFragment(), false);
-                }
+                openFragment(new OrganizationSelectionFragment(), false);
             }
         } // else the activity will automatically restore everything.
         // The app might have been reopened from a URL.
         onNewIntent(getIntent());
-        binding.settingsButton.setOnClickListener(v -> onSettingsButtonClicked());
+        binding.toolbar.settingsButton.setOnClickListener(v -> onSettingsButtonClicked());
     }
 
     @Override
@@ -173,17 +158,12 @@ public class MainActivity extends BaseActivity<ActivityMainBinding> {
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        if (requestCode == REQUEST_CODE_SETTINGS ) {
+        if (requestCode == REQUEST_CODE_SETTINGS) {
             if (resultCode == SettingsActivity.RESULT_APP_DATA_CLEARED) {
                 if (_vpnService.getStatus() != VPNService.VPNStatus.DISCONNECTED) {
                     _vpnService.disconnect();
                 }
                 openFragment(new OrganizationSelectionFragment(), false);
-            } else if (resultCode == SettingsActivity.RESULT_ADD_CUSTOM_SERVER) {
-                if (_vpnService.getStatus() != VPNService.VPNStatus.DISCONNECTED) {
-                    _vpnService.disconnect();
-                }
-                openFragment(new CustomProviderFragment(), false);
             }
         } else {
             super.onActivityResult(requestCode, resultCode, data);

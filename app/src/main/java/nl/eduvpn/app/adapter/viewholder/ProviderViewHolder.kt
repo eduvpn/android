@@ -29,20 +29,14 @@ import nl.eduvpn.app.entity.Instance
  */
 class ProviderViewHolder(private val binding: ListItemProviderBinding) : RecyclerView.ViewHolder(binding.root) {
     fun bind(instance: Instance) {
-        if (instance.peerList?.isNotEmpty() == true) {
-            binding.providerDisplayName.setText(R.string.server_selection_secure_internet)
-        } else {
-            binding.providerDisplayName.text = instance.displayName
-        }
+        binding.providerDisplayName.text = instance.displayName
         if (!TextUtils.isEmpty(instance.logoUri)) {
             Picasso.get()
                     .load(instance.logoUri)
                     .fit()
                     .into(binding.providerIcon)
         } else if (instance.isCustom) {
-            binding.providerIcon.setImageResource(R.drawable.ic_custom_url)
-        } else if (instance.peerList?.isNotEmpty() == true) {
-            binding.providerIcon.setImageResource(R.drawable.ic_secure_internet)
+            binding.providerIcon.setImageResource(R.drawable.ic_server)
         } else {
             binding.providerIcon.setImageResource(R.drawable.ic_institute)
         }

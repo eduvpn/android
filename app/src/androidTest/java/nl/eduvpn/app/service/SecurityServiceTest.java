@@ -42,7 +42,7 @@ public class SecurityServiceTest {
     @SuppressWarnings("unused")
     private static final String UNIT_TEST_PRIVATE_KEY = "untrusted comment: minisign encrypted secret key\n" +
             "RWRTY0Iyq5pf3lO+R4dtzZDgzvhE6jFtvUd9A1XIz2FN9ZfhhjkAAAACAAAAAAAAAEAAAAAADmmEh0zDiH5308dE01SbOhbIJ6sxxX+1qecOjIBvJuQ0W4uxMk37j3qNCyHD8HhOHsQqa1Jty6ztnnrKT1itKQR2uWPW4kNcnGzQYoLkz/rzESMI2jZE98W7LvV8LQrGv9AMTgOwOPY=";
-    private static final String UNIT_TEST_PUBLIC_KEY = "RWQBThy5Bd7KteZuDmjwUq/6E8IIoOETi85bBcIHz0dj1VokayIb/FYb";
+    private static final String[] UNIT_TEST_PUBLIC_KEYS = new String[] { "RWQBThy5Bd7KteZuDmjwUq/6E8IIoOETi85bBcIHz0dj1VokayIb/FYb" };
 
     private SecurityService _securityService;
 
@@ -50,7 +50,7 @@ public class SecurityServiceTest {
     public void before() {
         Context context = ApplicationProvider.getApplicationContext();
         _securityService = new SecurityService(context);
-        SecurityService.loadMinisignPublicKey(UNIT_TEST_PUBLIC_KEY);
+        SecurityService.loadMinisignPublicKeys(UNIT_TEST_PUBLIC_KEYS);
     }
 
     @Test
@@ -100,7 +100,6 @@ public class SecurityServiceTest {
                 "tOgVBGUEo6HVEEz49P7thyDMZsSrtEHBrz60n/TYaOk4PBNdgXl46z9rG/k3Xul9ewzNeOWY/hv1E2EMEVldDg==";
         assertFalse(_securityService.verifyMinisign(toVerify, signature));
     }
-
 
 
 }

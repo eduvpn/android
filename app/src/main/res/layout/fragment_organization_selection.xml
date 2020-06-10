@@ -5,6 +5,8 @@
 
     <data>
 
+        <import type="android.view.View" />
+
         <variable
             name="viewModel"
             type="nl.eduvpn.app.viewmodel.OrganizationSelectionViewModel" />
@@ -22,34 +24,53 @@
             android:layout_height="match_parent"
             android:orientation="vertical">
 
+            <ImageView
+                android:id="@+id/artwork"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginTop="32dp"
+                android:src="@drawable/ic_find_your_institute"
+                android:visibility="@{viewModel.artworkVisible ? View.VISIBLE : View.GONE}" />
+
             <TextView
                 android:id="@+id/header"
                 style="@style/Header"
-                android:layout_marginTop="16dp"
-                android:layout_marginBottom="16dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="8dp"
                 android:text="@string/select_your_organization_title" />
 
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:paddingLeft="16dp"
-                android:paddingRight="16dp">
+                android:layout_height="48dp"
+                android:layout_marginLeft="16dp"
+                android:layout_marginRight="16dp"
+                android:background="@drawable/bg_search"
+                android:elevation="4dp">
 
                 <ImageView
-                    android:layout_marginTop="8dp"
-                    android:layout_marginRight="8dp"
                     android:layout_width="32dp"
-                    android:tint="@color/mainColor"
                     android:layout_height="32dp"
-                    android:src="@drawable/ic_search" />
+                    android:layout_gravity="center"
+                    android:layout_marginLeft="8dp"
+                    android:layout_marginRight="8dp"
+                    android:src="@drawable/ic_search"
+                    android:tint="@color/iconColor" />
 
                 <EditText
                     android:id="@+id/search"
-                    android:inputType="text"
-                    android:imeOptions="actionSearch"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="@string/select_your_organization_search_hint" />
+                    android:layout_gravity="center"
+                    android:layout_marginLeft="12dp"
+                    android:background="@android:color/transparent"
+                    android:fontFamily="@font/open_sans_regular"
+                    android:hint="@string/select_your_organization_search_hint"
+                    android:imeOptions="actionSearch"
+                    android:includeFontPadding="false"
+                    android:inputType="text"
+                    android:text="@={viewModel.searchText}"
+                    android:textColor="@color/textColor" />
 
             </LinearLayout>
 
@@ -62,25 +83,26 @@
                     android:id="@+id/organization_list"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
+                    android:clipToPadding="false"
                     android:paddingLeft="16dp"
+                    android:paddingTop="16dp"
                     android:paddingRight="16dp"
                     android:paddingBottom="16dp"
-                    android:clipToPadding="false"
                     android:scrollbarStyle="outsideOverlay"
-                    tools:listitem="@layout/list_item_organization" />
+                    tools:listitem="@layout/list_item_header" />
 
                 <TextView
                     android:id="@+id/organization_discovery_status"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="top|center_horizontal"
+                    android:layout_marginTop="24dp"
+                    android:fontFamily="@font/open_sans_regular"
                     android:scrollbarStyle="outsideOverlay"
-                    android:layout_marginTop="16dp"
-                    android:text="@string/no_organization_found"
+                    android:text="@string/no_match_found"
                     android:textColor="@color/textColor"
-                    android:textSize="20sp"
-                    android:visibility="gone"
-                    tools:visibility="visible" />
+                    android:textSize="18sp"
+                    android:visibility="@{viewModel.noItemsFound ? View.VISIBLE : View.GONE}"/>
 
             </FrameLayout>
         </LinearLayout>

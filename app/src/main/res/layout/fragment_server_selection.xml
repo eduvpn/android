@@ -44,10 +44,15 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
 
-                <TextView
-                    android:id="@+id/header"
-                    style="@style/Header"
-                    android:text="@string/select_a_server_title" />
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/add_server_button"
+                    style="@style/BigButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_marginTop="16dp"
+                    android:layout_marginBottom="16dp"
+                    android:text="@string/server_selection_add_server" />
 
                 <ImageView
                     android:id="@+id/warning"
@@ -75,20 +80,11 @@
                     android:paddingRight="16dp"
                     android:paddingBottom="16dp"
                     android:scrollbarStyle="outsideOverlay"
-                    tools:listitem="@layout/list_item_provider" />
+                    tools:listitem="@layout/list_item_server" />
 
             </FrameLayout>
 
 
-            <Button
-                android:id="@+id/add_server_button"
-                style="@style/BigButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:layout_marginTop="16dp"
-                android:layout_marginBottom="16dp"
-                android:text="@string/server_selection_add_server" />
         </LinearLayout>
 
         <include

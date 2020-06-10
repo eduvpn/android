@@ -389,6 +389,9 @@ public class VPNService extends Observable implements VpnStatus.StateListener {
         if (_serverIpV4 != null && _serverIpV6 != null) {
             _connectionInfoCallback.metadataAvailable(_serverIpV4, _serverIpV6);
         }
+        if (getStatus() == VPNStatus.CONNECTED) {
+            VpnStatus.addByteCountListener(_byteCountListener);
+        }
         _updatesHandler.post(new Runnable() {
             @Override
             public void run() {

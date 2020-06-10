@@ -1,7 +1,7 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
 
     <!-- Base application theme. -->
-    <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+    <style name="AppTheme" parent="Theme.MaterialComponents.Light.NoActionBar">
         <!-- Customize your theme here. -->
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
@@ -9,6 +9,16 @@
         <item name="colorAccent">@color/colorAccent</item>
         <item name="colorSwitchThumbNormal">@color/colorSwitchThumbNormal</item>
         <item name="android:windowBackground">@color/backgroundColor</item>
+        <item name="android:statusBarColor">@color/backgroundColor</item>
+        <item name="android:windowLightStatusBar" tools:ignore="NewApi">true</item>
+        <item name="alertDialogTheme">@style/AppTheme.AlertDialog</item>
+        <item name="android:alertDialogTheme">@style/AppTheme.AlertDialog</item>
+    </style>
+
+
+    <style name="AppTheme.AlertDialog" parent="Theme.MaterialComponents.Light.Dialog">
+        <item name="android:fontFamily">@font/open_sans_semibold</item>
+        <item name="colorControlHighlight">@color/colorPrimary</item>
     </style>
 
     <style name="AppTheme.NoActionBar">
@@ -16,9 +26,9 @@
         <item name="windowNoTitle">true</item>
     </style>
 
-    <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar"/>
+    <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
 
-    <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light"/>
+    <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
 
     <!-- Customized version of the OpenVPN app theme-->
     <style name="StyledVpn" parent="blinkt">
@@ -26,7 +36,8 @@
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
         <item name="android:colorPrimary" tools:targetApi="lollipop">@color/colorPrimary</item>
-        <item name="android:colorPrimaryDark" tools:targetApi="lollipop">@color/colorPrimaryDark</item>
+        <item name="android:colorPrimaryDark" tools:targetApi="lollipop">@color/colorPrimaryDark
+        </item>
         <item name="android:colorAccent" tools:targetApi="lollipop">@color/colorAccent</item>
     </style>
 
@@ -40,13 +51,14 @@
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
         <item name="android:colorPrimary" tools:targetApi="lollipop">@color/colorPrimary</item>
-        <item name="android:colorPrimaryDark" tools:targetApi="lollipop">@color/colorPrimaryDark</item>
+        <item name="android:colorPrimaryDark" tools:targetApi="lollipop">@color/colorPrimaryDark
+        </item>
         <item name="android:colorAccent" tools:targetApi="lollipop">@color/colorAccent</item>
         <item name="alertDialogTheme">@style/StyledVpn.AlertDialog</item>
         <item name="android:alertDialogTheme">@style/StyledVpn.AlertDialog</item>
     </style>
 
-    <style name="StyledVpn.AlertDialog" parent="blinkt.alertDialog">
+    <style name="StyledVpn.AlertDialog" parent="blinkt.dialog">
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
@@ -54,12 +66,13 @@
         <item name="android:layout_width">wrap_content</item>
         <item name="android:drawablePadding">16dp</item>
         <item name="android:layout_height">wrap_content</item>
+        <item name="android:fontFamily">@font/open_sans_bold</item>
         <item name="android:textStyle">bold</item>
         <item name="android:gravity">center</item>
         <item name="android:layout_gravity">center</item>
         <item name="android:padding">12dp</item>
         <item name="android:textSize">24sp</item>
-        <item name="android:textColor">@color/mainColor</item>
+        <item name="android:textColor">@color/textColor</item>
     </style>
 
     <style name="Label">
@@ -105,29 +118,32 @@
         <item name="android:background">@color/mainColor</item>
     </style>
 
-    <style name="SmallButton">
-        <item name="android:layout_height">32dp</item>
-        <item name="android:background">@drawable/button_bg</item>
-        <item name="android:paddingTop">2dp</item>
-        <item name="android:paddingBottom">2dp</item>
-        <item name="android:paddingLeft">24dp</item>
-        <item name="android:paddingRight">24dp</item>
+    <style name="SmallButton" parent="Widget.MaterialComponents.Button.TextButton">
+        <item name="android:paddingLeft">8dp</item>
+        <item name="android:paddingRight">8dp</item>
+        <item name="android:fontFamily">@font/open_sans_bold</item>
+        <item name="android:letterSpacing">0</item>
+        <item name="android:paddingTop">8dp</item>
+        <item name="android:minHeight">0dp</item>
+        <item name="android:paddingBottom">8dp</item>
         <item name="android:textSize">14sp</item>
-        <item name="android:textStyle">bold</item>
-        <item name="android:textColor">@color/buttonTextColor</item>
         <item name="android:textAllCaps">false</item>
+        <item name="android:textColor">@color/buttonBackgroundColor</item>
+        <item name="rippleColor">@color/buttonBackgroundColor</item>
     </style>
 
-    <style name="BigButton">
-        <item name="android:background">@drawable/button_bg</item>
+    <style name="BigButton" parent="Widget.MaterialComponents.Button.OutlinedButton">
+        <item name="android:fontFamily">@font/open_sans_bold</item>
+        <item name="backgroundTint">@color/buttonBackgroundColor</item>
+        <item name="android:paddingLeft">24dp</item>
+        <item name="android:paddingRight">24dp</item>
+        <item name="android:elevation">4dp</item>
         <item name="android:paddingTop">12dp</item>
         <item name="android:paddingBottom">12dp</item>
-        <item name="android:paddingLeft">48dp</item>
-        <item name="android:paddingRight">48dp</item>
-        <item name="android:textSize">22sp</item>
-        <item name="android:textStyle">bold</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:textAllCaps">true</item>
+        <item name="rippleColor">@color/pressedColor</item>
         <item name="android:textColor">@color/buttonTextColor</item>
-        <item name="android:textAllCaps">false</item>
     </style>
 
     <style name="SwitcherButton">

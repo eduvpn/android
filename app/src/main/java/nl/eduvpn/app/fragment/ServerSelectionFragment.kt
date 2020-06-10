@@ -21,21 +21,16 @@ package nl.eduvpn.app.fragment
 import android.content.Context
 import android.os.Bundle
 import android.view.View
-import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
-import nl.eduvpn.app.BuildConfig
 import nl.eduvpn.app.EduVPNApplication
 import nl.eduvpn.app.MainActivity
 import nl.eduvpn.app.R
-import nl.eduvpn.app.adapter.ServerAdapter
-import nl.eduvpn.app.adapter.animator.ServerItemAnimator
+import nl.eduvpn.app.adapter.OrganizationAdapter
 import nl.eduvpn.app.base.BaseFragment
 import nl.eduvpn.app.databinding.FragmentServerSelectionBinding
-import nl.eduvpn.app.entity.AuthorizationType
-import nl.eduvpn.app.entity.Instance
 import nl.eduvpn.app.utils.ErrorDialog
 import nl.eduvpn.app.utils.ItemClickSupport
 import nl.eduvpn.app.viewmodel.ConnectionViewModel
@@ -43,8 +38,6 @@ import nl.eduvpn.app.viewmodel.ServerSelectionViewModel
 
 class ServerSelectionFragment : BaseFragment<FragmentServerSelectionBinding>() {
     override val layout = R.layout.fragment_server_selection
-
-    private var previousListSize = 0
 
     private val viewModel by viewModels<ServerSelectionViewModel> { viewModelFactory }
 
@@ -55,21 +48,23 @@ class ServerSelectionFragment : BaseFragment<FragmentServerSelectionBinding>() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        val adapter = ServerAdapter(requireContext())
+        val adapter = OrganizationAdapter {
+            val countryList = viewModel.requestCountryList()
+            if (countryList == null) {
+                ErrorDialog.show(requireContext(), R.string.unexpected_error, R.string.error_countries_are_not_available)
+            } else {
+                AlertDialog.Builder(requireContext())
+                        .setItems(countryList.map { it.second }.toTypedArray()) { _, which ->
+                            val selectedInstance = countryList[which]
+                            viewModel.changePreferredCountry(selectedInstance.first)
+                        }.show()
+            }
+        }
         binding.viewModel = viewModel
         binding.serverList.adapter = adapter
         binding.serverList.layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
-        binding.serverList.itemAnimator = ServerItemAnimator()
-        viewModel.instances.observe(viewLifecycleOwner, Observer {
-
-            if (it.isEmpty() && previousListSize > 0) {
-                // Go to the add server screen
-                binding.addServerButton.performClick()
-            } else {
-                (binding.serverList.adapter as? ServerAdapter)?.submitList(it)
-                binding.serverList.smoothScrollToPosition(0)
-                previousListSize = it.size
-            }
+        viewModel.adapterItems.observe(viewLifecycleOwner, Observer {
+            adapter.submitList(it)
         })
 
         viewModel.parentAction.observe(viewLifecycleOwner, Observer { parentAction ->
@@ -95,65 +90,24 @@ class ServerSelectionFragment : BaseFragment<FragmentServerSelectionBinding>() {
         })
 
         ItemClickSupport.addTo(binding.serverList).setOnItemClickListener { _, position, _ ->
-            val item = adapter.getDiscoveredInstance(position)
-            val parent = adapter.findParent(item)
-            viewModel.discoverApi(item.instance, parent?.instance)
-        }
-        ItemClickSupport.addTo(binding.serverList).setOnItemLongClickListener { _, position, _ ->
-            val item = adapter.getDiscoveredInstance(position)
-            if (item.instance.authorizationType == AuthorizationType.Organization) {
-                Toast.makeText(requireContext(), R.string.delete_organization_server_from_settings, Toast.LENGTH_LONG).show()
-            } else {
-                displayDeleteDialog(item.instance)
+            val item = adapter.getItem(position)
+            if (item is OrganizationAdapter.OrganizationAdapterItem.SecureInternet) {
+                viewModel.discoverApi(item.server, null)
+            } else if (item is OrganizationAdapter.OrganizationAdapterItem.InstituteAccess) {
+                viewModel.discoverApi(item.server, null)
             }
-            true
         }
         binding.warning.setOnClickListener {
             ErrorDialog.show(it.context, R.string.warning_title, viewModel.warning.value!!)
         }
-        if (requireArguments().getBoolean(KEY_RETURNING_FROM_AUTH)) {
-            requireArguments().remove(KEY_RETURNING_FROM_AUTH)
-            viewModel.didReturnFromAuth()
+        binding.addServerButton.setOnClickListener {
+            (activity as? MainActivity)?.openFragment(OrganizationSelectionFragment(), true)
         }
     }
-
-    private fun displayDeleteDialog(instance: Instance): Boolean {
-        AlertDialog.Builder(requireContext())
-                .setTitle(R.string.delete_server)
-                .setMessage(getString(R.string.delete_server_message, instance.displayName, instance.sanitizedBaseURI))
-                .setPositiveButton(R.string.button_remove) { dialog, _ ->
-                    viewModel.deleteAllDataForInstance(instance)
-                    dialog.dismiss()
-                }
-                .setNegativeButton(R.string.delete_server_cancel) { dialog, _ -> dialog.dismiss() }
-                .show()
-        return true
-    }
-
 
     override fun onResume() {
         super.onResume()
         viewModel.onResume()
-        if (BuildConfig.NEW_ORGANIZATION_LIST_ENABLED) {
-            if (viewModel.organizationSelected()) {
-                binding.addServerButton.visibility = View.GONE
-            } else {
-                binding.addServerButton.setText(R.string.select_organization)
-                binding.addServerButton.setOnClickListener {
-                    (activity as? MainActivity)?.openFragment(OrganizationSelectionFragment(), true)
-                }
-                binding.addServerButton.visibility = View.VISIBLE
-            }
-        } else {
-            binding.addServerButton.setOnClickListener {
-                @Suppress("ConstantConditionIf")
-                if (BuildConfig.API_DISCOVERY_ENABLED) {
-                    (activity as? MainActivity)?.openFragment(TypeSelectorFragment(), true)
-                } else {
-                    (activity as? MainActivity)?.openFragment(CustomProviderFragment(), true)
-                }
-            }
-        }
     }
 
     companion object {

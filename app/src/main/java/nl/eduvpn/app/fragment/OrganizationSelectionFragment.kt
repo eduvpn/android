@@ -18,11 +18,10 @@
 package nl.eduvpn.app.fragment
 
 import android.os.Bundle
-import android.text.Editable
-import android.text.TextWatcher
 import android.view.View
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
+import androidx.recyclerview.widget.DefaultItemAnimator
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import nl.eduvpn.app.EduVPNApplication
@@ -32,10 +31,13 @@ import nl.eduvpn.app.adapter.OrganizationAdapter
 import nl.eduvpn.app.base.BaseFragment
 import nl.eduvpn.app.databinding.FragmentOrganizationSelectionBinding
 import nl.eduvpn.app.entity.AuthorizationType
+import nl.eduvpn.app.entity.Instance
 import nl.eduvpn.app.service.OrganizationService
+import nl.eduvpn.app.utils.ErrorDialog
 import nl.eduvpn.app.utils.ItemClickSupport
 import nl.eduvpn.app.utils.hideKeyboard
 import nl.eduvpn.app.viewmodel.ConnectionState
+import nl.eduvpn.app.viewmodel.ConnectionViewModel
 import nl.eduvpn.app.viewmodel.OrganizationSelectionViewModel
 import javax.inject.Inject
 
@@ -62,23 +64,25 @@ class OrganizationSelectionFragment : BaseFragment<FragmentOrganizationSelection
         binding.organizationList.layoutManager = LinearLayoutManager(view.context, LinearLayoutManager.VERTICAL, false)
         val adapter = OrganizationAdapter()
         binding.organizationList.adapter = adapter
-        binding.search.addTextChangedListener(object : TextWatcher {
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                adapter.searchFilter = s?.toString()
-            }
-
-            override fun afterTextChanged(s: Editable?) {
-                // Unused.
-            }
-
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
-                // Unused.
-            }
-        })
+        (binding.organizationList.itemAnimator as DefaultItemAnimator).changeDuration = 0L
         ItemClickSupport.addTo(binding.organizationList).setOnItemClickListener { _, position, _ ->
-            val organization = adapter.getItem(position) ?: return@setOnItemClickListener
             binding.search.hideKeyboard()
-            viewModel.selectOrganization(organization)
+            val item = adapter.getItem(position)
+            if (item is OrganizationAdapter.OrganizationAdapterItem.Header) {
+                return@setOnItemClickListener
+            } else if (item is OrganizationAdapter.OrganizationAdapterItem.SecureInternet) {
+                viewModel.selectOrganizationAndInstance(item.organization, item.server)
+            } else if (item is OrganizationAdapter.OrganizationAdapterItem.InstituteAccess) {
+                viewModel.selectOrganizationAndInstance(null, item.server)
+            } else if (item is OrganizationAdapter.OrganizationAdapterItem.AddServer) {
+                val customUrl  = if (item.url.startsWith("http://") || item.url.startsWith("https://")) {
+                    item.url
+                } else {
+                    "https://${item.url}"
+                }
+                val customInstance = Instance(customUrl, getString(R.string.custom_provider_display_name), null, AuthorizationType.Local, null, true, emptyList())
+                viewModel.discoverApi(customInstance)
+            }
         }
         dataObserver = object : RecyclerView.AdapterDataObserver() {
             override fun onChanged() {
@@ -88,7 +92,7 @@ class OrganizationSelectionFragment : BaseFragment<FragmentOrganizationSelection
                         binding.organizationDiscoveryStatus.visibility = View.GONE
                     }
                     else -> {
-                        binding.organizationDiscoveryStatus.setText(R.string.no_organization_found)
+                        binding.organizationDiscoveryStatus.setText(R.string.no_match_found)
                         binding.organizationDiscoveryStatus.visibility = View.VISIBLE
                     }
                 }
@@ -99,18 +103,34 @@ class OrganizationSelectionFragment : BaseFragment<FragmentOrganizationSelection
             // Trigger initial status
             it.onChanged()
         }
-        viewModel.organizations.observe(viewLifecycleOwner, Observer { organizations ->
-            adapter.setOrganizations(organizations)
+        viewModel.adapterItems.observe(viewLifecycleOwner, Observer {
+            adapter.submitList(it)
         })
         viewModel.parentAction.observe(viewLifecycleOwner, Observer { parentAction ->
             when (parentAction) {
-                is OrganizationSelectionViewModel.ParentAction.OpenProviderSelector -> {
-                    (activity as? MainActivity)?.openFragment(ProviderSelectionFragment.newInstance(AuthorizationType.Organization), true)
+                is ConnectionViewModel.ParentAction.InitiateConnection -> {
+                    activity?.let { activity ->
+                        if (!activity.isFinishing) {
+                            viewModel.initiateConnection(activity, parentAction.instance, parentAction.discoveredAPI)
+                        }
+                    }
+                }
+                is ConnectionViewModel.ParentAction.ConnectWithProfile -> {
+                    viewModel.openVpnConnectionToProfile(requireActivity(), parentAction.vpnProfile)
+                    (activity as? MainActivity)?.openFragment(ConnectionStatusFragment(), false)
+                }
+                is ConnectionViewModel.ParentAction.DisplayError -> {
+                    ErrorDialog.show(requireContext(), parentAction.title, parentAction.message)
                 }
             }
         })
-
+        binding.search.setOnFocusChangeListener { _, hasFocus ->
+            if (hasFocus) {
+                viewModel.artworkVisible.value = false
+            }
+        }
     }
+
 
     override fun onDestroyView() {
         super.onDestroyView()

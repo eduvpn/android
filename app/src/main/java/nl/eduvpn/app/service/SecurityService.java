@@ -30,6 +30,9 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import androidx.annotation.CheckResult;
 import androidx.annotation.NonNull;
@@ -46,21 +49,18 @@ import nl.eduvpn.app.utils.Log;
 public class SecurityService {
     private static final String TAG = SecurityService.class.getName();
 
-    private static String MINISIGN_PUBLIC_KEY_ID;
-    private static byte[] MINISIGN_PUBLIC_KEY_BYTES;
+    private static List<String> MINISIGN_PUBLIC_KEY_ID_LIST;
+    private static List<byte[]> MINISIGN_PUBLIC_KEY_BYTES_LIST;
 
     private static final String MINISIGN_ALGO_DESCRIPTION = "Ed";
     private static final int MINISIGN_RANDOM_BYTES_LENGTH = 8;
     private static final int MINISIGN_ED_SIGNATURE_LENGTH = 64;
     private static final int MINISIGN_ED_PUBLIC_KEY_LENGTH = 32;
 
-    private static final byte[] DEPRECATED_PUBLIC_KEY_BYTES = Base64.decode(BuildConfig.DEPRECATED_SIGNATURE_VALIDATION_PUBLIC_KEY, Base64.DEFAULT);
-
     // We use the ISO-8859-1 charset for converting between strings and bytes,
     // because there one character is exactly one byte.
     // In UTF-8, a character could be 2 or 3 bytes, in ASCII one character is 7 bits only.
     private static final Charset BYTE_DECODE_CHARSET = StandardCharsets.ISO_8859_1;
-
 
 
     static {
@@ -73,21 +73,27 @@ public class SecurityService {
 
     public SecurityService(Context context) {
         _context = context;
-        loadMinisignPublicKey(BuildConfig.MINISIGN_SIGNATURE_VALIDATION_PUBLIC_KEY);
+        loadMinisignPublicKeys(BuildConfig.MINISIGN_SIGNATURE_VALIDATION_PUBLIC_KEY);
     }
 
     @VisibleForTesting
-    static void loadMinisignPublicKey(String publicKey) {
-        byte[] publicKeyRawBytes =  Base64.decode(publicKey, Base64.DEFAULT);
-        String publicKeyRawString = new String(publicKeyRawBytes, BYTE_DECODE_CHARSET);
-        if (MINISIGN_ALGO_DESCRIPTION.length() + MINISIGN_RANDOM_BYTES_LENGTH + MINISIGN_ED_PUBLIC_KEY_LENGTH != publicKeyRawBytes.length) {
-            throw new IllegalArgumentException("Invalid public key: not long enough!");
+    static void loadMinisignPublicKeys(String[] publicKeys) {
+        List<String> idList = new ArrayList<>();
+        List<byte[]> bytesList = new ArrayList<>();
+        for (String publicKey : publicKeys) {
+            byte[] publicKeyRawBytes = Base64.decode(publicKey, Base64.DEFAULT);
+            String publicKeyRawString = new String(publicKeyRawBytes, BYTE_DECODE_CHARSET);
+            if (MINISIGN_ALGO_DESCRIPTION.length() + MINISIGN_RANDOM_BYTES_LENGTH + MINISIGN_ED_PUBLIC_KEY_LENGTH != publicKeyRawBytes.length) {
+                throw new IllegalArgumentException("Invalid public key: not long enough!");
+            }
+            if (!MINISIGN_ALGO_DESCRIPTION.equals(publicKeyRawString.substring(0, MINISIGN_ALGO_DESCRIPTION.length()))) {
+                throw new IllegalArgumentException("Unsupported algorithm, we only support '" + MINISIGN_ALGO_DESCRIPTION + "'!");
+            }
+            idList.add(publicKeyRawString.substring(MINISIGN_ALGO_DESCRIPTION.length(), MINISIGN_ALGO_DESCRIPTION.length() + MINISIGN_RANDOM_BYTES_LENGTH));
+            bytesList.add(publicKeyRawString.substring(MINISIGN_ALGO_DESCRIPTION.length() + MINISIGN_RANDOM_BYTES_LENGTH).getBytes(BYTE_DECODE_CHARSET));
         }
-        if (!MINISIGN_ALGO_DESCRIPTION.equals(publicKeyRawString.substring(0, MINISIGN_ALGO_DESCRIPTION.length()))) {
-            throw new IllegalArgumentException("Unsupported algorithm, we only support '" + MINISIGN_ALGO_DESCRIPTION + "'!");
-        }
-        MINISIGN_PUBLIC_KEY_ID = publicKeyRawString.substring(MINISIGN_ALGO_DESCRIPTION.length(), MINISIGN_ALGO_DESCRIPTION.length() + MINISIGN_RANDOM_BYTES_LENGTH);
-        MINISIGN_PUBLIC_KEY_BYTES = publicKeyRawString.substring(MINISIGN_ALGO_DESCRIPTION.length() + MINISIGN_RANDOM_BYTES_LENGTH).getBytes(BYTE_DECODE_CHARSET);
+        MINISIGN_PUBLIC_KEY_ID_LIST = Collections.unmodifiableList(idList);
+        MINISIGN_PUBLIC_KEY_BYTES_LIST = Collections.unmodifiableList(bytesList);
     }
 
     /**
@@ -114,33 +120,26 @@ public class SecurityService {
         if (!MINISIGN_ALGO_DESCRIPTION.equals(signatureString.substring(0, MINISIGN_ALGO_DESCRIPTION.length()))) {
             throw new IllegalArgumentException("Unsupported algorithm, we only support '" + MINISIGN_ALGO_DESCRIPTION + "'!");
         }
-        if (!MINISIGN_PUBLIC_KEY_ID.equals(signatureString.substring(MINISIGN_ALGO_DESCRIPTION.length(), MINISIGN_ALGO_DESCRIPTION.length() + MINISIGN_RANDOM_BYTES_LENGTH))) {
+        boolean hasMatchingPublicKeyId = false;
+        for (String publicKeyId : MINISIGN_PUBLIC_KEY_ID_LIST) {
+            if (publicKeyId.equals(signatureString.substring(MINISIGN_ALGO_DESCRIPTION.length(), MINISIGN_ALGO_DESCRIPTION.length() + MINISIGN_RANDOM_BYTES_LENGTH))) {
+                hasMatchingPublicKeyId = true;
+            }
+        }
+        if (!hasMatchingPublicKeyId) {
             throw new IllegalArgumentException("Signature does not match public key!");
         }
 
         byte[] signatureBytes = signatureString.substring(MINISIGN_ALGO_DESCRIPTION.length() + MINISIGN_RANDOM_BYTES_LENGTH).getBytes(BYTE_DECODE_CHARSET);
-
-        int result = Sodium.crypto_sign_verify_detached(signatureBytes, messageBytes, messageBytes.length, MINISIGN_PUBLIC_KEY_BYTES);
-        if (result != 0) {
-            Log.e(TAG, "Signature validation failed with result: " + result);
-            return false;
+        for (byte[] publicKey : MINISIGN_PUBLIC_KEY_BYTES_LIST) {
+            int result = Sodium.crypto_sign_verify_detached(signatureBytes, messageBytes, messageBytes.length, publicKey);
+            if (result == 0) {
+                return true;
+            }
         }
-        return true;
+        Log.e(TAG, "Signature validation failed!");
+        return false;
     }
-
-    @CheckResult
-    public boolean verifyDeprecatedSignature(String message, String signatureBase64) {
-        byte[] signatureBytes = Base64.decode(signatureBase64, Base64.DEFAULT);
-        byte[] messageBytes = message.getBytes(BYTE_DECODE_CHARSET);
-        int result = Sodium.crypto_sign_verify_detached(signatureBytes, messageBytes, messageBytes.length, DEPRECATED_PUBLIC_KEY_BYTES);
-        if (result != 0) {
-            Log.e(TAG, "Signature validation failed with result: " + result);
-            return false;
-        }
-        return true;
-    }
-
-
 
 
     /**

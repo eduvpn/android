@@ -4,10 +4,6 @@
     <data>
 
         <import type="android.view.View" />
-
-        <variable
-            name="organizationsEnabled"
-            type="Boolean" />
     </data>
 
     <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
@@ -42,38 +38,11 @@
                 tools:context=".SettingsActivity">
 
                 <LinearLayout
-                    android:id="@+id/addServerContainer"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_alignParentTop="true"
-                    android:background="?attr/selectableItemBackground"
-                    android:orientation="vertical"
-                    android:visibility="@{organizationsEnabled ? View.VISIBLE : View.GONE}">
-
-                    <TextView
-                        android:id="@+id/addServerTitle"
-                        style="@style/SettingsLabelTitle"
-                        android:text="@string/add_server_title" />
-
-                    <TextView
-                        android:id="@+id/addServerDescription"
-                        style="@style/SettingsLabelDescription"
-                        android:text="@string/add_server_description" />
-
-                    <View
-                        android:id="@+id/addServerSeparator"
-                        style="@style/SettingsSeparator" />
-
-                </LinearLayout>
-
-                <LinearLayout
                     android:id="@+id/resetAppDataContainer"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_below="@id/addServerContainer"
                     android:background="?attr/selectableItemBackground"
-                    android:orientation="vertical"
-                    android:visibility="@{organizationsEnabled ? View.VISIBLE : View.GONE}">
+                    android:orientation="vertical">
 
                     <TextView
                         android:id="@+id/resetDataTitle"
@@ -90,7 +59,6 @@
                 <View
                     android:id="@+id/resetDataSeparator"
                     style="@style/SettingsSeparator"
-                    android:visibility="@{organizationsEnabled ? View.VISIBLE : View.GONE}"
                     android:layout_below="@id/resetAppDataContainer" />
 
                 <TextView
