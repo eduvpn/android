@@ -1,0 +1,40 @@
+<!--
+  ~ This file is part of eduVPN.
+  ~
+  ~ eduVPN is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as published by
+  ~ the Free Software Foundation, either version 3 of the License, or
+  ~ (at your option) any later version.
+  ~
+  ~ eduVPN is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with eduVPN.  If not, see <http://www.gnu.org/licenses/>.
+  ~
+  -->
+
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="76dp"
+    android:height="110dp"
+    android:viewportWidth="76"
+    android:viewportHeight="110">
+  <path
+      android:pathData="M2.858,0L73.142,0A2.858,2.858 0,0 1,76 2.858L76,107.142A2.858,2.858 0,0 1,73.142 110L2.858,110A2.858,2.858 0,0 1,0 107.142L0,2.858A2.858,2.858 0,0 1,2.858 0z"
+      android:fillColor="#505050"
+      android:fillType="evenOdd"/>
+  <path
+      android:pathData="M36.314,104.077L39.686,104.077A1.692,1.692 0,0 1,41.378 105.769L41.378,105.77A1.692,1.692 0,0 1,39.686 107.462L36.314,107.462A1.692,1.692 0,0 1,34.622 105.77L34.622,105.769A1.692,1.692 0,0 1,36.314 104.077z"
+      android:fillColor="#686868"
+      android:fillType="evenOdd"/>
+  <path
+      android:pathData="M4.807,3.385L71.193,3.385A1.429,1.429 0,0 1,72.622 4.814L72.622,100.11A1.429,1.429 0,0 1,71.193 101.539L4.807,101.539A1.429,1.429 0,0 1,3.378 100.11L3.378,4.814A1.429,1.429 0,0 1,4.807 3.385z"
+      android:fillColor="#F90"
+      android:fillType="evenOdd"/>
+  <path
+      android:pathData="M37.999,49.077c3.36,0 6.081,2.65 6.081,5.922 0,3.271 -2.72,5.924 -6.081,5.924 -3.356,0 -6.079,-2.653 -6.079,-5.924 0,-3.272 2.723,-5.922 6.079,-5.922zM20.434,49.077c3.36,0 6.082,2.65 6.082,5.922 0,3.271 -2.721,5.924 -6.082,5.924 -3.355,0 -6.078,-2.653 -6.078,-5.924 0,-3.272 2.723,-5.922 6.078,-5.922zM55.564,49.077c3.36,0 6.08,2.65 6.08,5.922 0,3.271 -2.72,5.924 -6.08,5.924 -3.357,0 -6.08,-2.653 -6.08,-5.924 0,-3.272 2.723,-5.922 6.08,-5.922z"
+      android:fillColor="#FFF"
+      android:fillType="evenOdd"/>
+</vector>

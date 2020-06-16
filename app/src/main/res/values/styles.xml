@@ -41,9 +41,11 @@
         <item name="android:colorAccent" tools:targetApi="lollipop">@color/colorAccent</item>
     </style>
 
-    <style name="ErrorDialog" parent="@android:style/Theme.Translucent.NoTitleBar">
-        <item name="android:windowIsFloating">true</item>
-        <item name="android:windowNoTitle">true</item>
+    <style name="ErrorDialog" parent="Theme.AppCompat.Dialog.Alert">
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorControlHighlight">@color/colorPrimary</item>
+        <item name="colorAccent">@color/colorAccent</item>
     </style>
 
     <style name="StyledVpn.Dialog" parent="blinkt.dialog">
@@ -103,11 +105,16 @@
         <item name="android:textAllCaps">false</item>
     </style>
 
-    <style name="SettingsSwitch">
+    <style name="Switch">
+        <item name="track">@drawable/switch_track</item>
+        <item name="android:background">@android:color/transparent</item>
+        <item name="android:thumb">@drawable/switch_thumb</item>
+    </style>
+
+    <style name="Switch.Settings">
         <item name="android:layout_width">wrap_content</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="android:layout_alignParentRight">true</item>
-        <item name="android:padding">8dp</item>
     </style>
 
     <style name="SettingsSeparator">
@@ -159,6 +166,15 @@
         <item name="android:textSize">14sp</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="android:textColor">@color/textColor</item>
+        <item name="android:fontFamily">@font/open_sans_bold</item>
+        <item name="android:layout_marginBottom">1dp</item>
+    </style>
+
+    <style name="ConnectionInfoValue">
+        <item name="android:textSize">14sp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textColor">@color/textColor</item>
+        <item name="android:fontFamily">@font/open_sans_regular</item>
         <item name="android:layout_marginBottom">1dp</item>
     </style>
 

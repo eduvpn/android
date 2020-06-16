@@ -26,12 +26,14 @@
         android:background="@color/backgroundColor"
         android:elevation="0dp"
         android:minHeight="@dimen/actionbar_size"
+
         app:contentInsetStart="0dp"
         app:contentInsetStartWithNavigation="0dp"
         app:popupTheme="@style/AppTheme.PopupOverlay">
 
         <RelativeLayout
             android:layout_width="match_parent"
+            android:paddingRight="16dp"
             android:layout_height="match_parent">
 
             <ImageView

@@ -17,9 +17,11 @@
 
 package nl.eduvpn.app;
 
+import android.content.res.ColorStateList;
 import android.os.Bundle;
 
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 import nl.eduvpn.app.base.BaseActivity;
 import nl.eduvpn.app.databinding.ActivitySettingsBinding;
 import nl.eduvpn.app.fragment.SettingsFragment;
@@ -43,5 +45,6 @@ public class SettingsActivity extends BaseActivity<ActivitySettingsBinding> {
         getSupportFragmentManager().beginTransaction()
                 .replace(R.id.contentFrame, new SettingsFragment())
                 .commit();
+        binding.toolbar.settingsButton.setImageTintList(ColorStateList.valueOf(ContextCompat.getColor(this, R.color.mainColor)));
     }
 }

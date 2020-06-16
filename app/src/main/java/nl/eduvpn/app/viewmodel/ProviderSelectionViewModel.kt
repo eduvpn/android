@@ -33,7 +33,7 @@ class ProviderSelectionViewModel @Inject constructor(
         private val preferencesService: PreferencesService,
         connectionService: ConnectionService,
         vpnService: VPNService,
-        private val organizationService: OrganizationService) : ConnectionViewModel(
+        private val organizationService: OrganizationService) : BaseConnectionViewModel(
         context,
         apiService,
         serializerService,

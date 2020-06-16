@@ -41,7 +41,7 @@ import java.net.URLEncoder
  * This viewmodel takes care of the entire flow, from connecting to the servers to fetching profiles.
  */
 @Suppress("ConstantConditionIf")
-open class ConnectionViewModel(
+open class BaseConnectionViewModel(
         private val context: Context,
         private val apiService: APIService,
         private val serializerService: SerializerService,
@@ -340,7 +340,7 @@ open class ConnectionViewModel(
 
 
     companion object {
-        private val TAG = ConnectionViewModel::class.java.name
+        private val TAG = BaseConnectionViewModel::class.java.name
     }
 
 }

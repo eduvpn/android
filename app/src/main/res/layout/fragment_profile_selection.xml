@@ -4,7 +4,7 @@
     <data>
         <variable
             name="viewModel"
-            type="nl.eduvpn.app.viewmodel.ConnectionViewModel" />
+            type="nl.eduvpn.app.viewmodel.BaseConnectionViewModel" />
     </data>
 
     <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"

@@ -33,7 +33,7 @@ import nl.eduvpn.app.base.BaseFragment
 import nl.eduvpn.app.databinding.FragmentServerSelectionBinding
 import nl.eduvpn.app.utils.ErrorDialog
 import nl.eduvpn.app.utils.ItemClickSupport
-import nl.eduvpn.app.viewmodel.ConnectionViewModel
+import nl.eduvpn.app.viewmodel.BaseConnectionViewModel
 import nl.eduvpn.app.viewmodel.ServerSelectionViewModel
 
 class ServerSelectionFragment : BaseFragment<FragmentServerSelectionBinding>() {
@@ -69,21 +69,21 @@ class ServerSelectionFragment : BaseFragment<FragmentServerSelectionBinding>() {
 
         viewModel.parentAction.observe(viewLifecycleOwner, Observer { parentAction ->
             when (parentAction) {
-                is ConnectionViewModel.ParentAction.InitiateConnection -> {
+                is BaseConnectionViewModel.ParentAction.InitiateConnection -> {
                     activity?.let { activity ->
                         if (!activity.isFinishing) {
                             viewModel.initiateConnection(activity, parentAction.instance, parentAction.discoveredAPI)
                         }
                     }
                 }
-                is ConnectionViewModel.ParentAction.OpenProfileSelector -> {
+                is BaseConnectionViewModel.ParentAction.OpenProfileSelector -> {
                     (activity as? MainActivity)?.openFragment(ProfileSelectionFragment.newInstance(parentAction.profiles), true)
                 }
-                is ConnectionViewModel.ParentAction.ConnectWithProfile -> {
+                is BaseConnectionViewModel.ParentAction.ConnectWithProfile -> {
                     viewModel.openVpnConnectionToProfile(requireActivity(), parentAction.vpnProfile)
                     (activity as? MainActivity)?.openFragment(ConnectionStatusFragment(), false)
                 }
-                is ConnectionViewModel.ParentAction.DisplayError -> {
+                is BaseConnectionViewModel.ParentAction.DisplayError -> {
                     ErrorDialog.show(requireContext(), parentAction.title, parentAction.message)
                 }
             }

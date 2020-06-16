@@ -23,9 +23,11 @@
     <color name="transparentGradientColor">#00FFFFFF</color>
     <color name="gradientColor">#FFFFFF</color>
     <color name="buttonBackgroundColor">#216aed</color>
-    <color name="switcherInactiveBackground">#FFFFFF</color>
-    <color name="switcherActiveBackground">#00B3D0</color>
-    <color name="switcherStrokeColor">#000000</color>
     <color name="rippleColor">#F0F0F0</color>
+
+    <color name="switchBackgroundChecked">#16a566</color>
+    <color name="switchBackgroundUnchecked">#b2b2b2</color>
+    <color name="switchBackgroundDisabled">#E4E4E4</color>
+    <color name="switchForeground">#FFFFFF</color>
 
 </resources>

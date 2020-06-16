@@ -1,0 +1,48 @@
+<!--
+  ~ This file is part of eduVPN.
+  ~
+  ~ eduVPN is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as published by
+  ~ the Free Software Foundation, either version 3 of the License, or
+  ~ (at your option) any later version.
+  ~
+  ~ eduVPN is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with eduVPN.  If not, see <http://www.gnu.org/licenses/>.
+  ~
+  -->
+
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="76dp"
+    android:height="110dp"
+    android:viewportWidth="76"
+    android:viewportHeight="110">
+  <path
+      android:pathData="M3.385,0L72.615,0A3.385,3.385 0,0 1,76 3.385L76,106.615A3.385,3.385 0,0 1,72.615 110L3.385,110A3.385,3.385 0,0 1,0 106.615L0,3.385A3.385,3.385 0,0 1,3.385 0z"
+      android:fillColor="#505050"
+      android:fillType="evenOdd"/>
+  <path
+      android:pathData="M36.314,104.077L39.686,104.077A1.692,1.692 0,0 1,41.378 105.769L41.378,105.77A1.692,1.692 0,0 1,39.686 107.462L36.314,107.462A1.692,1.692 0,0 1,34.622 105.77L34.622,105.769A1.692,1.692 0,0 1,36.314 104.077z"
+      android:fillColor="#686868"
+      android:fillType="evenOdd"/>
+  <path
+      android:pathData="M5.07,3.385L70.93,3.385A1.692,1.692 0,0 1,72.622 5.077L72.622,99.847A1.692,1.692 0,0 1,70.93 101.539L5.07,101.539A1.692,1.692 0,0 1,3.378 99.847L3.378,5.077A1.692,1.692 0,0 1,5.07 3.385z"
+      android:fillColor="#16A566"
+      android:fillType="evenOdd"/>
+  <path
+      android:pathData="M48.236,33.95c-5.82,0 -9.737,-3.175 -9.737,-3.175s-3.886,3.174 -9.698,3.174c-0.697,0 -1.455,-0.046 -2.203,-0.147 0,0 -4.839,-0.692 -9.71,-4.187v28.536c0,0.718 0.16,1.427 0.462,2.072 6.644,14.234 21.087,20.162 21.087,20.162s14.157,-5.923 21.03,-20.142c0.32,-0.66 0.489,-1.39 0.489,-2.127V29.761c-4.872,3.358 -9.513,4.041 -9.513,4.041 -0.749,0.101 -1.51,0.147 -2.207,0.147"
+      android:fillColor="#FFF"
+      android:fillType="evenOdd"/>
+  <path
+      android:pathData="M30.521,52.656L36.612,61.407 48.616,43.033"
+      android:strokeLineJoin="round"
+      android:strokeWidth="3.747"
+      android:fillColor="#00000000"
+      android:strokeColor="#16A566"
+      android:fillType="evenOdd"
+      android:strokeLineCap="round"/>
+</vector>

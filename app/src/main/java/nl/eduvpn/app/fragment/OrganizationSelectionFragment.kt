@@ -37,7 +37,7 @@ import nl.eduvpn.app.utils.ErrorDialog
 import nl.eduvpn.app.utils.ItemClickSupport
 import nl.eduvpn.app.utils.hideKeyboard
 import nl.eduvpn.app.viewmodel.ConnectionState
-import nl.eduvpn.app.viewmodel.ConnectionViewModel
+import nl.eduvpn.app.viewmodel.BaseConnectionViewModel
 import nl.eduvpn.app.viewmodel.OrganizationSelectionViewModel
 import javax.inject.Inject
 
@@ -108,18 +108,18 @@ class OrganizationSelectionFragment : BaseFragment<FragmentOrganizationSelection
         })
         viewModel.parentAction.observe(viewLifecycleOwner, Observer { parentAction ->
             when (parentAction) {
-                is ConnectionViewModel.ParentAction.InitiateConnection -> {
+                is BaseConnectionViewModel.ParentAction.InitiateConnection -> {
                     activity?.let { activity ->
                         if (!activity.isFinishing) {
                             viewModel.initiateConnection(activity, parentAction.instance, parentAction.discoveredAPI)
                         }
                     }
                 }
-                is ConnectionViewModel.ParentAction.ConnectWithProfile -> {
+                is BaseConnectionViewModel.ParentAction.ConnectWithProfile -> {
                     viewModel.openVpnConnectionToProfile(requireActivity(), parentAction.vpnProfile)
                     (activity as? MainActivity)?.openFragment(ConnectionStatusFragment(), false)
                 }
-                is ConnectionViewModel.ParentAction.DisplayError -> {
+                is BaseConnectionViewModel.ParentAction.DisplayError -> {
                     ErrorDialog.show(requireContext(), parentAction.title, parentAction.message)
                 }
             }

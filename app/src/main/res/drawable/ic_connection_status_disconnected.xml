@@ -1,0 +1,48 @@
+<!--
+  ~ This file is part of eduVPN.
+  ~
+  ~ eduVPN is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as published by
+  ~ the Free Software Foundation, either version 3 of the License, or
+  ~ (at your option) any later version.
+  ~
+  ~ eduVPN is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with eduVPN.  If not, see <http://www.gnu.org/licenses/>.
+  ~
+  -->
+
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="76dp"
+    android:height="110dp"
+    android:viewportWidth="76"
+    android:viewportHeight="110">
+  <path
+      android:pathData="M2.858,0L73.142,0A2.858,2.858 0,0 1,76 2.858L76,107.142A2.858,2.858 0,0 1,73.142 110L2.858,110A2.858,2.858 0,0 1,0 107.142L0,2.858A2.858,2.858 0,0 1,2.858 0z"
+      android:fillColor="#505050"
+      android:fillType="evenOdd"/>
+  <path
+      android:pathData="M36.314,104.077L39.686,104.077A1.692,1.692 0,0 1,41.378 105.769L41.378,105.77A1.692,1.692 0,0 1,39.686 107.462L36.314,107.462A1.692,1.692 0,0 1,34.622 105.77L34.622,105.769A1.692,1.692 0,0 1,36.314 104.077z"
+      android:fillColor="#686868"
+      android:fillType="evenOdd"/>
+  <path
+      android:pathData="M4.807,3.385L71.193,3.385A1.429,1.429 0,0 1,72.622 4.814L72.622,100.11A1.429,1.429 0,0 1,71.193 101.539L4.807,101.539A1.429,1.429 0,0 1,3.378 100.11L3.378,4.814A1.429,1.429 0,0 1,4.807 3.385z"
+      android:fillColor="#ED3415"
+      android:fillType="evenOdd"/>
+  <path
+      android:pathData="M48.236,33.95c-5.82,0 -9.737,-3.175 -9.737,-3.175s-3.886,3.174 -9.698,3.174c-0.697,0 -1.455,-0.046 -2.203,-0.147 0,0 -4.839,-0.692 -9.71,-4.187v28.536c0,0.718 0.16,1.427 0.462,2.072 6.644,14.234 21.087,20.162 21.087,20.162s14.157,-5.923 21.03,-20.142c0.32,-0.66 0.489,-1.39 0.489,-2.127V29.761c-4.872,3.358 -9.513,4.041 -9.513,4.041 -0.749,0.101 -1.51,0.147 -2.207,0.147"
+      android:fillColor="#FFF"
+      android:fillType="evenOdd"/>
+  <path
+      android:pathData="M32.724,46.156l12.746,12.771c0.51,0.511 0.51,1.34 0,1.85l-0.339,0.34c-0.511,0.512 -1.34,0.513 -1.853,0.002l-0.001,-0.002L30.531,48.347c-0.51,-0.512 -0.51,-1.34 0,-1.852l0.339,-0.339c0.51,-0.512 1.34,-0.513 1.852,-0.002l0.002,0.002z"
+      android:fillColor="#ED3415"
+      android:fillType="evenOdd"/>
+  <path
+      android:pathData="M30.531,58.927L43.277,46.156c0.51,-0.512 1.34,-0.513 1.852,-0.002l0.002,0.002 0.339,0.34c0.51,0.51 0.51,1.339 0,1.85L32.724,61.117c-0.51,0.512 -1.34,0.513 -1.852,0.002l-0.002,-0.002 -0.339,-0.34c-0.51,-0.51 -0.51,-1.339 0,-1.85z"
+      android:fillColor="#ED3415"
+      android:fillType="evenOdd"/>
+</vector>

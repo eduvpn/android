@@ -69,7 +69,7 @@
 
                 <androidx.appcompat.widget.SwitchCompat
                     android:id="@+id/forceTcpSwitch"
-                    style="@style/SettingsSwitch"
+                    style="@style/Switch.Settings"
                     android:layout_below="@id/resetDataSeparator" />
 
                 <TextView
@@ -91,7 +91,7 @@
 
                 <androidx.appcompat.widget.SwitchCompat
                     android:id="@+id/useCustomTabsSwitch"
-                    style="@style/SettingsSwitch"
+                    style="@style/Switch.Settings"
                     android:layout_below="@+id/tcpSeparator" />
 
                 <TextView
