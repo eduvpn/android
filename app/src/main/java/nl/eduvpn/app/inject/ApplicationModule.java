@@ -20,6 +20,7 @@ package nl.eduvpn.app.inject;
 import android.content.Context;
 import android.content.SharedPreferences;
 
+import java.io.File;
 import java.net.ConnectException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
@@ -39,6 +40,7 @@ import nl.eduvpn.app.service.SecurityService;
 import nl.eduvpn.app.service.SerializerService;
 import nl.eduvpn.app.service.VPNService;
 import nl.eduvpn.app.utils.Log;
+import okhttp3.Cache;
 import okhttp3.OkHttpClient;
 
 /**
@@ -118,10 +120,13 @@ public class ApplicationModule {
 
     @Provides
     @Singleton
-    protected OkHttpClient provideHttpClient() {
+    protected OkHttpClient provideHttpClient(Context context) {
+        File cacheDirectory = context.getCacheDir();
+        long CACHE_SIZE = 16 * 1024 * 1024; // 16 Mb
         OkHttpClient.Builder clientBuilder = new OkHttpClient.Builder()
                 .retryOnConnectionFailure(true)
                 .followRedirects(true)
+                .cache(new Cache(cacheDirectory, CACHE_SIZE))
                 .followSslRedirects(true)
                 .connectTimeout(10, TimeUnit.SECONDS)
                 .writeTimeout(30, TimeUnit.SECONDS)
