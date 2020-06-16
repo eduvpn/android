@@ -27,10 +27,16 @@
     <string name="view_log_button">View Log</string>
 
     <string name="connection_info_duration">Duration</string>
-    <string name="connection_info_bytes_in">Bytes (in)</string>
-    <string name="connection_info_bytes_out">Bytes (out)</string>
-    <string name="connection_info_ipv4">IPv4</string>
-    <string name="connection_info_ipv6">IPv6</string>
+    <string name="connection_info_downloaded">Downloaded</string>
+    <string name="connection_info_uploaded">Uploaded</string>
+    <string name="connection_info_ipv4">IPv4 address</string>
+    <string name="connection_info_ipv6">IPv6 address</string>
+
+    <string name="connection_info_state_connecting">Connecting</string>
+    <string name="connection_info_state_connected">Connected</string>
+    <string name="connection_info_state_paused">Paused</string>
+    <string name="connection_info_state_disconnected">Disconnected</string>
+
     <string name="not_available">N/A</string>
     <string name="already_connected_please_disconnect">You are already connected. Please disconnect first.</string>
 
@@ -63,8 +69,6 @@
     <string name="rejected_permission">User rejected access for the app.</string>
     <string name="settings_title">Settings</string>
     <string name="settings_force_tcp_title">Force TCP</string>
-    <string name="settings_force_tcp_description">Force VPN connection over TCP to work around certain network restrictions.</string>
-    <string name="settings_use_custom_tabs_description">Custom Tabs are faster and use less resources. If you turn this feature off, the default browser will be used instead.</string>
     <string name="settings_custom_tabs_opt_out_title">Use Custom Tabs</string>
     <string name="settings_save">Save</string>
     <string name="loading_available_profiles">Loading available profiles…</string>
@@ -110,7 +114,7 @@
     <string name="example_domain">example.org</string>
     <string name="licenses_title">Software licenses</string>
     <string name="settings_licenses_title">Software Licenses</string>
-    <string name="settings_licenses_description">Acknowledgement for 3rd party software used to build this application.</string>
+    <string name="settings_licenses_button">View licenses</string>
     <string name="select_a_server_title">Select a server</string>
     <string name="delete_server">Delete server</string>
     <string name="delete_server_message">Are you sure you want to remove the server \'%1$s\' (%2$s) with all its profiles?</string>
@@ -125,8 +129,8 @@
     <string name="error_fetching_organization_servers">Error fetching organization servers</string>
     <string name="error_fetching_organizations">Error fetching organization / server list</string>
     <string name="discovering_group_servers">Discovering group servers...</string>
-    <string name="reset_app_data_title">Reset Organization</string>
-    <string name="reset_app_data_description">This will delete all your saved profiles and authorization data. After the reset, you will have to choose an organization again.</string>
+    <string name="reset_app_data_title">Reset Organization. This will delete all your saved profiles and authorization data. After the reset, you will have to choose an organization again.</string>
+    <string name="reset_app_data_button">Reset</string>
     <string name="reset_data_dialog_title">Are you sure?</string>
     <string name="reset_data_dialog_message">Do you want to remove all VPN profiles and connection-related data?</string>
     <string name="reset_data_dialog_yes">Yes</string>
@@ -151,4 +155,33 @@
     <string name="header_button_change_location">Change Location</string>
     <string name="error_countries_are_not_available">Unable to load list of countries.</string>
     <string name="unexpected_error">Unexpected error</string>
+    <string name="connection_info">Connection info</string>
+    <string name="connection_info_support">Support: %s</string>
+    <string name="connection_certificate_status_expired">This session is expired.</string>
+    <plurals name="certificate_status_days">
+        <item quantity="one">%d day</item>
+        <item quantity="other">%d days</item>
+    </plurals>
+    <plurals name="certificate_status_hours">
+        <item quantity="one">%d hour</item>
+        <item quantity="other">%d hours</item>
+    </plurals>
+    <plurals name="certificate_status_minutes">
+        <item quantity="one">%d minute</item>
+        <item quantity="other">%d minutes</item>
+    </plurals>
+    <plurals name="certificate_status_seconds">
+        <item quantity="one">%d second</item>
+        <item quantity="other">%d seconds</item>
+    </plurals>
+    <string name="connection_certificate_status_valid_for_one_part"><![CDATA[Valid for <b>%s</b>]]></string>
+    <string name="connection_certificate_status_valid_for_two_parts"><![CDATA[Valid for <b>%1$s</b> and <b>%2$s</b>]]></string>
+    <string name="error_certificate_expired_title">Certificate expired</string>
+    <string name="error_certificate_expired_message">You were disconnected because the certificate expired. Connect again to reauthenticate.</string>
+    <string name="settings_view_log_button">View Log</string>
+    <string name="settings_view_log_title">Connection log</string>
+    <string name="warning_no_organization_title">No organization</string>
+    <string name="ok">OK</string>
+    <string name="warning_no_organization_message">You have no connected organization.</string>
+
 </resources>

@@ -31,7 +31,7 @@ import nl.eduvpn.app.databinding.FragmentProfileSelectionBinding
 import nl.eduvpn.app.entity.Profile
 import nl.eduvpn.app.utils.ErrorDialog
 import nl.eduvpn.app.utils.ItemClickSupport
-import nl.eduvpn.app.viewmodel.ConnectionViewModel
+import nl.eduvpn.app.viewmodel.BaseConnectionViewModel
 import java.util.ArrayList
 
 /**
@@ -40,7 +40,7 @@ import java.util.ArrayList
  */
 class ProfileSelectionFragment : BaseFragment<FragmentProfileSelectionBinding>() {
 
-    private val viewModel by viewModels<ConnectionViewModel> { viewModelFactory }
+    private val viewModel by viewModels<BaseConnectionViewModel> { viewModelFactory }
 
     override val layout = R.layout.fragment_profile_selection
 
@@ -64,18 +64,18 @@ class ProfileSelectionFragment : BaseFragment<FragmentProfileSelectionBinding>()
 
         viewModel.parentAction.observe(this, Observer { parentAction ->
             when (parentAction) {
-                is ConnectionViewModel.ParentAction.InitiateConnection -> {
+                is BaseConnectionViewModel.ParentAction.InitiateConnection -> {
                     activity?.let { activity ->
                         if (!activity.isFinishing) {
                             viewModel.initiateConnection(activity, parentAction.instance, parentAction.discoveredAPI)
                         }
                     }
                 }
-                is ConnectionViewModel.ParentAction.ConnectWithProfile -> {
+                is BaseConnectionViewModel.ParentAction.ConnectWithProfile -> {
                     viewModel.openVpnConnectionToProfile(requireActivity(), parentAction.vpnProfile)
                     (activity as? MainActivity)?.openFragment(ConnectionStatusFragment(), false)
                 }
-                is ConnectionViewModel.ParentAction.DisplayError -> {
+                is BaseConnectionViewModel.ParentAction.DisplayError -> {
                     ErrorDialog.show(requireContext(), parentAction.title, parentAction.message)
                 }
             }

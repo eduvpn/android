@@ -20,7 +20,6 @@ package nl.eduvpn.app.viewmodel
 
 import android.content.Context
 import androidx.lifecycle.MutableLiveData
-import nl.eduvpn.app.BuildConfig
 import nl.eduvpn.app.Constants
 import nl.eduvpn.app.R
 import nl.eduvpn.app.adapter.OrganizationAdapter
@@ -41,7 +40,7 @@ class ServerSelectionViewModel @Inject constructor(
         private val preferencesService: PreferencesService,
         connectionService: ConnectionService,
         vpnService: VPNService,
-        private val organizationService: OrganizationService) : ConnectionViewModel(
+        private val organizationService: OrganizationService) : BaseConnectionViewModel(
         context, apiService,
         serializerService,
         historyService,

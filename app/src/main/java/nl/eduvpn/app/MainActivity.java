@@ -79,6 +79,7 @@ public class MainActivity extends BaseActivity<ActivityMainBinding> {
         // The app might have been reopened from a URL.
         onNewIntent(getIntent());
         binding.toolbar.settingsButton.setOnClickListener(v -> onSettingsButtonClicked());
+        binding.toolbar.helpButton.setOnClickListener(v -> startActivity(new Intent(Intent.ACTION_VIEW, Constants.HELP_URI)));
     }
 
     @Override

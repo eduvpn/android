@@ -1,143 +1,257 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout>
+<layout xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    <data>
+
+        <variable
+            name="viewModel"
+            type="nl.eduvpn.app.viewmodel.ConnectionStatusViewModel" />
+
+        <import type="android.view.View" />
+    </data>
+
+    <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@color/backgroundColor"
         android:clickable="true"
-        android:focusable="true"
-        android:orientation="vertical"
-        android:padding="@dimen/vpn_connection_fragment_padding">
+        android:focusable="true">
 
         <LinearLayout
-            android:id="@+id/detailsContainer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:animateLayoutChanges="true"
             android:baselineAligned="false"
-            android:orientation="horizontal"
-            android:weightSum="1">
+            android:gravity="center"
+            android:orientation="vertical">
 
-            <LinearLayout
-                android:layout_width="0dp"
+            <TextView
+                android:id="@+id/server_name"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="0.2"
-                android:orientation="vertical"
-                tools:ignore="UseCompoundDrawables">
+                android:layout_marginLeft="32dp"
+                android:layout_marginRight="32dp"
+                android:fontFamily="@font/open_sans_bold"
+                android:gravity="center"
+                android:text="@{viewModel.serverName}"
+                android:textColor="@color/textColor"
+                android:textSize="22sp"
+                tools:text="SURFnet" />
 
+            <TextView
+                android:id="@+id/server_support"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="32dp"
+                android:layout_marginTop="4dp"
+                android:layout_marginRight="32dp"
+                android:autoLink="all"
+                android:fontFamily="@font/open_sans_regular"
+                android:gravity="center"
+                android:text="@{viewModel.serverSupport}"
+                android:textColor="@color/textColor"
+                android:textSize="14sp"
+                android:visibility="@{viewModel.serverSupport != null ? View.VISIBLE : View.GONE}"
+                tools:text="Support: eduvpn@surfnet.nl" />
+
+            <ImageView
+                android:id="@+id/connection_status_icon"
+                android:layout_width="wrap_content"
+                android:layout_height="110dp"
+                android:layout_marginTop="30dp"
+                android:adjustViewBounds="true"
+                android:contentDescription="@string/content_description_connection_status_icon"
+                android:scaleType="fitCenter"
+                android:src="@drawable/ic_connection_status_disconnected" />
+
+            <TextView
+                android:id="@+id/connection_status"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="32dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginRight="32dp"
+                android:fontFamily="@font/open_sans_regular"
+                android:gravity="center"
+                android:textColor="@color/textColor"
+                android:textSize="22sp"
+                tools:text="@string/connection_info_state_connected" />
+
+            <TextView
+                android:id="@+id/certificate_validity"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="32dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginRight="32dp"
+                android:autoLink="all"
+                android:fontFamily="@font/open_sans_regular"
+                android:gravity="center"
+                android:textColor="@color/textColor"
+                android:text="@{viewModel.certValidity}"
+                android:textSize="14sp"
+                android:visibility="@{viewModel.certValidity != null ? View.VISIBLE : View.GONE}"
+                tools:text="Valid for 13 days and 22 hours" />
+
+            <androidx.appcompat.widget.SwitchCompat
+                android:id="@+id/connection_switch"
+                style="@style/Switch"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="30dp" />
+
+            <FrameLayout
+                android:id="@+id/connection_info_dropdown"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="40dp"
+                android:background="@android:color/white"
+                android:foreground="?attr/selectableItemBackground"
+                android:orientation="horizontal"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical|left"
+                    android:fontFamily="@font/open_sans_regular"
+                    android:text="@string/connection_info"
+                    android:textColor="@color/textColor"
+                    android:textSize="16sp" />
 
                 <ImageView
-                    android:id="@+id/connectionStatusIcon"
-                    android:layout_width="64dp"
-                    android:layout_height="@dimen/connection_status_details_row_height"
-                    android:adjustViewBounds="true"
-                    android:contentDescription="@string/content_description_connection_status_icon"
-                    android:scaleType="fitCenter"
-                    android:src="@drawable/connection_status_disconnected" />
-            </LinearLayout>
+                    android:id="@+id/dropdown_icon"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_gravity="center_vertical|right"
+                    android:rotation="-90"
+                    android:src="@drawable/ic_chevron_right" />
 
-            <LinearLayout
-                android:layout_width="0dp"
+            </FrameLayout>
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/connection_info_container"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="0.4"
-                android:orientation="vertical"
-                tools:ignore="UseCompoundDrawables">
+                android:padding="16dp"
+                android:visibility="gone"
+                tools:visibility="visible">
+
 
                 <TextView
-                    style="@style/Label"
-                    android:id="@+id/provider_name"
-                    android:layout_width="match_parent"
-                    android:layout_marginRight="8dp"
-                    android:gravity="left|center_vertical"
-                    android:layout_height="@dimen/connection_status_details_row_height"
-                    android:lineSpacingMultiplier="0.85"
-                    android:maxLines="2"
-                    android:textSize="14sp"
-                    tools:text="The Netherlands"
- />
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="0.4"
-                android:orientation="vertical">
-
-                <TextView
-                    android:id="@+id/profileName"
-                    style="@style/Label"
+                    android:id="@+id/label_duration"
+                    style="@style/ConnectionInfoLabel"
                     android:layout_width="wrap_content"
-                    android:layout_height="@dimen/connection_status_details_row_height"
-                    android:ellipsize="end"
-                    android:gravity="left|center_vertical"
-                    android:lineSpacingMultiplier="0.85"
-                    android:maxLines="2"
-                    android:textSize="14sp"
-                    tools:text="USA endpoint with 2FA" />
-            </LinearLayout>
+                    android:layout_height="wrap_content"
+                    android:text="@string/connection_info_duration"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <TextView
+                    android:id="@+id/value_duration"
+                    style="@style/ConnectionInfoValue"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="16dp"
+                    app:layout_constraintLeft_toRightOf="@id/label_downloaded"
+                    app:layout_constraintTop_toTopOf="parent"
+                    tools:text="1h 23m 45s" />
+
+                <TextView
+                    android:id="@+id/label_downloaded"
+                    style="@style/ConnectionInfoLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="@string/connection_info_downloaded"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/label_duration" />
+
+                <TextView
+                    android:id="@+id/value_dowloaded"
+                    style="@style/ConnectionInfoValue"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="16dp"
+                    app:layout_constraintLeft_toRightOf="@id/label_downloaded"
+                    app:layout_constraintTop_toTopOf="@id/label_downloaded"
+                    tools:text="231Mb" />
+
+                <TextView
+                    android:id="@+id/label_uploaded"
+                    style="@style/ConnectionInfoLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="@string/connection_info_uploaded"
+                    app:layout_constraintLeft_toRightOf="@id/guide_50_percent_width"
+                    app:layout_constraintTop_toBottomOf="@id/label_duration" />
+
+                <TextView
+                    android:id="@+id/value_uploaded"
+                    style="@style/ConnectionInfoValue"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="16dp"
+                    app:layout_constraintLeft_toRightOf="@id/label_uploaded"
+                    app:layout_constraintTop_toTopOf="@id/label_uploaded"
+                    tools:text="7Mb" />
+
+
+                <TextView
+                    android:id="@+id/label_ipv4"
+                    style="@style/ConnectionInfoLabel"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:text="@string/connection_info_ipv4"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/label_downloaded"
+                    app:layout_constraintWidth_percent="0.25" />
+
+                <TextView
+                    android:id="@+id/value_ipv4"
+                    style="@style/ConnectionInfoValue"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/label_ipv4"
+                    tools:text="123.123.123" />
+
+                <TextView
+                    android:id="@+id/label_ipv6"
+                    style="@style/ConnectionInfoLabel"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:text="@string/connection_info_ipv6"
+                    app:layout_constraintLeft_toLeftOf="@id/guide_50_percent_width"
+                    app:layout_constraintTop_toBottomOf="@id/label_downloaded"
+                    app:layout_constraintWidth_percent="0.25" />
+
+                <TextView
+                    android:id="@+id/value_ipv6"
+                    style="@style/ConnectionInfoValue"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    app:layout_constraintLeft_toLeftOf="@id/guide_50_percent_width"
+                    app:layout_constraintRight_toRightOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/label_ipv6"
+                    tools:text="2001:610:450:40::2:100b" />
+
+                <androidx.constraintlayout.widget.Guideline
+                    android:id="@+id/guide_50_percent_width"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    app:layout_constraintGuide_percent="0.5" />
+
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
         </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/switcherButtonsContainer"
-            android:layout_width="match_parent"
-            android:layout_height="@dimen/connection_info_notifications_switcher_height"
-            android:layout_below="@+id/detailsContainer"
-            android:layout_alignParentStart="true"
-            android:layout_alignParentLeft="true"
-            android:layout_marginTop="8dp"
-            android:orientation="horizontal"
-            android:weightSum="1">
-
-            <Button
-                android:id="@+id/connectionInfoSwitchButton"
-                style="@style/SwitcherButton"
-                android:layout_marginRight="-1dp"
-                android:background="@drawable/switcher_button_bg_selected"
-                android:text="@string/connection_switcher_title"
-                android:textOff="@string/connection_switcher_title"
-                android:textOn="@string/connection_switcher_title" />
-
-            <Button
-                android:id="@+id/notificationsSwitchButton"
-                style="@style/SwitcherButton"
-                android:layout_marginLeft="-1dp"
-                android:checked="false"
-                android:background="@drawable/switcher_button_bg"
-                android:text="@string/notifications_switcher_default_title"
-                android:textOff="@string/notifications_switcher_default_title"
-                android:textOn="@string/notifications_switcher_default_title" />
-
-
-        </LinearLayout>
-
-        <ViewSwitcher
-            android:id="@+id/switcher"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_above="@+id/disconnectButton"
-            android:layout_below="@+id/switcherButtonsContainer"
-            android:layout_marginTop="-1dp"
-            android:background="@drawable/switcher_bg">
-
-            <include layout="@layout/switch_container_connection_info"
-                android:id="@+id/connection_info"/>
-
-            <include layout="@layout/switch_container_notifications"
-                android:id="@+id/notifications"/>
-
-        </ViewSwitcher>
-
-        <Button
-            android:id="@+id/disconnectButton"
-            style="@style/BigButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentBottom="true"
-            android:layout_centerHorizontal="true"
-            android:layout_marginTop="12dp"
-            android:layout_marginBottom="@dimen/button_margin_bottom"
-            android:enabled="false"
-            android:text="@string/button_disconnect" />
-    </RelativeLayout>
+    </ScrollView>
 </layout>

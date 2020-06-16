@@ -21,6 +21,7 @@ package nl.eduvpn.app.utils
 import android.content.Context
 import android.view.View
 import android.view.inputmethod.InputMethodManager
+import androidx.lifecycle.LiveData
 
 
 /**
@@ -46,4 +47,15 @@ fun View.hideKeyboard(clearFocus: Boolean = true) {
         this.clearFocus()
     }
     context.inputManager.hideSoftInputFromWindow(windowToken, 0)
+}
+
+/**
+ * Converts LiveData to emit single events only.
+ */
+fun <T> LiveData<T>.toSingleEvent(): LiveData<T> {
+    val result = LiveEvent<T>()
+    result.addSource(this) {
+        result.value = it
+    }
+    return result
 }

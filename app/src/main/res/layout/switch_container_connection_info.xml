@@ -29,7 +29,7 @@
             style="@style/ConnectionInfoLabel"
             android:layout_width="@dimen/connection_info_top_container_width"
             android:layout_below="@id/durationLabel"
-            android:text="@string/connection_info_bytes_in" />
+            android:text="@string/connection_info_downloaded" />
 
         <TextView
             android:id="@+id/bytesInValue"
@@ -44,7 +44,7 @@
             style="@style/ConnectionInfoLabel"
             android:layout_width="@dimen/connection_info_top_container_width"
             android:layout_below="@id/bytesInLabel"
-            android:text="@string/connection_info_bytes_out" />
+            android:text="@string/connection_info_uploaded" />
 
         <TextView
             android:id="@+id/bytesOutValue"

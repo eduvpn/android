@@ -41,9 +41,11 @@
         <item name="android:colorAccent" tools:targetApi="lollipop">@color/colorAccent</item>
     </style>
 
-    <style name="ErrorDialog" parent="@android:style/Theme.Translucent.NoTitleBar">
-        <item name="android:windowIsFloating">true</item>
-        <item name="android:windowNoTitle">true</item>
+    <style name="ErrorDialog" parent="Theme.AppCompat.Dialog.Alert">
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorControlHighlight">@color/colorPrimary</item>
+        <item name="colorAccent">@color/colorAccent</item>
     </style>
 
     <style name="StyledVpn.Dialog" parent="blinkt.dialog">
@@ -84,30 +86,27 @@
     <style name="SettingsLabelTitle">
         <item name="android:layout_width">wrap_content</item>
         <item name="android:layout_height">wrap_content</item>
-        <item name="android:textSize">20sp</item>
-        <item name="android:paddingBottom">6dp</item>
-        <item name="android:paddingTop">6dp</item>
-        <item name="android:paddingRight">8dp</item>
-        <item name="android:textStyle">bold</item>
-        <item name="android:textColor">@color/textColor</item>
-        <item name="android:textAllCaps">false</item>
-        <item name="android:layout_alignParentLeft">true</item>
-    </style>
-
-    <style name="SettingsLabelDescription">
-        <item name="android:layout_width">match_parent</item>
-        <item name="android:layout_height">wrap_content</item>
-        <item name="android:gravity">left</item>
         <item name="android:textSize">16sp</item>
-        <item name="android:textColor">@color/settingsDescriptionTextColor</item>
+        <item name="android:fontFamily">@font/open_sans_regular</item>
+        <item name="android:layout_marginTop">16dp</item>
+        <item name="android:layout_marginBottom">16dp</item>
+        <item name="android:layout_gravity">left|center_vertical</item>
+        <item name="android:layout_alignParentLeft">true</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">@color/settingsTextColor</item>
         <item name="android:textAllCaps">false</item>
     </style>
 
-    <style name="SettingsSwitch">
+    <style name="Switch">
+        <item name="track">@drawable/switch_track</item>
+        <item name="android:background">@android:color/transparent</item>
+        <item name="android:thumb">@drawable/switch_thumb</item>
+    </style>
+
+    <style name="Switch.Settings">
         <item name="android:layout_width">wrap_content</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="android:layout_alignParentRight">true</item>
-        <item name="android:padding">8dp</item>
     </style>
 
     <style name="SettingsSeparator">
@@ -115,7 +114,7 @@
         <item name="android:layout_height">1dp</item>
         <item name="android:layout_marginBottom">4dp</item>
         <item name="android:layout_marginTop">4dp</item>
-        <item name="android:background">@color/mainColor</item>
+        <item name="android:background">@color/dividerColor</item>
     </style>
 
     <style name="SmallButton" parent="Widget.MaterialComponents.Button.TextButton">
@@ -134,7 +133,7 @@
 
     <style name="BigButton" parent="Widget.MaterialComponents.Button.OutlinedButton">
         <item name="android:fontFamily">@font/open_sans_bold</item>
-        <item name="backgroundTint">@color/buttonBackgroundColor</item>
+        <item name="backgroundTint">@color/bg_big_button</item>
         <item name="android:paddingLeft">24dp</item>
         <item name="android:paddingRight">24dp</item>
         <item name="android:elevation">4dp</item>
@@ -159,6 +158,15 @@
         <item name="android:textSize">14sp</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="android:textColor">@color/textColor</item>
+        <item name="android:fontFamily">@font/open_sans_bold</item>
+        <item name="android:layout_marginBottom">1dp</item>
+    </style>
+
+    <style name="ConnectionInfoValue">
+        <item name="android:textSize">14sp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textColor">@color/textColor</item>
+        <item name="android:fontFamily">@font/open_sans_regular</item>
         <item name="android:layout_marginBottom">1dp</item>
     </style>
 

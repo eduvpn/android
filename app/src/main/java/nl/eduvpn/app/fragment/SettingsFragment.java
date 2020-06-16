@@ -27,7 +27,7 @@ import javax.inject.Inject;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
-import nl.eduvpn.app.BuildConfig;
+import de.blinkt.openvpn.activities.LogWindow;
 import nl.eduvpn.app.EduVPNApplication;
 import nl.eduvpn.app.LicenseActivity;
 import nl.eduvpn.app.R;
@@ -74,22 +74,38 @@ public class SettingsFragment extends BaseFragment<FragmentSettingsBinding> {
         binding.useCustomTabsSwitch.setOnClickListener(v -> onSettingChanged());
         binding.forceTcpSwitch.setOnClickListener(v -> onSettingChanged());
         binding.saveButton.setOnClickListener(v -> onSaveButtonClicked());
-        binding.licensesContainer.setOnClickListener(v -> startActivity(new Intent(requireContext(), LicenseActivity.class)));
-        binding.resetAppDataContainer.setOnClickListener(v -> onResetDataClicked());
+        binding.licensesButton.setOnClickListener(v -> startActivity(new Intent(requireContext(), LicenseActivity.class)));
+        binding.resetDataButton.setOnClickListener(v -> onResetDataClicked());
+        binding.viewLogButton.setOnClickListener(v -> {
+            Intent intent = new Intent(getActivity(), LogWindow.class);
+            startActivity(intent);
+        });
+
     }
 
     private void onResetDataClicked() {
-        AlertDialog resetDataDialog = new AlertDialog.Builder(requireContext())
-                .setTitle(R.string.reset_data_dialog_title)
-                .setMessage(R.string.reset_data_dialog_message)
-                .setPositiveButton(R.string.reset_data_dialog_yes, (dialog, which) -> {
-                    dialog.dismiss();
-                    _historyService.removeOrganizationData();
-                    requireActivity().setResult(SettingsActivity.RESULT_APP_DATA_CLEARED);
-                    requireActivity().finish();
-                })
-                .setNegativeButton(R.string.reset_data_dialog_no, (dialog, which) -> dialog.dismiss()).create();
-        resetDataDialog.show();
+        if (_historyService.getSavedOrganization() != null) {
+            AlertDialog resetDataDialog = new AlertDialog.Builder(requireContext())
+                    .setTitle(R.string.reset_data_dialog_title)
+                    .setMessage(R.string.reset_data_dialog_message)
+                    .setPositiveButton(R.string.reset_data_dialog_yes, (dialog, which) -> {
+                        dialog.dismiss();
+                        _historyService.removeOrganizationData();
+                        requireActivity().setResult(SettingsActivity.RESULT_APP_DATA_CLEARED);
+                        requireActivity().finish();
+                    })
+                    .setNegativeButton(R.string.reset_data_dialog_no, (dialog, which) -> dialog.dismiss()).create();
+            resetDataDialog.show();
+        } else {
+            AlertDialog warningDialog = new AlertDialog.Builder(requireContext())
+                    .setTitle(R.string.warning_no_organization_title)
+                    .setMessage(R.string.warning_no_organization_message)
+                    .setPositiveButton(R.string.ok, (dialog, which) -> {
+                        dialog.dismiss();
+                    })
+                    .create();
+            warningDialog.show();
+        }
     }
 
     public void onSettingChanged() {

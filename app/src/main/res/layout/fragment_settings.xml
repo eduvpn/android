@@ -33,26 +33,40 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="@color/backgroundColor"
-                android:clickable="true"
                 android:padding="16dp"
                 tools:context=".SettingsActivity">
+
+                <TextView
+                    android:id="@+id/title"
+                    style="@style/Header"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentTop="true"
+                    android:layout_centerHorizontal="true"
+                    android:text="@string/settings_title" />
 
                 <LinearLayout
                     android:id="@+id/resetAppDataContainer"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:layout_below="@id/title"
                     android:background="?attr/selectableItemBackground"
                     android:orientation="vertical">
 
                     <TextView
                         android:id="@+id/resetDataTitle"
                         style="@style/SettingsLabelTitle"
+                        android:layout_marginBottom="0dp"
                         android:text="@string/reset_app_data_title" />
 
-                    <TextView
-                        android:id="@+id/resetDataDescription"
-                        style="@style/SettingsLabelDescription"
-                        android:text="@string/reset_app_data_description" />
+                    <Button
+                        android:id="@+id/reset_data_button"
+                        style="@style/SmallButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="right"
+                        android:minWidth="0dp"
+                        android:text="@string/reset_app_data_button" />
 
                 </LinearLayout>
 
@@ -61,69 +75,80 @@
                     style="@style/SettingsSeparator"
                     android:layout_below="@id/resetAppDataContainer" />
 
-                <TextView
-                    android:id="@+id/forceTcpTitle"
+                <androidx.appcompat.widget.AppCompatCheckBox
+                    android:id="@+id/forceTcpSwitch"
                     style="@style/SettingsLabelTitle"
                     android:layout_below="@id/resetDataSeparator"
+                    android:paddingLeft="8dp"
                     android:text="@string/settings_force_tcp_title" />
 
-                <androidx.appcompat.widget.SwitchCompat
-                    android:id="@+id/forceTcpSwitch"
-                    style="@style/SettingsSwitch"
-                    android:layout_below="@id/resetDataSeparator" />
-
-                <TextView
-                    android:id="@+id/forceTcpDescription"
-                    style="@style/SettingsLabelDescription"
-                    android:layout_below="@+id/forceTcpTitle"
-                    android:text="@string/settings_force_tcp_description" />
 
                 <View
                     android:id="@+id/tcpSeparator"
                     style="@style/SettingsSeparator"
-                    android:layout_below="@id/forceTcpDescription" />
+                    android:layout_below="@id/forceTcpSwitch" />
 
-                <TextView
-                    android:id="@+id/useCustomTabsTitle"
+
+                <androidx.appcompat.widget.AppCompatCheckBox
+                    android:id="@+id/useCustomTabsSwitch"
                     style="@style/SettingsLabelTitle"
                     android:layout_below="@+id/tcpSeparator"
+                    android:paddingLeft="8dp"
                     android:text="@string/settings_custom_tabs_opt_out_title" />
-
-                <androidx.appcompat.widget.SwitchCompat
-                    android:id="@+id/useCustomTabsSwitch"
-                    style="@style/SettingsSwitch"
-                    android:layout_below="@+id/tcpSeparator" />
-
-                <TextView
-                    android:id="@+id/useCustomTabsDescription"
-                    style="@style/SettingsLabelDescription"
-                    android:layout_below="@+id/useCustomTabsTitle"
-                    android:text="@string/settings_use_custom_tabs_description" />
 
                 <View
                     android:id="@+id/customTabsSeparator"
                     style="@style/SettingsSeparator"
-                    android:layout_below="@id/useCustomTabsDescription" />
+                    android:layout_below="@id/useCustomTabsSwitch" />
 
-                <LinearLayout
-                    android:id="@+id/licensesContainer"
+                <FrameLayout
+                    android:id="@+id/view_log_container"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_below="@id/customTabsSeparator"
-                    android:background="?attr/selectableItemBackground"
-                    android:orientation="vertical">
+                    android:background="?attr/selectableItemBackground">
 
                     <TextView
-                        android:id="@+id/licensesTitle"
+                        android:id="@+id/view_log_title"
+                        style="@style/SettingsLabelTitle"
+                        android:text="@string/settings_view_log_title" />
+
+                    <Button
+                        android:id="@+id/view_log_button"
+                        style="@style/SmallButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="right|center_vertical"
+                        android:text="@string/settings_view_log_button" />
+
+                </FrameLayout>
+
+                <View
+                    android:id="@+id/view_log_separator"
+                    style="@style/SettingsSeparator"
+                    android:layout_below="@id/view_log_container" />
+
+                <FrameLayout
+                    android:id="@+id/licenses_container"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@id/view_log_separator"
+                    android:background="?attr/selectableItemBackground">
+
+                    <TextView
+                        android:id="@+id/licenses_title"
                         style="@style/SettingsLabelTitle"
                         android:text="@string/settings_licenses_title" />
 
-                    <TextView
-                        android:id="@+id/licensesDescription"
-                        style="@style/SettingsLabelDescription"
-                        android:text="@string/settings_licenses_description" />
+                    <Button
+                        android:id="@+id/licenses_button"
+                        style="@style/SmallButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="right|center_vertical"
+                        android:text="@string/settings_licenses_button" />
 
-                </LinearLayout>
+                </FrameLayout>
 
             </RelativeLayout>
         </ScrollView>

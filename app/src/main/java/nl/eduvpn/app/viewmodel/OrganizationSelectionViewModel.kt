@@ -40,7 +40,7 @@ class OrganizationSelectionViewModel @Inject constructor(
         serializerService: SerializerService,
         historyService: HistoryService,
         connectionService: ConnectionService,
-        vpnService: VPNService) : ConnectionViewModel(context, apiService, serializerService, historyService, preferencesService, connectionService, vpnService) {
+        vpnService: VPNService) : BaseConnectionViewModel(context, apiService, serializerService, historyService, preferencesService, connectionService, vpnService) {
 
     val state = MutableLiveData<ConnectionState>().also { it.value = ConnectionState.Ready }
 

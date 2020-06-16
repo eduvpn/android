@@ -21,6 +21,7 @@ import android.util.Base64;
 
 import javax.security.cert.X509Certificate;
 
+import androidx.annotation.Nullable;
 import nl.eduvpn.app.utils.Log;
 
 /**
@@ -54,22 +55,43 @@ public class KeyPair {
         return _privateKey;
     }
 
-    public String getCertificateCommonName() {
+    @Nullable
+    private X509Certificate getX509Certificate() {
         try {
             // Remove header and footer
-            String base64Encoded =_certificate
+            String base64Encoded = _certificate
                     .replace("-----BEGIN CERTIFICATE-----\n", "")
                     .replace("-----END CERTIFICATE-----", "");
             byte[] certificateData = Base64.decode(base64Encoded, Base64.DEFAULT);
-            String commonName = X509Certificate.getInstance(certificateData).getSubjectDN().getName();
-            if (commonName.startsWith("CN=")) {
-                return commonName.replace("CN=", "");
-            } else {
-                return commonName;
-            }
+            return X509Certificate.getInstance(certificateData);
         } catch (Exception ex) {
-            Log.e(TAG, "Exception while parsing certicificate", ex);
+            Log.e(TAG, "Unable to parse certificate!", ex);
             return null;
         }
+    }
+
+    public String getCertificateCommonName() {
+        X509Certificate certificate = getX509Certificate();
+        if (certificate == null) {
+            return null;
+        }
+        String commonName = certificate.getSubjectDN().getName();
+        if (commonName.startsWith("CN=")) {
+            return commonName.replace("CN=", "");
+        } else {
+            return commonName;
+        }
+    }
+
+    @Nullable
+    public Long getExpiryTimeMillis() {
+        X509Certificate certificate = getX509Certificate();
+        if (certificate == null) {
+            return null;
+        }
+        if (certificate.getNotAfter() != null) {
+            return certificate.getNotAfter().getTime();
+        }
+        return null;
     }
 }

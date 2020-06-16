@@ -46,4 +46,9 @@ interface ViewModelModule {
     @ViewModelKey(ServerSelectionViewModel::class)
     fun bindServerSelectionViewModel(serverSelectionViewModel: ServerSelectionViewModel): ViewModel
 
+    @Binds
+    @IntoMap
+    @ViewModelKey(ConnectionStatusViewModel::class)
+    fun bindConnectionStatusViewModel(connectionStatusViewModel: ConnectionStatusViewModel): ViewModel
+
 }
