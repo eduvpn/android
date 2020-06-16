@@ -17,6 +17,8 @@
 
 package nl.eduvpn.app;
 
+import android.net.Uri;
+
 import java.util.Locale;
 
 /**
@@ -25,6 +27,8 @@ import java.util.Locale;
  */
 public class Constants {
     public static final boolean DEBUG = BuildConfig.BUILD_TYPE.equalsIgnoreCase("debug");
+
+    public static final Uri HELP_URI = Uri.parse("https://www.eduvpn.org/faq.html");
 
     public static final String API_DISCOVERY_POSTFIX = "/info.json";
 

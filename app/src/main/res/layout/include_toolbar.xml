@@ -48,6 +48,7 @@
                 android:id="@+id/settingsButton"
                 android:layout_width="@dimen/actionbar_icon_size"
                 android:layout_height="@dimen/actionbar_icon_size"
+                android:background="?attr/actionBarItemBackground"
                 android:layout_alignParentTop="true"
                 android:layout_alignParentRight="true"
                 android:contentDescription="@string/content_description_settings_button"
@@ -58,6 +59,7 @@
             <ImageView
                 android:id="@+id/helpButton"
                 android:layout_width="@dimen/actionbar_icon_size"
+                android:background="?attr/actionBarItemBackground"
                 android:layout_height="@dimen/actionbar_icon_size"
                 android:layout_alignParentRight="true"
                 android:layout_alignParentBottom="true"

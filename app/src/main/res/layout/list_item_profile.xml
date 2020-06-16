@@ -5,9 +5,9 @@
         xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
         android:layout_height="@dimen/list_item_height"
+        android:background="?attr/selectableItemBackground"
         android:clickable="true"
-        android:focusable="true"
-        android:background="?attr/selectableItemBackground">
+        android:focusable="true">
 
         <ImageView
             android:id="@+id/profileIcon"
@@ -33,6 +33,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:ellipsize="middle"
+                android:fontFamily="@font/open_sans_regular"
                 android:singleLine="true"
                 android:textColor="@color/textColor"
                 android:textSize="18sp"
@@ -44,6 +45,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:ellipsize="middle"
+                android:fontFamily="@font/open_sans_regular"
                 android:singleLine="true"
                 android:textColor="@color/textColor"
                 android:textSize="15sp"
