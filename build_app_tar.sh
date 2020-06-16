@@ -17,10 +17,6 @@ APP_DIR=${PROJECT_DIR}/eduvpn-android-${V}
 GRADLE_TASK=app:assembleBasicRelease
 UNSIGNED_APK=${APP_DIR}/app/build/outputs/apk/basic/release/app-basic-release-unsigned.apk 
 
-# the "organization first" discovery
-#GRADLE_TASK=app:assembleOrganizationRelease
-#UNSIGNED_APK=${APP_DIR}/app/build/outputs/apk/organization/release/app-organization-release-unsigned.apk
-
 SIGNED_APK=${PROJECT_DIR}/eduVPN-${GIT_TAG}.apk
 
 # Let's Connect!
