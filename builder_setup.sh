@@ -42,7 +42,7 @@ SDK_URL=https://dl.google.com/android/repository/sdk-tools-linux-${SDK_VERSION}.
 (
     cd "${SDK_DIR}" || exit
     tools/bin/sdkmanager --update
-    tools/bin/sdkmanager ndk-bundle
+    tools/bin/sdkmanager "ndk;20.0.5594570"
     tools/bin/sdkmanager "build-tools;${BUILD_TOOLS_VERSION}"
     tools/bin/sdkmanager "platforms;android-${PLATFORM_VERSION}"
 )
