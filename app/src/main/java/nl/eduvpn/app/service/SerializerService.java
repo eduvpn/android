@@ -777,41 +777,6 @@ public class SerializerService {
     }
 
     /**
-     * Serializes an organizations with its servers.
-     *
-     * @param savedOrganization The organizations and its servers to serialize.
-     * @return The servers and organization in JSON format.
-     * @throws UnknownFormatException Thrown if there was an error while serializing.
-     */
-    public JSONObject serializeSavedOrganization(SavedOrganization savedOrganization) throws UnknownFormatException {
-        try {
-            JSONObject result = new JSONObject();
-            result.put("organization", serializeOrganization(savedOrganization.getOrganization()));
-            result.put("servers", serializeInstances(savedOrganization.getServers()));
-            return result;
-        } catch (JSONException ex) {
-            throw new UnknownFormatException(ex);
-        }
-    }
-
-    /**
-     * Deserializes a SavedOrganization from JSON.
-     *
-     * @param jsonObject The saved organization and servers in json format.
-     * @return The deserialized saved organization.
-     * @throws UnknownFormatException Thrown if there was an error while deserializing.
-     */
-    public SavedOrganization deserializeSavedOrganization(JSONObject jsonObject) throws UnknownFormatException {
-        try {
-            JSONObject organizationJson = jsonObject.getJSONObject("organization");
-            JSONArray serversJson = jsonObject.getJSONArray("servers");
-            return new SavedOrganization(deserializeOrganization(organizationJson), deserializeInstances(serversJson));
-        } catch (JSONException ex) {
-            throw new UnknownFormatException(ex);
-        }
-    }
-
-    /**
      * Deserializes a list of saved key pairs.
      *
      * @param jsonObject The json to deserialize from.

@@ -36,7 +36,6 @@ import net.openid.appauth.TokenResponse;
 import net.openid.appauth.browser.BrowserBlacklist;
 import net.openid.appauth.browser.VersionedBrowserMatcher;
 
-import java.util.List;
 import java.util.concurrent.Callable;
 
 import androidx.annotation.NonNull;
@@ -202,9 +201,8 @@ public class ConnectionService {
         // Save the access token for later use.
         _historyService.cacheAuthorizationState(_preferencesService.getCurrentInstance(), authState);
         Organization organization = _preferencesService.getCurrentOrganization();
-        List<Instance> instances = _preferencesService.getOrganizationInstanceList();
-        if (organization != null && instances != null) {
-            _historyService.storeSavedOrganization(new SavedOrganization(organization, instances));
+        if (organization != null) {
+            _historyService.storeSavedOrganization(organization);
         } else {
             Log.w(TAG, "Organization and instances were not available, so no caching was done.");
         }

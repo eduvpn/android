@@ -25,6 +25,7 @@ import nl.eduvpn.app.R
 import nl.eduvpn.app.adapter.OrganizationAdapter
 import nl.eduvpn.app.entity.AuthorizationType
 import nl.eduvpn.app.entity.Instance
+import nl.eduvpn.app.entity.Organization
 import nl.eduvpn.app.service.*
 import nl.eduvpn.app.utils.Log
 import nl.eduvpn.app.utils.getCountryText
@@ -145,6 +146,10 @@ class ServerSelectionViewModel @Inject constructor(
     fun changePreferredCountry(selectedInstance: Instance) {
         preferencesService.preferredCountry = selectedInstance.countryCode
         refresh()
+    }
+
+    fun saveOrganization(organization: Organization) {
+        preferencesService.currentOrganization = organization
     }
 
     companion object {
