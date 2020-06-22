@@ -22,6 +22,9 @@ import android.content.Context
 import android.view.View
 import android.view.inputmethod.InputMethodManager
 import androidx.lifecycle.LiveData
+import nl.eduvpn.app.Constants
+import nl.eduvpn.app.entity.Instance
+import java.util.Locale
 
 
 /**
@@ -58,4 +61,15 @@ fun <T> LiveData<T>.toSingleEvent(): LiveData<T> {
         result.value = it
     }
     return result
+}
+
+fun Instance.getCountryText() : String? {
+    if (countryCode == null) {
+        return null
+    }
+    val countryName = Locale("en", countryCode).getDisplayCountry(Constants.ENGLISH_LOCALE)
+    val firstLetter: Int = Character.codePointAt(countryCode, 0) - 0x41 + 0x1F1E6
+    val secondLetter: Int = Character.codePointAt(countryCode, 1) - 0x41 + 0x1F1E6
+    val countryEmoji = String(Character.toChars(firstLetter)) + String(Character.toChars(secondLetter))
+    return "$countryEmoji   $countryName"
 }

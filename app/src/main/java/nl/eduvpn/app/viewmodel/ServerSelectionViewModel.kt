@@ -27,6 +27,7 @@ import nl.eduvpn.app.entity.AuthorizationType
 import nl.eduvpn.app.entity.Instance
 import nl.eduvpn.app.service.*
 import nl.eduvpn.app.utils.Log
+import nl.eduvpn.app.utils.getCountryText
 import java.util.Locale
 import java.util.Observable
 import java.util.Observer
@@ -137,13 +138,7 @@ class ServerSelectionViewModel @Inject constructor(
         return allInstances?.filter {
             it.authorizationType == AuthorizationType.Distributed && it.countryCode != null
         }?.map {
-            val countryCode = it.countryCode!!
-            val countryName = Locale("en", countryCode).getDisplayCountry(Constants.ENGLISH_LOCALE)
-            val firstLetter: Int = Character.codePointAt(countryCode, 0) - 0x41 + 0x1F1E6
-            val secondLetter: Int = Character.codePointAt(countryCode, 1) - 0x41 + 0x1F1E6
-            val countryEmoji = String(Character.toChars(firstLetter)) + String(Character.toChars(secondLetter))
-
-            Pair(it, "$countryEmoji   $countryName")
+            Pair(it, it.getCountryText() ?: "Unknown country")
         }
     }
 
