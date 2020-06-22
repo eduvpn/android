@@ -26,11 +26,11 @@
     <string name="connection_switcher_title">Connection Info</string>
     <string name="view_log_button">View Log</string>
 
-    <string name="connection_info_duration">Duration</string>
-    <string name="connection_info_downloaded">Downloaded</string>
-    <string name="connection_info_uploaded">Uploaded</string>
-    <string name="connection_info_ipv4">IPv4 address</string>
-    <string name="connection_info_ipv6">IPv6 address</string>
+    <string name="connection_info_duration">DURATION</string>
+    <string name="connection_info_downloaded">DOWNLOADED</string>
+    <string name="connection_info_uploaded">UPLOADED</string>
+    <string name="connection_info_ipv4">IPv4 ADDRESS</string>
+    <string name="connection_info_ipv6">IPv6 ADDRESS</string>
 
     <string name="connection_info_state_connecting">Connecting</string>
     <string name="connection_info_state_connected">Connected</string>
