@@ -38,7 +38,7 @@
 
             <ImageView
                 android:id="@+id/actionbarLogo"
-                android:layout_width="wrap_content"
+                android:layout_width="133dp"
                 android:layout_height="wrap_content"
                 android:layout_centerInParent="true"
                 android:contentDescription="@string/content_description_application_logo"
