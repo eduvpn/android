@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:app="http://schemas.android.com/apk/res-auto">
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
 
     <data>
 
@@ -12,13 +14,15 @@
 
     <FrameLayout
         android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/backgroundColor"
         android:clickable="true"
         android:focusable="true">
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:animateLayoutChanges="true"
+            android:layout_height="match_parent"
+            android:layout_marginBottom="96dp"
             android:baselineAligned="false"
             android:gravity="center"
             android:orientation="vertical">
@@ -85,8 +89,8 @@
                 android:autoLink="all"
                 android:fontFamily="@font/open_sans_regular"
                 android:gravity="center"
-                android:textColor="@color/textColor"
                 android:text="@{viewModel.certValidity}"
+                android:textColor="@color/textColor"
                 android:textSize="14sp"
                 android:visibility="@{viewModel.certValidity != null ? View.VISIBLE : View.GONE}"
                 tools:text="Valid for 13 days and 22 hours" />
@@ -96,14 +100,25 @@
                 style="@style/Switch"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="30dp" />
+                android:layout_marginTop="30dp"
+                android:checked="false"
+                android:enabled="false" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom"
+            android:animateLayoutChanges="true"
+            android:background="@android:color/white"
+            android:elevation="8dp"
+            android:orientation="vertical">
 
             <FrameLayout
                 android:id="@+id/connection_info_dropdown"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="40dp"
-                android:background="@android:color/white"
                 android:foreground="?attr/selectableItemBackground"
                 android:orientation="horizontal"
                 android:padding="16dp">
@@ -205,7 +220,7 @@
                     android:text="@string/connection_info_ipv4"
                     app:layout_constraintLeft_toLeftOf="parent"
                     app:layout_constraintTop_toBottomOf="@id/label_downloaded"
-                    app:layout_constraintWidth_percent="0.25" />
+                    app:layout_constraintWidth_percent="0.5" />
 
                 <TextView
                     android:id="@+id/value_ipv4"
@@ -226,7 +241,7 @@
                     android:text="@string/connection_info_ipv6"
                     app:layout_constraintLeft_toLeftOf="@id/guide_50_percent_width"
                     app:layout_constraintTop_toBottomOf="@id/label_downloaded"
-                    app:layout_constraintWidth_percent="0.25" />
+                    app:layout_constraintWidth_percent="0.5" />
 
                 <TextView
                     android:id="@+id/value_ipv6"
@@ -250,5 +265,6 @@
             </androidx.constraintlayout.widget.ConstraintLayout>
 
         </LinearLayout>
-    </ScrollView>
+
+    </FrameLayout>
 </layout>
