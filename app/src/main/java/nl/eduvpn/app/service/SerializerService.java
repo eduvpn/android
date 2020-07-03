@@ -224,6 +224,9 @@ public class SerializerService {
             if (instance.getCountryCode() != null) {
                 result.put("country_code", instance.getCountryCode());
             }
+            if (instance.getAuthenticationUrlTemplate() != null) {
+                result.put("authentication_url_template", instance.getAuthenticationUrlTemplate());
+            }
             result.put("support_contact", supportContact);
         } catch (JSONException ex) {
             throw new UnknownFormatException(ex);
@@ -306,7 +309,11 @@ public class SerializerService {
             if (jsonObject.has("country_code")) {
                 countryCode = jsonObject.getString("country_code");
             }
-            return new Instance(baseUri, displayName, logoUri, authorizationType, countryCode, isCustom, supportContact);
+            String authenticationUrlTemplate = null;
+            if (jsonObject.has("authentication_url_template")) {
+                authenticationUrlTemplate = jsonObject.getString("authentication_url_template");
+            }
+            return new Instance(baseUri, displayName, logoUri, authorizationType, countryCode, isCustom, authenticationUrlTemplate, supportContact);
         } catch (JSONException ex) {
             throw new UnknownFormatException(ex);
         }

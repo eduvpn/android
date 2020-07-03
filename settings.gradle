@@ -1,3 +1,5 @@
 include ':app'
 include ':ics-openvpn-main'
+include ':appauth'
 project(':ics-openvpn-main').projectDir = new File(rootDir, '/ics-openvpn/main')
+project(':appauth').projectDir = new File(rootDir, '/appauth/library')

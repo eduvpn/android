@@ -121,6 +121,8 @@ def lifecycleVersion = "2.2.0"
 dependencies {
     // The VPN library
     implementation project(path: ':ics-openvpn-main')
+    // OAuth2 client
+    implementation project(path: ':appauth')
     // Please try to stay in sync with the versions used in the ics-openvpn module
     implementation "androidx.appcompat:appcompat:1.1.0"
     implementation "androidx.activity:activity-ktx:1.1.0"
@@ -135,8 +137,6 @@ dependencies {
     implementation "androidx.lifecycle:lifecycle-extensions:$lifecycleVersion"
     implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycleVersion"
 
-    // OAuth client
-    implementation 'net.openid:appauth:0.7.1'
     // Secure preferences (deprecated, only kept for backwards compatibility)
     implementation 'com.scottyab:secure-preferences-lib:0.1.4'
     // HTTP client

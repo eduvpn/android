@@ -46,15 +46,14 @@ import io.reactivex.Single;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
+import nl.eduvpn.app.BuildConfig;
 import nl.eduvpn.app.MainActivity;
 import nl.eduvpn.app.R;
 import nl.eduvpn.app.entity.DiscoveredAPI;
 import nl.eduvpn.app.entity.Instance;
 import nl.eduvpn.app.entity.Organization;
-import nl.eduvpn.app.entity.SavedOrganization;
 import nl.eduvpn.app.utils.ErrorDialog;
 import nl.eduvpn.app.utils.Log;
-import nl.eduvpn.app.BuildConfig;
 
 /**
  * The connection service takes care of building up the URLs and validating the result.
@@ -146,9 +145,21 @@ public class ConnectionService {
                         throw new RuntimeException("Please call onStart() on this service from your activity!");
                     }
                     if (activity != null && !activity.isFinishing()) {
-                        _authorizationService.performAuthorizationRequest(
+                        Intent originalIntent = _authorizationService.getAuthorizationRequestIntent(
                                 authorizationRequest,
                                 PendingIntent.getActivity(activity, REQUEST_CODE_APP_AUTH, new Intent(activity, MainActivity.class), 0));
+                        if (instance.getAuthenticationUrlTemplate() != null && instance.getAuthenticationUrlTemplate().length() > 0 &&
+                                originalIntent.getParcelableExtra("authIntent") != null && _preferencesService.getCurrentOrganization() != null) {
+                            Intent authIntent = originalIntent.getParcelableExtra("authIntent");
+                            if (authIntent != null && authIntent.getDataString() != null) {
+                                String replacedUrl = instance.getAuthenticationUrlTemplate()
+                                        .replace("@RETURN_TO@", Uri.encode(authIntent.getDataString()))
+                                        .replace("@ORG_ID@", Uri.encode(_preferencesService.getCurrentOrganization().getOrgId()));
+                                authIntent.setData(Uri.parse(replacedUrl));
+                                originalIntent.putExtra("authIntent", authIntent);
+                            }
+                        }
+                        activity.startActivity(originalIntent);
                     }
 
                 }, throwable -> {
