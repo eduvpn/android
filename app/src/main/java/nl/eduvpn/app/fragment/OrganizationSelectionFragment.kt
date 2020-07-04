@@ -80,7 +80,7 @@ class OrganizationSelectionFragment : BaseFragment<FragmentOrganizationSelection
                 } else {
                     "https://${item.url}"
                 }
-                val customInstance = Instance(customUrl, getString(R.string.custom_provider_display_name), null, AuthorizationType.Local, null, true, emptyList())
+                val customInstance = Instance(customUrl, getString(R.string.custom_provider_display_name), null, AuthorizationType.Local, null, true, null, emptyList())
                 viewModel.discoverApi(customInstance)
             }
         }

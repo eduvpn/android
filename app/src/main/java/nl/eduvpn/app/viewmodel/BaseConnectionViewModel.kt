@@ -28,8 +28,17 @@ import nl.eduvpn.app.BuildConfig
 import nl.eduvpn.app.Constants
 import nl.eduvpn.app.R
 import nl.eduvpn.app.base.BaseViewModel
-import nl.eduvpn.app.entity.*
-import nl.eduvpn.app.service.*
+import nl.eduvpn.app.entity.DiscoveredAPI
+import nl.eduvpn.app.entity.Instance
+import nl.eduvpn.app.entity.Profile
+import nl.eduvpn.app.entity.SavedKeyPair
+import nl.eduvpn.app.entity.SavedProfile
+import nl.eduvpn.app.service.APIService
+import nl.eduvpn.app.service.ConnectionService
+import nl.eduvpn.app.service.HistoryService
+import nl.eduvpn.app.service.PreferencesService
+import nl.eduvpn.app.service.SerializerService
+import nl.eduvpn.app.service.VPNService
 import nl.eduvpn.app.utils.ErrorDialog
 import nl.eduvpn.app.utils.FormattingUtils
 import nl.eduvpn.app.utils.Log
@@ -77,7 +86,8 @@ open class BaseConnectionViewModel(
                     if (savedToken == null) {
                         authorize(parentInstance ?: instance, discoveredAPI)
                     } else {
-                        if (savedToken.instance.sanitizedBaseURI != (parentInstance ?: instance).sanitizedBaseURI) {
+                        if (savedToken.instance.sanitizedBaseURI != (parentInstance
+                                        ?: instance).sanitizedBaseURI) {
                             // This is a distributed token. We add it to the list.
                             Log.i(TAG, "Distributed token found for different instance.")
                             preferencesService.currentInstance = instance
@@ -90,7 +100,8 @@ open class BaseConnectionViewModel(
                 } catch (ex: SerializerService.UnknownFormatException) {
                     Log.e(TAG, "Error parsing discovered API!", ex)
                     connectionState.value = ConnectionState.Ready
-                    parentAction.value = ParentAction.DisplayError(R.string.error_dialog_title, ex.toString())
+                    parentAction.value = ParentAction.DisplayError(R.string.error_dialog_title,
+                            context.getString(R.string.error_discover_api, instance.sanitizedBaseURI, ex.toString()))
                 }
 
             }
@@ -98,7 +109,8 @@ open class BaseConnectionViewModel(
             override fun onError(errorMessage: String) {
                 Log.e(TAG, "Error while fetching discovered API: $errorMessage")
                 connectionState.value = ConnectionState.Ready
-                parentAction.value = ParentAction.DisplayError(R.string.error_dialog_title, errorMessage)
+                parentAction.value = ParentAction.DisplayError(R.string.error_dialog_title,
+                        context.getString(R.string.error_discover_api, instance.sanitizedBaseURI, errorMessage))
             }
         })
     }

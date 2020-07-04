@@ -36,7 +36,6 @@ import net.openid.appauth.TokenResponse;
 import net.openid.appauth.browser.BrowserBlacklist;
 import net.openid.appauth.browser.VersionedBrowserMatcher;
 
-import java.util.List;
 import java.util.concurrent.Callable;
 
 import androidx.annotation.NonNull;
@@ -47,15 +46,14 @@ import io.reactivex.Single;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
+import nl.eduvpn.app.BuildConfig;
 import nl.eduvpn.app.MainActivity;
 import nl.eduvpn.app.R;
 import nl.eduvpn.app.entity.DiscoveredAPI;
 import nl.eduvpn.app.entity.Instance;
 import nl.eduvpn.app.entity.Organization;
-import nl.eduvpn.app.entity.SavedOrganization;
 import nl.eduvpn.app.utils.ErrorDialog;
 import nl.eduvpn.app.utils.Log;
-import nl.eduvpn.app.BuildConfig;
 
 /**
  * The connection service takes care of building up the URLs and validating the result.
@@ -147,9 +145,21 @@ public class ConnectionService {
                         throw new RuntimeException("Please call onStart() on this service from your activity!");
                     }
                     if (activity != null && !activity.isFinishing()) {
-                        _authorizationService.performAuthorizationRequest(
+                        Intent originalIntent = _authorizationService.getAuthorizationRequestIntent(
                                 authorizationRequest,
                                 PendingIntent.getActivity(activity, REQUEST_CODE_APP_AUTH, new Intent(activity, MainActivity.class), 0));
+                        if (instance.getAuthenticationUrlTemplate() != null && instance.getAuthenticationUrlTemplate().length() > 0 &&
+                                originalIntent.getParcelableExtra("authIntent") != null && _preferencesService.getCurrentOrganization() != null) {
+                            Intent authIntent = originalIntent.getParcelableExtra("authIntent");
+                            if (authIntent != null && authIntent.getDataString() != null) {
+                                String replacedUrl = instance.getAuthenticationUrlTemplate()
+                                        .replace("@RETURN_TO@", Uri.encode(authIntent.getDataString()))
+                                        .replace("@ORG_ID@", Uri.encode(_preferencesService.getCurrentOrganization().getOrgId()));
+                                authIntent.setData(Uri.parse(replacedUrl));
+                                originalIntent.putExtra("authIntent", authIntent);
+                            }
+                        }
+                        activity.startActivity(originalIntent);
                     }
 
                 }, throwable -> {
@@ -202,9 +212,8 @@ public class ConnectionService {
         // Save the access token for later use.
         _historyService.cacheAuthorizationState(_preferencesService.getCurrentInstance(), authState);
         Organization organization = _preferencesService.getCurrentOrganization();
-        List<Instance> instances = _preferencesService.getOrganizationInstanceList();
-        if (organization != null && instances != null) {
-            _historyService.storeSavedOrganization(new SavedOrganization(organization, instances));
+        if (organization != null) {
+            _historyService.storeSavedOrganization(organization);
         } else {
             Log.w(TAG, "Organization and instances were not available, so no caching was done.");
         }

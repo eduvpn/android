@@ -25,12 +25,15 @@ import androidx.lifecycle.MutableLiveData
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
+import nl.eduvpn.app.Constants
 import nl.eduvpn.app.R
 import nl.eduvpn.app.base.BaseViewModel
 import nl.eduvpn.app.service.HistoryService
 import nl.eduvpn.app.service.PreferencesService
 import nl.eduvpn.app.utils.Log
+import nl.eduvpn.app.utils.getCountryText
 import nl.eduvpn.app.utils.toSingleEvent
+import java.util.Locale
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
@@ -57,12 +60,14 @@ class ConnectionStatusViewModel @Inject constructor(
 
     init {
         val savedProfile = preferencesService.currentProfile
-        if (savedProfile != null) {
+        val connectionInstance = preferencesService.currentInstance
+        if (connectionInstance?.countryCode != null) {
+            serverName.value = connectionInstance.getCountryText()
+        } else if (savedProfile != null) {
             serverName.value = savedProfile.displayName
         } else {
             serverName.value = context.getString(R.string.profile_name_not_found)
         }
-        val connectionInstance = preferencesService.currentInstance
         if (connectionInstance != null && connectionInstance.supportContact.isNotEmpty()) {
             val supportContacts = StringBuilder()
             for (contact in connectionInstance.supportContact) {

@@ -31,6 +31,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import nl.eduvpn.app.entity.AuthorizationType;
 import nl.eduvpn.app.entity.Instance;
+import nl.eduvpn.app.entity.Organization;
 import nl.eduvpn.app.entity.SavedAuthState;
 import nl.eduvpn.app.entity.SavedKeyPair;
 import nl.eduvpn.app.entity.SavedOrganization;
@@ -49,7 +50,7 @@ public class HistoryService extends Observable {
     private List<SavedAuthState> _savedAuthStateList;
     private List<SavedKeyPair> _savedKeyPairList;
 
-    private SavedOrganization _savedOrganization;
+    private Organization _savedOrganization;
 
     private final PreferencesService _preferencesService;
 
@@ -275,13 +276,13 @@ public class HistoryService extends Observable {
     }
 
     @Nullable
-    public SavedOrganization getSavedOrganization() {
+    public Organization getSavedOrganization() {
         return _savedOrganization;
     }
 
-    public void storeSavedOrganization(@NonNull SavedOrganization savedOrganization) {
-        _savedOrganization = savedOrganization;
-        _preferencesService.storeSavedOrganization(savedOrganization);
+    public void storeSavedOrganization(@NonNull Organization organization) {
+        _savedOrganization = organization;
+        _preferencesService.storeSavedOrganization(organization);
         setChanged();
         notifyObservers(NOTIFICATION_SAVED_ORGANIZATION_CHANGED);
         clearChanged();
@@ -432,13 +433,15 @@ public class HistoryService extends Observable {
     public void removeOrganizationData() {
         _savedOrganization = null;
         _preferencesService.setCurrentOrganization(null);
-        List<Instance> organizationInstances = _preferencesService.getOrganizationInstanceList();
-        _preferencesService.storeOrganizationInstanceList(null);
-        if (organizationInstances != null) {
-            for (Instance instance : organizationInstances) {
-                removeAllDataForInstance(instance);
+        List<Instance> instancesToRemove = new ArrayList<>();
+        for (SavedAuthState authState : _savedAuthStateList) {
+            if (authState.getInstance() != null && authState.getInstance().getAuthorizationType() == AuthorizationType.Distributed) {
+                instancesToRemove.add(authState.getInstance());
             }
         }
+            for (Instance instance : instancesToRemove) {
+                removeAllDataForInstance(instance);
+            }
         _save();
     }
 }

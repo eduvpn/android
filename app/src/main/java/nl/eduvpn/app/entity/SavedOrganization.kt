@@ -19,6 +19,5 @@
 package nl.eduvpn.app.entity
 
 data class SavedOrganization(
-    val organization: Organization,
-    val servers: List<Instance>
+    val organization: Organization
 )

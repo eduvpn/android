@@ -23,7 +23,6 @@ import android.content.SharedPreferences;
 
 import net.openid.appauth.AuthState;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -33,10 +32,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
 import nl.eduvpn.app.Constants;
-import nl.eduvpn.app.entity.AuthorizationType;
 import nl.eduvpn.app.entity.DiscoveredAPI;
 import nl.eduvpn.app.entity.Instance;
-import nl.eduvpn.app.entity.InstanceList;
 import nl.eduvpn.app.entity.Organization;
 import nl.eduvpn.app.entity.Profile;
 import nl.eduvpn.app.entity.SavedAuthState;
@@ -66,8 +63,6 @@ public class PreferencesService {
     static final String KEY_INSTANCE = "instance";
     static final String KEY_PROFILE = "profile";
     static final String KEY_DISCOVERED_API = "discovered_api";
-
-    static final String KEY_ORGANIZATION_INSTANCE_LIST = "organization_instance_list";
 
     static final String KEY_INSTANCE_LIST_PREFIX = "instance_list_";
 
@@ -447,46 +442,6 @@ public class PreferencesService {
         }
     }
 
-    /**
-     * Stores the organization instance list
-     */
-    public void storeOrganizationInstanceList(@Nullable List<Instance> organizationInstanceListToSave) {
-        try {
-            if (organizationInstanceListToSave == null) {
-                _getSharedPreferences().edit().remove(KEY_ORGANIZATION_INSTANCE_LIST).apply();
-            } else {
-                String serializedInstanceList = _serializerService.serializeInstances(organizationInstanceListToSave).toString();
-                _getSharedPreferences().edit().putString(KEY_ORGANIZATION_INSTANCE_LIST, serializedInstanceList).apply();
-            }
-        } catch (SerializerService.UnknownFormatException ex) {
-            Log.e(TAG, "Cannot save organization instance list.", ex);
-        }
-    }
-
-
-    /**
-     * Stores the instance list for a specific connection type
-     */
-    public void storeInstanceList(AuthorizationType authorizationType, @Nullable InstanceList instanceListToSave) {
-        String key;
-        if (authorizationType == AuthorizationType.Distributed) {
-            key = KEY_INSTANCE_LIST_INSTITUTE_ACCESS;
-        } else if (authorizationType == AuthorizationType.Local) {
-            key = KEY_INSTANCE_LIST_SECURE_INTERNET;
-        } else {
-            throw new RuntimeException("Unexpected connection type!");
-        }
-        try {
-            if (instanceListToSave == null) {
-                _getSharedPreferences().edit().remove(key).apply();
-            } else {
-                String serializedInstanceList = _serializerService.serializeInstanceList(instanceListToSave).toString();
-                _getSharedPreferences().edit().putString(key, serializedInstanceList).apply();
-            }
-        } catch (SerializerService.UnknownFormatException ex) {
-            Log.e(TAG, "Cannot save instance list for connection type: " + authorizationType, ex);
-        }
-    }
 
     @Nullable
     public List<SavedKeyPair> getSavedKeyPairList() {
@@ -502,52 +457,10 @@ public class PreferencesService {
         }
     }
 
-    /**
-     * Retrieves the organization instances list
-     */
-    @Nullable
-    public List<Instance> getOrganizationInstanceList() {
-        try {
-            String serializedOrganizationList = _getSharedPreferences().getString(KEY_ORGANIZATION_INSTANCE_LIST, null);
-            if (serializedOrganizationList == null) {
-                return null;
-            }
-            return _serializerService.deserializeInstances(new JSONArray(serializedOrganizationList));
-        } catch (Exception ex) {
-            Log.e(TAG, "Cannot deserialize previously saved organization instances list.", ex);
-            return null;
-        }
-    }
-
-    /**
-     * Stores the instance list for a specific authorization type
-     */
-    @Nullable
-    public InstanceList getInstanceList(AuthorizationType authorizationType) {
-        String key;
-        if (authorizationType == AuthorizationType.Distributed) {
-            key = KEY_INSTANCE_LIST_INSTITUTE_ACCESS;
-        } else if (authorizationType == AuthorizationType.Local) {
-            key = KEY_INSTANCE_LIST_SECURE_INTERNET;
-        } else {
-            throw new RuntimeException("Unexpected connection type!");
-        }
-        try {
-            String serializedInstanceList = _getSharedPreferences().getString(key, null);
-            if (serializedInstanceList == null) {
-                return null;
-            }
-            return _serializerService.deserializeInstanceList(new JSONObject(serializedInstanceList));
-        } catch (SerializerService.UnknownFormatException | JSONException ex) {
-            Log.e(TAG, "Cannot deserialize previously saved instance list of authorization type: " + authorizationType, ex);
-            return null;
-        }
-    }
-
-    /*
+    /***
      * Stores the list of saved key pairs.
      * @param savedKeyPairs The list of saved key pairs to store.
-     */
+     ***/
     public void storeSavedKeyPairList(@NonNull List<SavedKeyPair> savedKeyPairs) {
         try {
             String serializedKeyPairList = _serializerService.serializeSavedKeyPairList(savedKeyPairs).toString();
@@ -560,14 +473,14 @@ public class PreferencesService {
     /**
      * Stores an organization together with its servers.
      *
-     * @param savedOrganization The organization and its servers to save.
+     * @param organization The organization.
      */
-    public void storeSavedOrganization(@Nullable SavedOrganization savedOrganization) {
+    public void storeSavedOrganization(@Nullable Organization organization) {
         try {
-            if (savedOrganization == null) {
+            if (organization == null) {
                 _getSharedPreferences().edit().remove(KEY_SAVED_ORGANIZATION).apply();
             } else {
-                String serializedSavedOrganization = _serializerService.serializeSavedOrganization(savedOrganization).toString();
+                String serializedSavedOrganization = _serializerService.serializeOrganization(organization).toString();
                 _getSharedPreferences().edit().putString(KEY_SAVED_ORGANIZATION, serializedSavedOrganization).apply();
             }
         } catch (SerializerService.UnknownFormatException ex) {
@@ -581,13 +494,13 @@ public class PreferencesService {
      * @return The previously stored saved organization. Null if deserialization failed or no stored one found.
      */
     @Nullable
-    public SavedOrganization getSavedOrganization() {
+    public Organization getSavedOrganization() {
         try {
             String savedOrganizationJson = _getSharedPreferences().getString(KEY_SAVED_ORGANIZATION, null);
             if (savedOrganizationJson == null) {
                 return null;
             }
-            return _serializerService.deserializeSavedOrganization(new JSONObject(savedOrganizationJson));
+            return _serializerService.deserializeOrganization(new JSONObject(savedOrganizationJson));
         } catch (Exception ex) {
             Log.e(TAG, "Cannot deserialize saved organization.", ex);
             return null;

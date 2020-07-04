@@ -224,6 +224,9 @@ public class SerializerService {
             if (instance.getCountryCode() != null) {
                 result.put("country_code", instance.getCountryCode());
             }
+            if (instance.getAuthenticationUrlTemplate() != null) {
+                result.put("authentication_url_template", instance.getAuthenticationUrlTemplate());
+            }
             result.put("support_contact", supportContact);
         } catch (JSONException ex) {
             throw new UnknownFormatException(ex);
@@ -306,7 +309,11 @@ public class SerializerService {
             if (jsonObject.has("country_code")) {
                 countryCode = jsonObject.getString("country_code");
             }
-            return new Instance(baseUri, displayName, logoUri, authorizationType, countryCode, isCustom, supportContact);
+            String authenticationUrlTemplate = null;
+            if (jsonObject.has("authentication_url_template")) {
+                authenticationUrlTemplate = jsonObject.getString("authentication_url_template");
+            }
+            return new Instance(baseUri, displayName, logoUri, authorizationType, countryCode, isCustom, authenticationUrlTemplate, supportContact);
         } catch (JSONException ex) {
             throw new UnknownFormatException(ex);
         }
@@ -771,41 +778,6 @@ public class SerializerService {
             JSONObject result = new JSONObject();
             result.put("items", serialized);
             return result;
-        } catch (JSONException ex) {
-            throw new UnknownFormatException(ex);
-        }
-    }
-
-    /**
-     * Serializes an organizations with its servers.
-     *
-     * @param savedOrganization The organizations and its servers to serialize.
-     * @return The servers and organization in JSON format.
-     * @throws UnknownFormatException Thrown if there was an error while serializing.
-     */
-    public JSONObject serializeSavedOrganization(SavedOrganization savedOrganization) throws UnknownFormatException {
-        try {
-            JSONObject result = new JSONObject();
-            result.put("organization", serializeOrganization(savedOrganization.getOrganization()));
-            result.put("servers", serializeInstances(savedOrganization.getServers()));
-            return result;
-        } catch (JSONException ex) {
-            throw new UnknownFormatException(ex);
-        }
-    }
-
-    /**
-     * Deserializes a SavedOrganization from JSON.
-     *
-     * @param jsonObject The saved organization and servers in json format.
-     * @return The deserialized saved organization.
-     * @throws UnknownFormatException Thrown if there was an error while deserializing.
-     */
-    public SavedOrganization deserializeSavedOrganization(JSONObject jsonObject) throws UnknownFormatException {
-        try {
-            JSONObject organizationJson = jsonObject.getJSONObject("organization");
-            JSONArray serversJson = jsonObject.getJSONArray("servers");
-            return new SavedOrganization(deserializeOrganization(organizationJson), deserializeInstances(serversJson));
         } catch (JSONException ex) {
             throw new UnknownFormatException(ex);
         }

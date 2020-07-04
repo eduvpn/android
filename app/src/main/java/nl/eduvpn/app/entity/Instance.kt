@@ -27,6 +27,7 @@ data class Instance(
         val authorizationType: AuthorizationType?,
         val countryCode: String?,
         val isCustom: Boolean,
+        val authenticationUrlTemplate: String?,
         val supportContact: List<String>) {
 
     val sanitizedBaseURI: String
