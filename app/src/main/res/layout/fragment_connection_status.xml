@@ -218,7 +218,7 @@
                     style="@style/ConnectionInfoValue"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginLeft="16dp"
+                    android:layout_marginLeft="8dp"
                     app:layout_constraintLeft_toRightOf="@id/label_downloaded"
                     app:layout_constraintTop_toTopOf="parent"
                     tools:text="1h 23m 45s" />
@@ -238,7 +238,7 @@
                     style="@style/ConnectionInfoValue"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginLeft="16dp"
+                    android:layout_marginLeft="8dp"
                     app:layout_constraintLeft_toRightOf="@id/label_downloaded"
                     app:layout_constraintTop_toTopOf="@id/label_downloaded"
                     tools:text="231Mb" />
@@ -258,7 +258,7 @@
                     style="@style/ConnectionInfoValue"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginLeft="16dp"
+                    android:layout_marginLeft="8dp"
                     app:layout_constraintLeft_toRightOf="@id/label_uploaded"
                     app:layout_constraintTop_toTopOf="@id/label_uploaded"
                     tools:text="7Mb" />
