@@ -184,5 +184,9 @@
     <string name="warning_no_organization_title">No organization</string>
     <string name="ok">OK</string>
     <string name="warning_no_organization_message">You have no connected organization.</string>
+    <string name="connection_select_profile">Select profile</string>
+    <string name="connection_warning_disconnect_first_title">VPN connected</string>
+    <string name="connection_warning_disconnect_first_message">To switch between profiles, you need to disconnect first using the toggle.</string>
+    <string name="connection_warning_disconnect_first_ok_button">OK</string>
 
 </resources>

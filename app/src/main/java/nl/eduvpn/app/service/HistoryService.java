@@ -34,7 +34,6 @@ import nl.eduvpn.app.entity.Instance;
 import nl.eduvpn.app.entity.Organization;
 import nl.eduvpn.app.entity.SavedAuthState;
 import nl.eduvpn.app.entity.SavedKeyPair;
-import nl.eduvpn.app.entity.SavedOrganization;
 import nl.eduvpn.app.entity.SavedProfile;
 import nl.eduvpn.app.utils.Log;
 
@@ -162,6 +161,16 @@ public class HistoryService extends Observable {
      * @param savedProfile The saved profile to store.
      */
     public void cacheSavedProfile(@NonNull SavedProfile savedProfile) {
+        // Remove profiles which are for the exact same server and profile, so we don't store outdated profiles.
+        Iterator<SavedProfile> listIterator = _savedProfileList.iterator();
+        while (listIterator.hasNext()) {
+            SavedProfile listProfile = listIterator.next();
+            if (listProfile.getInstance().getAuthorizationType() == savedProfile.getInstance().getAuthorizationType() &&
+                    listProfile.getInstance().getSanitizedBaseURI().equals(savedProfile.getInstance().getSanitizedBaseURI()) &&
+                    listProfile.getProfile().getProfileId().equals(savedProfile.getProfile().getProfileId())) {
+                listIterator.remove();
+            }
+        }
         _savedProfileList.add(savedProfile);
         _save();
         setChanged();
@@ -439,9 +448,9 @@ public class HistoryService extends Observable {
                 instancesToRemove.add(authState.getInstance());
             }
         }
-            for (Instance instance : instancesToRemove) {
-                removeAllDataForInstance(instance);
-            }
+        for (Instance instance : instancesToRemove) {
+            removeAllDataForInstance(instance);
+        }
         _save();
     }
 }

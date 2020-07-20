@@ -52,7 +52,6 @@ import nl.eduvpn.app.entity.Organization;
 import nl.eduvpn.app.entity.Profile;
 import nl.eduvpn.app.entity.SavedAuthState;
 import nl.eduvpn.app.entity.SavedKeyPair;
-import nl.eduvpn.app.entity.SavedOrganization;
 import nl.eduvpn.app.entity.SavedProfile;
 import nl.eduvpn.app.entity.Settings;
 import nl.eduvpn.app.entity.message.Maintenance;
@@ -82,6 +81,31 @@ public class SerializerService {
 
     static {
         API_DATE_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
+    }
+
+
+    /**
+     * Serialized a list of profiles to JSON formater
+     *
+     * @param profileList The list of profiles to serialize.
+     * @return The list of profiles in a JSON array.
+     * @throws UnknownFormatException Thrown if there was a problem while creating the JSON.
+     */
+    public JSONObject serializeProfileList(@NonNull List<Profile> profileList) throws UnknownFormatException {
+        JSONObject result = new JSONObject();
+        JSONObject data = new JSONObject();
+        JSONArray array = new JSONArray();
+        for (Profile profile : profileList) {
+            JSONObject profileObject = serializeProfile(profile);
+            array.put(profileObject);
+        }
+        try {
+            result.put("profile_list", data);
+            data.put("data", array);
+        }catch (JSONException ex) {
+            throw new UnknownFormatException("Unable to create nested object for serialized profile list!");
+        }
+        return result;
     }
 
 

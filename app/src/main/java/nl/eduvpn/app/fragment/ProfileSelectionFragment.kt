@@ -62,7 +62,7 @@ class ProfileSelectionFragment : BaseFragment<FragmentProfileSelectionBinding>()
 
         profileAdapter.submitList(profiles)
 
-        viewModel.parentAction.observe(this, Observer { parentAction ->
+        viewModel.parentAction.observe(viewLifecycleOwner, Observer { parentAction ->
             when (parentAction) {
                 is BaseConnectionViewModel.ParentAction.InitiateConnection -> {
                     activity?.let { activity ->

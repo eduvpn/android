@@ -137,6 +137,7 @@ open class BaseConnectionViewModel(
                     preferencesService.currentInstance = instance
                     preferencesService.currentDiscoveredAPI = discoveredAPI
                     preferencesService.currentAuthState = authState
+                    preferencesService.currentProfileList = profiles
                     connectionState.value = ConnectionState.Ready
                     if (profiles.size > 1) {
                         parentAction.value = ParentAction.OpenProfileSelector(profiles)

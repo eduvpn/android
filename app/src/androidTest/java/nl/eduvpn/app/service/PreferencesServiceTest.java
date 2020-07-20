@@ -56,7 +56,7 @@ public class PreferencesServiceTest {
 
     @Test
     public void testInstanceSave() {
-        Instance instance = new Instance("http://example.com", "Example", "http://example.com/image.jpg", AuthorizationType.Distributed, "HU", true, new ArrayList<>());
+        Instance instance = new Instance("http://example.com", "Example", "http://example.com/image.jpg", AuthorizationType.Distributed, "HU", true, "https://example.com/template", new ArrayList<>());
         _preferencesService.setCurrentInstance(instance);
         Instance retrievedInstance = _preferencesService.getCurrentInstance();
         assertNotNull(retrievedInstance);
@@ -66,6 +66,7 @@ public class PreferencesServiceTest {
         assertEquals(instance.isCustom(), retrievedInstance.isCustom());
         assertEquals(instance.getCountryCode(), retrievedInstance.getCountryCode());
         assertEquals(instance.getSupportContact(), retrievedInstance.getSupportContact());
+        assertEquals(instance.getAuthenticationUrlTemplate(), retrievedInstance.getAuthenticationUrlTemplate());
     }
 
     @Test
@@ -83,7 +84,7 @@ public class PreferencesServiceTest {
     public void testMigration() throws SerializerService.UnknownFormatException {
         // We only test a few properties
         DiscoveredAPI discoveredAPI = new DiscoveredAPI("http://example.com/", "http://example.com/auth_endpoint", "http://example.com/token_endpoint");
-        Instance instance = new Instance("base_uri", "display_name", "logo_uri", AuthorizationType.Distributed, "NL", false, new ArrayList<>());
+        Instance instance = new Instance("base_uri", "display_name", "logo_uri", AuthorizationType.Distributed, "NL", false, "https://example.com/template", new ArrayList<>());
         SharedPreferences.Editor editor = _oldPreferences.edit();
 
         SerializerService serializerService = new SerializerService();
@@ -109,6 +110,7 @@ public class PreferencesServiceTest {
         assertEquals(instanceResult.isCustom(), instanceResult.isCustom());
         assertEquals(instanceResult.getCountryCode(), instanceResult.getCountryCode());
         assertEquals(instanceResult.getSupportContact(), instanceResult.getSupportContact());
+        assertEquals(instanceResult.getAuthenticationUrlTemplate(), instanceResult.getAuthenticationUrlTemplate());
     }
 
 }
