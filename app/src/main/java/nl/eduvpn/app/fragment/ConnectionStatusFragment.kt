@@ -19,8 +19,10 @@ package nl.eduvpn.app.fragment
 import android.os.Bundle
 import android.os.Handler
 import android.view.View
+import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.observe
+import de.blinkt.openvpn.VpnProfile
 import nl.eduvpn.app.EduVPNApplication
 import nl.eduvpn.app.MainActivity
 import nl.eduvpn.app.R
@@ -44,9 +46,11 @@ import javax.inject.Inject
  */
 class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>(), ConnectionInfoCallback {
     private var vpnStatusObserver: Observer? = null
-    private var userInitiatedDisconnect = false
-    private var userNavigation = false
     private val gracefulDisconnectHandler = Handler()
+
+    private var isAutomaticCheckChange = false
+    private var skipNextDisconnect = true
+
 
     @Inject
     protected lateinit var vpnService: VPNService
@@ -55,15 +59,24 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
 
     private val viewModel by viewModels<ConnectionStatusViewModel> { viewModelFactory }
 
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         EduVPNApplication.get(view.context).component().inject(this)
         binding.viewModel = viewModel
-        binding.connectionSwitch.setOnClickListener {
-            val isChecked = binding.connectionSwitch.isChecked
+        binding.connectionSwitch.setOnCheckedChangeListener { _, isChecked ->
+            if (isAutomaticCheckChange) {
+                return@setOnCheckedChangeListener
+            }
             if (!isChecked) {
-                onDisconnectButtonClicked()
+                disconnect()
+            } else {
+                val config = viewModel.findCurrentConfig()
+                if (config != null) {
+                    connect(config)
+                } else {
+                    // Should not happen
+                    returnToHome()
+                }
             }
         }
         binding.connectionInfoDropdown.setOnClickListener {
@@ -76,13 +89,35 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
                 binding.dropdownIcon.animate().rotation(90f).setDuration(300L).start()
             }
         }
+        binding.profileSwitcher.setOnClickListener {
+            if (viewModel.isInDisconnectMode.value == true) {
+                val profileItems = viewModel.serverProfiles.value ?: emptyList()
+                AlertDialog.Builder(requireContext(), R.style.AppTheme_AlertDialog)
+                        .setTitle(R.string.connection_select_profile)
+                        .setItems(profileItems.map { it.displayName }.toTypedArray(), { _, which ->
+                            val selectedProfile = profileItems[which]
+                            connect(selectedProfile)
+                        }).show()
+            } else {
+                AlertDialog.Builder(requireContext(), R.style.AppTheme_AlertDialog)
+                        .setTitle(R.string.connection_warning_disconnect_first_title)
+                        .setMessage(R.string.connection_warning_disconnect_first_message)
+                        .setPositiveButton(R.string.connection_warning_disconnect_first_ok_button) { dialog, _ ->
+                            dialog.dismiss()
+                        }
+                        .show()
+            }
+        }
         viewModel.parentAction.observe(viewLifecycleOwner) { parentAction ->
             when (parentAction) {
                 ConnectionStatusViewModel.ParentAction.SessionExpired -> {
                     ErrorDialog.show(requireContext(), R.string.error_certificate_expired_title, R.string.error_certificate_expired_message)
-                    onDisconnectButtonClicked()
+                    disconnect()
                 }
             }
+        }
+        viewModel.isInDisconnectMode.observe(viewLifecycleOwner) { isInDisconnectMode ->
+            (activity as? MainActivity)?.setBackNavigationEnabled(isInDisconnectMode)
         }
     }
 
@@ -91,43 +126,48 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
         vpnStatusObserver = Observer { _: Observable?, arg: Any? ->
             when (arg as VPNStatus?) {
                 VPNStatus.CONNECTED -> {
-                    userNavigation = false
                     binding.connectionStatusIcon.setImageResource(R.drawable.ic_connection_status_connected)
                     binding.connectionStatus.setText(R.string.connection_info_state_connected)
+                    isAutomaticCheckChange = true
                     binding.connectionSwitch.isChecked = true
+                    isAutomaticCheckChange = false
                 }
                 VPNStatus.CONNECTING -> {
                     binding.connectionStatusIcon.setImageResource(R.drawable.ic_connection_status_connecting)
                     binding.connectionStatus.setText(R.string.connection_info_state_connecting)
-                    userNavigation = false
-                    binding.connectionSwitch.isEnabled = true
+                    isAutomaticCheckChange = true
                     binding.connectionSwitch.isChecked = true
+                    isAutomaticCheckChange = false
                 }
                 VPNStatus.PAUSED -> {
                     binding.connectionStatus.setText(R.string.connection_info_state_paused)
-                    binding.connectionSwitch.isEnabled = true
+                    isAutomaticCheckChange = true
                     binding.connectionSwitch.isChecked = true
-                    userNavigation = false
+                    isAutomaticCheckChange = false
                     binding.connectionStatusIcon.setImageResource(R.drawable.ic_connection_status_connecting)
                 }
-                VPNStatus.DISCONNECTED -> if (userInitiatedDisconnect) {
-                    // Go back to the home screen.
-                    binding.connectionSwitch.isEnabled = false
-                    userNavigation = false
-                    gracefulDisconnectHandler.removeCallbacksAndMessages(null)
-                    returnToHome()
-                } else {
+                VPNStatus.DISCONNECTED -> {
+
                     binding.connectionStatusIcon.setImageResource(R.drawable.ic_connection_status_disconnected)
                     binding.connectionStatus.setText(R.string.connection_info_state_disconnected)
-                    binding.connectionSwitch.isEnabled = true
-                    binding.connectionSwitch.isChecked = false
-                    userNavigation = true
+                    if (skipNextDisconnect) {
+                        // The first disconnect can mess a bit with the UI so we skip this part in special cases
+                        isAutomaticCheckChange = true
+                        binding.connectionSwitch.isChecked = false
+                        isAutomaticCheckChange = false
+                        skipNextDisconnect = false
+                        return@Observer
+                    }
+                    gracefulDisconnectHandler.removeCallbacksAndMessages(null)
                 }
                 VPNStatus.FAILED -> {
                     val message = getString(R.string.error_while_connecting, vpnService.errorString)
                     ErrorDialog.show(requireContext(), R.string.error_dialog_title_unable_to_connect, message)
                     binding.connectionStatusIcon.setImageResource(R.drawable.ic_connection_status_disconnected)
                     binding.connectionStatus.setText(R.string.connection_info_state_disconnected)
+                    isAutomaticCheckChange = true
+                    binding.connectionSwitch.isChecked = false
+                    isAutomaticCheckChange = false
                 }
                 else -> throw RuntimeException("Unhandled VPN status!")
             }
@@ -138,9 +178,11 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
         vpnService.attachConnectionInfoListener(this)
     }
 
-    private fun returnToHome() {
+    fun returnToHome() {
+        disconnect()
         val activity = activity as MainActivity?
         if (activity != null && !activity.isFinishing) {
+            activity.setBackNavigationEnabled(false)
             activity.openFragment(newInstance(false), false)
         }
     }
@@ -163,28 +205,30 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
         vpnService.detachConnectionInfoListener()
     }
 
-    private fun onDisconnectButtonClicked() {
-        if (userNavigation) {
-            returnToHome()
+    private fun connect(vpnProfile: VpnProfile) {
+        skipNextDisconnect = true
+        vpnService.connect(requireActivity(), vpnProfile)
+        viewModel.isInDisconnectMode.value = false
+    }
+
+    private fun disconnect() {
+        binding.connectionStatusIcon.setImageResource(R.drawable.ic_connection_status_disconnected)
+        val isConnecting = vpnService.status == VPNStatus.CONNECTING
+        if (isConnecting) {
+            // In this case, if we call disconnect, the process can be killed.
+            // That means we won't get any notification from the disconnect event.
+            // So we add a timer which waits for the disconnect event. If not received, we assume the process was killed.
+            gracefulDisconnectHandler.postDelayed({
+                if (activity?.isFinishing != false) {
+                    Log.i(TAG, "Nothing to do, already finishing activity.")
+                    return@postDelayed
+                }
+                Log.i(TAG, "No disconnect event received from VPN within $WAIT_FOR_DISCONNECT_UNTIL_MS milliseconds. Assuming process died.")
+                disconnect()
+            }, WAIT_FOR_DISCONNECT_UNTIL_MS.toLong())
         } else {
-            val isConnecting = vpnService.status == VPNStatus.CONNECTING
-            userInitiatedDisconnect = true
-            binding.connectionStatusIcon.setImageResource(R.drawable.ic_connection_status_disconnected)
-            binding.connectionSwitch.isEnabled = false
             vpnService.disconnect()
-            if (isConnecting) {
-                // In this case, if we call disconnect, the process can be killed.
-                // That means we won't get any notification from the disconnect event.
-                // So we add a timer which waits for the disconnect event. If not received, we assume the process was killed.
-                gracefulDisconnectHandler.postDelayed({
-                    if (activity?.isFinishing != false) {
-                        Log.i(TAG, "Cannot close connection status fragment, because activity was already finished. User probably left the app.")
-                        return@postDelayed
-                    }
-                    Log.i(TAG, "No disconnect event received from VPN within $WAIT_FOR_DISCONNECT_UNTIL_MS milliseconds. Assuming process died.")
-                    returnToHome()
-                }, WAIT_FOR_DISCONNECT_UNTIL_MS.toLong())
-            }
+            viewModel.isInDisconnectMode.value = true
         }
     }
 
@@ -202,7 +246,7 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
     }
 
     companion object {
-        private const val WAIT_FOR_DISCONNECT_UNTIL_MS = 3000
+        private const val WAIT_FOR_DISCONNECT_UNTIL_MS = 1_000
         private val TAG = ConnectionStatusFragment::class.java.name
     }
 }

@@ -20,6 +20,7 @@ package nl.eduvpn.app;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
+import android.view.MenuItem;
 import android.widget.Toast;
 
 import net.openid.appauth.AuthorizationException;
@@ -27,7 +28,9 @@ import net.openid.appauth.AuthorizationResponse;
 
 import javax.inject.Inject;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.ActionBar;
 import androidx.fragment.app.Fragment;
 import nl.eduvpn.app.base.BaseActivity;
 import nl.eduvpn.app.databinding.ActivityMainBinding;
@@ -45,6 +48,7 @@ public class MainActivity extends BaseActivity<ActivityMainBinding> {
     private static final String TAG = MainActivity.class.getName();
 
     private static final int REQUEST_CODE_SETTINGS = 1001;
+    private static final String KEY_BACK_NAVIGATION_ENABLED = "back_navigation_enabled";
 
     @Inject
     protected HistoryService _historyService;
@@ -54,6 +58,8 @@ public class MainActivity extends BaseActivity<ActivityMainBinding> {
 
     @Inject
     protected ConnectionService _connectionService;
+
+    private boolean _backNavigationEnabled = false;
 
     @Override
     protected int getLayout() {
@@ -75,11 +81,19 @@ public class MainActivity extends BaseActivity<ActivityMainBinding> {
             } else {
                 openFragment(new OrganizationSelectionFragment(), false);
             }
-        } // else the activity will automatically restore everything.
+
+        } else if (savedInstanceState.containsKey(KEY_BACK_NAVIGATION_ENABLED)) {
+            _backNavigationEnabled = savedInstanceState.getBoolean(KEY_BACK_NAVIGATION_ENABLED);
+        }
+
         // The app might have been reopened from a URL.
         onNewIntent(getIntent());
-        binding.toolbar.settingsButton.setOnClickListener(v -> onSettingsButtonClicked());
-        binding.toolbar.helpButton.setOnClickListener(v -> startActivity(new Intent(Intent.ACTION_VIEW, Constants.HELP_URI)));
+        binding.toolbar.settingsButton.setOnClickListener(v ->
+
+                onSettingsButtonClicked());
+        binding.toolbar.helpButton.setOnClickListener(v ->
+
+                startActivity(new Intent(Intent.ACTION_VIEW, Constants.HELP_URI)));
     }
 
     @Override
@@ -92,6 +106,12 @@ public class MainActivity extends BaseActivity<ActivityMainBinding> {
     protected void onStop() {
         super.onStop();
         _connectionService.onStop();
+    }
+
+    @Override
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putBoolean(KEY_BACK_NAVIGATION_ENABLED, _backNavigationEnabled);
     }
 
     @Override
@@ -155,6 +175,36 @@ public class MainActivity extends BaseActivity<ActivityMainBinding> {
     protected void onSettingsButtonClicked() {
         Intent intent = new Intent(this, SettingsActivity.class);
         startActivityForResult(intent, REQUEST_CODE_SETTINGS);
+    }
+
+    public void setBackNavigationEnabled(boolean enabled) {
+        _backNavigationEnabled = enabled;
+        ActionBar actionBar = getSupportActionBar();
+        if (actionBar != null) {
+            actionBar.setDisplayHomeAsUpEnabled(enabled);
+            actionBar.setHomeButtonEnabled(enabled);
+        }
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (_backNavigationEnabled) {
+            Fragment currentFragment = getSupportFragmentManager().findFragmentById(R.id.contentFrame);
+            if (currentFragment instanceof ConnectionStatusFragment) {
+                ((ConnectionStatusFragment)currentFragment).returnToHome();
+                return;
+            }
+        }
+        super.onBackPressed();
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        if (item.getItemId() == android.R.id.home) {
+            onBackPressed();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     @Override

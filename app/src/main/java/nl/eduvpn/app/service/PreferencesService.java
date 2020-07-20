@@ -38,7 +38,6 @@ import nl.eduvpn.app.entity.Organization;
 import nl.eduvpn.app.entity.Profile;
 import nl.eduvpn.app.entity.SavedAuthState;
 import nl.eduvpn.app.entity.SavedKeyPair;
-import nl.eduvpn.app.entity.SavedOrganization;
 import nl.eduvpn.app.entity.SavedProfile;
 import nl.eduvpn.app.entity.Settings;
 import nl.eduvpn.app.utils.Log;
@@ -62,6 +61,7 @@ public class PreferencesService {
     static final String KEY_ORGANIZATION = "organization";
     static final String KEY_INSTANCE = "instance";
     static final String KEY_PROFILE = "profile";
+    static final String KEY_PROFILE_LIST = "profile_list";
     static final String KEY_DISCOVERED_API = "discovered_api";
 
     static final String KEY_INSTANCE_LIST_PREFIX = "instance_list_";
@@ -260,6 +260,44 @@ public class PreferencesService {
             return _serializerService.deserializeProfile(new JSONObject(serializedProfile));
         } catch (SerializerService.UnknownFormatException | JSONException ex) {
             Log.e(TAG, "Unable to deserialize saved profile!", ex);
+            return null;
+        }
+    }
+
+
+    /**
+     * Sets the current profile list, which is all the profiles the user can connect to for the current server.
+     *
+     * @param currentProfileList All the profiles available on the current instance. Use null to delete all values.
+     */
+    public void setCurrentProfileList(@Nullable List<Profile> currentProfileList) {
+        try {
+            if (currentProfileList == null) {
+                _getSharedPreferences().edit().remove(KEY_PROFILE_LIST).apply();
+            } else {
+                JSONObject serializedList = _serializerService.serializeProfileList(currentProfileList);
+                _getSharedPreferences().edit().putString(KEY_PROFILE_LIST, serializedList.toString()).apply();
+            }
+        } catch (SerializerService.UnknownFormatException ex) {
+            Log.w(TAG, "Unable to serialize profile list!", ex);
+        }
+    }
+
+    /**
+     * Returns the list of profiles for the current instance.
+     *
+     * @return The available profiles on the currently selected server. Null if none.
+     */
+    @Nullable
+    public List<Profile> getCurrentProfileList() {
+        String serializedProfileList = _getSharedPreferences().getString(KEY_PROFILE_LIST, null);
+        if (serializedProfileList == null) {
+            return null;
+        }
+        try {
+            return _serializerService.deserializeProfileList(new JSONObject(serializedProfileList));
+        } catch (SerializerService.UnknownFormatException | JSONException ex) {
+            Log.e(TAG, "Unable to deserialize profile list!", ex);
             return null;
         }
     }

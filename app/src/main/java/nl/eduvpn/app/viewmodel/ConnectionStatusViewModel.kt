@@ -22,24 +22,26 @@ import android.content.Context
 import android.text.Spanned
 import androidx.core.text.HtmlCompat
 import androidx.lifecycle.MutableLiveData
+import de.blinkt.openvpn.VpnProfile
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
-import nl.eduvpn.app.Constants
 import nl.eduvpn.app.R
 import nl.eduvpn.app.base.BaseViewModel
+import nl.eduvpn.app.entity.Profile
 import nl.eduvpn.app.service.HistoryService
 import nl.eduvpn.app.service.PreferencesService
+import nl.eduvpn.app.service.VPNService
 import nl.eduvpn.app.utils.Log
 import nl.eduvpn.app.utils.getCountryText
 import nl.eduvpn.app.utils.toSingleEvent
-import java.util.Locale
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 class ConnectionStatusViewModel @Inject constructor(
         private val context: Context,
-        preferencesService: PreferencesService,
+        private val preferencesService: PreferencesService,
+        private val vpnService: VPNService,
         historyService: HistoryService
 ) : BaseViewModel() {
 
@@ -52,6 +54,10 @@ class ConnectionStatusViewModel @Inject constructor(
     val serverName = MutableLiveData<String>()
     val serverSupport = MutableLiveData<String>()
     val certValidity = MutableLiveData<Spanned>()
+    val profileName = MutableLiveData<String>()
+    val isInDisconnectMode = MutableLiveData(false)
+    val serverProfiles = MutableLiveData<List<Profile>>()
+
     private val _parentAction = MutableLiveData<ParentAction>()
     val parentAction = _parentAction.toSingleEvent()
 
@@ -68,6 +74,8 @@ class ConnectionStatusViewModel @Inject constructor(
         } else {
             serverName.value = context.getString(R.string.profile_name_not_found)
         }
+        profileName.value = savedProfile?.displayName
+        serverProfiles.value = preferencesService.currentProfileList
         if (connectionInstance != null && connectionInstance.supportContact.isNotEmpty()) {
             val supportContacts = StringBuilder()
             for (contact in connectionInstance.supportContact) {
@@ -143,6 +151,12 @@ class ConnectionStatusViewModel @Inject constructor(
             val days = context.resources.getQuantityString(R.plurals.certificate_status_days, timeDifferenceInSeconds.div(3600 * 24).toInt(), timeDifferenceInSeconds.div(3600 * 24).toInt())
             certValidity.value = HtmlCompat.fromHtml(context.getString(R.string.connection_certificate_status_valid_for_one_part, days), HtmlCompat.FROM_HTML_MODE_COMPACT)
         }
+    }
+
+    fun findCurrentConfig(): VpnProfile? {
+        val currentProfile = preferencesService.currentProfile ?: return null
+        val matchingSavedProfile = preferencesService.savedProfileList?.firstOrNull { it.profile.profileId == currentProfile.profileId } ?: return null
+        return vpnService.findMatchingVpnProfile(matchingSavedProfile)
     }
 
     companion object {

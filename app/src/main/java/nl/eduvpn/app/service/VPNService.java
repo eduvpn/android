@@ -49,7 +49,9 @@ import de.blinkt.openvpn.core.IOpenVPNServiceInternal;
 import de.blinkt.openvpn.core.OpenVPNService;
 import de.blinkt.openvpn.core.ProfileManager;
 import de.blinkt.openvpn.core.VpnStatus;
+import nl.eduvpn.app.R;
 import nl.eduvpn.app.entity.SavedKeyPair;
+import nl.eduvpn.app.entity.SavedProfile;
 import nl.eduvpn.app.utils.Log;
 
 /**
@@ -162,6 +164,7 @@ public class VPNService extends Observable implements VpnStatus.StateListener {
         try {
             configParser.parseConfig(new StringReader(configString));
             VpnProfile profile = configParser.convertProfile();
+            profile.mAlias = _context.getString(R.string.app_name);
             if (preferredName != null) {
                 profile.mName = preferredName;
             }
@@ -180,6 +183,24 @@ public class VPNService extends Observable implements VpnStatus.StateListener {
             Log.e(TAG, "Error converting profile!", e);
             return null;
         }
+    }
+
+    /***
+     * Finds a matching VPN library profile for a profile saved by the application.
+     * It should only exist if this is the most recently connected profile.
+     *
+     * @param savedProfile The profile saved by this application in its preferences.
+     * @return The VPN library profile, if found. Otherwise null.
+     */
+    @Nullable
+    public VpnProfile findMatchingVpnProfile(SavedProfile savedProfile) {
+        ProfileManager profileManager = ProfileManager.getInstance(_context);
+        for (VpnProfile profile : profileManager.getProfiles()) {
+            if (profile.getUUIDString().equals(savedProfile.getProfileUUID())) {
+                return profile;
+            }
+        }
+        return null;
     }
 
     /**

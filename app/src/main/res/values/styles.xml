@@ -17,6 +17,7 @@
 
 
     <style name="AppTheme.AlertDialog" parent="Theme.MaterialComponents.Light.Dialog">
+        <item name="colorAccent">@color/colorAccent</item>
         <item name="android:fontFamily">@font/open_sans_semibold</item>
         <item name="colorControlHighlight">@color/colorPrimary</item>
     </style>

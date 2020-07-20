@@ -92,7 +92,6 @@
                 android:text="@{viewModel.certValidity}"
                 android:textColor="@color/textColor"
                 android:textSize="14sp"
-                android:visibility="@{viewModel.certValidity != null ? View.VISIBLE : View.GONE}"
                 tools:text="Valid for 13 days and 22 hours" />
 
             <androidx.appcompat.widget.SwitchCompat
@@ -100,9 +99,63 @@
                 style="@style/Switch"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="30dp"
-                android:checked="false"
-                android:enabled="false" />
+                android:layout_marginTop="24dp"
+                android:layout_marginBottom="24dp"
+                android:checked="true" />
+
+            <FrameLayout
+                android:id="@+id/profile_switcher"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="?attr/selectableItemBackground"
+                android:paddingLeft="24dp"
+                android:visibility="@{viewModel.serverProfiles.size() > 1 ? View.VISIBLE : View.GONE}"
+                android:paddingRight="24dp">
+
+                <View
+                    android:id="@+id/profile_switcher_separator_top"
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="@color/dividerColor" />
+
+                <View
+                    android:id="@+id/profile_switcher_separator_bottom"
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_gravity="bottom"
+                    android:background="@color/dividerColor" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:alpha="@{viewModel.isInDisconnectMode ? 1f : 0.5f}"
+                    android:fontFamily="@font/open_sans_semibold"
+                    android:text="@string/connection_select_profile"
+                    android:textColor="@color/textColor"
+                    android:textSize="16sp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="36dp"
+                    android:layout_marginBottom="12dp"
+                    android:alpha="@{viewModel.isInDisconnectMode ? 0.75f : 0.3f}"
+                    android:fontFamily="@font/open_sans_regular"
+                    android:text="@{viewModel.profileName}"
+                    android:textColor="@color/textColor"
+                    android:textSize="14sp"
+                    tools:text="SURFnet-profile-01" />
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:alpha="@{viewModel.isInDisconnectMode ? 1f : 0.5f}"
+                    android:layout_gravity="right|center_vertical"
+                    android:src="@drawable/ic_arrow_drop_down"
+                    android:tint="@color/textColor" />
+
+            </FrameLayout>
 
         </LinearLayout>
 
