@@ -152,6 +152,10 @@ class ServerSelectionViewModel @Inject constructor(
         preferencesService.currentOrganization = organization
     }
 
+    fun hasNoMoreServers(): Boolean {
+        return historyService.savedAuthStateList.isNullOrEmpty()
+    }
+
     companion object {
         private val TAG = ServerSelectionViewModel::class.java.name
         private const val SERVER_LIST_CACHE_TTL = 15 * 60 * 1_000L // 15 minutes

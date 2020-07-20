@@ -31,6 +31,7 @@ import nl.eduvpn.app.R
 import nl.eduvpn.app.adapter.OrganizationAdapter
 import nl.eduvpn.app.base.BaseFragment
 import nl.eduvpn.app.databinding.FragmentServerSelectionBinding
+import nl.eduvpn.app.entity.Instance
 import nl.eduvpn.app.utils.ErrorDialog
 import nl.eduvpn.app.utils.ItemClickSupport
 import nl.eduvpn.app.viewmodel.BaseConnectionViewModel
@@ -96,6 +97,14 @@ class ServerSelectionFragment : BaseFragment<FragmentServerSelectionBinding>() {
             } else if (item is OrganizationAdapter.OrganizationAdapterItem.InstituteAccess) {
                 viewModel.discoverApi(item.server, null)
             }
+        }.setOnItemLongClickListener { _, position, _ ->
+            val item = adapter.getItem(position)
+            if (item is OrganizationAdapter.OrganizationAdapterItem.InstituteAccess &&
+                    item.server.isCustom) {
+                displayDeleteDialog(item.server)
+                return@setOnItemLongClickListener true
+            }
+            return@setOnItemLongClickListener false
         }
         binding.warning.setOnClickListener {
             ErrorDialog.show(it.context, R.string.warning_title, viewModel.warning.value!!)
@@ -103,6 +112,21 @@ class ServerSelectionFragment : BaseFragment<FragmentServerSelectionBinding>() {
         binding.addServerButton.setOnClickListener {
             (activity as? MainActivity)?.openFragment(OrganizationSelectionFragment(), true)
         }
+    }
+
+    private fun displayDeleteDialog(instance: Instance) {
+        AlertDialog.Builder(requireContext())
+                .setTitle(R.string.delete_server)
+                .setMessage(getString(R.string.delete_server_message, instance.displayName, instance.sanitizedBaseURI))
+                .setPositiveButton(R.string.button_remove) { dialog, _ ->
+                    viewModel.deleteAllDataForInstance(instance)
+                    dialog.dismiss()
+                    if (viewModel.hasNoMoreServers()) {
+                        (activity as? MainActivity)?.openFragment(OrganizationSelectionFragment(), false)
+                    }
+                }
+                .setNegativeButton(R.string.delete_server_cancel) { dialog, _ -> dialog.dismiss() }
+                .show()
     }
 
     override fun onResume() {
