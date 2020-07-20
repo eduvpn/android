@@ -27,10 +27,12 @@ import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
 import nl.eduvpn.app.R
-import nl.eduvpn.app.base.BaseViewModel
 import nl.eduvpn.app.entity.Profile
+import nl.eduvpn.app.service.APIService
+import nl.eduvpn.app.service.ConnectionService
 import nl.eduvpn.app.service.HistoryService
 import nl.eduvpn.app.service.PreferencesService
+import nl.eduvpn.app.service.SerializerService
 import nl.eduvpn.app.service.VPNService
 import nl.eduvpn.app.utils.Log
 import nl.eduvpn.app.utils.getCountryText
@@ -42,8 +44,12 @@ class ConnectionStatusViewModel @Inject constructor(
         private val context: Context,
         private val preferencesService: PreferencesService,
         private val vpnService: VPNService,
-        historyService: HistoryService
-) : BaseViewModel() {
+        historyService: HistoryService,
+        apiService: APIService,
+        serializerService: SerializerService,
+        connectionService: ConnectionService
+) : BaseConnectionViewModel(context, apiService, serializerService, historyService,
+        preferencesService, connectionService, vpnService) {
 
     sealed class ParentAction {
         object SessionExpired : ParentAction()
@@ -58,23 +64,15 @@ class ConnectionStatusViewModel @Inject constructor(
     val isInDisconnectMode = MutableLiveData(false)
     val serverProfiles = MutableLiveData<List<Profile>>()
 
-    private val _parentAction = MutableLiveData<ParentAction>()
-    val parentAction = _parentAction.toSingleEvent()
+    private val _connectionParentAction = MutableLiveData<ParentAction>()
+    val connectionParentAction = _connectionParentAction.toSingleEvent()
 
     private var updateCertDisposable: Disposable? = null
 
 
     init {
-        val savedProfile = preferencesService.currentProfile
+        refreshProfile()
         val connectionInstance = preferencesService.currentInstance
-        if (connectionInstance?.countryCode != null) {
-            serverName.value = connectionInstance.getCountryText()
-        } else if (savedProfile != null) {
-            serverName.value = savedProfile.displayName
-        } else {
-            serverName.value = context.getString(R.string.profile_name_not_found)
-        }
-        profileName.value = savedProfile?.displayName
         serverProfiles.value = preferencesService.currentProfileList
         if (connectionInstance != null && connectionInstance.supportContact.isNotEmpty()) {
             val supportContacts = StringBuilder()
@@ -97,7 +95,8 @@ class ConnectionStatusViewModel @Inject constructor(
         certExpiryTime = historyService.getSavedKeyPairForInstance(connectionInstance).keyPair.expiryTimeMillis
     }
 
-    fun onResume() {
+    override fun onResume() {
+        super.onResume()
         updateCertDisposable = Observable.interval(1, TimeUnit.SECONDS)
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({
@@ -126,7 +125,7 @@ class ConnectionStatusViewModel @Inject constructor(
             updateCertDisposable?.dispose()
             updateCertDisposable = null
             certValidity.value = HtmlCompat.fromHtml(context.getString(R.string.connection_certificate_status_expired), HtmlCompat.FROM_HTML_MODE_COMPACT)
-            _parentAction.value = ParentAction.SessionExpired
+            _connectionParentAction.value = ParentAction.SessionExpired
         } else if (timeDifferenceInSeconds < 60) {
             // Expires within a minute
             val seconds = context.resources.getQuantityString(R.plurals.certificate_status_seconds, timeDifferenceInSeconds.toInt(), timeDifferenceInSeconds)
@@ -155,8 +154,23 @@ class ConnectionStatusViewModel @Inject constructor(
 
     fun findCurrentConfig(): VpnProfile? {
         val currentProfile = preferencesService.currentProfile ?: return null
-        val matchingSavedProfile = preferencesService.savedProfileList?.firstOrNull { it.profile.profileId == currentProfile.profileId } ?: return null
+        val matchingSavedProfile = preferencesService.savedProfileList?.firstOrNull { it.profile.profileId == currentProfile.profileId }
+                ?: return null
         return vpnService.findMatchingVpnProfile(matchingSavedProfile)
+    }
+
+    fun refreshProfile() {
+        val savedProfile = preferencesService.currentProfile
+        val connectionInstance = preferencesService.currentInstance
+        if (connectionInstance?.countryCode != null) {
+            serverName.value = connectionInstance.getCountryText()
+        } else if (savedProfile != null) {
+            serverName.value = savedProfile.displayName
+        } else {
+            serverName.value = context.getString(R.string.profile_name_not_found)
+        }
+        profileName.value = savedProfile?.displayName
+        updateCertExpiry()
     }
 
     companion object {

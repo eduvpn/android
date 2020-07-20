@@ -35,6 +35,7 @@ import nl.eduvpn.app.service.VPNService.VPNStatus
 import nl.eduvpn.app.utils.ErrorDialog
 import nl.eduvpn.app.utils.FormattingUtils
 import nl.eduvpn.app.utils.Log
+import nl.eduvpn.app.viewmodel.BaseConnectionViewModel
 import nl.eduvpn.app.viewmodel.ConnectionStatusViewModel
 import java.util.Observable
 import java.util.Observer
@@ -94,10 +95,13 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
                 val profileItems = viewModel.serverProfiles.value ?: emptyList()
                 AlertDialog.Builder(requireContext(), R.style.AppTheme_AlertDialog)
                         .setTitle(R.string.connection_select_profile)
-                        .setItems(profileItems.map { it.displayName }.toTypedArray(), { _, which ->
-                            val selectedProfile = profileItems[which]
-                            connect(selectedProfile)
-                        }).show()
+                        .setItems(profileItems.map { it.displayName }.toTypedArray()) { _, which ->
+                            val profileToConnectTo = profileItems[which]
+                            activity?.let {
+                                viewModel.isInDisconnectMode.value = false
+                                viewModel.selectProfileToConnectTo(profileToConnectTo)
+                            }
+                        }.show()
             } else {
                 AlertDialog.Builder(requireContext(), R.style.AppTheme_AlertDialog)
                         .setTitle(R.string.connection_warning_disconnect_first_title)
@@ -108,11 +112,29 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
                         .show()
             }
         }
-        viewModel.parentAction.observe(viewLifecycleOwner) { parentAction ->
+        viewModel.connectionParentAction.observe(viewLifecycleOwner) { parentAction ->
             when (parentAction) {
                 ConnectionStatusViewModel.ParentAction.SessionExpired -> {
                     ErrorDialog.show(requireContext(), R.string.error_certificate_expired_title, R.string.error_certificate_expired_message)
                     disconnect()
+                }
+            }
+        }
+        viewModel.parentAction.observe(viewLifecycleOwner) { parentAction ->
+            when (parentAction) {
+                is BaseConnectionViewModel.ParentAction.InitiateConnection -> {
+                    activity?.let { activity ->
+                        if (!activity.isFinishing) {
+                            viewModel.initiateConnection(activity, parentAction.instance, parentAction.discoveredAPI)
+                        }
+                    }
+                }
+                is BaseConnectionViewModel.ParentAction.ConnectWithProfile -> {
+                    viewModel.refreshProfile()
+                    viewModel.openVpnConnectionToProfile(requireActivity(), parentAction.vpnProfile)
+                }
+                is BaseConnectionViewModel.ParentAction.DisplayError -> {
+                    ErrorDialog.show(requireContext(), parentAction.title, parentAction.message)
                 }
             }
         }
