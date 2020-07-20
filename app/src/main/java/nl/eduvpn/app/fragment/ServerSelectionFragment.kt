@@ -120,10 +120,10 @@ class ServerSelectionFragment : BaseFragment<FragmentServerSelectionBinding>() {
                 .setMessage(getString(R.string.delete_server_message, instance.displayName, instance.sanitizedBaseURI))
                 .setPositiveButton(R.string.button_remove) { dialog, _ ->
                     viewModel.deleteAllDataForInstance(instance)
-                    dialog.dismiss()
                     if (viewModel.hasNoMoreServers()) {
                         (activity as? MainActivity)?.openFragment(OrganizationSelectionFragment(), false)
                     }
+                    dialog.dismiss()
                 }
                 .setNegativeButton(R.string.delete_server_cancel) { dialog, _ -> dialog.dismiss() }
                 .show()
