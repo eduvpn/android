@@ -53,8 +53,14 @@ class OrganizationSelectionViewModel @Inject constructor(
 
     init {
         state.value = ConnectionState.FetchingOrganizations
+        val getOrganizationsCall = if (historyService.savedOrganization == null) {
+            organizationService.fetchOrganizations()
+        } else {
+            // We can't show any organization servers, user needs to reset to switch.
+            Single.just(emptyList())
+        }
         disposables.add(
-                Single.zip(organizationService.fetchOrganizations(), organizationService.fetchServerList(), BiFunction { orgList: List<Organization>, serverList: List<Instance> ->
+                Single.zip(getOrganizationsCall, organizationService.fetchServerList(), BiFunction { orgList: List<Organization>, serverList: List<Instance> ->
                     Pair(orgList, serverList)
                 }).subscribe({ organizationServerListPair ->
                     val organizationList = organizationServerListPair.first
