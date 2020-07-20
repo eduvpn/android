@@ -138,7 +138,7 @@ public class ApplicationModule {
                         Log.d("OkHTTP", "Retrying request because previous one failed with connection exception...");
                         // Wait 3 seconds
                         try {
-                            Thread.sleep(3000);
+                            Thread.sleep(3_000);
                         } catch (InterruptedException e) {
                             // Do nothing
                         }
