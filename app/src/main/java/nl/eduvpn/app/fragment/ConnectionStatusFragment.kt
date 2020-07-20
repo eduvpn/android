@@ -148,6 +148,7 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
         vpnStatusObserver = Observer { _: Observable?, arg: Any? ->
             when (arg as VPNStatus?) {
                 VPNStatus.CONNECTED -> {
+                    skipNextDisconnect = false
                     binding.connectionStatusIcon.setImageResource(R.drawable.ic_connection_status_connected)
                     binding.connectionStatus.setText(R.string.connection_info_state_connected)
                     isAutomaticCheckChange = true
@@ -155,6 +156,7 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
                     isAutomaticCheckChange = false
                 }
                 VPNStatus.CONNECTING -> {
+                    skipNextDisconnect = false
                     binding.connectionStatusIcon.setImageResource(R.drawable.ic_connection_status_connecting)
                     binding.connectionStatus.setText(R.string.connection_info_state_connecting)
                     isAutomaticCheckChange = true
@@ -162,6 +164,7 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
                     isAutomaticCheckChange = false
                 }
                 VPNStatus.PAUSED -> {
+                    skipNextDisconnect = false
                     binding.connectionStatus.setText(R.string.connection_info_state_paused)
                     isAutomaticCheckChange = true
                     binding.connectionSwitch.isChecked = true
@@ -169,20 +172,18 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
                     binding.connectionStatusIcon.setImageResource(R.drawable.ic_connection_status_connecting)
                 }
                 VPNStatus.DISCONNECTED -> {
-
                     binding.connectionStatusIcon.setImageResource(R.drawable.ic_connection_status_disconnected)
                     binding.connectionStatus.setText(R.string.connection_info_state_disconnected)
-                    if (skipNextDisconnect) {
+                    if (!skipNextDisconnect) {
                         // The first disconnect can mess a bit with the UI so we skip this part in special cases
                         isAutomaticCheckChange = true
                         binding.connectionSwitch.isChecked = false
                         isAutomaticCheckChange = false
-                        skipNextDisconnect = false
-                        return@Observer
                     }
                     gracefulDisconnectHandler.removeCallbacksAndMessages(null)
                 }
                 VPNStatus.FAILED -> {
+                    skipNextDisconnect = false
                     val message = getString(R.string.error_while_connecting, vpnService.errorString)
                     ErrorDialog.show(requireContext(), R.string.error_dialog_title_unable_to_connect, message)
                     binding.connectionStatusIcon.setImageResource(R.drawable.ic_connection_status_disconnected)
