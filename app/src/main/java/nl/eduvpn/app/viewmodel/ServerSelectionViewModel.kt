@@ -73,10 +73,11 @@ class ServerSelectionViewModel @Inject constructor(
     }
 
     private fun refresh() {
-        if (serverListCache.value == null || System.currentTimeMillis() - serverListCache.value!!.first > SERVER_LIST_CACHE_TTL) {
+        val needsServerList = true|| historyService.savedAuthStateList.any { it.instance.authorizationType == AuthorizationType.Distributed }
+        if (needsServerList && (serverListCache.value == null || System.currentTimeMillis() - serverListCache.value!!.first > SERVER_LIST_CACHE_TTL)) {
             refreshServerList()
         } else {
-            refreshInstances(serverListCache.value!!.second)
+            refreshInstances(serverListCache.value?.second ?: emptyList())
         }
     }
 
@@ -84,8 +85,10 @@ class ServerSelectionViewModel @Inject constructor(
      * Refreshes the current organization, and then the instances afterwards
      */
     private fun refreshServerList() {
+        Log.v(TAG, "Fetching server list...")
         disposables.add(organizationService.fetchServerList()
                 .subscribe({
+                    Log.v(TAG, "Updated server list with latest entries.")
                     serverListCache.value = Pair(System.currentTimeMillis(), it)
                     refreshInstances(it)
                 }, {
