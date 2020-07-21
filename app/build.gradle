@@ -47,6 +47,9 @@ android {
         ndk {
             abiFilters 'arm64-v8a', 'x86', 'x86_64', 'armeabi-v7a'
         }
+        buildFeatures {
+            dataBinding = true
+        }
     }
 
     buildTypes {
@@ -54,10 +57,6 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
-    }
-
-    dataBinding {
-        enabled true
     }
 
     flavorDimensions "product"

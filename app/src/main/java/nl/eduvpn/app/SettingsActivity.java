@@ -44,7 +44,7 @@ public class SettingsActivity extends BaseActivity<ActivitySettingsBinding> {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         getSupportFragmentManager().beginTransaction()
-                .replace(R.id.contentFrame, new SettingsFragment())
+                .replace(R.id.content_frame, new SettingsFragment())
                 .commit();
         binding.toolbar.settingsButton.setImageTintList(ColorStateList.valueOf(ContextCompat.getColor(this, R.color.buttonBackgroundColor)));
         binding.toolbar.helpButton.setOnClickListener(v -> startActivity(new Intent(Intent.ACTION_VIEW, Constants.HELP_URI)));
