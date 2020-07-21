@@ -20,7 +20,7 @@ package nl.eduvpn.app.entity
 
 data class Organization(
         val orgId: String,
-        val displayName: String,
-        val keywordList: List<String>,
+        val displayName: TranslatableString,
+        val keywordList: TranslatableString,
         val secureInternetHome: String?
 )

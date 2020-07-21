@@ -171,7 +171,9 @@ public class MainActivity extends BaseActivity<ActivityMainBinding> {
                     .commitAllowingStateLoss();
             // Clean the back stack
             for (int i = 0; i < getSupportFragmentManager().getBackStackEntryCount(); i++) {
-                getSupportFragmentManager().popBackStack();
+                if (!getSupportFragmentManager().isStateSaved() && !isFinishing()) {
+                    getSupportFragmentManager().popBackStack();
+                }
             }
         }
     }

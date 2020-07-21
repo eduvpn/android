@@ -31,7 +31,6 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -56,6 +55,7 @@ import nl.eduvpn.app.entity.SavedKeyPair;
 import nl.eduvpn.app.entity.SavedProfile;
 import nl.eduvpn.app.entity.ServerList;
 import nl.eduvpn.app.entity.Settings;
+import nl.eduvpn.app.entity.TranslatableString;
 import nl.eduvpn.app.entity.message.Maintenance;
 import nl.eduvpn.app.entity.message.Message;
 import nl.eduvpn.app.entity.message.Notification;
@@ -325,9 +325,8 @@ public class SerializerService {
             }
             List<String> supportContact = new ArrayList<>();
             if (jsonObject.has("support_contact")) {
-                int supportIndex = 0;
                 JSONArray supportArray = jsonObject.getJSONArray("support_contact");
-                for (supportIndex = 0; supportIndex < supportArray.length(); ++supportIndex) {
+                for (int supportIndex = 0; supportIndex < supportArray.length(); ++supportIndex) {
                     supportContact.add(supportArray.getString(supportIndex));
                 }
             }
@@ -842,16 +841,23 @@ public class SerializerService {
         JSONObject result = new JSONObject();
         try {
             result.put("org_id", organization.getOrgId());
-            JSONObject translation = new JSONObject();
-            translation.put(Constants.LOCALE.getLanguage(), organization.getDisplayName());
-            result.put("display_name", translation);
-            translation = new JSONObject();
-            String keywordString = TextUtils.join(" ", organization.getKeywordList());
-            if (keywordString.isEmpty()) {
+            if (organization.getDisplayName().getTranslations().isEmpty()) {
+                result.put("display_name", null);
+            } else {
+                JSONObject translations = new JSONObject();
+                for (Map.Entry<String, String> entry : organization.getKeywordList().getTranslations().entrySet()) {
+                    translations.put(entry.getKey(), entry.getValue());
+                }
+                result.put("display_name", translations);
+            }
+            if (organization.getKeywordList().getTranslations().isEmpty()) {
                 result.put("keyword_list", null);
             } else {
-                translation.put(Constants.LOCALE.getLanguage(), keywordString);
-                result.put("keyword_list", translation);
+                JSONObject translations = new JSONObject();
+                for (Map.Entry<String, String> entry : organization.getKeywordList().getTranslations().entrySet()) {
+                    translations.put(entry.getKey(), entry.getValue());
+                }
+                result.put("keyword_list", translations);
             }
             result.put("secure_internet_home", organization.getSecureInternetHome());
         } catch (JSONException ex) {
@@ -869,28 +875,32 @@ public class SerializerService {
      */
     public Organization deserializeOrganization(JSONObject jsonObject) throws UnknownFormatException {
         try {
-            String displayName;
-            if (jsonObject.get("display_name") instanceof String) {
-                displayName = jsonObject.getString("display_name");
+            TranslatableString displayName;
+            if (jsonObject.isNull("display_name")) {
+                displayName = new TranslatableString();
+            } else if (jsonObject.get("display_name") instanceof String) {
+                displayName = new TranslatableString(jsonObject.getString("display_name"));
             } else {
-                displayName = _findTranslation(jsonObject.getJSONObject("display_name"));
+                displayName = _parseAllTranslations(jsonObject.getJSONObject("display_name"));
             }
             String orgId = jsonObject.getString("org_id");
-            if (displayName == null) {
-                displayName = "";
-            }
-            List<String> keywordList = Collections.emptyList();
+            TranslatableString translatableString;
             if (jsonObject.has("keyword_list") && !jsonObject.isNull("keyword_list")) {
-                String keywordString = _findTranslation(jsonObject.getJSONObject("keyword_list"));
-                if (keywordString != null) {
-                    keywordList = Arrays.asList(keywordString.split(" "));
+                if (jsonObject.get("keyword_list") instanceof JSONObject) {
+                    translatableString = _parseAllTranslations(jsonObject.getJSONObject("keyword_list"));
+                } else if (jsonObject.get("keyword_list") instanceof String) {
+                    translatableString = new TranslatableString(jsonObject.getString("keyword_list"));
+                } else {
+                    throw new JSONException("keyword_list should be object or string");
                 }
+            } else {
+                translatableString = new TranslatableString();
             }
             String secureInternetHome = null;
             if (jsonObject.has("secure_internet_home") && !jsonObject.isNull("secure_internet_home")) {
                 secureInternetHome = jsonObject.getString("secure_internet_home");
             }
-            return new Organization(orgId, displayName, keywordList, secureInternetHome);
+            return new Organization(orgId, displayName, translatableString, secureInternetHome);
         } catch (JSONException ex) {
             throw new UnknownFormatException(ex);
         }
@@ -975,55 +985,19 @@ public class SerializerService {
     }
 
     /**
-     * Finds a matching translation in the JSON.
-     * Strings with matching language (and locale) take precedence.
-     *
-     * @param translationsObject The object containing the translations as a map.
-     * @return The best match from the object. Could be null if the object is empty.
+     * Retrieves the translations from a JSON object.
+     * @param translationsObject The JSON object to retrieve the translations from.
+     * @return A TranslatableString instance.
+     * @throws JSONException Thrown if the input is in an unexpected format.
      */
-    @Nullable
-    private String _findTranslation(JSONObject translationsObject) throws JSONException {
+    private TranslatableString _parseAllTranslations(JSONObject translationsObject) throws JSONException {
         Iterator<String> keysIterator = translationsObject.keys();
-        int matchingLevel = 0;
-        String bestTranslationMatch = null;
-        // 0 - no matching
-        // 1 - matches any item (will be the first item, if no better match)
-        // 2 - item in english language
-        // 3 - language part matches, territory does not
-        // 4 - language part matches, territory part matches, variant does not
-        // 5 - full match
+        Map<String, String> translationsMap = new HashMap<>();
         while (keysIterator.hasNext()) {
             String key = keysIterator.next();
-            String[] localeParts = key.split("-");
-            Locale translationLocale;
-            if (localeParts.length == 1) {
-                translationLocale = new Locale(localeParts[0]);
-            } else if (localeParts.length == 2) {
-                translationLocale = new Locale(localeParts[0], localeParts[1]);
-            } else {
-                String variant = TextUtils.join("-", Arrays.copyOfRange(localeParts, 2, localeParts.length));
-                translationLocale = new Locale(localeParts[0], localeParts[1], variant);
-            }
-            int currentMatchingLevel = 1;
-            if (translationLocale.getLanguage().equalsIgnoreCase(Constants.LOCALE.getLanguage())) {
-                currentMatchingLevel = 3;
-                if (translationLocale.getCountry().equalsIgnoreCase(Constants.LOCALE.getCountry())) {
-                    currentMatchingLevel = 4;
-                    if (translationLocale.getVariant().equalsIgnoreCase(Constants.LOCALE.getVariant())) {
-                        currentMatchingLevel = 5;
-                    }
-                }
-            } else if (translationLocale.getLanguage().equalsIgnoreCase("en")) {
-                currentMatchingLevel = 2;
-            }
-            if (currentMatchingLevel > matchingLevel) {
-                matchingLevel = currentMatchingLevel;
-                bestTranslationMatch = translationsObject.getString(key);
-            }
-            if (currentMatchingLevel == 5) {
-                break;
-            }
+            String value = translationsObject.getString(key);
+            translationsMap.put(key, value);
         }
-        return bestTranslationMatch;
+        return new TranslatableString(translationsMap);
     }
 }

@@ -30,7 +30,13 @@ import nl.eduvpn.app.entity.Instance
 import nl.eduvpn.app.entity.Organization
 import nl.eduvpn.app.entity.OrganizationList
 import nl.eduvpn.app.entity.ServerList
-import nl.eduvpn.app.service.*
+import nl.eduvpn.app.service.APIService
+import nl.eduvpn.app.service.ConnectionService
+import nl.eduvpn.app.service.HistoryService
+import nl.eduvpn.app.service.OrganizationService
+import nl.eduvpn.app.service.PreferencesService
+import nl.eduvpn.app.service.SerializerService
+import nl.eduvpn.app.service.VPNService
 import nl.eduvpn.app.utils.Log
 import javax.inject.Inject
 
@@ -122,7 +128,8 @@ class OrganizationSelectionViewModel @Inject constructor(
                     if (searchText.isNullOrBlank()) {
                         true
                     } else {
-                        it.displayName.contains(searchText, ignoreCase = true) || it.keywordList.any { keyword -> keyword.contains(searchText, ignoreCase = true) }
+                        it.displayName.translations.any { keyValue -> keyValue.value.contains(searchText, ignoreCase = true) } ||
+                                it.keywordList.translations.any { keyValue -> keyValue.value.contains(searchText, ignoreCase = true) }
                     }
                 }.mapNotNull { organization ->
                     val matchingServer = servers
