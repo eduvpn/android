@@ -49,10 +49,12 @@ import nl.eduvpn.app.entity.Instance;
 import nl.eduvpn.app.entity.InstanceList;
 import nl.eduvpn.app.entity.KeyPair;
 import nl.eduvpn.app.entity.Organization;
+import nl.eduvpn.app.entity.OrganizationList;
 import nl.eduvpn.app.entity.Profile;
 import nl.eduvpn.app.entity.SavedAuthState;
 import nl.eduvpn.app.entity.SavedKeyPair;
 import nl.eduvpn.app.entity.SavedProfile;
+import nl.eduvpn.app.entity.ServerList;
 import nl.eduvpn.app.entity.Settings;
 import nl.eduvpn.app.entity.message.Maintenance;
 import nl.eduvpn.app.entity.message.Message;
@@ -901,16 +903,17 @@ public class SerializerService {
      * @return The list of organizations created from the JSON.
      * @throws UnknownFormatException Thrown if there was an error while deserializing.
      */
-    public List<Organization> deserializeOrganizationList(JSONObject jsonObject) throws UnknownFormatException {
+    public OrganizationList deserializeOrganizationList(JSONObject jsonObject) throws UnknownFormatException {
         try {
             List<Organization> result = new ArrayList<>();
+            long version = jsonObject.getLong("v");
             JSONArray itemsList = jsonObject.getJSONArray("organization_list");
             for (int i = 0; i < itemsList.length(); ++i) {
                 JSONObject serializedItem = itemsList.getJSONObject(i);
                 Organization organization = deserializeOrganization(serializedItem);
                 result.add(organization);
             }
-            return result;
+            return new OrganizationList(version, result);
         } catch (JSONException ex) {
             throw new UnknownFormatException(ex);
         }
@@ -923,14 +926,15 @@ public class SerializerService {
      * @return The messages as a JSON object.
      * @throws UnknownFormatException Thrown if there was an error constructing the JSON.
      */
-    public JSONObject serializeOrganizationList(List<Organization> organizationList) throws UnknownFormatException {
+    public JSONObject serializeOrganizationList(OrganizationList organizationList) throws UnknownFormatException {
         try {
             JSONObject result = new JSONObject();
             JSONArray organizationsArray = new JSONArray();
-            for (Organization organization : organizationList) {
+            for (Organization organization : organizationList.getOrganizationList()) {
                 organizationsArray.put(serializeOrganization(organization));
             }
             result.put("organization_list", organizationsArray);
+            result.put("v", organizationList.getVersion());
             return result;
         } catch (JSONException ex) {
             throw new UnknownFormatException(ex);
@@ -944,16 +948,17 @@ public class SerializerService {
      * @return The list of organizations servers created from the JSON.
      * @throws UnknownFormatException Thrown if there was an error while deserializing.
      */
-    public List<Instance> deserializeInstancesFromServerList(JSONObject jsonObject) throws UnknownFormatException {
+    public ServerList deserializeServerList(JSONObject jsonObject) throws UnknownFormatException {
         try {
             List<Instance> result = new ArrayList<>();
             JSONArray itemsList = jsonObject.getJSONArray("server_list");
+            long version = jsonObject.getLong("v");
             for (int i = 0; i < itemsList.length(); ++i) {
                 JSONObject serializedItem = itemsList.getJSONObject(i);
                 Instance instance = deserializeInstance(serializedItem);
                 result.add(instance);
             }
-            return result;
+            return new ServerList(version, result);
         } catch (JSONException ex) {
             throw new UnknownFormatException(ex);
         }

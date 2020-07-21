@@ -24,7 +24,8 @@ import io.reactivex.schedulers.Schedulers
 import nl.eduvpn.app.BuildConfig
 import nl.eduvpn.app.Constants
 import nl.eduvpn.app.entity.Instance
-import nl.eduvpn.app.entity.Organization
+import nl.eduvpn.app.entity.OrganizationList
+import nl.eduvpn.app.entity.ServerList
 import nl.eduvpn.app.entity.exception.InvalidSignatureException
 import nl.eduvpn.app.utils.Log
 import okhttp3.OkHttpClient
@@ -42,15 +43,15 @@ class OrganizationService(private val serializerService: SerializerService,
                           private val okHttpClient: OkHttpClient) {
 
 
-    fun fetchServerList() : Single<List<Instance>> {
+    fun fetchServerList() : Single<ServerList> {
         val serverListUrl = BuildConfig.ORGANIZATION_LIST_BASE_URL + "server_list.json"
         val serverListObservable = createGetJsonSingle(serverListUrl)
         val signatureObservable = createSignatureSingle(serverListUrl)
-        return Single.zip(serverListObservable, signatureObservable, BiFunction<String, String, List<Instance>> { serverList: String, signature: String ->
+        return Single.zip(serverListObservable, signatureObservable, BiFunction<String, String, ServerList> { serverList: String, signature: String ->
             try {
                 if (securityService.verifyMinisign(serverList, signature)) {
                     val organizationListJson = JSONObject(serverList)
-                    return@BiFunction serializerService.deserializeInstancesFromServerList(organizationListJson)
+                    return@BiFunction serializerService.deserializeServerList(organizationListJson)
                 } else {
                     throw InvalidSignatureException("Signature validation failed for server list!")
                 }
@@ -63,11 +64,11 @@ class OrganizationService(private val serializerService: SerializerService,
 
     }
 
-    fun fetchOrganizations(): Single<List<Organization>> {
+    fun fetchOrganizations(): Single<OrganizationList> {
         val listUrl = BuildConfig.ORGANIZATION_LIST_BASE_URL + "organization_list.json"
         val organizationListObservable = createGetJsonSingle(listUrl)
         val signatureObservable = createSignatureSingle(listUrl)
-        return Single.zip(organizationListObservable, signatureObservable, BiFunction<String, String, List<Organization>> { organizationList: String, signature: String ->
+        return Single.zip(organizationListObservable, signatureObservable, BiFunction<String, String, OrganizationList> { organizationList: String, signature: String ->
             try {
                 if (securityService.verifyMinisign(organizationList, signature)) {
                     val organizationListJson = JSONObject(organizationList)

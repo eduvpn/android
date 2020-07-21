@@ -81,6 +81,22 @@ public class PreferencesServiceTest {
     }
 
     @Test
+    public void testLastKnownOrganizationListVersionSave() {
+        Long version = 121323L;
+        _preferencesService.setLastKnownOrganizationListVersion(version);
+        Long retrievedVersion = _preferencesService.getLastKnownOrganizationListVersion();
+        assertEquals(version, retrievedVersion);
+    }
+
+    @Test
+    public void testLastKnownServerListVersionSave() {
+        Long version = 8982398L;
+        _preferencesService.setLastKnownServerListVersion(version);
+        Long retrievedVersion = _preferencesService.getLastKnownServerListVersion();
+        assertEquals(version, retrievedVersion);
+    }
+
+    @Test
     public void testMigration() throws SerializerService.UnknownFormatException {
         // We only test a few properties
         DiscoveredAPI discoveredAPI = new DiscoveredAPI("http://example.com/", "http://example.com/auth_endpoint", "http://example.com/token_endpoint");

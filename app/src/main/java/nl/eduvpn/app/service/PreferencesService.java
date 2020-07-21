@@ -64,6 +64,9 @@ public class PreferencesService {
     static final String KEY_PROFILE_LIST = "profile_list";
     static final String KEY_DISCOVERED_API = "discovered_api";
 
+    static final String KEY_LAST_KNOWN_ORGANIZATION_LIST_VERSION = "last_known_organization_list_version";
+    static final String KEY_LAST_KNOWN_SERVER_LIST_VERSION = "last_known_server_list_version";
+
     static final String KEY_INSTANCE_LIST_PREFIX = "instance_list_";
 
     @Deprecated
@@ -544,6 +547,60 @@ public class PreferencesService {
             return null;
         }
 
+    }
+
+    /**
+     * Sets the last known organization list version.
+     *
+     * @param version The last known organization list version. Use null if you want to remove previously set data.
+     */
+    public void setLastKnownOrganizationListVersion(@Nullable Long version) {
+        if (version == null) {
+            _getSharedPreferences().edit().remove(KEY_LAST_KNOWN_ORGANIZATION_LIST_VERSION).apply();
+        } else {
+            _getSharedPreferences().edit().putLong(KEY_LAST_KNOWN_ORGANIZATION_LIST_VERSION, version).apply();
+        }
+    }
+
+    /**
+     * Returns the last known organization list version.
+     *
+     * @return The last known organization list version. Null if no previously set value has been found.
+     */
+    @Nullable
+    public Long getLastKnownOrganizationListVersion() {
+        if (_getSharedPreferences().contains(KEY_LAST_KNOWN_ORGANIZATION_LIST_VERSION)) {
+            return _getSharedPreferences().getLong(KEY_LAST_KNOWN_ORGANIZATION_LIST_VERSION, Long.MIN_VALUE);
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * Sets the last known server list version.
+     *
+     * @param version The last known server list version. Use null if you want to remove previously set data.
+     */
+    public void setLastKnownServerListVersion(@Nullable Long version) {
+        if (version == null) {
+            _getSharedPreferences().edit().remove(KEY_LAST_KNOWN_SERVER_LIST_VERSION).apply();
+        } else {
+            _getSharedPreferences().edit().putLong(KEY_LAST_KNOWN_SERVER_LIST_VERSION, version).apply();
+        }
+    }
+
+    /**
+     * Returns the last known server list version.
+     *
+     * @return The last known server list version. Null if no previously set value has been found.
+     */
+    @Nullable
+    public Long getLastKnownServerListVersion() {
+        if (_getSharedPreferences().contains(KEY_LAST_KNOWN_SERVER_LIST_VERSION)) {
+            return _getSharedPreferences().getLong(KEY_LAST_KNOWN_SERVER_LIST_VERSION, Long.MIN_VALUE);
+        } else {
+            return null;
+        }
     }
 
     /**

@@ -214,6 +214,7 @@ public class ConnectionService {
         Organization organization = _preferencesService.getCurrentOrganization();
         if (organization != null) {
             _historyService.storeSavedOrganization(organization);
+            _preferencesService.setCurrentOrganization(null);
         } else {
             Log.w(TAG, "Organization and instances were not available, so no caching was done.");
         }

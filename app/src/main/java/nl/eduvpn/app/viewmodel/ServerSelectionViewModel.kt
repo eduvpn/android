@@ -20,16 +20,21 @@ package nl.eduvpn.app.viewmodel
 
 import android.content.Context
 import androidx.lifecycle.MutableLiveData
-import nl.eduvpn.app.Constants
 import nl.eduvpn.app.R
 import nl.eduvpn.app.adapter.OrganizationAdapter
 import nl.eduvpn.app.entity.AuthorizationType
 import nl.eduvpn.app.entity.Instance
 import nl.eduvpn.app.entity.Organization
-import nl.eduvpn.app.service.*
+import nl.eduvpn.app.entity.ServerList
+import nl.eduvpn.app.service.APIService
+import nl.eduvpn.app.service.ConnectionService
+import nl.eduvpn.app.service.HistoryService
+import nl.eduvpn.app.service.OrganizationService
+import nl.eduvpn.app.service.PreferencesService
+import nl.eduvpn.app.service.SerializerService
+import nl.eduvpn.app.service.VPNService
 import nl.eduvpn.app.utils.Log
 import nl.eduvpn.app.utils.getCountryText
-import java.util.Locale
 import java.util.Observable
 import java.util.Observer
 import javax.inject.Inject
@@ -54,8 +59,7 @@ class ServerSelectionViewModel @Inject constructor(
     val adapterItems = MutableLiveData<List<OrganizationAdapter.OrganizationAdapterItem>>()
 
     // We avoid refreshing the organization too frequently.
-    private val serverListCache = MutableLiveData<Pair<Long, List<Instance>>>()
-
+    private val serverListCache = MutableLiveData<Pair<Long, ServerList>>()
 
     init {
         historyService.addObserver(this)
@@ -66,18 +70,17 @@ class ServerSelectionViewModel @Inject constructor(
         historyService.deleteObserver(this)
     }
 
-
     override fun onResume() {
         super.onResume()
         refresh()
     }
 
     private fun refresh() {
-        val needsServerList = true|| historyService.savedAuthStateList.any { it.instance.authorizationType == AuthorizationType.Distributed }
+        val needsServerList = true || historyService.savedAuthStateList.any { it.instance.authorizationType == AuthorizationType.Distributed }
         if (needsServerList && (serverListCache.value == null || System.currentTimeMillis() - serverListCache.value!!.first > SERVER_LIST_CACHE_TTL)) {
             refreshServerList()
         } else {
-            refreshInstances(serverListCache.value?.second ?: emptyList())
+            refreshInstances(serverListCache.value?.second ?: ServerList(-1, emptyList()))
         }
     }
 
@@ -85,6 +88,7 @@ class ServerSelectionViewModel @Inject constructor(
      * Refreshes the current organization, and then the instances afterwards
      */
     private fun refreshServerList() {
+        connectionState.value = ConnectionState.FetchingServerList
         Log.v(TAG, "Fetching server list...")
         disposables.add(organizationService.fetchServerList()
                 .subscribe({
@@ -93,7 +97,7 @@ class ServerSelectionViewModel @Inject constructor(
                     refreshInstances(it)
                 }, {
                     Log.w(TAG, "Unable to fetch server list. Trying to show servers without it.", it)
-                    refreshInstances(serverListCache.value?.second ?: emptyList())
+                    refreshInstances(serverListCache.value?.second ?: ServerList(-1L, emptyList()))
                 })
         )
     }
@@ -101,7 +105,7 @@ class ServerSelectionViewModel @Inject constructor(
     /**
      * Refreshes the instances for the server selector.
      */
-    private fun refreshInstances(serverList: List<Instance> = emptyList()) {
+    private fun refreshInstances(serverList: ServerList) {
         val savedInstances = historyService.savedAuthStateList.map { it.instance }
         val distributedInstance = savedInstances.firstOrNull { it.authorizationType == AuthorizationType.Distributed }
         val customServers = savedInstances.filter { it.authorizationType == AuthorizationType.Local && it.isCustom }.sortedBy { it.sanitizedBaseURI }
@@ -118,7 +122,7 @@ class ServerSelectionViewModel @Inject constructor(
             val countryMatch = if (preferencesService.preferredCountry == null) {
                 null
             } else {
-                serverList.firstOrNull { it.authorizationType == AuthorizationType.Distributed && it.countryCode.equals(preferredCountry, ignoreCase = true) }
+                serverList.serverList.firstOrNull { it.authorizationType == AuthorizationType.Distributed && it.countryCode.equals(preferredCountry, ignoreCase = true) }
             }
             val displayedServer = countryMatch ?: distributedInstance
             result += OrganizationAdapter.OrganizationAdapterItem.Header(R.drawable.ic_secure_internet, R.string.header_secure_internet, includeLocationButton = true)
@@ -129,6 +133,7 @@ class ServerSelectionViewModel @Inject constructor(
             result += customServers.map { OrganizationAdapter.OrganizationAdapterItem.InstituteAccess(it) }
         }
         adapterItems.value = result
+        connectionState.value = ConnectionState.Ready
     }
 
     override fun update(o: Observable?, arg: Any?) {
@@ -138,7 +143,7 @@ class ServerSelectionViewModel @Inject constructor(
     }
 
     fun requestCountryList(): List<Pair<Instance, String>>? {
-        val allInstances = serverListCache.value?.second
+        val allInstances = serverListCache.value?.second?.serverList
         return allInstances?.filter {
             it.authorizationType == AuthorizationType.Distributed && it.countryCode != null
         }?.map {
@@ -149,10 +154,6 @@ class ServerSelectionViewModel @Inject constructor(
     fun changePreferredCountry(selectedInstance: Instance) {
         preferencesService.preferredCountry = selectedInstance.countryCode
         refresh()
-    }
-
-    fun saveOrganization(organization: Organization) {
-        preferencesService.currentOrganization = organization
     }
 
     fun hasNoMoreServers(): Boolean {

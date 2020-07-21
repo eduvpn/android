@@ -71,9 +71,12 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
             if (!isChecked) {
                 disconnect()
             } else {
+                val currentProfile = viewModel.findCurrentProfile()
                 val config = viewModel.findCurrentConfig()
                 if (config != null) {
                     connect(config)
+                } else if (currentProfile != null) {
+                    viewModel.selectProfileToConnectTo(currentProfile)
                 } else {
                     // Should not happen
                     returnToHome()
@@ -148,28 +151,28 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
         vpnStatusObserver = Observer { _: Observable?, arg: Any? ->
             when (arg as VPNStatus?) {
                 VPNStatus.CONNECTED -> {
-                    skipNextDisconnect = false
                     binding.connectionStatusIcon.setImageResource(R.drawable.ic_connection_status_connected)
                     binding.connectionStatus.setText(R.string.connection_info_state_connected)
+                    skipNextDisconnect = false
                     isAutomaticCheckChange = true
                     binding.connectionSwitch.isChecked = true
                     isAutomaticCheckChange = false
                 }
                 VPNStatus.CONNECTING -> {
-                    skipNextDisconnect = false
                     binding.connectionStatusIcon.setImageResource(R.drawable.ic_connection_status_connecting)
                     binding.connectionStatus.setText(R.string.connection_info_state_connecting)
+                    skipNextDisconnect = false
                     isAutomaticCheckChange = true
                     binding.connectionSwitch.isChecked = true
                     isAutomaticCheckChange = false
                 }
                 VPNStatus.PAUSED -> {
-                    skipNextDisconnect = false
+                    binding.connectionStatusIcon.setImageResource(R.drawable.ic_connection_status_connecting)
                     binding.connectionStatus.setText(R.string.connection_info_state_paused)
+                    skipNextDisconnect = false
                     isAutomaticCheckChange = true
                     binding.connectionSwitch.isChecked = true
                     isAutomaticCheckChange = false
-                    binding.connectionStatusIcon.setImageResource(R.drawable.ic_connection_status_connecting)
                 }
                 VPNStatus.DISCONNECTED -> {
                     binding.connectionStatusIcon.setImageResource(R.drawable.ic_connection_status_disconnected)
@@ -234,8 +237,7 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
         viewModel.isInDisconnectMode.value = false
     }
 
-    private fun disconnect() {
-        binding.connectionStatusIcon.setImageResource(R.drawable.ic_connection_status_disconnected)
+    private fun disconnect(retryCount: Int = 0) {
         val isConnecting = vpnService.status == VPNStatus.CONNECTING
         if (isConnecting) {
             // In this case, if we call disconnect, the process can be killed.
@@ -247,7 +249,12 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
                     return@postDelayed
                 }
                 Log.i(TAG, "No disconnect event received from VPN within $WAIT_FOR_DISCONNECT_UNTIL_MS milliseconds. Assuming process died.")
-                disconnect()
+                if (retryCount < 3) {
+                    disconnect(retryCount + 1)
+                } else {
+                    vpnService.disconnect()
+                    viewModel.isInDisconnectMode.value = true
+                }
             }, WAIT_FOR_DISCONNECT_UNTIL_MS.toLong())
         } else {
             vpnService.disconnect()
