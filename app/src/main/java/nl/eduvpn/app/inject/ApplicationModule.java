@@ -30,6 +30,7 @@ import javax.inject.Singleton;
 
 import dagger.Module;
 import dagger.Provides;
+import nl.eduvpn.app.BuildConfig;
 import nl.eduvpn.app.EduVPNApplication;
 import nl.eduvpn.app.service.APIService;
 import nl.eduvpn.app.service.ConnectionService;
@@ -42,6 +43,7 @@ import nl.eduvpn.app.service.VPNService;
 import nl.eduvpn.app.utils.Log;
 import okhttp3.Cache;
 import okhttp3.OkHttpClient;
+import okhttp3.logging.HttpLoggingInterceptor;
 
 /**
  * Application module providing the different dependencies
@@ -145,6 +147,11 @@ public class ApplicationModule {
                         return chain.proceed(chain.request());
                     }
                 });
+        if (BuildConfig.DEBUG) {
+            HttpLoggingInterceptor logging = new HttpLoggingInterceptor();
+            logging.setLevel(HttpLoggingInterceptor.Level.BODY);
+            clientBuilder.addInterceptor(logging);
+        }
         return clientBuilder.build();
     }
 }

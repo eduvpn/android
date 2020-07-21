@@ -140,6 +140,7 @@ dependencies {
     implementation 'com.scottyab:secure-preferences-lib:0.1.4'
     // HTTP client
     implementation "com.squareup.okhttp3:okhttp:$okHttpVersion"
+    implementation "com.squareup.okhttp3:logging-interceptor:$okHttpVersion"
     // Dependency injection
     implementation "com.google.dagger:dagger:$daggerVersion"
     kapt "com.google.dagger:dagger-compiler:$daggerVersion"
