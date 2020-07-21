@@ -99,8 +99,8 @@ class ServerSelectionFragment : BaseFragment<FragmentServerSelectionBinding>() {
             }
         }.setOnItemLongClickListener { _, position, _ ->
             val item = adapter.getItem(position)
-            if (item is OrganizationAdapter.OrganizationAdapterItem.InstituteAccess &&
-                    item.server.isCustom) {
+            // If type is distributed access, then it is an organization server, which can be reset from Settings instead
+            if (item is OrganizationAdapter.OrganizationAdapterItem.InstituteAccess) {
                 displayDeleteDialog(item.server)
                 return@setOnItemLongClickListener true
             }

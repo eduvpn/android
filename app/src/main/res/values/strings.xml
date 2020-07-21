@@ -127,6 +127,7 @@
     <string name="error_no_internet_connection_message">It seems that you have no connection to the internet. Please check your connection, and try again.\nOriginal error: %s</string>
     <string name="select_your_organization_search_hint">Search for your organization...</string>
     <string name="fetching_organization_servers">Fetching organizations...</string>
+    <string name="fetching_server_list">Fetching latest server list...</string>
     <string name="error_fetching_organization_servers">Error fetching organization servers</string>
     <string name="error_fetching_organizations">Error fetching organization / server list</string>
     <string name="discovering_group_servers">Discovering group servers...</string>
@@ -188,5 +189,8 @@
     <string name="connection_warning_disconnect_first_title">VPN connected</string>
     <string name="connection_warning_disconnect_first_message">To switch between profiles, you need to disconnect first using the toggle.</string>
     <string name="connection_warning_disconnect_first_ok_button">OK</string>
-
+    <string name="error_organization_list_version_check_message">Organization list version is outdated.</string>
+    <string name="error_organization_list_version_check_title">Problem downloading organization list</string>
+    <string name="error_server_list_version_check_message">Server list version is outdated.</string>
+    <string name="error_server_list_version_check_title">Problem downloading server list</string>
 </resources>

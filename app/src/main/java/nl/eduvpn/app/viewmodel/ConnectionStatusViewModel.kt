@@ -132,7 +132,7 @@ class ConnectionStatusViewModel @Inject constructor(
             certValidity.value = HtmlCompat.fromHtml(context.getString(R.string.connection_certificate_status_valid_for_one_part, seconds), HtmlCompat.FROM_HTML_MODE_COMPACT)
         } else if (timeDifferenceInSeconds < 3600) {
             // Expires within an hour
-            val seconds = context.resources.getQuantityString(R.plurals.certificate_status_seconds, timeDifferenceInSeconds.toInt(), timeDifferenceInSeconds)
+            val seconds = context.resources.getQuantityString(R.plurals.certificate_status_seconds, timeDifferenceInSeconds.rem(60).toInt(), timeDifferenceInSeconds.rem(60).toInt())
             val minutes = context.resources.getQuantityString(R.plurals.certificate_status_minutes, timeDifferenceInSeconds.div(60).toInt(), timeDifferenceInSeconds.div(60).toInt())
             certValidity.value = HtmlCompat.fromHtml(context.getString(R.string.connection_certificate_status_valid_for_two_parts, minutes, seconds), HtmlCompat.FROM_HTML_MODE_COMPACT)
         } else if (timeDifferenceInSeconds < 3600 * 24) {
@@ -157,6 +157,10 @@ class ConnectionStatusViewModel @Inject constructor(
         val matchingSavedProfile = preferencesService.savedProfileList?.firstOrNull { it.profile.profileId == currentProfile.profileId }
                 ?: return null
         return vpnService.findMatchingVpnProfile(matchingSavedProfile)
+    }
+
+    fun findCurrentProfile() : Profile? {
+        return preferencesService.currentProfile
     }
 
     fun refreshProfile() {

@@ -162,13 +162,19 @@ public class MainActivity extends BaseActivity<ActivityMainBinding> {
             getSupportFragmentManager().beginTransaction()
                     .setCustomAnimations(R.anim.fade_in, R.anim.fade_out)
                     .addToBackStack(null)
-                    .add(R.id.contentFrame, fragment)
+                    .add(R.id.content_frame, fragment)
                     .commitAllowingStateLoss();
         } else {
             getSupportFragmentManager().beginTransaction()
                     .setCustomAnimations(R.anim.fade_in, R.anim.fade_out)
-                    .replace(R.id.contentFrame, fragment)
+                    .replace(R.id.content_frame, fragment)
                     .commitAllowingStateLoss();
+            // Clean the back stack
+            for (int i = 0; i < getSupportFragmentManager().getBackStackEntryCount(); i++) {
+                if (!getSupportFragmentManager().isStateSaved() && !isFinishing()) {
+                    getSupportFragmentManager().popBackStack();
+                }
+            }
         }
     }
 
@@ -189,7 +195,7 @@ public class MainActivity extends BaseActivity<ActivityMainBinding> {
     @Override
     public void onBackPressed() {
         if (_backNavigationEnabled) {
-            Fragment currentFragment = getSupportFragmentManager().findFragmentById(R.id.contentFrame);
+            Fragment currentFragment = getSupportFragmentManager().findFragmentById(R.id.content_frame);
             if (currentFragment instanceof ConnectionStatusFragment) {
                 ((ConnectionStatusFragment)currentFragment).returnToHome();
                 return;

@@ -304,6 +304,7 @@ open class BaseConnectionViewModel(
                             if ("user_disabled" == reason) {
                                 errorStringId = R.string.error_user_disabled
                             }
+                            historyService.removeSavedKeyPairs(instance)
                             connectionState.value = ConnectionState.Ready
                             parentAction.value = ParentAction.DisplayError(R.string.error_dialog_title_invalid_certificate, context.getString(errorStringId))
                         } else {

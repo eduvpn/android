@@ -77,7 +77,7 @@ class OrganizationServerViewHolder(private val binding: ListItemServerBinding) :
     }
 
     fun bind(organization: Organization) {
-        binding.displayName.text = organization.displayName
+        binding.displayName.text = organization.displayName.bestTranslation
     }
 
     fun bind(url: String) {

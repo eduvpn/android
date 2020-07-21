@@ -47,6 +47,7 @@ import nl.eduvpn.app.entity.Instance;
 import nl.eduvpn.app.entity.InstanceList;
 import nl.eduvpn.app.entity.KeyPair;
 import nl.eduvpn.app.entity.Organization;
+import nl.eduvpn.app.entity.OrganizationList;
 import nl.eduvpn.app.entity.Profile;
 import nl.eduvpn.app.entity.SavedAuthState;
 import nl.eduvpn.app.entity.SavedKeyPair;
@@ -310,13 +311,15 @@ public class SerializerServiceTest {
         Organization organization2 = new Organization("orgid-2", "display name - 2", Collections.singletonList("notthesamekeyword"), "https://server.info2/url");
         Organization organization3 = new Organization("orgid-3", "display name - 3", new ArrayList<>(), "http://server.info/url3");
         List<Organization> organizations = Arrays.asList(organization1, organization2, organization3);
-        JSONObject serializedOrganizationList = _serializerService.serializeOrganizationList(organizations);
-        List<Organization> deserializedOrganizationList = _serializerService.deserializeOrganizationList(serializedOrganizationList);
+        OrganizationList organizationList = new OrganizationList(12345L, organizations);
+        JSONObject serializedOrganizationList = _serializerService.serializeOrganizationList(organizationList);
+        OrganizationList deserializedOrganizationList = _serializerService.deserializeOrganizationList(serializedOrganizationList);
         for (int i = 0; i < organizations.size(); ++i) {
-            assertEquals(organizations.get(i).getDisplayName(), deserializedOrganizationList.get(i).getDisplayName());
-            assertEquals(organizations.get(i).getKeywordList(), deserializedOrganizationList.get(i).getKeywordList());
-            assertEquals(organizations.get(i).getOrgId(), deserializedOrganizationList.get(i).getOrgId());
-            assertEquals(organizations.get(i).getSecureInternetHome(), deserializedOrganizationList.get(i).getSecureInternetHome());
+            assertEquals(organizations.get(i).getDisplayName(), deserializedOrganizationList.getOrganizationList().get(i).getDisplayName());
+            assertEquals(organizations.get(i).getKeywordList(), deserializedOrganizationList.getOrganizationList().get(i).getKeywordList());
+            assertEquals(organizations.get(i).getOrgId(), deserializedOrganizationList.getOrganizationList().get(i).getOrgId());
+            assertEquals(organizations.get(i).getSecureInternetHome(), deserializedOrganizationList.getOrganizationList().get(i).getSecureInternetHome());
+            assertEquals(organizationList.getVersion(), deserializedOrganizationList.getVersion());
         }
     }
 

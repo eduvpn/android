@@ -28,7 +28,15 @@ import nl.eduvpn.app.adapter.OrganizationAdapter
 import nl.eduvpn.app.entity.AuthorizationType
 import nl.eduvpn.app.entity.Instance
 import nl.eduvpn.app.entity.Organization
-import nl.eduvpn.app.service.*
+import nl.eduvpn.app.entity.OrganizationList
+import nl.eduvpn.app.entity.ServerList
+import nl.eduvpn.app.service.APIService
+import nl.eduvpn.app.service.ConnectionService
+import nl.eduvpn.app.service.HistoryService
+import nl.eduvpn.app.service.OrganizationService
+import nl.eduvpn.app.service.PreferencesService
+import nl.eduvpn.app.service.SerializerService
+import nl.eduvpn.app.service.VPNService
 import nl.eduvpn.app.utils.Log
 import javax.inject.Inject
 
@@ -52,21 +60,47 @@ class OrganizationSelectionViewModel @Inject constructor(
     val searchText = MutableLiveData("")
 
     init {
-        state.value = ConnectionState.FetchingOrganizations
         val getOrganizationsCall = if (historyService.savedOrganization == null) {
+            state.value = ConnectionState.FetchingOrganizations
             organizationService.fetchOrganizations()
         } else {
             // We can't show any organization servers, user needs to reset to switch.
-            Single.just(emptyList())
+            state.value = ConnectionState.FetchingServerList
+            Single.just(OrganizationList(-1L, emptyList()))
         }
         disposables.add(
-                Single.zip(getOrganizationsCall, organizationService.fetchServerList(), BiFunction { orgList: List<Organization>, serverList: List<Instance> ->
+                Single.zip(getOrganizationsCall, organizationService.fetchServerList(), BiFunction { orgList: OrganizationList, serverList: ServerList ->
                     Pair(orgList, serverList)
                 }).subscribe({ organizationServerListPair ->
                     val organizationList = organizationServerListPair.first
                     val serverList = organizationServerListPair.second
-                    organizations.value = organizationList
-                    servers.value = serverList
+
+                    val lastKnownOrganizationVersion = preferencesService.lastKnownOrganizationListVersion
+                    val lastKnownServerListVersion = preferencesService.lastKnownServerListVersion
+
+                    if (serverList.version > 0 && lastKnownServerListVersion != null && lastKnownServerListVersion > serverList.version) {
+                        organizations.value = emptyList()
+                        servers.value = emptyList()
+                        state.value = ConnectionState.Ready
+                        parentAction.value = ParentAction.DisplayError(R.string.error_server_list_version_check_title, context.getString(R.string.error_server_list_version_check_message))
+                        return@subscribe
+                    } else if (organizationList.version > 0 && lastKnownOrganizationVersion != null && lastKnownOrganizationVersion > organizationList.version) {
+                        organizations.value = emptyList()
+                        servers.value = serverList.serverList
+                        state.value = ConnectionState.Ready
+                        parentAction.value = ParentAction.DisplayError(R.string.error_organization_list_version_check_title, context.getString(R.string.error_organization_list_version_check_message))
+                        return@subscribe
+                    }
+
+                    if (organizationList.version > 0) {
+                        preferencesService.lastKnownOrganizationListVersion = organizationList.version
+                    }
+                    if (serverList.version > 0) {
+                        preferencesService.lastKnownServerListVersion = serverList.version
+                    }
+
+                    organizations.value = organizationList.organizationList
+                    servers.value = serverList.serverList
                     state.value = ConnectionState.Ready
                 }, { throwable ->
                     Log.w(TAG, "Unable to fetch organization list!", throwable)
@@ -94,7 +128,8 @@ class OrganizationSelectionViewModel @Inject constructor(
                     if (searchText.isNullOrBlank()) {
                         true
                     } else {
-                        it.displayName.contains(searchText, ignoreCase = true) || it.keywordList.any { keyword -> keyword.contains(searchText, ignoreCase = true) }
+                        it.displayName.translations.any { keyValue -> keyValue.value.contains(searchText, ignoreCase = true) } ||
+                                it.keywordList.translations.any { keyValue -> keyValue.value.contains(searchText, ignoreCase = true) }
                     }
                 }.mapNotNull { organization ->
                     val matchingServer = servers
@@ -129,9 +164,7 @@ class OrganizationSelectionViewModel @Inject constructor(
 
 
     fun selectOrganizationAndInstance(organization: Organization?, instance: Instance) {
-        if (organization != null) {
-            preferencesService.currentOrganization = organization
-        }
+        preferencesService.currentOrganization = organization
         discoverApi(instance)
     }
 

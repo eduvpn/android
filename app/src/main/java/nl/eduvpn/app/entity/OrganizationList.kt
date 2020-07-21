@@ -16,18 +16,12 @@
  *
  */
 
-package nl.eduvpn.app.viewmodel
+package nl.eduvpn.app.entity
 
-import androidx.annotation.StringRes
-import nl.eduvpn.app.R
-
-enum class ConnectionState(@StringRes val displayString: Int?) {
-        Ready(null),
-        FetchingOrganizations(R.string.fetching_organization_servers),
-        FetchingServerList(R.string.fetching_server_list),
-        DiscoveringApi(R.string.api_discovery_message),
-        FetchingProfiles(R.string.loading_available_profiles),
-        Authorizing(R.string.loading_browser_for_authorization),
-        ProfileCheckingCertificate(R.string.vpn_profile_checking_certificate),
-        ProfileDownloadingKeyPair(R.string.vpn_profile_creating_keypair)
-    }
+/**
+ * A versioned list of organizations
+ */
+data class OrganizationList(
+        val version: Long,
+        val organizationList: List<Organization>
+)
