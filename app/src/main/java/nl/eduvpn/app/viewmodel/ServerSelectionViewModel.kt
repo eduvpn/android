@@ -76,7 +76,7 @@ class ServerSelectionViewModel @Inject constructor(
     }
 
     private fun refresh() {
-        val needsServerList = true || historyService.savedAuthStateList.any { it.instance.authorizationType == AuthorizationType.Distributed }
+        val needsServerList = historyService.savedAuthStateList.any { it.instance.authorizationType == AuthorizationType.Distributed }
         if (needsServerList && (serverListCache.value == null || System.currentTimeMillis() - serverListCache.value!!.first > SERVER_LIST_CACHE_TTL)) {
             refreshServerList()
         } else {
