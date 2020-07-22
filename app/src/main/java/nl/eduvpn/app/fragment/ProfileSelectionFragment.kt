@@ -32,6 +32,7 @@ import nl.eduvpn.app.entity.Profile
 import nl.eduvpn.app.utils.ErrorDialog
 import nl.eduvpn.app.utils.ItemClickSupport
 import nl.eduvpn.app.viewmodel.BaseConnectionViewModel
+import nl.eduvpn.app.viewmodel.ProfileSelectionViewModel
 import java.util.ArrayList
 
 /**
@@ -40,7 +41,7 @@ import java.util.ArrayList
  */
 class ProfileSelectionFragment : BaseFragment<FragmentProfileSelectionBinding>() {
 
-    private val viewModel by viewModels<BaseConnectionViewModel> { viewModelFactory }
+    private val viewModel by viewModels<ProfileSelectionViewModel> { viewModelFactory }
 
     override val layout = R.layout.fragment_profile_selection
 

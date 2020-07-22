@@ -51,4 +51,9 @@ interface ViewModelModule {
     @ViewModelKey(ConnectionStatusViewModel::class)
     fun bindConnectionStatusViewModel(connectionStatusViewModel: ConnectionStatusViewModel): ViewModel
 
+    @Binds
+    @IntoMap
+    @ViewModelKey(ProfileSelectionViewModel::class)
+    fun bindProfileSelectionViewModel(profileSelectionViewModel: ProfileSelectionViewModel) : ViewModel
+
 }
