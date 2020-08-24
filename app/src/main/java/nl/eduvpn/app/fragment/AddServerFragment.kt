@@ -53,7 +53,7 @@ class AddServerFragment : BaseFragment<FragmentAddServerBinding>() {
             binding.serverUrl.hideKeyboard()
             addServer()
         }
-        binding.serverUrl.setOnEditorActionListener { v, actionId, event ->
+        binding.serverUrl.setOnEditorActionListener { _, actionId, _ ->
             if (actionId == EditorInfo.IME_ACTION_GO) {
                 addServer()
                 true
@@ -79,6 +79,11 @@ class AddServerFragment : BaseFragment<FragmentAddServerBinding>() {
                 }
             }
         })
+    }
+
+    override fun onResume() {
+        super.onResume()
+        viewModel.onResume()
     }
 
     private fun addServer() {
