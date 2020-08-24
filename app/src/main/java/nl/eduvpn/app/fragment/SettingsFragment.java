@@ -28,6 +28,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import de.blinkt.openvpn.activities.LogWindow;
+import nl.eduvpn.app.BuildConfig;
 import nl.eduvpn.app.EduVPNApplication;
 import nl.eduvpn.app.LicenseActivity;
 import nl.eduvpn.app.R;
@@ -80,6 +81,11 @@ public class SettingsFragment extends BaseFragment<FragmentSettingsBinding> {
             Intent intent = new Intent(getActivity(), LogWindow.class);
             startActivity(intent);
         });
+
+        if (!BuildConfig.API_DISCOVERY_ENABLED) {
+            binding.resetDataSeparator.setVisibility(View.GONE);
+            binding.resetAppDataContainer.setVisibility(View.GONE);
+        }
 
     }
 
