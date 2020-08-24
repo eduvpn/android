@@ -25,6 +25,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
+import nl.eduvpn.app.BuildConfig
 import nl.eduvpn.app.EduVPNApplication
 import nl.eduvpn.app.MainActivity
 import nl.eduvpn.app.R
@@ -110,7 +111,12 @@ class ServerSelectionFragment : BaseFragment<FragmentServerSelectionBinding>() {
             ErrorDialog.show(it.context, R.string.warning_title, viewModel.warning.value!!)
         }
         binding.addServerButton.setOnClickListener {
-            (activity as? MainActivity)?.openFragment(OrganizationSelectionFragment(), true)
+            @Suppress("ConstantConditionIf")
+            if (BuildConfig.API_DISCOVERY_ENABLED) {
+                (activity as? MainActivity)?.openFragment(OrganizationSelectionFragment(), true)
+            } else {
+                (activity as? MainActivity)?.openFragment(AddServerFragment(), true)
+            }
         }
     }
 

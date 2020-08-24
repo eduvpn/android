@@ -56,4 +56,9 @@ interface ViewModelModule {
     @ViewModelKey(ProfileSelectionViewModel::class)
     fun bindProfileSelectionViewModel(profileSelectionViewModel: ProfileSelectionViewModel) : ViewModel
 
+    @Binds
+    @IntoMap
+    @ViewModelKey(AddServerViewModel::class)
+    fun bindAddServerViewModel(addServerViewModel: AddServerViewModel) : ViewModel
+
 }

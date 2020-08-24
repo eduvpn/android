@@ -34,6 +34,7 @@ import androidx.appcompat.app.ActionBar;
 import androidx.fragment.app.Fragment;
 import nl.eduvpn.app.base.BaseActivity;
 import nl.eduvpn.app.databinding.ActivityMainBinding;
+import nl.eduvpn.app.fragment.AddServerFragment;
 import nl.eduvpn.app.fragment.ConnectionStatusFragment;
 import nl.eduvpn.app.fragment.OrganizationSelectionFragment;
 import nl.eduvpn.app.fragment.ServerSelectionFragment;
@@ -78,8 +79,10 @@ public class MainActivity extends BaseActivity<ActivityMainBinding> {
                 openFragment(new ConnectionStatusFragment(), false);
             } else if (!_historyService.getSavedAuthStateList().isEmpty()) {
                 openFragment(ServerSelectionFragment.Companion.newInstance(false), false);
-            } else {
+            } else if (BuildConfig.API_DISCOVERY_ENABLED){
                 openFragment(new OrganizationSelectionFragment(), false);
+            } else {
+                openFragment(new AddServerFragment(), false);
             }
 
         } else if (savedInstanceState.containsKey(KEY_BACK_NAVIGATION_ENABLED)) {

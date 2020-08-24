@@ -38,13 +38,13 @@
 
             <ImageView
                 android:id="@+id/actionbarLogo"
-                android:layout_width="133dp"
-                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"
+                android:layout_height="40dp"
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintBottom_toBottomOf="parent"
                 android:layout_marginRight="?attr/actionBarSize"
                 android:contentDescription="@string/content_description_application_logo"
-                android:src="@drawable/ic_eduvpn_logo"
+                android:src="@drawable/ic_application_logo"
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintRight_toRightOf="parent" />
 
