@@ -250,7 +250,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
                     android:text="@string/connection_info_uploaded"
-                    app:layout_constraintLeft_toRightOf="@id/guide_50_percent_width"
+                    app:layout_constraintLeft_toRightOf="@id/guide_vertical_divide"
                     app:layout_constraintTop_toBottomOf="@id/label_duration" />
 
                 <TextView
@@ -292,7 +292,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
                     android:text="@string/connection_info_ipv6"
-                    app:layout_constraintLeft_toLeftOf="@id/guide_50_percent_width"
+                    app:layout_constraintLeft_toLeftOf="@id/guide_vertical_divide"
                     app:layout_constraintTop_toBottomOf="@id/label_downloaded"
                     app:layout_constraintWidth_percent="0.5" />
 
@@ -302,17 +302,17 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="2dp"
-                    app:layout_constraintLeft_toLeftOf="@id/guide_50_percent_width"
+                    app:layout_constraintLeft_toLeftOf="@id/guide_vertical_divide"
                     app:layout_constraintRight_toRightOf="parent"
                     app:layout_constraintTop_toBottomOf="@id/label_ipv6"
                     tools:text="2001:610:450:40::2:100b" />
 
                 <androidx.constraintlayout.widget.Guideline
-                    android:id="@+id/guide_50_percent_width"
+                    android:id="@+id/guide_vertical_divide"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    app:layout_constraintGuide_percent="0.5" />
+                    app:layout_constraintGuide_percent="0.55" />
 
 
             </androidx.constraintlayout.widget.ConstraintLayout>

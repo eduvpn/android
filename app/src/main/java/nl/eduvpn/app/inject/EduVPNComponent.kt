@@ -19,6 +19,7 @@ package nl.eduvpn.app.inject
 import dagger.Component
 import nl.eduvpn.app.EduVPNApplication
 import nl.eduvpn.app.MainActivity
+import nl.eduvpn.app.fragment.AddServerFragment
 import nl.eduvpn.app.fragment.ConnectionStatusFragment
 import nl.eduvpn.app.fragment.OrganizationSelectionFragment
 import nl.eduvpn.app.fragment.ProfileSelectionFragment
@@ -46,4 +47,5 @@ interface EduVPNComponent {
     fun inject(homeFragment: ProfileSelectionFragment)
     fun inject(settingsFragment: SettingsFragment)
     fun inject(serverSelectionFragment: ServerSelectionFragment)
+    fun inject(addServerFragment: AddServerFragment)
 }

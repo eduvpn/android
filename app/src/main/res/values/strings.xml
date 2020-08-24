@@ -137,8 +137,9 @@
     <string name="reset_data_dialog_message">Do you want to remove all VPN profiles and connection-related data?</string>
     <string name="reset_data_dialog_yes">Yes</string>
     <string name="reset_data_dialog_no">No</string>
-    <string name="add_server_title">Manually Add server</string>
-    <string name="add_server_description">Tap here if you want to add a server using its URL instead of using the organization discovery method.</string>
+    <string name="add_server_title">Server address</string>
+    <string name="add_server_hint">Enter server address here</string>
+    <string name="add_server_button">Add server</string>
     <string name="select_organization">Select organization</string>
 
     <string name="warning_group_fetch_failed_no_cache">Discovering the server group for the server \'%s\' has failed. Not all instances might be visible in the list below.</string>

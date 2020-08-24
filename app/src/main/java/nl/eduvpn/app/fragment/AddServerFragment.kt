@@ -19,50 +19,48 @@ package nl.eduvpn.app.fragment
 
 import android.os.Bundle
 import android.view.View
+import android.view.inputmethod.EditorInfo
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
-import androidx.recyclerview.widget.LinearLayoutManager
 import nl.eduvpn.app.EduVPNApplication
 import nl.eduvpn.app.MainActivity
 import nl.eduvpn.app.R
-import nl.eduvpn.app.adapter.ProfileAdapter
 import nl.eduvpn.app.base.BaseFragment
-import nl.eduvpn.app.databinding.FragmentProfileSelectionBinding
-import nl.eduvpn.app.entity.Profile
+import nl.eduvpn.app.databinding.FragmentAddServerBinding
+import nl.eduvpn.app.entity.AuthorizationType
+import nl.eduvpn.app.entity.Instance
 import nl.eduvpn.app.utils.ErrorDialog
-import nl.eduvpn.app.utils.ItemClickSupport
+import nl.eduvpn.app.utils.hideKeyboard
+import nl.eduvpn.app.viewmodel.AddServerViewModel
 import nl.eduvpn.app.viewmodel.BaseConnectionViewModel
-import nl.eduvpn.app.viewmodel.ProfileSelectionViewModel
-import java.util.ArrayList
+
 
 /**
- * Fragment which is displayed when the app start.
- * Created by Daniel Zolnai on 2016-10-20.
+ * The fragment where the user can add a server using a custom URL.
+ * Created by Daniel Zolnai on 2020-08-23.
  */
-class ProfileSelectionFragment : BaseFragment<FragmentProfileSelectionBinding>() {
+class AddServerFragment : BaseFragment<FragmentAddServerBinding>() {
 
-    private val viewModel by viewModels<ProfileSelectionViewModel> { viewModelFactory }
+    override val layout = R.layout.fragment_add_server
 
-    override val layout = R.layout.fragment_profile_selection
+    private val viewModel by viewModels<AddServerViewModel> { viewModelFactory }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         EduVPNApplication.get(view.context).component().inject(this)
-
         binding.viewModel = viewModel
-
-        // Basic setup of the lists
-        binding.profileList.setHasFixedSize(true)
-        binding.profileList.layoutManager = LinearLayoutManager(view.context, LinearLayoutManager.VERTICAL, false)
-
-        // Add the adapters
-        val profileAdapter = ProfileAdapter(viewModel.getProfileInstance())
-        binding.profileList.adapter = profileAdapter
-
-        val profiles: ArrayList<Profile> = arguments?.getParcelableArrayList(KEY_PROFILES)!!
-
-        profileAdapter.submitList(profiles)
-
+        binding.addServerButton.setOnClickListener {
+            binding.serverUrl.hideKeyboard()
+            addServer()
+        }
+        binding.serverUrl.setOnEditorActionListener { _, actionId, _ ->
+            if (actionId == EditorInfo.IME_ACTION_GO) {
+                addServer()
+                true
+            } else {
+                false
+            }
+        }
         viewModel.parentAction.observe(viewLifecycleOwner, Observer { parentAction ->
             when (parentAction) {
                 is BaseConnectionViewModel.ParentAction.InitiateConnection -> {
@@ -81,16 +79,6 @@ class ProfileSelectionFragment : BaseFragment<FragmentProfileSelectionBinding>()
                 }
             }
         })
-
-        // Add click listeners
-        ItemClickSupport.addTo(binding.profileList).setOnItemClickListener { _, position, _ ->
-            val profile = profileAdapter.getItem(position)
-            viewModel.selectProfileToConnectTo(profile)
-        }
-
-        if (profiles.size == 1) {
-            viewModel.selectProfileToConnectTo(profiles[0])
-        }
     }
 
     override fun onResume() {
@@ -98,16 +86,14 @@ class ProfileSelectionFragment : BaseFragment<FragmentProfileSelectionBinding>()
         viewModel.onResume()
     }
 
-    companion object {
-
-        private const val KEY_PROFILES = "profiles"
-
-        fun newInstance(profileList: List<Profile>): ProfileSelectionFragment {
-            val fragment = ProfileSelectionFragment()
-            val arguments = Bundle()
-            arguments.putParcelableArrayList(KEY_PROFILES, ArrayList(profileList))
-            fragment.arguments = arguments
-            return fragment
+    private fun addServer() {
+        val url = binding.serverUrl.text.toString()
+        val customUrl = if (url.startsWith("http://") || url.startsWith("https://")) {
+            url
+        } else {
+            "https://${url}"
         }
+        val customInstance = Instance(customUrl, getString(R.string.custom_provider_display_name), null, AuthorizationType.Local, null, true, null, emptyList())
+        viewModel.discoverApi(customInstance)
     }
 }

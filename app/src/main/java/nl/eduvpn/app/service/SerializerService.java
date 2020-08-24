@@ -17,7 +17,6 @@
 
 package nl.eduvpn.app.service;
 
-import android.text.TextUtils;
 import android.util.Pair;
 
 import net.openid.appauth.AuthState;
@@ -30,7 +29,6 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -40,7 +38,6 @@ import java.util.Map;
 import java.util.TimeZone;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import nl.eduvpn.app.Constants;
 import nl.eduvpn.app.entity.AuthorizationType;
 import nl.eduvpn.app.entity.DiscoveredAPI;
@@ -104,7 +101,7 @@ public class SerializerService {
         try {
             result.put("profile_list", data);
             data.put("data", array);
-        }catch (JSONException ex) {
+        } catch (JSONException ex) {
             throw new UnknownFormatException("Unable to create nested object for serialized profile list!");
         }
         return result;
@@ -975,6 +972,30 @@ public class SerializerService {
     }
 
     /**
+     * Serializes the server list to JSON format
+     *
+     * @param serverList The server list to serialize.
+     * @return The server list as a JSON object.
+     * @throws UnknownFormatException Thrown if there was an error while deserializing.
+     */
+    public JSONObject serializeServerList(ServerList serverList) throws UnknownFormatException {
+        try {
+            JSONObject output = new JSONObject();
+            JSONArray itemsList = new JSONArray();
+
+            output.put("server_list", itemsList);
+            output.put("v", serverList.getVersion());
+            for (int i = 0; i < serverList.getServerList().size(); ++i) {
+                JSONObject serializedItem = serializeInstance(serverList.getServerList().get(i));
+                itemsList.put(serializedItem);
+            }
+            return output;
+        } catch (JSONException ex) {
+            throw new UnknownFormatException(ex);
+        }
+    }
+
+    /**
      * Returns the language of the user in a specific "country-language" format.
      *
      * @return The current language of the user.
@@ -986,6 +1007,7 @@ public class SerializerService {
 
     /**
      * Retrieves the translations from a JSON object.
+     *
      * @param translationsObject The JSON object to retrieve the translations from.
      * @return A TranslatableString instance.
      * @throws JSONException Thrown if the input is in an unexpected format.
