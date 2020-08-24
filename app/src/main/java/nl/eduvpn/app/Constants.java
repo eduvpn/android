@@ -43,4 +43,6 @@ public class Constants {
 
     public static final Locale LOCALE = Locale.getDefault();
     public static final Locale ENGLISH_LOCALE = Locale.ENGLISH;
+
+    public static final long SERVER_LIST_VALID_FOR_MS = 3_600_000; // 1 hour
 }

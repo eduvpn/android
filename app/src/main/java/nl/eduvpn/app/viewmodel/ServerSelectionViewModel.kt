@@ -24,7 +24,6 @@ import nl.eduvpn.app.R
 import nl.eduvpn.app.adapter.OrganizationAdapter
 import nl.eduvpn.app.entity.AuthorizationType
 import nl.eduvpn.app.entity.Instance
-import nl.eduvpn.app.entity.Organization
 import nl.eduvpn.app.entity.ServerList
 import nl.eduvpn.app.service.APIService
 import nl.eduvpn.app.service.ConnectionService
@@ -63,6 +62,9 @@ class ServerSelectionViewModel @Inject constructor(
 
     init {
         historyService.addObserver(this)
+        preferencesService.serverList?.let { serverList ->
+            serverListCache.value = Pair(System.currentTimeMillis(), serverList)
+        }
     }
 
     override fun onCleared() {
@@ -94,6 +96,7 @@ class ServerSelectionViewModel @Inject constructor(
                 .subscribe({
                     Log.v(TAG, "Updated server list with latest entries.")
                     serverListCache.value = Pair(System.currentTimeMillis(), it)
+                    preferencesService.serverList = it
                     refreshInstances(it)
                 }, {
                     Log.w(TAG, "Unable to fetch server list. Trying to show servers without it.", it)

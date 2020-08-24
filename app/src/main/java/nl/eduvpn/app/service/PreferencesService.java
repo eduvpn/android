@@ -39,6 +39,7 @@ import nl.eduvpn.app.entity.Profile;
 import nl.eduvpn.app.entity.SavedAuthState;
 import nl.eduvpn.app.entity.SavedKeyPair;
 import nl.eduvpn.app.entity.SavedProfile;
+import nl.eduvpn.app.entity.ServerList;
 import nl.eduvpn.app.entity.Settings;
 import nl.eduvpn.app.utils.Log;
 
@@ -73,6 +74,9 @@ public class PreferencesService {
     static final String KEY_INSTANCE_LIST_SECURE_INTERNET = KEY_INSTANCE_LIST_PREFIX + "secure_internet";
     @Deprecated
     static final String KEY_INSTANCE_LIST_INSTITUTE_ACCESS = KEY_INSTANCE_LIST_PREFIX + "institute_access";
+
+    static final String KEY_SERVER_LIST_DATA = "server_list_data";
+    static final String KEY_SERVER_LIST_TIMESTAMP = "server_list_timestamp";
 
 
     static final String KEY_SAVED_PROFILES = "saved_profiles";
@@ -623,6 +627,58 @@ public class PreferencesService {
             _getSharedPreferences().edit().remove(KEY_PREFERRED_COUNTRY).apply();
         } else {
             _getSharedPreferences().edit().putString(KEY_PREFERRED_COUNTRY, preferredCountry).apply();
+        }
+    }
+
+    /**
+     * Returns the server list if it is recent (see constants for exact TTL).
+     *
+     * @return The server list if it is recent, otherwise null.
+     */
+    @Nullable
+    public ServerList getServerList() {
+        long timestamp = _getSharedPreferences().getLong(KEY_SERVER_LIST_TIMESTAMP, 0L);
+        if (System.currentTimeMillis() - timestamp < Constants.SERVER_LIST_VALID_FOR_MS) {
+            String serializedServerList = _getSharedPreferences().getString(KEY_SERVER_LIST_DATA, null);
+            if (serializedServerList == null) {
+                return null;
+            }
+            try {
+                return _serializerService.deserializeServerList(new JSONObject(serializedServerList));
+            } catch (Exception ex) {
+                Log.w(TAG, "Unable to parse server list!", ex);
+                return null;
+            }
+        } else {
+            _getSharedPreferences().edit()
+                    .remove(KEY_SERVER_LIST_DATA)
+                    .remove(KEY_SERVER_LIST_TIMESTAMP)
+                    .apply();
+            return null;
+        }
+    }
+
+    /**
+     * Caches the server list. Only valid for a set amount, see constants for the exact TTL.
+     *
+     * @param serverList The server list to cache. Use null to remove previously set values.
+     */
+    public void setServerList(@Nullable ServerList serverList) {
+        if (serverList == null) {
+            _getSharedPreferences().edit().remove(KEY_SERVER_LIST_DATA)
+                    .remove(KEY_SERVER_LIST_TIMESTAMP)
+                    .apply();
+        } else {
+            try {
+                String serializedServerList = _serializerService.serializeServerList(serverList).toString();
+                _getSharedPreferences().edit()
+                        .putString(KEY_SERVER_LIST_DATA, serializedServerList)
+                        .putLong(KEY_SERVER_LIST_TIMESTAMP, System.currentTimeMillis())
+                        .apply();
+            } catch (Exception ex) {
+                Log.w(TAG, "Unable to set server list!");
+            }
+
         }
     }
 }

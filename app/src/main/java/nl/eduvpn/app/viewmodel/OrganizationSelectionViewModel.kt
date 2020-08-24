@@ -68,8 +68,14 @@ class OrganizationSelectionViewModel @Inject constructor(
             state.value = ConnectionState.FetchingServerList
             Single.just(OrganizationList(-1L, emptyList()))
         }
+        val cachedServerList = preferencesService.serverList
+        val getServerListCall = if (cachedServerList != null) {
+            Single.just(cachedServerList)
+        } else {
+            organizationService.fetchServerList()
+        }
         disposables.add(
-                Single.zip(getOrganizationsCall, organizationService.fetchServerList(), BiFunction { orgList: OrganizationList, serverList: ServerList ->
+                Single.zip(getOrganizationsCall, getServerListCall, BiFunction { orgList: OrganizationList, serverList: ServerList ->
                     Pair(orgList, serverList)
                 }).subscribe({ organizationServerListPair ->
                     val organizationList = organizationServerListPair.first
