@@ -1,11 +1,18 @@
 # Changelog
 
+## 2.0.0 (2020-08-24)
+- Redesigned the entire app
+- Search for your organization or add your own server
+- Update ics-openvpn to version v0.7.15
+- Added support for certificate expiry notifications
+- Your added servers are now grouped by type
+
 ## 1.3.2 (2020-02-18)
 - Continue to add server screen if selection screen is empty (#232)
 - Fix app being stuck in creating keypair (#233)
 
 ## 1.3.1 (2020-02-11)
-- update ics-openvpn to version v0.7.13
+- Update ics-openvpn to version v0.7.13
 
 ## 1.3.0 (2019-11-26)
 - Updated the flow: instead of profiles you now select servers first. We don't connect to each server to fetch the latest profiles.
