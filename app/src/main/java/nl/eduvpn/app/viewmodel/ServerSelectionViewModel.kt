@@ -57,6 +57,8 @@ class ServerSelectionViewModel @Inject constructor(
 
     val adapterItems = MutableLiveData<List<OrganizationAdapter.OrganizationAdapterItem>>()
 
+    val connectingTo = MutableLiveData<Instance>()
+
     // We avoid refreshing the organization too frequently.
     private val serverListCache = MutableLiveData<Pair<Long, ServerList>>()
 
@@ -85,6 +87,7 @@ class ServerSelectionViewModel @Inject constructor(
             refreshInstances(serverListCache.value?.second ?: ServerList(-1, emptyList()))
         }
     }
+
 
     /**
      * Refreshes the current organization, and then the instances afterwards

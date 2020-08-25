@@ -94,8 +94,10 @@ class ServerSelectionFragment : BaseFragment<FragmentServerSelectionBinding>() {
         ItemClickSupport.addTo(binding.serverList).setOnItemClickListener { _, position, _ ->
             val item = adapter.getItem(position)
             if (item is OrganizationAdapter.OrganizationAdapterItem.SecureInternet) {
+                viewModel.connectingTo.value = item.server
                 viewModel.discoverApi(item.server, null)
             } else if (item is OrganizationAdapter.OrganizationAdapterItem.InstituteAccess) {
+                viewModel.connectingTo.value = item.server
                 viewModel.discoverApi(item.server, null)
             }
         }.setOnItemLongClickListener { _, position, _ ->
@@ -138,6 +140,13 @@ class ServerSelectionFragment : BaseFragment<FragmentServerSelectionBinding>() {
     override fun onResume() {
         super.onResume()
         viewModel.onResume()
+    }
+
+    fun connectToSelectedInstance() {
+        if (viewModel.connectingTo.value != null) {
+            viewModel.discoverApi(viewModel.connectingTo.value!!)
+            viewModel.connectingTo.value = null
+        }
     }
 
     companion object {
