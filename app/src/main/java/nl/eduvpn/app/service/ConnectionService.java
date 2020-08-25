@@ -174,8 +174,9 @@ public class ConnectionService {
      *
      * @param authorizationResponse The auth response to process.
      * @param activity              The current activity.
+     * @param callback              Callback which is called when the states are updated.
      */
-    public void parseAuthorizationResponse(@NonNull final AuthorizationResponse authorizationResponse, final Activity activity) {
+    public void parseAuthorizationResponse(@NonNull final AuthorizationResponse authorizationResponse, final Activity activity, AuthorizationStateCallback callback) {
         Log.i(TAG, "Got auth response: " + authorizationResponse.jsonSerializeString());
         _authorizationService.performTokenRequest(
                 authorizationResponse.createTokenExchangeRequest(),
@@ -183,6 +184,9 @@ public class ConnectionService {
                     if (tokenResponse != null) {
                         // exchange succeeded
                         _processTokenExchangeResponse(authorizationResponse, tokenResponse, activity);
+                        if (callback != null) {
+                            callback.onAuthorizationStateUpdated();
+                        }
                     } else {
                         // authorization failed, check ex for more details
                         ErrorDialog.show(activity,
@@ -218,7 +222,6 @@ public class ConnectionService {
         } else {
             Log.w(TAG, "Organization and instances were not available, so no caching was done.");
         }
-        Toast.makeText(activity, R.string.provider_added_new_configs_available, Toast.LENGTH_LONG).show();
     }
 
     /**
@@ -260,5 +263,9 @@ public class ConnectionService {
                 Uri.parse(discoveredAPI.getAuthorizationEndpoint()),
                 Uri.parse(discoveredAPI.getTokenEndpoint()),
                 null);
+    }
+
+    public interface AuthorizationStateCallback {
+        void onAuthorizationStateUpdated();
     }
 }

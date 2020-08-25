@@ -147,10 +147,23 @@ public class MainActivity extends BaseActivity<ActivityMainBinding> {
                     authorizationException.code,
                     authorizationException.getMessage()));
         } else {
-            _connectionService.parseAuthorizationResponse(authorizationResponse, this);
+            Fragment currentFragment = getSupportFragmentManager().findFragmentById(R.id.content_frame);
+            ConnectionService.AuthorizationStateCallback callback = () -> {
+                if (currentFragment instanceof ServerSelectionFragment) {
+                    ((ServerSelectionFragment)currentFragment).connectToSelectedInstance();
+                } else {
+                    Toast.makeText(this, R.string.provider_added_new_configs_available, Toast.LENGTH_LONG).show();
+                }
+            };
+            _connectionService.parseAuthorizationResponse(authorizationResponse, this, callback);
+
             // Remove it so we don't parse it again.
             intent.setData(null);
-            openFragment(ServerSelectionFragment.Companion.newInstance(true), false);
+
+            if (!(currentFragment instanceof ConnectionStatusFragment) && !(currentFragment instanceof ServerSelectionFragment)) {
+                openFragment(ServerSelectionFragment.Companion.newInstance(true), false);
+            }
+
         }
     }
 
