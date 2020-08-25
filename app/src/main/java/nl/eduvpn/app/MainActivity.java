@@ -135,12 +135,6 @@ public class MainActivity extends BaseActivity<ActivityMainBinding> {
                 }
             }
         }
-        if (_vpnService.getStatus() != VPNService.VPNStatus.DISCONNECTED) {
-            // The user clicked on an authorization link while the VPN is connected.
-            // Maybe just a mistake?
-            Toast.makeText(this, R.string.already_connected_please_disconnect, Toast.LENGTH_LONG).show();
-            return;
-        }
         if (authorizationException != null) {
             ErrorDialog.show(this, R.string.authorization_error_title, getString(R.string.authorization_error_message,
                     authorizationException.error,

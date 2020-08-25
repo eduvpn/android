@@ -83,6 +83,7 @@
             android:layout_height="wrap_content"
             android:layout_margin="16dp"
             app:fabSize="normal"
+            app:tint="@android:color/white"
             app:backgroundTint="@color/bg_big_button"
             android:src="@drawable/ic_add"
             android:layout_gravity="bottom|right"
