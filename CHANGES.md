@@ -3,7 +3,7 @@
 ## 2.0.0 (2020-08-24)
 - Redesigned the entire app
 - Search for your organization or add your own server
-- Update ics-openvpn to version v0.7.15
+- Update ics-openvpn to version v0.7.17a
 - Added support for certificate expiry notifications
 - Your added servers are now grouped by type
 
