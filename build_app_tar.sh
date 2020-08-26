@@ -7,7 +7,7 @@
 SDK_DIR=${HOME}/android-sdk
 KEY_STORE=${HOME}/android.jks
 
-V=1.3.2
+V=2.0.0
 DOWNLOAD_URL=https://github.com/eduvpn/android/releases/download/${V}/eduvpn-android-${V}.tar.xz
 
 PROJECT_DIR=${HOME}/Projects
