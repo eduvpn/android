@@ -45,6 +45,7 @@ to the device selector.
 
     $ sudo dnf -y install \
         unzip \
+        tar \
         git \
         swig \
         java-1.8.0-openjdk \
