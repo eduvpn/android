@@ -16,7 +16,6 @@ APP_DIR=${PROJECT_DIR}/eduvpn-android-${V}
 # eduVPN
 GRADLE_TASK=app:assembleBasicRelease
 UNSIGNED_APK=${APP_DIR}/app/build/outputs/apk/basic/release/app-basic-release-unsigned.apk 
-
 SIGNED_APK=${PROJECT_DIR}/eduVPN-${GIT_TAG}.apk
 
 # Let's Connect!
