@@ -22,7 +22,7 @@ android {
 
         vectorDrawables.useSupportLibrary = true
 
-        buildConfigField "String", "ORGANIZATION_LIST_BASE_URL", "\"https://disco.eduvpn.org/\""
+        buildConfigField "String", "ORGANIZATION_LIST_BASE_URL", "\"https://disco.eduvpn.org/v2/\""
         buildConfigField "String", "SIGNATURE_URL_POSTFIX", "\".minisig\""
         buildConfigField "String[]", "MINISIGN_SIGNATURE_VALIDATION_PUBLIC_KEY",
                 "{" +
