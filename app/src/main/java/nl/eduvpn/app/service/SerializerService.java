@@ -842,7 +842,7 @@ public class SerializerService {
                 result.put("display_name", null);
             } else {
                 JSONObject translations = new JSONObject();
-                for (Map.Entry<String, String> entry : organization.getKeywordList().getTranslations().entrySet()) {
+                for (Map.Entry<String, String> entry : organization.getDisplayName().getTranslations().entrySet()) {
                     translations.put(entry.getKey(), entry.getValue());
                 }
                 result.put("display_name", translations);
