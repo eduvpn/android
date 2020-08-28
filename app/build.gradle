@@ -36,7 +36,6 @@ android {
         buildConfigField "String", "OAUTH_SCOPE", "\"config\""
         buildConfigField "String", "CERTIFICATE_DISPLAY_NAME", "\"eduVPN for Android\""
 
-        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         manifestPlaceholders = [
                 'appAuthRedirectScheme': 'org.eduvpn.app'
         ]
@@ -51,6 +50,18 @@ android {
         buildFeatures {
             dataBinding = true
         }
+
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        // The following argument makes the Android Test Orchestrator run its
+        // "pm clear" command after each test invocation. This command ensures
+        // that the app's state is completely cleared between tests.
+        testInstrumentationRunnerArguments clearPackageData: 'true'
+
+        testOptions {
+            execution 'ANDROIDX_TEST_ORCHESTRATOR'
+        }
+
     }
 
     buildTypes {
@@ -165,6 +176,8 @@ dependencies {
     androidTestImplementation 'androidx.test:rules:1.2.0'
     androidTestImplementation 'androidx.test.ext:junit:1.1.1'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.1.0'
+    androidTestImplementation 'androidx.test.uiautomator:uiautomator:2.2.0'
+    androidTestUtil 'androidx.test:orchestrator:1.1.0'
 }
 
 // This will fail the build if there is a Kotlin compiler warning.
