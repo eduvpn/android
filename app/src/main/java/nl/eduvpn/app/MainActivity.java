@@ -61,6 +61,7 @@ public class MainActivity extends BaseActivity<ActivityMainBinding> {
     protected ConnectionService _connectionService;
 
     private boolean _backNavigationEnabled = false;
+    private boolean _parseIntentOnStart = true;
 
     @Override
     protected int getLayout() {
@@ -89,8 +90,7 @@ public class MainActivity extends BaseActivity<ActivityMainBinding> {
             _backNavigationEnabled = savedInstanceState.getBoolean(KEY_BACK_NAVIGATION_ENABLED);
         }
 
-        // The app might have been reopened from a URL.
-        onNewIntent(getIntent());
+        _parseIntentOnStart = true;
         binding.toolbar.settingsButton.setOnClickListener(v ->
 
                 onSettingsButtonClicked());
@@ -103,6 +103,11 @@ public class MainActivity extends BaseActivity<ActivityMainBinding> {
     protected void onStart() {
         _connectionService.onStart(this);
         super.onStart();
+        if (_parseIntentOnStart) {
+            // The app might have been reopened from a URL.
+            _parseIntentOnStart = false;
+            onNewIntent(getIntent());
+        }
     }
 
     @Override

@@ -34,6 +34,7 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -53,6 +54,7 @@ import nl.eduvpn.app.entity.SavedAuthState;
 import nl.eduvpn.app.entity.SavedKeyPair;
 import nl.eduvpn.app.entity.SavedProfile;
 import nl.eduvpn.app.entity.Settings;
+import nl.eduvpn.app.entity.TranslatableString;
 import nl.eduvpn.app.entity.message.Maintenance;
 import nl.eduvpn.app.entity.message.Message;
 import nl.eduvpn.app.entity.message.Notification;
@@ -307,9 +309,13 @@ public class SerializerServiceTest {
 
     @Test
     public void testOrganizationListSerialization() throws SerializerService.UnknownFormatException {
-        Organization organization1 = new Organization("orgid-1", "display name - 1", Arrays.asList("keyword1", "keyword2", "keyword3"), "https://server.info/url");
-        Organization organization2 = new Organization("orgid-2", "display name - 2", Collections.singletonList("notthesamekeyword"), "https://server.info2/url");
-        Organization organization3 = new Organization("orgid-3", "display name - 3", new ArrayList<>(), "http://server.info/url3");
+        Map<String, String> keywordsMap = new HashMap<>();
+        keywordsMap.put("en", "english keyword");
+        keywordsMap.put("de", "german keyword");
+        keywordsMap.put("nl", "dutch keyword");
+        Organization organization1 = new Organization("orgid-1", new TranslatableString("display name - 1"), new TranslatableString(keywordsMap), "https://server.info/url");
+        Organization organization2 = new Organization("orgid-2", new TranslatableString("display name - 2"), new TranslatableString("notthesamekeyword"), "https://server.info2/url");
+        Organization organization3 = new Organization("orgid-3", new TranslatableString("display name - 3"), new TranslatableString(), "http://server.info/url3");
         List<Organization> organizations = Arrays.asList(organization1, organization2, organization3);
         OrganizationList organizationList = new OrganizationList(12345L, organizations);
         JSONObject serializedOrganizationList = _serializerService.serializeOrganizationList(organizationList);
