@@ -19,6 +19,11 @@ GRADLE_TASK=app:assembleBasicRelease
 UNSIGNED_APK=${APP_DIR}/app/build/outputs/apk/basic/release/app-basic-release-unsigned.apk 
 SIGNED_APK=${PROJECT_DIR}/eduVPN-${GIT_TAG}.apk
 
+# eduVPN Test
+GRADLE_TEST_TASK=app:assembleAndroidTest
+UNSIGNED_TEST_APK=${APP_DIR}/app/build/outputs/apk/basic/release/app-basic-debug-androidTest.apk
+SIGNED_TEST_APK=${PROJECT_DIR}/eduVPNTest-${GIT_TAG}.apk
+
 # Let's Connect!
 #GRADLE_TASK=app:assembleHomeRelease
 #UNSIGNED_APK=${APP_DIR}/app/build/outputs/apk/home/release/app-home-release-unsigned.apk 
@@ -44,6 +49,9 @@ SIGNED_APK=${PROJECT_DIR}/eduVPN-${GIT_TAG}.apk
     export ANDROID_HOME=${SDK_DIR}
     cd "${APP_DIR}" || exit
     ./gradlew ${GRADLE_TASK} --warning-mode all --stacktrace || exit
+    if [ "app:assembleBasicRelease" = "${GRADLE_TASK}" ]; then
+        ./gradlew ${GRADLE_TEST_TASK} --warning-mode all --stacktrace || exit 
+    fi
 )
 
 ###############################################################################
@@ -55,4 +63,8 @@ SIGNED_APK=${PROJECT_DIR}/eduVPN-${GIT_TAG}.apk
     BUILD_TOOLS_VERSION=$(ls ${SDK_DIR}/build-tools/ | sort -r | head -1)
     ${SDK_DIR}/build-tools/${BUILD_TOOLS_VERSION}/apksigner sign --ks "${KEY_STORE}" "${UNSIGNED_APK}" || exit
     cp "${UNSIGNED_APK}" "${SIGNED_APK}" || exit
+    if [ "app:assembleBasicRelease" = "${GRADLE_TASK}" ]; then
+        ${SDK_DIR}/build-tools/${BUILD_TOOLS_VERSION}/apksigner sign --ks "${KEY_STORE}" "${UNSIGNED_TEST_APK}" || exit
+        cp "${UNSIGNED_TEST_APK}" "${SIGNED_TEST_APK}" || exit
+    fi
 )
