@@ -39,6 +39,10 @@ to the device selector.
 
 # Building
 
+**NOTE**: building Android applications takes a lot of resources. The VM used
+to build the Let's Connect! application has 8GB of memory. Anything lower was
+not tested, but 1GB definitely does not work.
+
 ## Dependencies
 
 ### Fedora
@@ -52,7 +56,7 @@ to the device selector.
         java-1.8.0-openjdk-devel \
         ncurses-compat-libs
 
-We last tested this (succesfully) on 2019-10-31 with Fedora 31.
+We last tested this (successfully) on 2020-08-26 with Fedora 32.
 
 ### Debian
 
