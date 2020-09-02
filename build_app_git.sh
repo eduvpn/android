@@ -8,19 +8,19 @@ SDK_DIR=${HOME}/android-sdk
 KEY_STORE=${HOME}/android.jks
 
 GIT_REPO=https://github.com/eduvpn/android
-GIT_TAG=2.0.0
-#GIT_TAG=master
+#GIT_TAG=2.0.0
+GIT_TAG=master
 
 PROJECT_DIR=${HOME}/Projects
 APP_DIR=${PROJECT_DIR}/eduvpn-android-$(date +%Y%m%d%H%M%S)
 
 # eduVPN
-GRADLE_TASK=app:assembleBasicRelease
-UNSIGNED_APK=${APP_DIR}/app/build/outputs/apk/basic/release/app-basic-release-unsigned.apk 
+GRADLE_TASK=app:assembleBasicDebug
+UNSIGNED_APK=${APP_DIR}/app/build/outputs/apk/basic/debug/app-basic-debug-unsigned.apk 
 SIGNED_APK=${PROJECT_DIR}/eduVPN-${GIT_TAG}.apk
 
 # eduVPN Test
-GRADLE_TEST_TASK=app:assembleAndroidTest
+GRADLE_TEST_TASK=app:assembleBasicDebugAndroidTest
 UNSIGNED_TEST_APK=${APP_DIR}/app/build/outputs/apk/androidTest/basic/debug/app-basic-debug-androidTest.apk
 SIGNED_TEST_APK=${PROJECT_DIR}/eduVPNTest-${GIT_TAG}.apk
 
