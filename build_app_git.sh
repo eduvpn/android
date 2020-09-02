@@ -21,7 +21,7 @@ SIGNED_APK=${PROJECT_DIR}/eduVPN-${GIT_TAG}.apk
 
 # eduVPN Test
 GRADLE_TEST_TASK=app:assembleAndroidTest
-UNSIGNED_TEST_APK=${APP_DIR}/app/build/outputs/apk/basic/release/app-basic-debug-androidTest.apk
+UNSIGNED_TEST_APK=${APP_DIR}/app/build/outputs/apk/androidTest/basic/debug/app-basic-debug-androidTest.apk
 SIGNED_TEST_APK=${PROJECT_DIR}/eduVPNTest-${GIT_TAG}.apk
 
 # Let's Connect!
