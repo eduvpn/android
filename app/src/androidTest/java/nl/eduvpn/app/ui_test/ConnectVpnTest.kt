@@ -24,6 +24,7 @@ import androidx.test.espresso.action.ViewActions.click
 import androidx.test.espresso.action.ViewActions.typeText
 import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.matcher.ViewMatchers.isDisplayed
+import androidx.test.espresso.matcher.ViewMatchers.isFocusable
 import androidx.test.espresso.matcher.ViewMatchers.withClassName
 import androidx.test.espresso.matcher.ViewMatchers.withHint
 import androidx.test.espresso.matcher.ViewMatchers.withText
@@ -41,6 +42,7 @@ import nl.eduvpn.app.BaseRobot
 import nl.eduvpn.app.BuildConfig
 import nl.eduvpn.app.MainActivity
 import nl.eduvpn.app.utils.Log
+import nl.eduvpn.app.waitUntilGone
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.core.AllOf.allOf
 import org.junit.Rule
@@ -73,7 +75,14 @@ class ConnectVpnTest {
             closeSoftKeyboard()
             onView(withText("ADD SERVER")).perform(click())
         } else {
-            BaseRobot().waitForView(withHint("Search for your organization...")).perform(typeText(TEST_SERVER_URL))
+            // Wait for list to load
+            try {
+                onView(withText("Fetching organizations...")).perform(waitUntilGone(2_000L))
+            } catch (ex: Exception) {
+                Log.i(TAG, "Couldn't find loading popup")
+            }
+            BaseRobot().waitForView(withText("Institute Access"), waitMillis = 2_000).check(matches(isDisplayed()))
+            onView(withHint("Search for your organization...")).perform(typeText(TEST_SERVER_URL))
             closeSoftKeyboard()
             BaseRobot().waitForView(
                     allOf(withText(TEST_SERVER_URL), withClassName(containsString("TextView")))
@@ -86,13 +95,17 @@ class ConnectVpnTest {
         Thread.sleep(2_000L)
         try {
             // We can't find objects based on hints here, so we do it on layout order instead.
+            Log.v(TAG, "Entering username.")
             val userName = device.findObject(selector.className("android.widget.EditText").instance(0))
             userName.click()
             userName.text = TEST_SERVER_USERNAME
+            Log.v(TAG, "Entering password.")
             val password = device.findObject(selector.className("android.widget.EditText").instance(1))
             password.click()
             password.text = TEST_SERVER_PASSWORD
+            Log.v(TAG, "Hiding keyboard.")
             device.pressBack() // Closes the keyboard
+            Log.v(TAG, "Signing in.")
             val signInButton = device.findObject(selector.className("android.widget.Button").text("Sign In"))
             signInButton.click()
         } catch (ex: UiObjectNotFoundException) {
@@ -101,14 +114,17 @@ class ConnectVpnTest {
         }
         try {
             // Chrome sometimes asks to remember the password. We don't want to
+            Log.v(TAG, "Hiding the 'remember password' dialog.")
             val hideRememberPasswordDialogButton = device.findObject(selector.resourceId("com.android.chrome:id/infobar_close_button"))
             hideRememberPasswordDialogButton.click()
         } catch (ex: Exception) {
             Log.w(TAG, "Could not hide remember password dialog. Probably not a Chrome browser", ex)
         }
         // Now we have to approve the app, but first we need to scroll to the bottom.
+        Log.v(TAG, "Scrolling down.")
         val webView = UiScrollable(selector.className("android.webkit.WebView").scrollable(true))
         webView.scrollToEnd(2)
+        Log.v(TAG, "Approving VPN app.")
         val approveButton = device.findObject(selector.text("Approve"))
         approveButton.click()
         // Wait for the app to display the server in its list
