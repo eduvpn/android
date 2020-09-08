@@ -91,7 +91,7 @@ public class HistoryServiceTest {
         _historyService = new HistoryService(preferencesService);
     }
 
-    @Test(timeout = 200)
+    @Test(timeout = 1_000)
     // Could be a lot faster, but we use secure preferences, which encrypts and decrypts on-the-fly.
     public void testSerializationSpeed() {
         // We create, save and restore 10 discovered APIs, 10 saved profiles, 10 access tokens.

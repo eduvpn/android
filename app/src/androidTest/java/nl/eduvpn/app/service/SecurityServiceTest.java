@@ -39,7 +39,7 @@ import static org.junit.Assert.assertTrue;
 public class SecurityServiceTest {
 
     // If you wish to create more unit tests, these are the parameters:
-    @SuppressWarnings("unused")
+    @SuppressWarnings({ "unused", "RedundantSuppression" })
     private static final String UNIT_TEST_PRIVATE_KEY = "untrusted comment: minisign encrypted secret key\n" +
             "RWRTY0Iyq5pf3lO+R4dtzZDgzvhE6jFtvUd9A1XIz2FN9ZfhhjkAAAACAAAAAAAAAEAAAAAADmmEh0zDiH5308dE01SbOhbIJ6sxxX+1qecOjIBvJuQ0W4uxMk37j3qNCyHD8HhOHsQqa1Jty6ztnnrKT1itKQR2uWPW4kNcnGzQYoLkz/rzESMI2jZE98W7LvV8LQrGv9AMTgOwOPY=";
     private static final String[] UNIT_TEST_PUBLIC_KEYS = new String[] { "RWQBThy5Bd7KteZuDmjwUq/6E8IIoOETi85bBcIHz0dj1VokayIb/FYb" };
