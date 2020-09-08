@@ -93,23 +93,22 @@ class ConnectVpnTest {
         }
         // Switch over to UI Automator now, to control the browser
         val device = UiDevice.getInstance(getInstrumentation())
-        val selector = UiSelector()
         // Wait for the browser to open and load
         Thread.sleep(2_000L)
         try {
             // We can't find objects based on hints here, so we do it on layout order instead.
             Log.v(TAG, "Entering username.")
-            val userName = device.findObject(selector.className("android.widget.EditText").instance(0))
+            val userName = device.findObject(UiSelector().className("android.widget.EditText").instance(0))
             userName.click()
             userName.text = TEST_SERVER_USERNAME
             Log.v(TAG, "Entering password.")
-            val password = device.findObject(selector.className("android.widget.EditText").instance(1))
+            val password = device.findObject(UiSelector().className("android.widget.EditText").instance(1))
             password.click()
             password.text = TEST_SERVER_PASSWORD
             Log.v(TAG, "Hiding keyboard.")
             device.pressBack() // Closes the keyboard
             Log.v(TAG, "Signing in.")
-            val signInButton = device.findObject(selector.className("android.widget.Button").text("Sign In"))
+            val signInButton = device.findObject(UiSelector().className("android.widget.Button").text("Sign In"))
             signInButton.click()
         } catch (ex: UiObjectNotFoundException) {
             // Perhaps we are still logged in. In this case, we get to the approve page, so continue
@@ -118,17 +117,17 @@ class ConnectVpnTest {
         try {
             // Chrome sometimes asks to remember the password. We don't want to
             Log.v(TAG, "Hiding the 'remember password' dialog.")
-            val hideRememberPasswordDialogButton = device.findObject(selector.resourceId("com.android.chrome:id/infobar_close_button"))
+            val hideRememberPasswordDialogButton = device.findObject(UiSelector().resourceId("com.android.chrome:id/infobar_close_button"))
             hideRememberPasswordDialogButton.click()
         } catch (ex: Exception) {
             Log.w(TAG, "Could not hide remember password dialog. Probably not a Chrome browser", ex)
         }
         // Now we have to approve the app, but first we need to scroll to the bottom.
         Log.v(TAG, "Scrolling down.")
-        val webView = UiScrollable(selector.className("android.webkit.WebView").scrollable(true))
+        val webView = UiScrollable(UiSelector().className("android.webkit.WebView").scrollable(true))
         webView.scrollToEnd(2)
         Log.v(TAG, "Approving VPN app.")
-        val approveButton = device.findObject(selector.text("Approve"))
+        val approveButton = device.findObject(UiSelector().text("Approve"))
         approveButton.click()
         // Wait for the app to display the server in its list
         BaseRobot().waitForView(withText("vpntest.spoor.nu")).perform(click())
@@ -136,7 +135,7 @@ class ConnectVpnTest {
             // We need the UI Automator again, because VPN accept permission is a system dialog
             val isDialogShown = Until.findObject(By.text("Connection request"))
             device.wait(isDialogShown, 3_000L)
-            val okButton = device.findObject(selector.className("android.widget.Button").text("OK"))
+            val okButton = device.findObject(UiSelector().className("android.widget.Button").text("OK"))
             okButton.click()
         } catch (ex: Exception) {
             Log.w(TAG, "No connection request shown, probably accepted already once.", ex)

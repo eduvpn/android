@@ -98,6 +98,7 @@ class InstituteAccessDemoTest {
             // Select eduID from the list
             val eduIDButton = device.findObject(selector.text("eduID"))
             eduIDButton.click()
+            Thread.sleep(1_000L)
             // We can't find objects based on hints here, so we do it on layout order instead.
             Log.v(TAG, "Entering email address.")
             val userName = device.findObject(selector.className("android.widget.EditText").instance(0))
@@ -107,6 +108,7 @@ class InstituteAccessDemoTest {
             Log.v(TAG, "Clicking 'type password anyway' link")
             val typePasswordLink = device.findObject(selector.text("Type a password anyway"))
             typePasswordLink.click()
+            Thread.sleep(500L)
             Log.v(TAG, "Entering password.")
             val password = device.findObject(selector.className("android.widget.EditText").instance(1))
             password.click()
