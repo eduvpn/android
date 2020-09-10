@@ -23,7 +23,6 @@ import io.reactivex.functions.BiFunction
 import io.reactivex.schedulers.Schedulers
 import nl.eduvpn.app.BuildConfig
 import nl.eduvpn.app.Constants
-import nl.eduvpn.app.entity.Instance
 import nl.eduvpn.app.entity.OrganizationList
 import nl.eduvpn.app.entity.ServerList
 import nl.eduvpn.app.entity.exception.InvalidSignatureException
@@ -43,11 +42,20 @@ class OrganizationService(private val serializerService: SerializerService,
                           private val okHttpClient: OkHttpClient) {
 
 
-    fun fetchServerList() : Single<ServerList> {
+    fun fetchServerList(): Single<ServerList> {
         val serverListUrl = BuildConfig.ORGANIZATION_LIST_BASE_URL + "server_list.json"
         val serverListObservable = createGetJsonSingle(serverListUrl)
         val signatureObservable = createSignatureSingle(serverListUrl)
-        return Single.zip(serverListObservable, signatureObservable, BiFunction<String, String, ServerList> { serverList: String, signature: String ->
+        return Single.zip(serverListObservable.onErrorReturn {
+            Log.w(TAG, "Unable to fetch server list!", it)
+            ""
+        }, signatureObservable.onErrorReturn {
+            Log.w(TAG, "Unable to fetch signature for server list!", it)
+            ""
+        }, BiFunction<String, String, ServerList> { serverList: String, signature: String ->
+            if (serverList.isBlank() || signature.isBlank()) {
+                throw IllegalArgumentException("Server list of signature is empty!")
+            }
             try {
                 if (securityService.verifyMinisign(serverList, signature)) {
                     val organizationListJson = JSONObject(serverList)
@@ -68,7 +76,16 @@ class OrganizationService(private val serializerService: SerializerService,
         val listUrl = BuildConfig.ORGANIZATION_LIST_BASE_URL + "organization_list.json"
         val organizationListObservable = createGetJsonSingle(listUrl)
         val signatureObservable = createSignatureSingle(listUrl)
-        return Single.zip(organizationListObservable, signatureObservable, BiFunction<String, String, OrganizationList> { organizationList: String, signature: String ->
+        return Single.zip(organizationListObservable.onErrorReturn {
+            Log.w(TAG, "Unable to fetch organization list!", it)
+            ""
+        }, signatureObservable.onErrorReturn {
+            Log.w(TAG, "Unable to fetch organization list signature!", it)
+            ""
+        }, BiFunction<String, String, OrganizationList> { organizationList: String, signature: String ->
+            if (organizationList.isBlank() || signature.isBlank()) {
+                throw IllegalArgumentException("Organization list of signature is empty!")
+            }
             try {
                 if (securityService.verifyMinisign(organizationList, signature)) {
                     val organizationListJson = JSONObject(organizationList)

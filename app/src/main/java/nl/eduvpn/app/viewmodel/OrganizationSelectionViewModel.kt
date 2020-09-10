@@ -74,45 +74,50 @@ class OrganizationSelectionViewModel @Inject constructor(
         } else {
             organizationService.fetchServerList()
         }
-        disposables.add(
-                Single.zip(getOrganizationsCall, getServerListCall, BiFunction { orgList: OrganizationList, serverList: ServerList ->
-                    Pair(orgList, serverList)
-                }).subscribe({ organizationServerListPair ->
-                    val organizationList = organizationServerListPair.first
-                    val serverList = organizationServerListPair.second
+        disposables.add(Single.zip(getOrganizationsCall.onErrorReturn {
+            Log.w(TAG, "Organizations call has failed!", it)
+            OrganizationList(-1L, emptyList())
+        }, getServerListCall.onErrorReturn {
+            Log.w(TAG, "Server list call has failed!", it)
+            ServerList(-1L, emptyList())
+        }, BiFunction { orgList: OrganizationList, serverList: ServerList ->
+            Pair(orgList, serverList)
+        }).subscribe({ organizationServerListPair ->
+            val organizationList = organizationServerListPair.first
+            val serverList = organizationServerListPair.second
 
-                    val lastKnownOrganizationVersion = preferencesService.lastKnownOrganizationListVersion
-                    val lastKnownServerListVersion = preferencesService.lastKnownServerListVersion
+            val lastKnownOrganizationVersion = preferencesService.lastKnownOrganizationListVersion
+            val lastKnownServerListVersion = preferencesService.lastKnownServerListVersion
 
-                    if (serverList.version > 0 && lastKnownServerListVersion != null && lastKnownServerListVersion > serverList.version) {
-                        organizations.value = emptyList()
-                        servers.value = emptyList()
-                        state.value = ConnectionState.Ready
-                        parentAction.value = ParentAction.DisplayError(R.string.error_server_list_version_check_title, context.getString(R.string.error_server_list_version_check_message))
-                        return@subscribe
-                    } else if (organizationList.version > 0 && lastKnownOrganizationVersion != null && lastKnownOrganizationVersion > organizationList.version) {
-                        organizations.value = emptyList()
-                        servers.value = serverList.serverList
-                        state.value = ConnectionState.Ready
-                        parentAction.value = ParentAction.DisplayError(R.string.error_organization_list_version_check_title, context.getString(R.string.error_organization_list_version_check_message))
-                        return@subscribe
-                    }
+            if (serverList.version > 0 && lastKnownServerListVersion != null && lastKnownServerListVersion > serverList.version) {
+                organizations.value = emptyList()
+                servers.value = emptyList()
+                state.value = ConnectionState.Ready
+                parentAction.value = ParentAction.DisplayError(R.string.error_server_list_version_check_title, context.getString(R.string.error_server_list_version_check_message))
+                return@subscribe
+            } else if (organizationList.version > 0 && lastKnownOrganizationVersion != null && lastKnownOrganizationVersion > organizationList.version) {
+                organizations.value = emptyList()
+                servers.value = serverList.serverList
+                state.value = ConnectionState.Ready
+                parentAction.value = ParentAction.DisplayError(R.string.error_organization_list_version_check_title, context.getString(R.string.error_organization_list_version_check_message))
+                return@subscribe
+            }
 
-                    if (organizationList.version > 0) {
-                        preferencesService.lastKnownOrganizationListVersion = organizationList.version
-                    }
-                    if (serverList.version > 0) {
-                        preferencesService.lastKnownServerListVersion = serverList.version
-                    }
+            if (organizationList.version > 0) {
+                preferencesService.lastKnownOrganizationListVersion = organizationList.version
+            }
+            if (serverList.version > 0) {
+                preferencesService.lastKnownServerListVersion = serverList.version
+            }
 
-                    organizations.value = organizationList.organizationList
-                    servers.value = serverList.serverList
-                    state.value = ConnectionState.Ready
-                }, { throwable ->
-                    Log.w(TAG, "Unable to fetch organization list!", throwable)
-                    parentAction.value = ParentAction.DisplayError(R.string.error_fetching_organizations, throwable.toString())
-                    state.value = ConnectionState.Ready
-                })
+            organizations.value = organizationList.organizationList
+            servers.value = serverList.serverList
+            state.value = ConnectionState.Ready
+        }, { throwable ->
+            Log.w(TAG, "Unable to fetch organization list!", throwable)
+            parentAction.value = ParentAction.DisplayError(R.string.error_fetching_organizations, throwable.toString())
+            state.value = ConnectionState.Ready
+        })
         )
     }
 
