@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.0.1 (2020-09-22)
+- update ics-openvpn
+- reduce size of app (do not add all static libs)
+- add additional public keys for eduVPN discovery
+- add application tests
+
 ## 2.0.0 (2020-08-26)
 - Redesigned the entire app
 - Search for your organization or add your own server
