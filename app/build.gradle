@@ -24,10 +24,12 @@ android {
 
         buildConfigField "String", "ORGANIZATION_LIST_BASE_URL", "\"https://disco.eduvpn.org/v2/\""
         buildConfigField "String", "SIGNATURE_URL_POSTFIX", "\".minisig\""
-        buildConfigField "String[]", "MINISIGN_SIGNATURE_VALIDATION_PUBLIC_KEY",
+        buildConfigField "String[]", "MINISIGN_SIGNATURE_VALIDATION_PUBLIC_KEY", // If you want to add more, follow this guide (list version): https://stackoverflow.com/a/42130853/1395437
                 "{" +
-                "\"RWRtBSX1alxyGX+Xn3LuZnWUT0w//B6EmTJvgaAxBMYzlQeI+jdrO6KF\"" + // If you want to add more, follow this guide (list version): https://stackoverflow.com/a/42130853/1395437
-                "}"
+                        "\"RWRtBSX1alxyGX+Xn3LuZnWUT0w//B6EmTJvgaAxBMYzlQeI+jdrO6KF\"," + // fkooman@deic.dk
+                        "\"RWQ68Y5/b8DED0TJ41B1LE7yAvkmavZWjDwCBUuC+Z2pP9HaSawzpEDA\"," + // jornane@uninett.no
+                        "\"RWQKqtqvd0R7rUDp0rWzbtYPA3towPWcLDCl7eY9pBMMI/ohCmrS0WiM\"" + // RoSp
+                        "}"
         buildConfigField "boolean", "API_DISCOVERY_ENABLED", "true" // If false, you can only enter server URLs manually.
 
         // API
