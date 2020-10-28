@@ -96,6 +96,20 @@ class ConnectVpnTest {
         // Wait for the browser to open and load
         Thread.sleep(2_000L)
         try {
+            // Chrome asks at first launch to accept data usage
+            val acceptButton = device.findObject(UiSelector().className("android.widget.Button").text("ACCEPT & CONTINUE"))
+            acceptButton.click()
+        } catch (ex: UiObjectNotFoundException) {
+            Log.w(TAG, "No Chrome accept window shown, continuing", ex)
+        }
+        try {
+            // Now it wants us to Sign in...
+            val noThanksButton = device.findObject(UiSelector().text("NO THANKS"))
+            noThanksButton.click()
+        } catch (ex: UiObjectNotFoundException) {
+            Log.w(TAG, "No request for sign in, continung", ex)
+        }
+        try {
             // We can't find objects based on hints here, so we do it on layout order instead.
             Log.v(TAG, "Entering username.")
             val userName = device.findObject(UiSelector().className("android.widget.EditText").instance(0))
