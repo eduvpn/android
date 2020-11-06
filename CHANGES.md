@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.0.2 (2020-11-06)
+- fix certificate expiry countdown (#311)
+- Fix UI tests
+
 ## 2.0.1 (2020-09-22)
 - update ics-openvpn
 - reduce size of app (do not add all static libs)
