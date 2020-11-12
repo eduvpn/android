@@ -21,7 +21,6 @@ import android.os.Handler
 import android.view.View
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.observe
 import de.blinkt.openvpn.VpnProfile
 import nl.eduvpn.app.EduVPNApplication
 import nl.eduvpn.app.MainActivity
