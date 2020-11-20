@@ -97,14 +97,25 @@ class ConnectVpnTest {
         Thread.sleep(2_000L)
         try {
             // Chrome asks at first launch to accept data usage
-            val acceptButton = device.findObject(UiSelector().className("android.widget.Button").text("ACCEPT & CONTINUE"))
+            val acceptButton = device.findObject(UiSelector().className("android.widget.Button").text("Accept & continue"))
             acceptButton.click()
         } catch (ex: UiObjectNotFoundException) {
             Log.w(TAG, "No Chrome accept window shown, continuing", ex)
         }
         try {
+            // Do not send all our web traffic to Google
+            val liteModeToggle = device.findObject(UiSelector().className("android.widget.Switch"))
+            if(liteModeToggle.isChecked) {
+                liteModeToggle.click()
+            }
+            val nextButton = device.findObject(UiSelector().className("android.widget.Button").text("Next"))
+            nextButton.click()
+        } catch (ex: UiObjectNotFoundException) {
+            Log.w(TAG, "No lite mode window shown, continuing", ex)
+        }
+        try {
             // Now it wants us to Sign in...
-            val noThanksButton = device.findObject(UiSelector().text("NO THANKS"))
+            val noThanksButton = device.findObject(UiSelector().text("No thanks"))
             noThanksButton.click()
         } catch (ex: UiObjectNotFoundException) {
             Log.w(TAG, "No request for sign in, continung", ex)
