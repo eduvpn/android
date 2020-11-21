@@ -218,9 +218,9 @@ abstract class BaseConnectionViewModel(
         val createKeyPairEndpoint = discoveredAPI.createKeyPairEndpoint
         apiService.postResource(createKeyPairEndpoint, requestData, authState, object : APIService.Callback<String> {
 
-            override fun onSuccess(keyPairJson: String) {
+            override fun onSuccess(result: String) {
                 try {
-                    val keyPair = serializerService.deserializeKeyPair(JSONObject(keyPairJson))
+                    val keyPair = serializerService.deserializeKeyPair(JSONObject(result))
                     Log.i(TAG, "Created key pair, is it successful: " + keyPair.isOK)
                     // Save it for later
                     val newKeyPair = SavedKeyPair(instance, keyPair)
@@ -256,10 +256,10 @@ abstract class BaseConnectionViewModel(
                                            authState: AuthState) {
         val requestData = "?profile_id=" + profile.profileId
         apiService.getString(discoveredAPI.profileConfigEndpoint + requestData, authState, object : APIService.Callback<String> {
-            override fun onSuccess(vpnConfig: String) {
+            override fun onSuccess(result: String) {
                 // The downloaded profile misses the <cert> and <key> fields. We will insert that via the saved key pair.
                 val configName = FormattingUtils.formatProfileName(context, instance, profile)
-                val vpnProfile = vpnService.importConfig(vpnConfig, configName, savedKeyPair)
+                val vpnProfile = vpnService.importConfig(result, configName, savedKeyPair)
                 if (vpnProfile != null) {
                     // Cache the profile
                     val savedProfile = SavedProfile(instance, profile, vpnProfile.uuidString)
@@ -324,9 +324,9 @@ abstract class BaseConnectionViewModel(
 
             }
 
-            override fun onError(errorMessage: String?) {
+            override fun onError(errorMessage: String) {
                 connectionState.value = ConnectionState.Ready
-                if (errorMessage != null && (APIService.USER_NOT_AUTHORIZED_ERROR == errorMessage || errorMessage.contains("invalid_grant"))) {
+                if (APIService.USER_NOT_AUTHORIZED_ERROR == errorMessage || errorMessage.contains("invalid_grant")) {
                     Log.w(TAG, "Access rejected with error $errorMessage")
                     parentAction.value = ParentAction.DisplayError(R.string.error_dialog_title, FormattingUtils.formatAccessWarning(context, instance))
                 } else {
