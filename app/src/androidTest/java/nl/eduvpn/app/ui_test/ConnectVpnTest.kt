@@ -126,6 +126,9 @@ class ConnectVpnTest {
             val userName = device.findObject(UiSelector().className("android.widget.EditText").instance(0))
             userName.click()
             userName.text = TEST_SERVER_USERNAME
+            Log.v(TAG, "Scrolling down to see password input")
+            val webView = UiScrollable(UiSelector().className("android.webkit.WebView").scrollable(true))
+            webView.scrollToEnd(1)
             Log.v(TAG, "Entering password.")
             val password = device.findObject(UiSelector().className("android.widget.EditText").instance(1))
             password.click()
