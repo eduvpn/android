@@ -97,11 +97,6 @@ class APIService(private val connectionService: ConnectionService, private val o
                 createNetworkCall(authState) { accessToken ->
                     fetchString(url, accessToken)
                 }
-            }.mapCatching { result ->
-                if (result == null) {
-                    throw RuntimeException("Unexpected result type!")
-                }
-                result
             }.onSuccess { result ->
                 callback.onSuccess(result)
             }.onFailure { throwable ->
@@ -128,11 +123,6 @@ class APIService(private val connectionService: ConnectionService, private val o
                 createNetworkCall(authState) { accessToken ->
                     fetchByteResource(url, data, accessToken)
                 }
-            }.mapCatching { result ->
-                if (result == null) {
-                    throw RuntimeException("Unexpected result type!")
-                }
-                result
             }.onSuccess { result ->
                 callback.onSuccess(result)
             }.onFailure { throwable ->
@@ -151,7 +141,7 @@ class APIService(private val connectionService: ConnectionService, private val o
      * @throws IOException Thrown if there was a problem creating the connection.
      */
     @Throws(IOException::class, UserNotAuthorizedException::class)
-    private suspend fun fetchByteResource(url: String, requestData: String?, accessToken: String?): String? {
+    private suspend fun fetchByteResource(url: String, requestData: String?, accessToken: String?): String {
         val requestBuilder = createRequestBuilder(url, accessToken)
         if (requestData != null) {
             requestBuilder.method("POST", requestData.toRequestBody("application/x-www-form-urlencoded".toMediaTypeOrNull()))
@@ -173,13 +163,17 @@ class APIService(private val connectionService: ConnectionService, private val o
                         }
                         // Get the body of the response
                         val responseBody = response.body
-                        val result = responseBody?.string()
-                        responseBody?.close()
-                        Log.d(TAG, "POST $url data: '$requestData': $result")
-                        return if (statusCode in 200..299) {
-                            cont.resume(result)
+                        if (responseBody == null) {
+                            cont.resumeWithException(IOException("Response body is empty!"))
                         } else {
-                            cont.resumeWithException(IOException("Unsuccessful response: $result"))
+                            val result = responseBody.string()
+                            responseBody.close()
+                            Log.d(TAG, "POST $url data: '$requestData': $result")
+                            return if (statusCode in 200..299) {
+                                cont.resume(result)
+                            } else {
+                                cont.resumeWithException(IOException("Unsuccessful response: $result"))
+                            }
                         }
                     }
                 })
@@ -211,7 +205,7 @@ class APIService(private val connectionService: ConnectionService, private val o
      * @throws JSONException Thrown if the returned JSON was invalid or not a JSON at all.
      */
     @Throws(IOException::class, JSONException::class, UserNotAuthorizedException::class)
-    private suspend fun fetchString(url: String, accessToken: String?): String? {
+    private suspend fun fetchString(url: String, accessToken: String?): String {
         val requestBuilder = createRequestBuilder(url, accessToken)
         return withContext(Dispatchers.IO) {
             suspendCoroutine { cont ->
@@ -227,10 +221,14 @@ class APIService(private val connectionService: ConnectionService, private val o
                         }
                         // Get the body of the response
                         val responseBody = response.body
-                        val responseString = responseBody?.string()
-                        responseBody?.close()
-                        Log.d(TAG, "GET $url: $responseString")
-                        cont.resume(responseString)
+                        if (responseBody == null) {
+                            cont.resumeWithException(IOException("Response body is empty!"))
+                        } else {
+                            val responseString = responseBody.string()
+                            responseBody.close()
+                            Log.d(TAG, "GET $url: $responseString")
+                            cont.resume(responseString)
+                        }
                     }
                 })
             }
