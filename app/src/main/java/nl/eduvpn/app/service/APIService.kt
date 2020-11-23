@@ -22,18 +22,14 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import net.openid.appauth.AuthState
 import nl.eduvpn.app.utils.Log
-import okhttp3.Call
+import nl.eduvpn.app.utils.await
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
-import okhttp3.Response
 import org.json.JSONException
 import org.json.JSONObject
 import java.io.IOException
-import kotlin.coroutines.resume
-import kotlin.coroutines.resumeWithException
-import kotlin.coroutines.suspendCoroutine
 
 /**
  * This service is responsible for fetching data from API endpoints.
@@ -149,34 +145,23 @@ class APIService(private val connectionService: ConnectionService, private val o
             requestBuilder.method("POST", null)
         }
         val request = requestBuilder.build()
-        return withContext(Dispatchers.IO) {
-            suspendCoroutine { cont ->
-                okHttpClient.newCall(request).enqueue(object : okhttp3.Callback {
-                    override fun onFailure(call: Call, e: IOException) {
-                        cont.resumeWithException(e)
-                    }
-
-                    override fun onResponse(call: Call, response: Response) {
-                        val statusCode = response.code
-                        if (statusCode == STATUS_CODE_UNAUTHORIZED) {
-                            cont.resumeWithException(UserNotAuthorizedException())
-                        }
-                        // Get the body of the response
-                        val responseBody = response.body
-                        if (responseBody == null) {
-                            cont.resumeWithException(IOException("Response body is empty!"))
-                        } else {
-                            val result = responseBody.string()
-                            responseBody.close()
-                            Log.d(TAG, "POST $url data: '$requestData': $result")
-                            return if (statusCode in 200..299) {
-                                cont.resume(result)
-                            } else {
-                                cont.resumeWithException(IOException("Unsuccessful response: $result"))
-                            }
-                        }
-                    }
-                })
+        val response = okHttpClient.newCall(request).await()
+        val statusCode = response.code
+        if (statusCode == STATUS_CODE_UNAUTHORIZED) {
+            throw UserNotAuthorizedException()
+        }
+        // Get the body of the response
+        val responseBody = response.body
+        if (responseBody == null) {
+            throw IOException("Response body is empty!")
+        } else {
+            val result = withContext(Dispatchers.IO) { responseBody.string() }
+            responseBody.close()
+            Log.d(TAG, "POST $url data: '$requestData': $result")
+            if (statusCode in 200..299) {
+                return result
+            } else {
+                throw IOException("Unsuccessful response: $result")
             }
         }
     }
@@ -207,31 +192,20 @@ class APIService(private val connectionService: ConnectionService, private val o
     @Throws(IOException::class, JSONException::class, UserNotAuthorizedException::class)
     private suspend fun fetchString(url: String, accessToken: String?): String {
         val requestBuilder = createRequestBuilder(url, accessToken)
-        return withContext(Dispatchers.IO) {
-            suspendCoroutine { cont ->
-                okHttpClient.newCall(requestBuilder.build()).enqueue(object : okhttp3.Callback {
-                    override fun onFailure(call: Call, e: IOException) {
-                        cont.resumeWithException(e)
-                    }
-
-                    override fun onResponse(call: Call, response: Response) {
-                        val statusCode = response.code
-                        if (statusCode == STATUS_CODE_UNAUTHORIZED) {
-                            cont.resumeWithException(UserNotAuthorizedException())
-                        }
-                        // Get the body of the response
-                        val responseBody = response.body
-                        if (responseBody == null) {
-                            cont.resumeWithException(IOException("Response body is empty!"))
-                        } else {
-                            val responseString = responseBody.string()
-                            responseBody.close()
-                            Log.d(TAG, "GET $url: $responseString")
-                            cont.resume(responseString)
-                        }
-                    }
-                })
-            }
+        val response = okHttpClient.newCall(requestBuilder.build()).await()
+        val statusCode = response.code
+        if (statusCode == STATUS_CODE_UNAUTHORIZED) {
+            throw UserNotAuthorizedException()
+        }
+        // Get the body of the response
+        val responseBody = response.body
+        if (responseBody == null) {
+            throw IOException("Response body is empty!")
+        } else {
+            val responseString = withContext(Dispatchers.IO) { responseBody.string() }
+            responseBody.close()
+            Log.d(TAG, "GET $url: $responseString")
+            return responseString
         }
     }
 

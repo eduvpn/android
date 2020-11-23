@@ -24,12 +24,11 @@ import nl.eduvpn.app.entity.OrganizationList
 import nl.eduvpn.app.entity.ServerList
 import nl.eduvpn.app.entity.exception.InvalidSignatureException
 import nl.eduvpn.app.utils.Log
-import okhttp3.*
+import nl.eduvpn.app.utils.await
+import okhttp3.OkHttpClient
+import okhttp3.Request
 import org.json.JSONObject
 import java.io.IOException
-import kotlin.coroutines.resume
-import kotlin.coroutines.resumeWithException
-import kotlin.coroutines.suspendCoroutine
 
 /**
  * Service which provides the configurations for organization related data model.
@@ -95,58 +94,36 @@ class OrganizationService(private val serializerService: SerializerService,
     private suspend fun createSignatureSingle(signatureRequestUrl: String): String {
         val postfixedUrl = signatureRequestUrl + BuildConfig.SIGNATURE_URL_POSTFIX
         val request = Request.Builder().url(postfixedUrl).build()
-        return withContext(Dispatchers.IO) {
-            suspendCoroutine { cont ->
-                okHttpClient.newCall(request).enqueue(object : Callback {
-                    override fun onFailure(call: Call, e: IOException) {
-                        cont.resumeWithException(e)
-                    }
-
-                    override fun onResponse(call: Call, response: Response) {
-                        val responseBody = response.body
-                        if (responseBody != null) {
-                            val result = responseBody.string()
-                            responseBody.close()
-                            cont.resume(result)
-                        } else {
-                            cont.resumeWithException(IOException("Response body is empty!"))
-                        }
-                    }
-                })
-            }
+        val response = okHttpClient.newCall(request).await()
+        val responseBody = response.body
+        if (responseBody != null) {
+            val result = withContext(Dispatchers.IO) { responseBody.string() }
+            responseBody.close()
+            return result
+        } else {
+            throw IOException("Response body is empty!")
         }
     }
 
     private suspend fun createGetJsonSingle(url: String): String {
         val request = Request.Builder().url(url).build()
-        return withContext(Dispatchers.IO) {
-            suspendCoroutine { cont ->
-                okHttpClient.newCall(request).enqueue(object : Callback {
-                    override fun onFailure(call: Call, e: IOException) {
-                        cont.resumeWithException(e)
-                    }
-
-                    override fun onResponse(call: Call, response: Response) {
-                        val responseBody = response.body
-                        val responseCode = response.code
-                        var isGone = false
-                        for (code in Constants.GONE_HTTP_CODES) {
-                            if (responseCode == code) {
-                                isGone = true
-                            }
-                        }
-                        if (isGone) {
-                            cont.resumeWithException(OrganizationDeletedException())
-                        } else if (responseBody != null) {
-                            val result = responseBody.string()
-                            responseBody.close()
-                            cont.resume(result)
-                        } else {
-                            cont.resumeWithException(IOException("Response body is empty!"))
-                        }
-                    }
-                })
+        val response = okHttpClient.newCall(request).await()
+        val responseBody = response.body
+        val responseCode = response.code
+        var isGone = false
+        for (code in Constants.GONE_HTTP_CODES) {
+            if (responseCode == code) {
+                isGone = true
             }
+        }
+        if (isGone) {
+            throw OrganizationDeletedException()
+        } else if (responseBody != null) {
+            val result = withContext(Dispatchers.IO) { responseBody.string() }
+            responseBody.close()
+            return result
+        } else {
+            throw IOException("Response body is empty!")
         }
     }
 

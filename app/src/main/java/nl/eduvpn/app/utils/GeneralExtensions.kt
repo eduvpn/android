@@ -22,9 +22,18 @@ import android.content.Context
 import android.view.View
 import android.view.inputmethod.InputMethodManager
 import androidx.lifecycle.LiveData
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withContext
 import nl.eduvpn.app.Constants
 import nl.eduvpn.app.entity.Instance
-import java.util.Locale
+import okhttp3.Call
+import okhttp3.Callback
+import okhttp3.Response
+import java.io.IOException
+import java.util.*
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
 
 
 /**
@@ -63,7 +72,7 @@ fun <T> LiveData<T>.toSingleEvent(): LiveData<T> {
     return result
 }
 
-fun Instance.getCountryText() : String? {
+fun Instance.getCountryText(): String? {
     if (countryCode == null) {
         return null
     }
@@ -72,4 +81,28 @@ fun Instance.getCountryText() : String? {
     val secondLetter: Int = Character.codePointAt(countryCode, 1) - 0x41 + 0x1F1E6
     val countryEmoji = String(Character.toChars(firstLetter)) + String(Character.toChars(secondLetter))
     return "$countryEmoji   $countryName"
+}
+
+/**
+ * Extension method for OkHttp for integration with coroutines
+ */
+suspend fun Call.await(): Response {
+    return withContext(Dispatchers.IO) {
+        suspendCancellableCoroutine { cont ->
+            cont.invokeOnCancellation {
+                kotlin.runCatching {
+                    cancel()
+                }
+            }
+            enqueue(object : Callback {
+                override fun onFailure(call: Call, e: IOException) {
+                    cont.resumeWithException(e)
+                }
+
+                override fun onResponse(call: Call, response: Response) {
+                    cont.resume(response)
+                }
+            })
+        }
+    }
 }
