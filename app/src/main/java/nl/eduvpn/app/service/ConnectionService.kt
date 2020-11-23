@@ -85,22 +85,23 @@ class ConnectionService(private val preferencesService: PreferencesService,
     fun initiateConnection(activity: Activity, instance: Instance, discoveredAPI: DiscoveredAPI): Unit {
         GlobalScope.launch(Dispatchers.Main) {
             kotlin.runCatching {
-                withContext(Dispatchers.Default) {
-                    val stateString = securityService.generateSecureRandomString(32)
-                    preferencesService.currentInstance = instance
-                    preferencesService.currentDiscoveredAPI = discoveredAPI
-                    val serviceConfig = buildAuthConfiguration(discoveredAPI)
-                    val authRequestBuilder = AuthorizationRequest.Builder(
-                            serviceConfig,  // the authorization service configuration
-                            CLIENT_ID,  // the client ID, typically pre-registered and static
-                            ResponseTypeValues.CODE,  // the response_type value: we want a code
-                            Uri.parse(REDIRECT_URI)) // the redirect URI to which the auth response is sent
-                            .setScope(SCOPE)
-                            .setCodeVerifier(CodeVerifierUtil.generateRandomCodeVerifier()) // Use S256 challenge method if possible
-                            .setResponseType(RESPONSE_TYPE)
-                            .setState(stateString)
-                    authRequestBuilder.build()
+                //todo: convert SecurityService to Kotlin and make generateSecureRandomString a suspending function
+                val stateString = withContext(Dispatchers.IO) {
+                    securityService.generateSecureRandomString(32)
                 }
+                preferencesService.currentInstance = instance
+                preferencesService.currentDiscoveredAPI = discoveredAPI
+                val serviceConfig = buildAuthConfiguration(discoveredAPI)
+                val authRequestBuilder = AuthorizationRequest.Builder(
+                        serviceConfig,  // the authorization service configuration
+                        CLIENT_ID,  // the client ID, typically pre-registered and static
+                        ResponseTypeValues.CODE,  // the response_type value: we want a code
+                        Uri.parse(REDIRECT_URI)) // the redirect URI to which the auth response is sent
+                        .setScope(SCOPE)
+                        .setCodeVerifier(CodeVerifierUtil.generateRandomCodeVerifier()) // Use S256 challenge method if possible
+                        .setResponseType(RESPONSE_TYPE)
+                        .setState(stateString)
+                authRequestBuilder.build()
             }.onSuccess { authorizationRequest ->
                 if (authorizationService == null) {
                     throw RuntimeException("Please call onStart() on this service from your activity!")
@@ -121,7 +122,7 @@ class ConnectionService(private val preferencesService: PreferencesService,
                     }
                     activity.startActivity(originalIntent)
                 }
-            }.onFailure {throwable ->
+            }.onFailure { throwable ->
                 if (!activity.isFinishing) {
                     show(activity, R.string.error_dialog_title, (throwable.message)!!)
                 }
