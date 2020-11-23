@@ -20,22 +20,17 @@ package nl.eduvpn.app.viewmodel
 
 import android.content.Context
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.launch
 import nl.eduvpn.app.R
 import nl.eduvpn.app.adapter.OrganizationAdapter
 import nl.eduvpn.app.entity.AuthorizationType
 import nl.eduvpn.app.entity.Instance
 import nl.eduvpn.app.entity.ServerList
-import nl.eduvpn.app.service.APIService
-import nl.eduvpn.app.service.ConnectionService
-import nl.eduvpn.app.service.HistoryService
-import nl.eduvpn.app.service.OrganizationService
-import nl.eduvpn.app.service.PreferencesService
-import nl.eduvpn.app.service.SerializerService
-import nl.eduvpn.app.service.VPNService
+import nl.eduvpn.app.service.*
 import nl.eduvpn.app.utils.Log
 import nl.eduvpn.app.utils.getCountryText
-import java.util.Observable
-import java.util.Observer
+import java.util.*
 import javax.inject.Inject
 
 class ServerSelectionViewModel @Inject constructor(
@@ -95,17 +90,19 @@ class ServerSelectionViewModel @Inject constructor(
     private fun refreshServerList() {
         connectionState.value = ConnectionState.FetchingServerList
         Log.v(TAG, "Fetching server list...")
-        disposables.add(organizationService.fetchServerList()
-                .subscribe({
-                    Log.v(TAG, "Updated server list with latest entries.")
-                    serverListCache.value = Pair(System.currentTimeMillis(), it)
-                    preferencesService.serverList = it
-                    refreshInstances(it)
-                }, {
-                    Log.w(TAG, "Unable to fetch server list. Trying to show servers without it.", it)
-                    refreshInstances(serverListCache.value?.second ?: ServerList(-1L, emptyList()))
-                })
-        )
+        viewModelScope.launch {
+            kotlin.runCatching { organizationService.fetchServerList() }.onSuccess { serverList ->
+                Log.v(TAG, "Updated server list with latest entries.")
+                serverListCache.value = Pair(System.currentTimeMillis(), serverList)
+                preferencesService.serverList = serverList
+                refreshInstances(serverList)
+            }.onFailure { throwable ->
+                Log.w(TAG, "Unable to fetch server list. Trying to show servers without it.", throwable)
+                refreshInstances(serverListCache.value?.second
+                        ?: ServerList(-1L, emptyList()))
+            }
+
+        }
     }
 
     /**

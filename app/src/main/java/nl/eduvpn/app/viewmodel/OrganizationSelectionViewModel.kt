@@ -21,22 +21,12 @@ package nl.eduvpn.app.viewmodel
 import android.content.Context
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Transformations
-import io.reactivex.Single
-import io.reactivex.functions.BiFunction
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.launch
 import nl.eduvpn.app.R
 import nl.eduvpn.app.adapter.OrganizationAdapter
-import nl.eduvpn.app.entity.AuthorizationType
-import nl.eduvpn.app.entity.Instance
-import nl.eduvpn.app.entity.Organization
-import nl.eduvpn.app.entity.OrganizationList
-import nl.eduvpn.app.entity.ServerList
-import nl.eduvpn.app.service.APIService
-import nl.eduvpn.app.service.ConnectionService
-import nl.eduvpn.app.service.HistoryService
-import nl.eduvpn.app.service.OrganizationService
-import nl.eduvpn.app.service.PreferencesService
-import nl.eduvpn.app.service.SerializerService
-import nl.eduvpn.app.service.VPNService
+import nl.eduvpn.app.entity.*
+import nl.eduvpn.app.service.*
 import nl.eduvpn.app.utils.Log
 import javax.inject.Inject
 
@@ -60,31 +50,27 @@ class OrganizationSelectionViewModel @Inject constructor(
     val searchText = MutableLiveData("")
 
     init {
-        val getOrganizationsCall = if (historyService.savedOrganization == null) {
-            state.value = ConnectionState.FetchingOrganizations
-            organizationService.fetchOrganizations()
-        } else {
-            // We can't show any organization servers, user needs to reset to switch.
-            state.value = ConnectionState.FetchingServerList
-            Single.just(OrganizationList(-1L, emptyList()))
-        }
-        val cachedServerList = preferencesService.serverList
-        val getServerListCall = if (cachedServerList != null) {
-            Single.just(cachedServerList)
-        } else {
-            organizationService.fetchServerList()
-        }
-        disposables.add(Single.zip(getOrganizationsCall.onErrorReturn {
-            Log.w(TAG, "Organizations call has failed!", it)
-            OrganizationList(-1L, emptyList())
-        }, getServerListCall.onErrorReturn {
-            Log.w(TAG, "Server list call has failed!", it)
-            ServerList(-1L, emptyList())
-        }, BiFunction { orgList: OrganizationList, serverList: ServerList ->
-            Pair(orgList, serverList)
-        }).subscribe({ organizationServerListPair ->
-            val organizationList = organizationServerListPair.first
-            val serverList = organizationServerListPair.second
+        viewModelScope.launch {
+            val organizationList = if (historyService.savedOrganization == null) {
+                state.value = ConnectionState.FetchingOrganizations
+                kotlin.runCatching { organizationService.fetchOrganizations() }.getOrElse {
+                    Log.w(TAG, "Organizations call has failed!", it)
+                    OrganizationList(-1L, emptyList())
+                }
+            } else {
+                // We can't show any organization servers, user needs to reset to switch.
+                state.value = ConnectionState.FetchingServerList
+                OrganizationList(-1L, emptyList())
+            }
+            val cachedServerList = preferencesService.serverList
+            val serverList = if (cachedServerList != null) {
+                cachedServerList
+            } else {
+                kotlin.runCatching { organizationService.fetchServerList() }.getOrElse {
+                    Log.w(TAG, "Server list call has failed!", it)
+                    ServerList(-1L, emptyList())
+                }
+            }
 
             val lastKnownOrganizationVersion = preferencesService.lastKnownOrganizationListVersion
             val lastKnownServerListVersion = preferencesService.lastKnownServerListVersion
@@ -94,13 +80,11 @@ class OrganizationSelectionViewModel @Inject constructor(
                 servers.value = emptyList()
                 state.value = ConnectionState.Ready
                 parentAction.value = ParentAction.DisplayError(R.string.error_server_list_version_check_title, context.getString(R.string.error_server_list_version_check_message))
-                return@subscribe
             } else if (organizationList.version > 0 && lastKnownOrganizationVersion != null && lastKnownOrganizationVersion > organizationList.version) {
                 organizations.value = emptyList()
                 servers.value = serverList.serverList
                 state.value = ConnectionState.Ready
                 parentAction.value = ParentAction.DisplayError(R.string.error_organization_list_version_check_title, context.getString(R.string.error_organization_list_version_check_message))
-                return@subscribe
             }
 
             if (organizationList.version > 0) {
@@ -113,12 +97,7 @@ class OrganizationSelectionViewModel @Inject constructor(
             organizations.value = organizationList.organizationList
             servers.value = serverList.serverList
             state.value = ConnectionState.Ready
-        }, { throwable ->
-            Log.w(TAG, "Unable to fetch organization list!", throwable)
-            parentAction.value = ParentAction.DisplayError(R.string.error_fetching_organizations, throwable.toString())
-            state.value = ConnectionState.Ready
-        })
-        )
+        }
     }
 
     val adapterItems = Transformations.switchMap(organizations) { organizations ->

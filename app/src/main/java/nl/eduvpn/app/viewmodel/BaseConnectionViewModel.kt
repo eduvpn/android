@@ -22,12 +22,12 @@ import android.app.Activity
 import android.content.Context
 import androidx.annotation.StringRes
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
 import de.blinkt.openvpn.VpnProfile
 import net.openid.appauth.AuthState
 import nl.eduvpn.app.BuildConfig
 import nl.eduvpn.app.Constants
 import nl.eduvpn.app.R
-import nl.eduvpn.app.base.BaseViewModel
 import nl.eduvpn.app.entity.DiscoveredAPI
 import nl.eduvpn.app.entity.Instance
 import nl.eduvpn.app.entity.Profile
@@ -58,7 +58,7 @@ abstract class BaseConnectionViewModel(
         private val preferencesService: PreferencesService,
         private val connectionService: ConnectionService,
         private val vpnService: VPNService
-) : BaseViewModel() {
+) : ViewModel() {
 
     sealed class ParentAction {
         data class DisplayError(@StringRes val title: Int, val message: String) : ParentAction()

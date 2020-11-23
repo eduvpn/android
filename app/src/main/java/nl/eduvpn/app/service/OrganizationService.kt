@@ -16,22 +16,20 @@
  */
 package nl.eduvpn.app.service
 
-import io.reactivex.Single
-import io.reactivex.SingleSource
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.functions.BiFunction
-import io.reactivex.schedulers.Schedulers
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import nl.eduvpn.app.BuildConfig
 import nl.eduvpn.app.Constants
 import nl.eduvpn.app.entity.OrganizationList
 import nl.eduvpn.app.entity.ServerList
 import nl.eduvpn.app.entity.exception.InvalidSignatureException
 import nl.eduvpn.app.utils.Log
-import okhttp3.OkHttpClient
-import okhttp3.Request
+import okhttp3.*
 import org.json.JSONObject
 import java.io.IOException
-import java.util.concurrent.Callable
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
+import kotlin.coroutines.suspendCoroutine
 
 /**
  * Service which provides the configurations for organization related data model.
@@ -42,103 +40,114 @@ class OrganizationService(private val serializerService: SerializerService,
                           private val okHttpClient: OkHttpClient) {
 
 
-    fun fetchServerList(): Single<ServerList> {
+    suspend fun fetchServerList(): ServerList {
         val serverListUrl = BuildConfig.ORGANIZATION_LIST_BASE_URL + "server_list.json"
-        val serverListObservable = createGetJsonSingle(serverListUrl)
-        val signatureObservable = createSignatureSingle(serverListUrl)
-        return Single.zip(serverListObservable.onErrorReturn {
+        val serverList = kotlin.runCatching { createGetJsonSingle(serverListUrl) }.getOrElse { it ->
             Log.w(TAG, "Unable to fetch server list!", it)
             ""
-        }, signatureObservable.onErrorReturn {
+        }
+        val signature = kotlin.runCatching { createSignatureSingle(serverListUrl) }.getOrElse { it ->
             Log.w(TAG, "Unable to fetch signature for server list!", it)
             ""
-        }, BiFunction<String, String, ServerList> { serverList: String, signature: String ->
-            if (serverList.isBlank() || signature.isBlank()) {
-                throw IllegalArgumentException("Server list of signature is empty!")
-            }
-            try {
-                if (securityService.verifyMinisign(serverList, signature)) {
-                    val organizationListJson = JSONObject(serverList)
-                    return@BiFunction serializerService.deserializeServerList(organizationListJson)
-                } else {
-                    throw InvalidSignatureException("Signature validation failed for server list!")
-                }
-            } catch (ex: Exception) {
-                Log.w(TAG, "Unable to verify signature", ex)
+        }
+        if (serverList.isBlank() || signature.isBlank()) {
+            throw IllegalArgumentException("Server list of signature is empty!")
+        }
+        try {
+            if (withContext(Dispatchers.Default) { securityService.verifyMinisign(serverList, signature) }) {
+                val organizationListJson = JSONObject(serverList)
+                return serializerService.deserializeServerList(organizationListJson)
+            } else {
                 throw InvalidSignatureException("Signature validation failed for server list!")
             }
-        }).subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-
+        } catch (ex: Exception) {
+            Log.w(TAG, "Unable to verify signature", ex)
+            throw InvalidSignatureException("Signature validation failed for server list!")
+        }
     }
 
-    fun fetchOrganizations(): Single<OrganizationList> {
+    suspend fun fetchOrganizations(): OrganizationList {
         val listUrl = BuildConfig.ORGANIZATION_LIST_BASE_URL + "organization_list.json"
-        val organizationListObservable = createGetJsonSingle(listUrl)
-        val signatureObservable = createSignatureSingle(listUrl)
-        return Single.zip(organizationListObservable.onErrorReturn {
+        val organizationList = kotlin.runCatching { createGetJsonSingle(listUrl) }.getOrElse {
             Log.w(TAG, "Unable to fetch organization list!", it)
             ""
-        }, signatureObservable.onErrorReturn {
+        }
+        val signature = kotlin.runCatching { createSignatureSingle(listUrl) }.getOrElse {
             Log.w(TAG, "Unable to fetch organization list signature!", it)
             ""
-        }, BiFunction<String, String, OrganizationList> { organizationList: String, signature: String ->
-            if (organizationList.isBlank() || signature.isBlank()) {
-                throw IllegalArgumentException("Organization list of signature is empty!")
-            }
-            try {
-                if (securityService.verifyMinisign(organizationList, signature)) {
-                    val organizationListJson = JSONObject(organizationList)
-                    return@BiFunction serializerService.deserializeOrganizationList(organizationListJson)
-                } else {
-                    throw InvalidSignatureException("Signature validation failed for organization list!")
-                }
-            } catch (ex: Exception) {
-                Log.w(TAG, "Unable to verify signature", ex)
+        }
+        if (organizationList.isBlank() || signature.isBlank()) {
+            throw IllegalArgumentException("Organization list of signature is empty!")
+        }
+        try {
+            if (withContext(Dispatchers.Default) { securityService.verifyMinisign(organizationList, signature) }) {
+                val organizationListJson = JSONObject(organizationList)
+                return serializerService.deserializeOrganizationList(organizationListJson)
+            } else {
                 throw InvalidSignatureException("Signature validation failed for organization list!")
             }
-        }).subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
+        } catch (ex: Exception) {
+            Log.w(TAG, "Unable to verify signature", ex)
+            throw InvalidSignatureException("Signature validation failed for organization list!")
+        }
     }
 
-    private fun createSignatureSingle(signatureRequestUrl: String): Single<String> {
-        return Single.defer(Callable<SingleSource<String>> {
-            val postfixedUrl = signatureRequestUrl + BuildConfig.SIGNATURE_URL_POSTFIX
-            val request = Request.Builder().url(postfixedUrl).build()
-            val response = okHttpClient.newCall(request).execute()
-            val responseBody = response.body
-            if (responseBody != null) {
-                val result = responseBody.string()
-                responseBody.close()
-                return@Callable Single.just(result)
-            } else {
-                return@Callable Single.error<String>(IOException("Response body is empty!"))
+    private suspend fun createSignatureSingle(signatureRequestUrl: String): String {
+        val postfixedUrl = signatureRequestUrl + BuildConfig.SIGNATURE_URL_POSTFIX
+        val request = Request.Builder().url(postfixedUrl).build()
+        return withContext(Dispatchers.IO) {
+            suspendCoroutine { cont ->
+                okHttpClient.newCall(request).enqueue(object : Callback {
+                    override fun onFailure(call: Call, e: IOException) {
+                        cont.resumeWithException(e)
+                    }
+
+                    override fun onResponse(call: Call, response: Response) {
+                        val responseBody = response.body
+                        if (responseBody != null) {
+                            val result = responseBody.string()
+                            responseBody.close()
+                            cont.resume(result)
+                        } else {
+                            cont.resumeWithException(IOException("Response body is empty!"))
+                        }
+                    }
+                })
             }
-        }).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
+        }
     }
 
-    private fun createGetJsonSingle(url: String): Single<String> {
-        return Single.defer(Callable<SingleSource<String>> {
-            val request = Request.Builder().url(url).build()
-            val response = okHttpClient.newCall(request).execute()
-            val responseBody = response.body
-            val responseCode = response.code
-            var isGone = false
-            for (code in Constants.GONE_HTTP_CODES) {
-                if (responseCode == code) {
-                    isGone = true
-                }
+    private suspend fun createGetJsonSingle(url: String): String {
+        val request = Request.Builder().url(url).build()
+        return withContext(Dispatchers.IO) {
+            suspendCoroutine { cont ->
+                okHttpClient.newCall(request).enqueue(object : Callback {
+                    override fun onFailure(call: Call, e: IOException) {
+                        cont.resumeWithException(e)
+                    }
+
+                    override fun onResponse(call: Call, response: Response) {
+                        val responseBody = response.body
+                        val responseCode = response.code
+                        var isGone = false
+                        for (code in Constants.GONE_HTTP_CODES) {
+                            if (responseCode == code) {
+                                isGone = true
+                            }
+                        }
+                        if (isGone) {
+                            cont.resumeWithException(OrganizationDeletedException())
+                        } else if (responseBody != null) {
+                            val result = responseBody.string()
+                            responseBody.close()
+                            cont.resume(result)
+                        } else {
+                            cont.resumeWithException(IOException("Response body is empty!"))
+                        }
+                    }
+                })
             }
-            if (isGone) {
-                return@Callable Single.error(OrganizationDeletedException())
-            } else if (responseBody != null) {
-                val result = responseBody.string()
-                responseBody.close()
-                return@Callable Single.just(result)
-            } else {
-                return@Callable Single.error(IOException("Response body is empty!"))
-            }
-        }).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
+        }
     }
 
     class OrganizationDeletedException : IllegalStateException()
