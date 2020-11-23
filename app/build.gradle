@@ -131,6 +131,11 @@ android {
             option("-Werror")
         }
     }
+
+    packagingOptions {
+        // Created by kotlinx-coroutines-core for debugging
+        exclude "DebugProbesKt.bin"
+    }
 }
 
 def daggerVersion = "2.29"
@@ -171,6 +176,9 @@ dependencies {
     // Reactive extensions for asynchronous events
     implementation 'io.reactivex.rxjava2:rxandroid:2.1.1'
     implementation 'io.reactivex.rxjava2:rxjava:2.2.19'
+
+    // Kotlin coroutines
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.1")
 
     // All testing related libraries
     testImplementation 'junit:junit:4.12'

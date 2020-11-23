@@ -16,21 +16,24 @@
  */
 package nl.eduvpn.app.service
 
-import android.annotation.SuppressLint
-import io.reactivex.Single
-import io.reactivex.SingleSource
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.functions.Function
-import io.reactivex.schedulers.Schedulers
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import net.openid.appauth.AuthState
 import nl.eduvpn.app.utils.Log
+import okhttp3.Call
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
+import okhttp3.Response
 import org.json.JSONException
 import org.json.JSONObject
 import java.io.IOException
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
+import kotlin.coroutines.suspendCoroutine
 
 /**
  * This service is responsible for fetching data from API endpoints.
@@ -88,33 +91,27 @@ class APIService(private val connectionService: ConnectionService, private val o
      * @param authState If the access token should be used, provide a previous authorization state.
      * @param callback The callback where the result is returned.
      */
-    @SuppressLint("CheckResult")
     fun getString(url: String, authState: AuthState?, callback: Callback<String>) {
-        createNetworkCall(authState) { accessToken ->
-            try {
-                Single.just(fetchString(url, accessToken))
-            } catch (ex: IOException) {
-                Single.error<Any>(ex)
-            } catch (ex: JSONException) {
-                Single.error<Any>(ex)
-            } catch (ex: UserNotAuthorizedException) {
-                Single.error<Any>(ex)
-            }
-        }.observeOn(AndroidSchedulers.mainThread())
-                .subscribeOn(Schedulers.io())
-                .subscribe({ obj ->
-                    if (obj is String) {
-                        callback.onSuccess(obj)
-                    } else {
-                        throw RuntimeException("Unexpected result type!")
-                    }
-                }) { throwable ->
-                    if (throwable is UserNotAuthorizedException) {
-                        callback.onError(USER_NOT_AUTHORIZED_ERROR)
-                    } else {
-                        callback.onError(throwable.toString())
-                    }
+        GlobalScope.launch(Dispatchers.Main) {
+            kotlin.runCatching {
+                createNetworkCall(authState) { accessToken ->
+                    fetchString(url, accessToken)
                 }
+            }.mapCatching { result ->
+                if (result == null) {
+                    throw RuntimeException("Unexpected result type!")
+                }
+                result
+            }.onSuccess { result ->
+                callback.onSuccess(result)
+            }.onFailure { throwable ->
+                if (throwable is UserNotAuthorizedException) {
+                    callback.onError(USER_NOT_AUTHORIZED_ERROR)
+                } else {
+                    callback.onError(throwable.toString())
+                }
+            }
+        }
     }
 
     /**
@@ -125,25 +122,23 @@ class APIService(private val connectionService: ConnectionService, private val o
      * @param data     The request data.
      * @param callback The callback for notifying about the result.
      */
-    @SuppressLint("CheckResult")
     fun postResource(url: String, data: String?, authState: AuthState?, callback: Callback<String>) {
-        createNetworkCall(authState) { accessToken ->
-            try {
-                Single.just(fetchByteResource(url, data, accessToken))
-            } catch (ex: IOException) {
-                Single.error<Any>(ex)
-            } catch (ex: UserNotAuthorizedException) {
-                Single.error<Any>(ex)
+        GlobalScope.launch(Dispatchers.Main) {
+            kotlin.runCatching {
+                createNetworkCall(authState) { accessToken ->
+                    fetchByteResource(url, data, accessToken)
+                }
+            }.mapCatching { result ->
+                if (result == null) {
+                    throw RuntimeException("Unexpected result type!")
+                }
+                result
+            }.onSuccess { result ->
+                callback.onSuccess(result)
+            }.onFailure { throwable ->
+                callback.onError(throwable.toString())
             }
-        }.observeOn(AndroidSchedulers.mainThread())
-                .subscribeOn(Schedulers.io())
-                .subscribe({ obj ->
-                    if (obj is String) {
-                        callback.onSuccess(obj)
-                    } else {
-                        throw RuntimeException("Unexpected result type!")
-                    }
-                }) { throwable -> callback.onError(throwable.toString()) }
+        }
     }
 
     /**
@@ -156,7 +151,7 @@ class APIService(private val connectionService: ConnectionService, private val o
      * @throws IOException Thrown if there was a problem creating the connection.
      */
     @Throws(IOException::class, UserNotAuthorizedException::class)
-    private fun fetchByteResource(url: String, requestData: String?, accessToken: String?): String? {
+    private suspend fun fetchByteResource(url: String, requestData: String?, accessToken: String?): String? {
         val requestBuilder = createRequestBuilder(url, accessToken)
         if (requestData != null) {
             requestBuilder.method("POST", requestData.toRequestBody("application/x-www-form-urlencoded".toMediaTypeOrNull()))
@@ -164,20 +159,31 @@ class APIService(private val connectionService: ConnectionService, private val o
             requestBuilder.method("POST", null)
         }
         val request = requestBuilder.build()
-        val response = okHttpClient.newCall(request).execute()
-        val statusCode = response.code
-        if (statusCode == STATUS_CODE_UNAUTHORIZED) {
-            throw UserNotAuthorizedException()
-        }
-        // Get the body of the response
-        val responseBody = response.body
-        val result = responseBody?.string()
-        responseBody?.close()
-        Log.d(TAG, "POST $url data: '$requestData': $result")
-        return if (statusCode in 200..299) {
-            result
-        } else {
-            throw IOException("Unsuccessful response: $result")
+        return withContext(Dispatchers.IO) {
+            suspendCoroutine { cont ->
+                okHttpClient.newCall(request).enqueue(object : okhttp3.Callback {
+                    override fun onFailure(call: Call, e: IOException) {
+                        cont.resumeWithException(e)
+                    }
+
+                    override fun onResponse(call: Call, response: Response) {
+                        val statusCode = response.code
+                        if (statusCode == STATUS_CODE_UNAUTHORIZED) {
+                            cont.resumeWithException(UserNotAuthorizedException())
+                        }
+                        // Get the body of the response
+                        val responseBody = response.body
+                        val result = responseBody?.string()
+                        responseBody?.close()
+                        Log.d(TAG, "POST $url data: '$requestData': $result")
+                        return if (statusCode in 200..299) {
+                            cont.resume(result)
+                        } else {
+                            cont.resumeWithException(IOException("Unsuccessful response: $result"))
+                        }
+                    }
+                })
+            }
         }
     }
 
@@ -205,30 +211,37 @@ class APIService(private val connectionService: ConnectionService, private val o
      * @throws JSONException Thrown if the returned JSON was invalid or not a JSON at all.
      */
     @Throws(IOException::class, JSONException::class, UserNotAuthorizedException::class)
-    private fun fetchString(url: String, accessToken: String?): String? {
+    private suspend fun fetchString(url: String, accessToken: String?): String? {
         val requestBuilder = createRequestBuilder(url, accessToken)
-        val response = okHttpClient.newCall(requestBuilder.build()).execute()
-        val statusCode = response.code
-        if (statusCode == STATUS_CODE_UNAUTHORIZED) {
-            throw UserNotAuthorizedException()
+        return withContext(Dispatchers.IO) {
+            suspendCoroutine { cont ->
+                okHttpClient.newCall(requestBuilder.build()).enqueue(object : okhttp3.Callback {
+                    override fun onFailure(call: Call, e: IOException) {
+                        cont.resumeWithException(e)
+                    }
+
+                    override fun onResponse(call: Call, response: Response) {
+                        val statusCode = response.code
+                        if (statusCode == STATUS_CODE_UNAUTHORIZED) {
+                            cont.resumeWithException(UserNotAuthorizedException())
+                        }
+                        // Get the body of the response
+                        val responseBody = response.body
+                        val responseString = responseBody?.string()
+                        responseBody?.close()
+                        Log.d(TAG, "GET $url: $responseString")
+                        cont.resume(responseString)
+                    }
+                })
+            }
         }
-        // Get the body of the response
-        val responseBody = response.body
-        val responseString = responseBody?.string()
-        responseBody?.close()
-        Log.d(TAG, "GET $url: $responseString")
-        return responseString
     }
 
-    private fun createNetworkCall(authState: AuthState?, networkFunction: Function<String, SingleSource<*>>): Single<Any> {
+    private suspend fun <R> createNetworkCall(authState: AuthState?, networkFunction: suspend (String) -> R): R {
         return if (authState != null) {
-            connectionService.getFreshAccessToken(authState)
-                    .observeOn(Schedulers.io())
-                    .flatMap(networkFunction)
+            networkFunction(connectionService.getFreshAccessToken(authState))
         } else {
-            Single.just("")
-                    .observeOn(Schedulers.io())
-                    .flatMap(networkFunction)
+            networkFunction("")
         }
     }
 

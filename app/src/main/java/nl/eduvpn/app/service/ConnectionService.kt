@@ -21,12 +21,10 @@ import android.app.PendingIntent
 import android.content.Intent
 import android.net.Uri
 import android.os.Parcelable
-import io.reactivex.Observable
-import io.reactivex.Single
-import io.reactivex.SingleEmitter
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.disposables.Disposable
-import io.reactivex.schedulers.Schedulers
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import net.openid.appauth.*
 import net.openid.appauth.browser.BrowserDenyList
 import net.openid.appauth.browser.VersionedBrowserMatcher
@@ -37,6 +35,9 @@ import nl.eduvpn.app.entity.DiscoveredAPI
 import nl.eduvpn.app.entity.Instance
 import nl.eduvpn.app.utils.ErrorDialog.show
 import nl.eduvpn.app.utils.Log
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
+import kotlin.coroutines.suspendCoroutine
 
 /**
  * The connection service takes care of building up the URLs and validating the result.
@@ -81,49 +82,51 @@ class ConnectionService(private val preferencesService: PreferencesService,
      * @param instance      The instance to connect to.
      * @param discoveredAPI The discovered API which has the URL.
      */
-    fun initiateConnection(activity: Activity, instance: Instance, discoveredAPI: DiscoveredAPI): Disposable {
-        return Observable.defer {
-            val stateString = securityService.generateSecureRandomString(32)
-            preferencesService.currentInstance = instance
-            preferencesService.currentDiscoveredAPI = discoveredAPI
-            val serviceConfig = buildAuthConfiguration(discoveredAPI)
-            val authRequestBuilder = AuthorizationRequest.Builder(
-                    serviceConfig,  // the authorization service configuration
-                    CLIENT_ID,  // the client ID, typically pre-registered and static
-                    ResponseTypeValues.CODE,  // the response_type value: we want a code
-                    Uri.parse(REDIRECT_URI)) // the redirect URI to which the auth response is sent
-                    .setScope(SCOPE)
-                    .setCodeVerifier(CodeVerifierUtil.generateRandomCodeVerifier()) // Use S256 challenge method if possible
-                    .setResponseType(RESPONSE_TYPE)
-                    .setState(stateString)
-            Observable.just(authRequestBuilder.build())
-        }.subscribeOn(Schedulers.computation())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({ authorizationRequest: AuthorizationRequest? ->
-                    if (authorizationService == null) {
-                        throw RuntimeException("Please call onStart() on this service from your activity!")
-                    }
-                    if (!activity.isFinishing) {
-                        val originalIntent = authorizationService!!.getAuthorizationRequestIntent(
-                                authorizationRequest!!,
-                                PendingIntent.getActivity(activity, REQUEST_CODE_APP_AUTH, Intent(activity, MainActivity::class.java), 0))
-                        if (instance.authenticationUrlTemplate != null && instance.authenticationUrlTemplate.isNotEmpty() && originalIntent.getParcelableExtra<Parcelable?>("authIntent") != null && preferencesService.currentOrganization != null) {
-                            val authIntent = originalIntent.getParcelableExtra<Intent>("authIntent")
-                            if (authIntent != null && authIntent.dataString != null) {
-                                val replacedUrl = instance.authenticationUrlTemplate
-                                        .replace("@RETURN_TO@", Uri.encode(authIntent.dataString))
-                                        .replace("@ORG_ID@", Uri.encode(preferencesService.currentOrganization!!.orgId))
-                                authIntent.data = Uri.parse(replacedUrl)
-                                originalIntent.putExtra("authIntent", authIntent)
-                            }
-                        }
-                        activity.startActivity(originalIntent)
-                    }
-                }) { throwable: Throwable ->
-                    if (!activity.isFinishing) {
-                        show(activity, R.string.error_dialog_title, (throwable.message)!!)
-                    }
+    fun initiateConnection(activity: Activity, instance: Instance, discoveredAPI: DiscoveredAPI): Unit {
+        GlobalScope.launch(Dispatchers.Main) {
+            kotlin.runCatching {
+                withContext(Dispatchers.Default) {
+                    val stateString = securityService.generateSecureRandomString(32)
+                    preferencesService.currentInstance = instance
+                    preferencesService.currentDiscoveredAPI = discoveredAPI
+                    val serviceConfig = buildAuthConfiguration(discoveredAPI)
+                    val authRequestBuilder = AuthorizationRequest.Builder(
+                            serviceConfig,  // the authorization service configuration
+                            CLIENT_ID,  // the client ID, typically pre-registered and static
+                            ResponseTypeValues.CODE,  // the response_type value: we want a code
+                            Uri.parse(REDIRECT_URI)) // the redirect URI to which the auth response is sent
+                            .setScope(SCOPE)
+                            .setCodeVerifier(CodeVerifierUtil.generateRandomCodeVerifier()) // Use S256 challenge method if possible
+                            .setResponseType(RESPONSE_TYPE)
+                            .setState(stateString)
+                    authRequestBuilder.build()
                 }
+            }.onSuccess { authorizationRequest ->
+                if (authorizationService == null) {
+                    throw RuntimeException("Please call onStart() on this service from your activity!")
+                }
+                if (!activity.isFinishing) {
+                    val originalIntent = authorizationService!!.getAuthorizationRequestIntent(
+                            authorizationRequest,
+                            PendingIntent.getActivity(activity, REQUEST_CODE_APP_AUTH, Intent(activity, MainActivity::class.java), 0))
+                    if (instance.authenticationUrlTemplate != null && instance.authenticationUrlTemplate.isNotEmpty() && originalIntent.getParcelableExtra<Parcelable?>("authIntent") != null && preferencesService.currentOrganization != null) {
+                        val authIntent = originalIntent.getParcelableExtra<Intent>("authIntent")
+                        if (authIntent != null && authIntent.dataString != null) {
+                            val replacedUrl = instance.authenticationUrlTemplate
+                                    .replace("@RETURN_TO@", Uri.encode(authIntent.dataString))
+                                    .replace("@ORG_ID@", Uri.encode(preferencesService.currentOrganization!!.orgId))
+                            authIntent.data = Uri.parse(replacedUrl)
+                            originalIntent.putExtra("authIntent", authIntent)
+                        }
+                    }
+                    activity.startActivity(originalIntent)
+                }
+            }.onFailure {throwable ->
+                if (!activity.isFinishing) {
+                    show(activity, R.string.error_dialog_title, (throwable.message)!!)
+                }
+            }
+        }
     }
 
     /**
@@ -183,18 +186,21 @@ class ConnectionService(private val preferencesService: PreferencesService,
      *
      * @return The access token used to authorization in an emitter.
      */
-    fun getFreshAccessToken(authState: AuthState): Single<String> {
-        return if (!authState.needsTokenRefresh && authState.accessToken != null) {
-            Single.just(authState.accessToken)
+    suspend fun getFreshAccessToken(authState: AuthState): String {
+        val accessToken = authState.accessToken
+        return if (!authState.needsTokenRefresh && accessToken != null) {
+            accessToken
         } else {
-            Single.create { singleEmitter: SingleEmitter<String> ->
-                authState.performActionWithFreshTokens((authorizationService)!!) { accessToken, _, ex ->
-                    if (accessToken != null) {
-                        preferencesService.currentAuthState = authState
-                        historyService.refreshAuthState(authState)
-                        singleEmitter.onSuccess(accessToken)
-                    } else {
-                        singleEmitter.onError(ex!!)
+            withContext(Dispatchers.IO) {
+                suspendCoroutine<String> { cont ->
+                    authState.performActionWithFreshTokens((authorizationService)!!) { accessToken, _, ex ->
+                        if (accessToken != null) {
+                            preferencesService.currentAuthState = authState
+                            historyService.refreshAuthState(authState)
+                            cont.resume(accessToken)
+                        } else {
+                            cont.resumeWithException(ex!!)
+                        }
                     }
                 }
             }
