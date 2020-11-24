@@ -17,6 +17,8 @@
 package nl.eduvpn.app.service
 
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
 import nl.eduvpn.app.BuildConfig
 import nl.eduvpn.app.Constants
@@ -40,54 +42,95 @@ class OrganizationService(private val serializerService: SerializerService,
 
 
     suspend fun fetchServerList(): ServerList {
-        val serverListUrl = BuildConfig.ORGANIZATION_LIST_BASE_URL + "server_list.json"
-        val serverList = kotlin.runCatching { createGetJsonSingle(serverListUrl) }.getOrElse { it ->
-            Log.w(TAG, "Unable to fetch server list!", it)
-            ""
-        }
-        val signature = kotlin.runCatching { createSignatureSingle(serverListUrl) }.getOrElse { it ->
-            Log.w(TAG, "Unable to fetch signature for server list!", it)
-            ""
-        }
-        if (serverList.isBlank() || signature.isBlank()) {
-            throw IllegalArgumentException("Server list of signature is empty!")
-        }
-        try {
-            if (withContext(Dispatchers.Default) { securityService.verifyMinisign(serverList, signature) }) {
-                val organizationListJson = JSONObject(serverList)
-                return serializerService.deserializeServerList(organizationListJson)
-            } else {
+        return coroutineScope {
+            val serverListUrl = BuildConfig.ORGANIZATION_LIST_BASE_URL + "server_list.json"
+
+            val signatureDeferred = async {
+                kotlin.runCatching {
+                    createSignatureSingle(serverListUrl)
+                }.mapCatching { signature ->
+                    if (signature.isBlank()) {
+                        throw IllegalArgumentException("Signature of server list is empty!")
+                    }
+                    signature
+                }.onFailure { it ->
+                    Log.w(TAG, "Unable to fetch server list!", it)
+                }.getOrThrow()
+            }
+            val serverListDeferred = async {
+                kotlin.runCatching {
+                    createGetJsonSingle(serverListUrl)
+                }.mapCatching { serverList ->
+                    if (serverList.isBlank()) {
+                        throw IllegalArgumentException("Server list is empty!")
+                    }
+                    serverList
+                }.onFailure { it ->
+                    Log.w(TAG, "Unable to fetch signature of server list!", it)
+                }.getOrThrow()
+            }
+
+            val serverList = serverListDeferred.await()
+            val signature = signatureDeferred.await()
+
+            try {
+                if (withContext(Dispatchers.Default) { securityService.verifyMinisign(serverList, signature) }) {
+                    val organizationListJson = JSONObject(serverList)
+                    serializerService.deserializeServerList(organizationListJson)
+                } else {
+                    throw InvalidSignatureException("Signature validation failed for server list!")
+                }
+            } catch (ex: Exception) {
+                Log.w(TAG, "Unable to verify signature", ex)
                 throw InvalidSignatureException("Signature validation failed for server list!")
             }
-        } catch (ex: Exception) {
-            Log.w(TAG, "Unable to verify signature", ex)
-            throw InvalidSignatureException("Signature validation failed for server list!")
         }
     }
 
     suspend fun fetchOrganizations(): OrganizationList {
-        val listUrl = BuildConfig.ORGANIZATION_LIST_BASE_URL + "organization_list.json"
-        val organizationList = kotlin.runCatching { createGetJsonSingle(listUrl) }.getOrElse {
-            Log.w(TAG, "Unable to fetch organization list!", it)
-            ""
-        }
-        val signature = kotlin.runCatching { createSignatureSingle(listUrl) }.getOrElse {
-            Log.w(TAG, "Unable to fetch organization list signature!", it)
-            ""
-        }
-        if (organizationList.isBlank() || signature.isBlank()) {
-            throw IllegalArgumentException("Organization list of signature is empty!")
-        }
-        try {
-            if (withContext(Dispatchers.Default) { securityService.verifyMinisign(organizationList, signature) }) {
-                val organizationListJson = JSONObject(organizationList)
-                return serializerService.deserializeOrganizationList(organizationListJson)
-            } else {
+        return coroutineScope {
+            val listUrl = BuildConfig.ORGANIZATION_LIST_BASE_URL + "organization_list.json"
+
+            val organizationListDeferred = async {
+                kotlin.runCatching {
+                    createGetJsonSingle(listUrl)
+                }.mapCatching { organizationList ->
+                    if (organizationList.isBlank()) {
+                        throw throw IllegalArgumentException("Organization list is empty!")
+                    }
+                    organizationList
+                }.onFailure {
+                    Log.w(TAG, "Unable to fetch organization list!", it)
+                }.getOrThrow()
+            }
+
+            val signatureDeferred = async {
+                kotlin.runCatching {
+                    createSignatureSingle(listUrl)
+                }.mapCatching { signature ->
+                    if (signature.isBlank()) {
+                        throw throw IllegalArgumentException("Signature of organization list is empty!")
+                    }
+                    signature
+                }.onFailure {
+                    Log.w(TAG, "Unable to fetch signature of organization list!", it)
+                }.getOrThrow()
+            }
+
+            val organizationList = organizationListDeferred.await()
+            val signature = signatureDeferred.await()
+
+            try {
+                if (withContext(Dispatchers.Default) { securityService.verifyMinisign(organizationList, signature) }) {
+                    val organizationListJson = JSONObject(organizationList)
+                    serializerService.deserializeOrganizationList(organizationListJson)
+                } else {
+                    throw InvalidSignatureException("Signature validation failed for organization list!")
+                }
+            } catch (ex: Exception) {
+                Log.w(TAG, "Unable to verify signature", ex)
                 throw InvalidSignatureException("Signature validation failed for organization list!")
             }
-        } catch (ex: Exception) {
-            Log.w(TAG, "Unable to verify signature", ex)
-            throw InvalidSignatureException("Signature validation failed for organization list!")
         }
     }
 
