@@ -22,8 +22,6 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Parcelable
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import net.openid.appauth.*
 import net.openid.appauth.browser.BrowserDenyList
@@ -82,8 +80,8 @@ class ConnectionService(private val preferencesService: PreferencesService,
      * @param instance      The instance to connect to.
      * @param discoveredAPI The discovered API which has the URL.
      */
-    fun initiateConnection(activity: Activity, instance: Instance, discoveredAPI: DiscoveredAPI): Unit {
-        GlobalScope.launch(Dispatchers.Main) {
+    suspend fun initiateConnection(activity: Activity, instance: Instance, discoveredAPI: DiscoveredAPI): Unit {
+        withContext(Dispatchers.Main) {
             kotlin.runCatching {
                 //todo: convert SecurityService to Kotlin and make generateSecureRandomString a suspending function
                 val stateString = withContext(Dispatchers.IO) {

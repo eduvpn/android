@@ -17,8 +17,6 @@
 package nl.eduvpn.app.service
 
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import net.openid.appauth.AuthState
 import nl.eduvpn.app.utils.Log
@@ -64,7 +62,7 @@ class APIService(private val connectionService: ConnectionService, private val o
      * @param url      The URL to fetch the JSON from.
      * @param callback The callback for returning the result or notifying about an error.
      */
-    fun getJSON(url: String, authState: AuthState?, callback: Callback<JSONObject>) {
+    suspend fun getJSON(url: String, authState: AuthState?, callback: Callback<JSONObject>) {
         getString(url, authState, object : Callback<String> {
             override fun onSuccess(result: String) {
                 try {
@@ -87,20 +85,18 @@ class APIService(private val connectionService: ConnectionService, private val o
      * @param authState If the access token should be used, provide a previous authorization state.
      * @param callback The callback where the result is returned.
      */
-    fun getString(url: String, authState: AuthState?, callback: Callback<String>) {
-        GlobalScope.launch(Dispatchers.Main) {
-            kotlin.runCatching {
-                createNetworkCall(authState) { accessToken ->
-                    fetchString(url, accessToken)
-                }
-            }.onSuccess { result ->
-                callback.onSuccess(result)
-            }.onFailure { throwable ->
-                if (throwable is UserNotAuthorizedException) {
-                    callback.onError(USER_NOT_AUTHORIZED_ERROR)
-                } else {
-                    callback.onError(throwable.toString())
-                }
+    suspend fun getString(url: String, authState: AuthState?, callback: Callback<String>) {
+        kotlin.runCatching {
+            createNetworkCall(authState) { accessToken ->
+                fetchString(url, accessToken)
+            }
+        }.onSuccess { result ->
+            callback.onSuccess(result)
+        }.onFailure { throwable ->
+            if (throwable is UserNotAuthorizedException) {
+                callback.onError(USER_NOT_AUTHORIZED_ERROR)
+            } else {
+                callback.onError(throwable.toString())
             }
         }
     }
@@ -113,17 +109,15 @@ class APIService(private val connectionService: ConnectionService, private val o
      * @param data     The request data.
      * @param callback The callback for notifying about the result.
      */
-    fun postResource(url: String, data: String?, authState: AuthState?, callback: Callback<String>) {
-        GlobalScope.launch(Dispatchers.Main) {
-            kotlin.runCatching {
-                createNetworkCall(authState) { accessToken ->
-                    fetchByteResource(url, data, accessToken)
-                }
-            }.onSuccess { result ->
-                callback.onSuccess(result)
-            }.onFailure { throwable ->
-                callback.onError(throwable.toString())
+    suspend fun postResource(url: String, data: String?, authState: AuthState?, callback: Callback<String>) {
+        kotlin.runCatching {
+            createNetworkCall(authState) { accessToken ->
+                fetchByteResource(url, data, accessToken)
             }
+        }.onSuccess { result ->
+            callback.onSuccess(result)
+        }.onFailure { throwable ->
+            callback.onError(throwable.toString())
         }
     }
 
