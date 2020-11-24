@@ -22,7 +22,10 @@ import android.content.Context
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Transformations
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.supervisorScope
 import nl.eduvpn.app.R
 import nl.eduvpn.app.adapter.OrganizationAdapter
 import nl.eduvpn.app.entity.*
@@ -51,52 +54,60 @@ class OrganizationSelectionViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            val organizationList = if (historyService.savedOrganization == null) {
-                state.value = ConnectionState.FetchingOrganizations
-                kotlin.runCatching { organizationService.fetchOrganizations() }.getOrElse {
-                    Log.w(TAG, "Organizations call has failed!", it)
-                    OrganizationList(-1L, emptyList())
+            // We want to be able to handle async failures, so use supervisorScope
+            // https://kotlinlang.org/docs/reference/coroutines/exception-handling.html#supervision
+            supervisorScope {
+                val organizationListDeferred = if (historyService.savedOrganization == null) {
+                    state.value = ConnectionState.FetchingOrganizations
+                    async { organizationService.fetchOrganizations() }
+                } else {
+                    // We can't show any organization servers, user needs to reset to switch.
+                    state.value = ConnectionState.FetchingServerList
+                    CompletableDeferred(OrganizationList(-1L, emptyList()))
                 }
-            } else {
-                // We can't show any organization servers, user needs to reset to switch.
-                state.value = ConnectionState.FetchingServerList
-                OrganizationList(-1L, emptyList())
-            }
-            val cachedServerList = preferencesService.serverList
-            val serverList = if (cachedServerList != null) {
-                cachedServerList
-            } else {
-                kotlin.runCatching { organizationService.fetchServerList() }.getOrElse {
+                val cachedServerList = preferencesService.serverList
+                val serverListDeferred = if (cachedServerList != null) {
+                    CompletableDeferred(cachedServerList)
+                } else {
+                    async { organizationService.fetchServerList() }
+                }
+
+                val lastKnownOrganizationVersion = preferencesService.lastKnownOrganizationListVersion
+                val lastKnownServerListVersion = preferencesService.lastKnownServerListVersion
+
+                val organizationList = kotlin.runCatching { organizationListDeferred.await() }.getOrElse {
+                    Log.w(TAG, "Organizations call has failed!", it)
+                    OrganizationList(-1L, emptyList())  //STOPSHIP
+                }
+
+                val serverList = kotlin.runCatching { serverListDeferred.await() }.getOrElse {
                     Log.w(TAG, "Server list call has failed!", it)
                     ServerList(-1L, emptyList())
                 }
-            }
 
-            val lastKnownOrganizationVersion = preferencesService.lastKnownOrganizationListVersion
-            val lastKnownServerListVersion = preferencesService.lastKnownServerListVersion
+                if (serverList.version > 0 && lastKnownServerListVersion != null && lastKnownServerListVersion > serverList.version) {
+                    organizations.value = emptyList()
+                    servers.value = emptyList()
+                    state.value = ConnectionState.Ready
+                    parentAction.value = ParentAction.DisplayError(R.string.error_server_list_version_check_title, context.getString(R.string.error_server_list_version_check_message))
+                } else if (organizationList.version > 0 && lastKnownOrganizationVersion != null && lastKnownOrganizationVersion > organizationList.version) {
+                    organizations.value = emptyList()
+                    servers.value = serverList.serverList
+                    state.value = ConnectionState.Ready
+                    parentAction.value = ParentAction.DisplayError(R.string.error_organization_list_version_check_title, context.getString(R.string.error_organization_list_version_check_message))
+                }
 
-            if (serverList.version > 0 && lastKnownServerListVersion != null && lastKnownServerListVersion > serverList.version) {
-                organizations.value = emptyList()
-                servers.value = emptyList()
-                state.value = ConnectionState.Ready
-                parentAction.value = ParentAction.DisplayError(R.string.error_server_list_version_check_title, context.getString(R.string.error_server_list_version_check_message))
-            } else if (organizationList.version > 0 && lastKnownOrganizationVersion != null && lastKnownOrganizationVersion > organizationList.version) {
-                organizations.value = emptyList()
+                if (organizationList.version > 0) {
+                    preferencesService.lastKnownOrganizationListVersion = organizationList.version
+                }
+                if (serverList.version > 0) {
+                    preferencesService.lastKnownServerListVersion = serverList.version
+                }
+
+                organizations.value = organizationList.organizationList
                 servers.value = serverList.serverList
                 state.value = ConnectionState.Ready
-                parentAction.value = ParentAction.DisplayError(R.string.error_organization_list_version_check_title, context.getString(R.string.error_organization_list_version_check_message))
             }
-
-            if (organizationList.version > 0) {
-                preferencesService.lastKnownOrganizationListVersion = organizationList.version
-            }
-            if (serverList.version > 0) {
-                preferencesService.lastKnownServerListVersion = serverList.version
-            }
-
-            organizations.value = organizationList.organizationList
-            servers.value = serverList.serverList
-            state.value = ConnectionState.Ready
         }
     }
 
