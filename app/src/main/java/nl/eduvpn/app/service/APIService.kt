@@ -36,47 +36,26 @@ import java.io.IOException
 class APIService(private val connectionService: ConnectionService, private val okHttpClient: OkHttpClient) {
 
     class UserNotAuthorizedException : Exception()
-
-    /**
-     * Callback interface for returning results asynchronously.
-     */
-    interface Callback<T> {
-        /**
-         * Called if the method was successful and has a result.
-         *
-         * @param result The result of the call.
-         */
-        fun onSuccess(result: T)
-
-        /**
-         * Called if there was a problem.
-         *
-         * @param errorMessage The error message as a string.
-         */
-        fun onError(errorMessage: String)
-    }
+    class ParseException(message: String, cause: Throwable) : Exception(message, cause)
 
     /**
      * Retrieves a JSON object from a URL, and returns it in the callback
      *
      * @param url      The URL to fetch the JSON from.
      * @param callback The callback for returning the result or notifying about an error.
+     * @throws UserNotAuthorizedException
+     * @throws ParseException if the provided JSON does not match the expected structure.
+     * @throws IOException
      */
-    suspend fun getJSON(url: String, authState: AuthState?, callback: Callback<JSONObject>) {
-        getString(url, authState, object : Callback<String> {
-            override fun onSuccess(result: String) {
-                try {
-                    callback.onSuccess(JSONObject(result))
-                } catch (ex: JSONException) {
-                    callback.onError("Error parsing JSON: $ex")
-                }
-            }
-
-            override fun onError(errorMessage: String) {
-                callback.onError(errorMessage)
-            }
-        })
+    suspend fun getJSON(url: String, authState: AuthState?): JSONObject {
+        val string = getString(url, authState)
+        try {
+            return JSONObject(string)
+        } catch (ex: JSONException) {
+            throw ParseException("Error parsing JSON.", ex)
+        }
     }
+
 
     /**
      * Retrieves a resource as a string.
@@ -84,20 +63,13 @@ class APIService(private val connectionService: ConnectionService, private val o
      * @param url      The URL to get the resource from.
      * @param authState If the access token should be used, provide a previous authorization state.
      * @param callback The callback where the result is returned.
+     * @throws UserNotAuthorizedException
+     * @throws IOExceptio
      */
-    suspend fun getString(url: String, authState: AuthState?, callback: Callback<String>) {
-        kotlin.runCatching {
-            createNetworkCall(authState) { accessToken ->
-                fetchString(url, accessToken)
-            }
-        }.onSuccess { result ->
-            callback.onSuccess(result)
-        }.onFailure { throwable ->
-            if (throwable is UserNotAuthorizedException) {
-                callback.onError(USER_NOT_AUTHORIZED_ERROR)
-            } else {
-                callback.onError(throwable.toString())
-            }
+    suspend fun getString(url: String, authState: AuthState?): String {
+        return createNetworkCall(authState) { accessToken ->
+            fetchString(url, accessToken)
+
         }
     }
 
@@ -108,18 +80,15 @@ class APIService(private val connectionService: ConnectionService, private val o
      * @param authState If an auth token should be sent, include an auth state.
      * @param data     The request data.
      * @param callback The callback for notifying about the result.
+     * @throws UserNotAuthorizedException
+     * @throws IOException
      */
-    suspend fun postResource(url: String, data: String?, authState: AuthState?, callback: Callback<String>) {
-        kotlin.runCatching {
-            createNetworkCall(authState) { accessToken ->
-                fetchByteResource(url, data, accessToken)
-            }
-        }.onSuccess { result ->
-            callback.onSuccess(result)
-        }.onFailure { throwable ->
-            callback.onError(throwable.toString())
+    suspend fun postResource(url: String, data: String?, authState: AuthState?): String {
+        return createNetworkCall(authState) { accessToken ->
+            fetchByteResource(url, data, accessToken)
         }
     }
+
 
     /**
      * Downloads a byte resource from a URL.
@@ -128,9 +97,9 @@ class APIService(private val connectionService: ConnectionService, private val o
      * @param requestData The request data, if any.
      * @param accessToken The access token to fetch the resource with. Can be null.
      * @return The result as a byte array.
+     * @throws UserNotAuthorizedException
      * @throws IOException Thrown if there was a problem creating the connection.
      */
-    @Throws(IOException::class, UserNotAuthorizedException::class)
     private suspend fun fetchByteResource(url: String, requestData: String?, accessToken: String?): String {
         val requestBuilder = createRequestBuilder(url, accessToken)
         if (requestData != null) {
@@ -180,10 +149,9 @@ class APIService(private val connectionService: ConnectionService, private val o
      *
      * @param url The URL as a string.
      * @return The JSON resource if the call was successful.
+     * @throws UserNotAuthorizedException
      * @throws IOException   Thrown if there was a problem while connecting.
-     * @throws JSONException Thrown if the returned JSON was invalid or not a JSON at all.
      */
-    @Throws(IOException::class, JSONException::class, UserNotAuthorizedException::class)
     private suspend fun fetchString(url: String, accessToken: String?): String {
         val requestBuilder = createRequestBuilder(url, accessToken)
         val response = okHttpClient.newCall(requestBuilder.build()).await()
@@ -213,7 +181,6 @@ class APIService(private val connectionService: ConnectionService, private val o
 
     companion object {
         private val TAG = APIService::class.java.name
-        const val USER_NOT_AUTHORIZED_ERROR = "User not authorized."
         private const val HEADER_AUTHORIZATION = "Authorization"
         private const val STATUS_CODE_UNAUTHORIZED = 401
     }

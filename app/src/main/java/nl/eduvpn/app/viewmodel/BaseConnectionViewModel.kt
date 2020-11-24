@@ -73,41 +73,38 @@ abstract class BaseConnectionViewModel(
         connectionState.value = ConnectionState.DiscoveringApi
         // Discover the API
         viewModelScope.launch(Dispatchers.Main) {
-            apiService.getJSON(instance.sanitizedBaseURI + Constants.API_DISCOVERY_POSTFIX, null, object : APIService.Callback<JSONObject> {
-                override fun onSuccess(result: JSONObject) {
-                    try {
-                        val discoveredAPI = serializerService.deserializeDiscoveredAPI(result)
-                        val savedToken = historyService.getSavedToken(parentInstance ?: instance)
-                        if (savedToken == null) {
-                            authorize(parentInstance ?: instance, discoveredAPI)
-                        } else {
-                            if (savedToken.instance.sanitizedBaseURI != (parentInstance
-                                            ?: instance).sanitizedBaseURI) {
-                                // This is a distributed token. We add it to the list.
-                                Log.i(TAG, "Distributed token found for different instance.")
-                                preferencesService.currentInstance = instance
-                                preferencesService.currentDiscoveredAPI = discoveredAPI
-                                preferencesService.currentAuthState = savedToken.authState
-                                historyService.cacheAuthorizationState(instance, savedToken.authState)
-                            }
-                            fetchProfiles(instance, discoveredAPI, savedToken.authState)
+            kotlin.runCatching {
+                apiService.getJSON(instance.sanitizedBaseURI + Constants.API_DISCOVERY_POSTFIX, null)
+            }.onSuccess { result ->
+                try {
+                    val discoveredAPI = serializerService.deserializeDiscoveredAPI(result)
+                    val savedToken = historyService.getSavedToken(parentInstance ?: instance)
+                    if (savedToken == null) {
+                        authorize(parentInstance ?: instance, discoveredAPI)
+                    } else {
+                        if (savedToken.instance.sanitizedBaseURI != (parentInstance
+                                        ?: instance).sanitizedBaseURI) {
+                            // This is a distributed token. We add it to the list.
+                            Log.i(TAG, "Distributed token found for different instance.")
+                            preferencesService.currentInstance = instance
+                            preferencesService.currentDiscoveredAPI = discoveredAPI
+                            preferencesService.currentAuthState = savedToken.authState
+                            historyService.cacheAuthorizationState(instance, savedToken.authState)
                         }
-                    } catch (ex: SerializerService.UnknownFormatException) {
-                        Log.e(TAG, "Error parsing discovered API!", ex)
-                        connectionState.value = ConnectionState.Ready
-                        parentAction.value = ParentAction.DisplayError(R.string.error_dialog_title,
-                                context.getString(R.string.error_discover_api, instance.sanitizedBaseURI, ex.toString()))
+                        fetchProfiles(instance, discoveredAPI, savedToken.authState)
                     }
-
-                }
-
-                override fun onError(errorMessage: String) {
-                    Log.e(TAG, "Error while fetching discovered API: $errorMessage")
+                } catch (ex: SerializerService.UnknownFormatException) {
+                    Log.e(TAG, "Error parsing discovered API!", ex)
                     connectionState.value = ConnectionState.Ready
                     parentAction.value = ParentAction.DisplayError(R.string.error_dialog_title,
-                            context.getString(R.string.error_discover_api, instance.sanitizedBaseURI, errorMessage))
+                            context.getString(R.string.error_discover_api, instance.sanitizedBaseURI, ex.toString()))
                 }
-            })
+            }.onFailure { throwable ->
+                Log.e(TAG, "Error while fetching discovered API.", throwable)
+                connectionState.value = ConnectionState.Ready
+                parentAction.value = ParentAction.DisplayError(R.string.error_dialog_title,
+                        context.getString(R.string.error_discover_api, instance.sanitizedBaseURI, throwable.toString()))
+            }
         }
     }
 
@@ -127,35 +124,33 @@ abstract class BaseConnectionViewModel(
     private fun fetchProfiles(instance: Instance, discoveredAPI: DiscoveredAPI, authState: AuthState) {
         connectionState.value = ConnectionState.FetchingProfiles
         viewModelScope.launch(Dispatchers.Main) {
-            apiService.getJSON(discoveredAPI.profileListEndpoint, authState, object : APIService.Callback<JSONObject> {
-                override fun onSuccess(result: JSONObject) {
-                    try {
-                        val profiles = serializerService.deserializeProfileList(result)
-                        preferencesService.currentInstance = instance
-                        preferencesService.currentDiscoveredAPI = discoveredAPI
-                        preferencesService.currentAuthState = authState
-                        preferencesService.currentProfileList = profiles
-                        connectionState.value = ConnectionState.Ready
-                        if (profiles.size > 1) {
-                            parentAction.value = ParentAction.OpenProfileSelector(profiles)
-                        } else if (profiles.size == 1) {
-                            selectProfileToConnectTo(profiles[0])
-                        } else {
-                            parentAction.value = ParentAction.DisplayError(R.string.error_no_profiles_from_server, context.getString(R.string.error_no_profiles_from_server_message))
-                        }
-                    } catch (ex: SerializerService.UnknownFormatException) {
-                        Log.e(TAG, "Error parsing profile list.", ex)
-                        connectionState.value = ConnectionState.Ready
-                        parentAction.value = ParentAction.DisplayError(R.string.error_dialog_title, context.getString(R.string.error_parsing_profiles))
+            kotlin.runCatching {
+                apiService.getJSON(discoveredAPI.profileListEndpoint, authState)
+            }.onSuccess { result ->
+                try {
+                    val profiles = serializerService.deserializeProfileList(result)
+                    preferencesService.currentInstance = instance
+                    preferencesService.currentDiscoveredAPI = discoveredAPI
+                    preferencesService.currentAuthState = authState
+                    preferencesService.currentProfileList = profiles
+                    connectionState.value = ConnectionState.Ready
+                    if (profiles.size > 1) {
+                        parentAction.value = ParentAction.OpenProfileSelector(profiles)
+                    } else if (profiles.size == 1) {
+                        selectProfileToConnectTo(profiles[0])
+                    } else {
+                        parentAction.value = ParentAction.DisplayError(R.string.error_no_profiles_from_server, context.getString(R.string.error_no_profiles_from_server_message))
                     }
+                } catch (ex: SerializerService.UnknownFormatException) {
+                    Log.e(TAG, "Error parsing profile list.", ex)
+                    connectionState.value = ConnectionState.Ready
+                    parentAction.value = ParentAction.DisplayError(R.string.error_dialog_title, context.getString(R.string.error_parsing_profiles))
                 }
-
-                override fun onError(errorMessage: String) {
-                    Log.e(TAG, "Error fetching profile list: $errorMessage")
-                    // It is highly probable that the auth state is not valid anymore.
-                    authorize(instance, discoveredAPI)
-                }
-            })
+            }.onFailure { throwable ->
+                Log.e(TAG, "Error fetching profile list.", throwable)
+                // It is highly probable that the auth state is not valid anymore.
+                authorize(instance, discoveredAPI)
+            }
         }
     }
 
@@ -217,30 +212,27 @@ abstract class BaseConnectionViewModel(
 
         val createKeyPairEndpoint = discoveredAPI.createKeyPairEndpoint
         viewModelScope.launch(Dispatchers.Main) {
-            apiService.postResource(createKeyPairEndpoint, requestData, authState, object : APIService.Callback<String> {
-
-                override fun onSuccess(result: String) {
-                    try {
-                        val keyPair = serializerService.deserializeKeyPair(JSONObject(result))
-                        Log.i(TAG, "Created key pair, is it successful: " + keyPair.isOK)
-                        // Save it for later
-                        val newKeyPair = SavedKeyPair(instance, keyPair)
-                        historyService.storeSavedKeyPair(newKeyPair)
-                        downloadProfileWithKeyPair(instance, discoveredAPI, newKeyPair, profile, authState)
-                    } catch (ex: Exception) {
-                        Log.e(TAG, "Unable to parse keypair data", ex)
-                        connectionState.value = ConnectionState.Ready
-                        parentAction.value = ParentAction.DisplayError(R.string.error_dialog_title, context.getString(R.string.error_parsing_keypair, ex.message))
-                    }
-
-                }
-
-                override fun onError(errorMessage: String) {
-                    Log.e(TAG, "Error creating keypair: $errorMessage")
+            kotlin.runCatching {
+                apiService.postResource(createKeyPairEndpoint, requestData, authState)
+            }.onSuccess { keyPairJson ->
+                try {
+                    val keyPair = serializerService.deserializeKeyPair(JSONObject(keyPairJson))
+                    Log.i(TAG, "Created key pair, is it successful: " + keyPair.isOK)
+                    // Save it for later
+                    val newKeyPair = SavedKeyPair(instance, keyPair)
+                    historyService.storeSavedKeyPair(newKeyPair)
+                    downloadProfileWithKeyPair(instance, discoveredAPI, newKeyPair, profile, authState)
+                } catch (ex: Exception) {
+                    Log.e(TAG, "Unable to parse keypair data", ex)
                     connectionState.value = ConnectionState.Ready
-                    parentAction.value = ParentAction.DisplayError(R.string.error_dialog_title, context.getString(R.string.error_creating_keypair, errorMessage))
+                    parentAction.value = ParentAction.DisplayError(R.string.error_dialog_title, context.getString(R.string.error_parsing_keypair, ex.message))
                 }
-            })
+
+            }.onFailure { throwable ->
+                Log.e(TAG, "Error creating keypair.", throwable)
+                connectionState.value = ConnectionState.Ready
+                parentAction.value = ParentAction.DisplayError(R.string.error_dialog_title, context.getString(R.string.error_creating_keypair, throwable.toString()))
+            }
         }
     }
 
@@ -258,29 +250,27 @@ abstract class BaseConnectionViewModel(
                                            authState: AuthState) {
         val requestData = "?profile_id=" + profile.profileId
         viewModelScope.launch(Dispatchers.Main) {
-            apiService.getString(discoveredAPI.profileConfigEndpoint + requestData, authState, object : APIService.Callback<String> {
-                override fun onSuccess(result: String) {
-                    // The downloaded profile misses the <cert> and <key> fields. We will insert that via the saved key pair.
-                    val configName = FormattingUtils.formatProfileName(context, instance, profile)
-                    val vpnProfile = vpnService.importConfig(result, configName, savedKeyPair)
-                    if (vpnProfile != null) {
-                        // Cache the profile
-                        val savedProfile = SavedProfile(instance, profile, vpnProfile.uuidString)
-                        historyService.cacheSavedProfile(savedProfile)
-                        // Connect with the profile
-                        parentAction.value = ParentAction.ConnectWithProfile(vpnProfile)
-                    } else {
-                        connectionState.value = ConnectionState.Ready
-                        parentAction.value = ParentAction.DisplayError(R.string.error_dialog_title, context.getString(R.string.error_importing_profile))
-                    }
-                }
-
-                override fun onError(errorMessage: String) {
-                    Log.e(TAG, "Error fetching profile: $errorMessage")
+            kotlin.runCatching {
+                apiService.getString(discoveredAPI.profileConfigEndpoint + requestData, authState)
+            }.onSuccess { vpnConfig ->
+                // The downloaded profile misses the <cert> and <key> fields. We will insert that via the saved key pair.
+                val configName = FormattingUtils.formatProfileName(context, instance, profile)
+                val vpnProfile = vpnService.importConfig(vpnConfig, configName, savedKeyPair)
+                if (vpnProfile != null) {
+                    // Cache the profile
+                    val savedProfile = SavedProfile(instance, profile, vpnProfile.uuidString)
+                    historyService.cacheSavedProfile(savedProfile)
+                    // Connect with the profile
+                    parentAction.value = ParentAction.ConnectWithProfile(vpnProfile)
+                } else {
                     connectionState.value = ConnectionState.Ready
-                    parentAction.value = ParentAction.DisplayError(R.string.error_dialog_title, context.getString(R.string.error_fetching_profile, errorMessage))
+                    parentAction.value = ParentAction.DisplayError(R.string.error_dialog_title, context.getString(R.string.error_importing_profile))
                 }
-            })
+            }.onFailure { throwable ->
+                Log.e(TAG, "Error fetching profile.", throwable)
+                connectionState.value = ConnectionState.Ready
+                parentAction.value = ParentAction.DisplayError(R.string.error_dialog_title, context.getString(R.string.error_fetching_profile, throwable.toString()))
+            }
         }
     }
 
@@ -294,53 +284,49 @@ abstract class BaseConnectionViewModel(
             Log.w(TAG, "Could not check if certificate is valid. Downloading again.")
         }
         viewModelScope.launch(Dispatchers.Main) {
-            apiService.getJSON(discoveredAPI.getCheckCertificateEndpoint(commonName), authState, object : APIService.Callback<JSONObject> {
-
-                override fun onSuccess(result: JSONObject) {
-                    try {
-                        val isValid = result.getJSONObject("check_certificate").getJSONObject("data").getBoolean("is_valid")
-                        if (isValid) {
-                            Log.i(TAG, "Certificate appears to be valid.")
-                            downloadProfileWithKeyPair(instance, discoveredAPI, savedKeyPair, profile, authState)
-                        } else {
-                            val reason = result.getJSONObject("check_certificate").getJSONObject("data").getString("reason")
-                            if ("user_disabled" == reason || "certificate_disabled" == reason) {
-                                var errorStringId = R.string.error_certificate_disabled
-                                if ("user_disabled" == reason) {
-                                    errorStringId = R.string.error_user_disabled
-                                }
-                                historyService.removeSavedKeyPairs(instance)
-                                connectionState.value = ConnectionState.Ready
-                                parentAction.value = ParentAction.DisplayError(R.string.error_dialog_title_invalid_certificate, context.getString(errorStringId))
-                            } else {
-                                // Remove stored keypair.
-                                historyService.removeSavedKeyPairs(instance)
-                                Log.i(TAG, "Certificate is invalid. Fetching new one. Reason: $reason")
-                                // Try downloading it again.
-                                downloadKeyPairIfNeeded(instance, discoveredAPI, profile, authState)
-                            }
-
-                        }
-                    } catch (ex: Exception) {
-                        Log.e(TAG, "Unexpected certificate call response!", ex)
-                        connectionState.value = ConnectionState.Ready
-                        parentAction.value = ParentAction.DisplayError(R.string.error_dialog_title, context.getString(R.string.error_parsing_certificate))
-                    }
-
-                }
-
-                override fun onError(errorMessage: String) {
-                    connectionState.value = ConnectionState.Ready
-                    if (APIService.USER_NOT_AUTHORIZED_ERROR == errorMessage || errorMessage.contains("invalid_grant")) {
-                        Log.w(TAG, "Access rejected with error $errorMessage")
-                        parentAction.value = ParentAction.DisplayError(R.string.error_dialog_title, FormattingUtils.formatAccessWarning(context, instance))
+            kotlin.runCatching {
+                apiService.getJSON(discoveredAPI.getCheckCertificateEndpoint(commonName), authState)
+            }.onSuccess { result ->
+                try {
+                    val isValid = result.getJSONObject("check_certificate").getJSONObject("data").getBoolean("is_valid")
+                    if (isValid) {
+                        Log.i(TAG, "Certificate appears to be valid.")
+                        downloadProfileWithKeyPair(instance, discoveredAPI, savedKeyPair, profile, authState)
                     } else {
-                        parentAction.value = ParentAction.DisplayError(R.string.error_dialog_title, context.getString(R.string.error_checking_certificate))
-                        Log.e(TAG, "Error checking certificate: $errorMessage")
-                    }
+                        val reason = result.getJSONObject("check_certificate").getJSONObject("data").getString("reason")
+                        if ("user_disabled" == reason || "certificate_disabled" == reason) {
+                            var errorStringId = R.string.error_certificate_disabled
+                            if ("user_disabled" == reason) {
+                                errorStringId = R.string.error_user_disabled
+                            }
+                            historyService.removeSavedKeyPairs(instance)
+                            connectionState.value = ConnectionState.Ready
+                            parentAction.value = ParentAction.DisplayError(R.string.error_dialog_title_invalid_certificate, context.getString(errorStringId))
+                        } else {
+                            // Remove stored keypair.
+                            historyService.removeSavedKeyPairs(instance)
+                            Log.i(TAG, "Certificate is invalid. Fetching new one. Reason: $reason")
+                            // Try downloading it again.
+                            downloadKeyPairIfNeeded(instance, discoveredAPI, profile, authState)
+                        }
 
+                    }
+                } catch (ex: Exception) {
+                    Log.e(TAG, "Unexpected certificate call response!", ex)
+                    connectionState.value = ConnectionState.Ready
+                    parentAction.value = ParentAction.DisplayError(R.string.error_dialog_title, context.getString(R.string.error_parsing_certificate))
                 }
-            })
+            }.onFailure { throwable ->
+                connectionState.value = ConnectionState.Ready
+                if (throwable is APIService.UserNotAuthorizedException || throwable.toString().contains("invalid_grant")) {
+                    Log.w(TAG, "Access rejected with error.", throwable)
+                    parentAction.value = ParentAction.DisplayError(R.string.error_dialog_title, FormattingUtils.formatAccessWarning(context, instance))
+                } else {
+                    parentAction.value = ParentAction.DisplayError(R.string.error_dialog_title, context.getString(R.string.error_checking_certificate))
+                    Log.e(TAG, "Error checking certificate.", throwable)
+                }
+
+            }
         }
     }
 
