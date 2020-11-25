@@ -77,7 +77,7 @@ class OrganizationSelectionViewModel @Inject constructor(
 
                 val organizationList = kotlin.runCatching { organizationListDeferred.await() }.getOrElse {
                     Log.w(TAG, "Organizations call has failed!", it)
-                    OrganizationList(-1L, emptyList())  //STOPSHIP
+                    OrganizationList(-1L, emptyList())
                 }
 
                 val serverList = kotlin.runCatching { serverListDeferred.await() }.getOrElse {
