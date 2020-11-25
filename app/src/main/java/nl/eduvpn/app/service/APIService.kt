@@ -42,7 +42,6 @@ class APIService(private val connectionService: ConnectionService, private val o
      * Retrieves a JSON object from a URL, and returns it in the callback
      *
      * @param url      The URL to fetch the JSON from.
-     * @param callback The callback for returning the result or notifying about an error.
      * @throws UserNotAuthorizedException
      * @throws ParseException if the provided JSON does not match the expected structure.
      * @throws IOException
@@ -62,9 +61,8 @@ class APIService(private val connectionService: ConnectionService, private val o
      *
      * @param url      The URL to get the resource from.
      * @param authState If the access token should be used, provide a previous authorization state.
-     * @param callback The callback where the result is returned.
      * @throws UserNotAuthorizedException
-     * @throws IOExceptio
+     * @throws IOException
      */
     suspend fun getString(url: String, authState: AuthState?): String {
         return createNetworkCall(authState) { accessToken ->
@@ -79,7 +77,6 @@ class APIService(private val connectionService: ConnectionService, private val o
      * @param url      The URL as a string.
      * @param authState If an auth token should be sent, include an auth state.
      * @param data     The request data.
-     * @param callback The callback for notifying about the result.
      * @throws UserNotAuthorizedException
      * @throws IOException
      */
