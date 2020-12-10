@@ -19,16 +19,10 @@
 package nl.eduvpn.app.ui_test
 
 import androidx.test.espresso.Espresso.onView
-import androidx.test.espresso.Espresso.pressBack
-import androidx.test.espresso.action.ViewActions.click
-import androidx.test.espresso.action.ViewActions.closeSoftKeyboard
-import androidx.test.espresso.action.ViewActions.typeText
+import androidx.test.espresso.action.ViewActions.*
 import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.matcher.ViewMatchers
-import androidx.test.espresso.matcher.ViewMatchers.isDisplayed
-import androidx.test.espresso.matcher.ViewMatchers.withHint
-import androidx.test.espresso.matcher.ViewMatchers.withId
-import androidx.test.espresso.matcher.ViewMatchers.withText
+import androidx.test.espresso.matcher.ViewMatchers.*
 import androidx.test.ext.junit.rules.ActivityScenarioRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
@@ -40,7 +34,6 @@ import androidx.test.uiautomator.UiSelector
 import nl.eduvpn.app.BaseRobot
 import nl.eduvpn.app.BuildConfig
 import nl.eduvpn.app.MainActivity
-import nl.eduvpn.app.R
 import nl.eduvpn.app.utils.Log
 import nl.eduvpn.app.waitUntilGone
 import org.hamcrest.CoreMatchers
@@ -96,25 +89,36 @@ class InstituteAccessDemoTest {
         Thread.sleep(2_000L)
         try {
             // Chrome asks at first launch to accept data usage
-            val acceptButton = device.findObject(UiSelector().className("android.widget.Button").text("ACCEPT & CONTINUE"))
+            val acceptButton = device.findObject(UiSelector().className("android.widget.Button").text("Accept & continue"))
             acceptButton.click()
         } catch (ex: UiObjectNotFoundException) {
             Log.w(TAG, "No Chrome accept window shown, continuing", ex)
         }
         try {
+            // Do not send all our web traffic to Google
+            val liteModeToggle = device.findObject(UiSelector().className("android.widget.Switch"))
+            if(liteModeToggle.isChecked) {
+                liteModeToggle.click()
+            }
+            val nextButton = device.findObject(UiSelector().className("android.widget.Button").text("Next"))
+            nextButton.click()
+        } catch (ex: UiObjectNotFoundException) {
+            Log.w(TAG, "No lite mode window shown, continuing", ex)
+        }
+        try {
             // Now it wants us to Sign in...
-            val noThanksButton = device.findObject(UiSelector().text("NO THANKS"))
+            val noThanksButton = device.findObject(UiSelector().text("No thanks"))
             noThanksButton.click()
         } catch (ex: UiObjectNotFoundException) {
             Log.w(TAG, "No request for sign in, continung", ex)
         }
         try {
             // Select eduID from the list
-            val eduIDButton = device.findObject(selector.text("eduID"))
+            val eduIDButton = device.findObject(selector.text("eduID (NL)"))
             eduIDButton.click()
             try {
                 eduIDButton.click() // Sometimes doesn't work
-            } catch (ex : Exception) {
+            } catch (ex: Exception) {
                 // Not handled
             }
             Thread.sleep(1_000L)
@@ -125,8 +129,8 @@ class InstituteAccessDemoTest {
             userName.text = DEMO_USER
             device.pressBack()
             try {
-                Log.v(TAG, "Clicking 'type password anyway' link")
-                val typePasswordLink = device.findObject(selector.text("Type a password anyway"))
+                Log.v(TAG, "Clicking 'Type a password' link")
+                val typePasswordLink = device.findObject(selector.text("Type a password."))
                 typePasswordLink.click()
                 Thread.sleep(500L)
             } catch (ex: Exception) {

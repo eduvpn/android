@@ -97,14 +97,25 @@ class ConnectVpnTest {
         Thread.sleep(2_000L)
         try {
             // Chrome asks at first launch to accept data usage
-            val acceptButton = device.findObject(UiSelector().className("android.widget.Button").text("ACCEPT & CONTINUE"))
+            val acceptButton = device.findObject(UiSelector().className("android.widget.Button").text("Accept & continue"))
             acceptButton.click()
         } catch (ex: UiObjectNotFoundException) {
             Log.w(TAG, "No Chrome accept window shown, continuing", ex)
         }
         try {
+            // Do not send all our web traffic to Google
+            val liteModeToggle = device.findObject(UiSelector().className("android.widget.Switch"))
+            if(liteModeToggle.isChecked) {
+                liteModeToggle.click()
+            }
+            val nextButton = device.findObject(UiSelector().className("android.widget.Button").text("Next"))
+            nextButton.click()
+        } catch (ex: UiObjectNotFoundException) {
+            Log.w(TAG, "No lite mode window shown, continuing", ex)
+        }
+        try {
             // Now it wants us to Sign in...
-            val noThanksButton = device.findObject(UiSelector().text("NO THANKS"))
+            val noThanksButton = device.findObject(UiSelector().text("No thanks"))
             noThanksButton.click()
         } catch (ex: UiObjectNotFoundException) {
             Log.w(TAG, "No request for sign in, continung", ex)
@@ -115,6 +126,9 @@ class ConnectVpnTest {
             val userName = device.findObject(UiSelector().className("android.widget.EditText").instance(0))
             userName.click()
             userName.text = TEST_SERVER_USERNAME
+            Log.v(TAG, "Scrolling down to see password input")
+            val webView = UiScrollable(UiSelector().className("android.webkit.WebView").scrollable(true))
+            webView.scrollToEnd(1)
             Log.v(TAG, "Entering password.")
             val password = device.findObject(UiSelector().className("android.widget.EditText").instance(1))
             password.click()
