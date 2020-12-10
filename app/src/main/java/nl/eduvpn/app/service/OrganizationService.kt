@@ -27,6 +27,7 @@ import nl.eduvpn.app.entity.ServerList
 import nl.eduvpn.app.entity.exception.InvalidSignatureException
 import nl.eduvpn.app.utils.Log
 import nl.eduvpn.app.utils.await
+import nl.eduvpn.app.utils.runCatchingCoroutine
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.json.JSONObject
@@ -46,7 +47,7 @@ class OrganizationService(private val serializerService: SerializerService,
             val serverListUrl = BuildConfig.ORGANIZATION_LIST_BASE_URL + "server_list.json"
 
             val signatureDeferred = async {
-                kotlin.runCatching {
+                runCatchingCoroutine {
                     createSignatureSingle(serverListUrl)
                 }.mapCatching { signature ->
                     if (signature.isBlank()) {
@@ -58,7 +59,7 @@ class OrganizationService(private val serializerService: SerializerService,
                 }.getOrThrow()
             }
             val serverListDeferred = async {
-                kotlin.runCatching {
+                runCatchingCoroutine {
                     createGetJsonSingle(serverListUrl)
                 }.mapCatching { serverList ->
                     if (serverList.isBlank()) {
@@ -92,7 +93,7 @@ class OrganizationService(private val serializerService: SerializerService,
             val listUrl = BuildConfig.ORGANIZATION_LIST_BASE_URL + "organization_list.json"
 
             val organizationListDeferred = async {
-                kotlin.runCatching {
+                runCatchingCoroutine {
                     createGetJsonSingle(listUrl)
                 }.mapCatching { organizationList ->
                     if (organizationList.isBlank()) {
@@ -105,7 +106,7 @@ class OrganizationService(private val serializerService: SerializerService,
             }
 
             val signatureDeferred = async {
-                kotlin.runCatching {
+                runCatchingCoroutine {
                     createSignatureSingle(listUrl)
                 }.mapCatching { signature ->
                     if (signature.isBlank()) {

@@ -22,6 +22,7 @@ import android.content.Context
 import android.view.View
 import android.view.inputmethod.InputMethodManager
 import androidx.lifecycle.LiveData
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
@@ -84,7 +85,7 @@ fun Instance.getCountryText(): String? {
 }
 
 /**
- * Extension method for OkHttp for integration with coroutines
+ * Extension method for OkHttp for integration with coroutines.
  */
 suspend fun Call.await(): Response {
     return withContext(Dispatchers.IO) {
@@ -105,4 +106,18 @@ suspend fun Call.await(): Response {
             })
         }
     }
+}
+
+/**
+ * [kotlin.runCatching] that does not catch CancellationException.
+ * See https://github.com/Kotlin/kotlinx.coroutines/issues/1814
+ */
+inline fun <R> runCatchingCoroutine(block: () -> R): Result<R> {
+    val result = kotlin.runCatching(block)
+    result.onFailure { thr ->
+        if (thr is CancellationException) {
+            throw thr
+        }
+    }
+    return result
 }

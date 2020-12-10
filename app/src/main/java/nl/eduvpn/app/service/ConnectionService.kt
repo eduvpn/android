@@ -33,6 +33,7 @@ import nl.eduvpn.app.entity.DiscoveredAPI
 import nl.eduvpn.app.entity.Instance
 import nl.eduvpn.app.utils.ErrorDialog.show
 import nl.eduvpn.app.utils.Log
+import nl.eduvpn.app.utils.runCatchingCoroutine
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
@@ -82,7 +83,7 @@ class ConnectionService(private val preferencesService: PreferencesService,
      */
     suspend fun initiateConnection(activity: Activity, instance: Instance, discoveredAPI: DiscoveredAPI): Unit {
         withContext(Dispatchers.Main) {
-            kotlin.runCatching {
+            runCatchingCoroutine {
                 //todo: convert SecurityService to Kotlin and make generateSecureRandomString a suspending function
                 val stateString = withContext(Dispatchers.IO) {
                     securityService.generateSecureRandomString(32)

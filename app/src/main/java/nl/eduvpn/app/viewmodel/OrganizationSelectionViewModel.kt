@@ -31,6 +31,7 @@ import nl.eduvpn.app.adapter.OrganizationAdapter
 import nl.eduvpn.app.entity.*
 import nl.eduvpn.app.service.*
 import nl.eduvpn.app.utils.Log
+import nl.eduvpn.app.utils.runCatchingCoroutine
 import javax.inject.Inject
 
 class OrganizationSelectionViewModel @Inject constructor(
@@ -75,12 +76,12 @@ class OrganizationSelectionViewModel @Inject constructor(
                 val lastKnownOrganizationVersion = preferencesService.lastKnownOrganizationListVersion
                 val lastKnownServerListVersion = preferencesService.lastKnownServerListVersion
 
-                val organizationList = kotlin.runCatching { organizationListDeferred.await() }.getOrElse {
+                val organizationList = runCatchingCoroutine { organizationListDeferred.await() }.getOrElse {
                     Log.w(TAG, "Organizations call has failed!", it)
                     OrganizationList(-1L, emptyList())
                 }
 
-                val serverList = kotlin.runCatching { serverListDeferred.await() }.getOrElse {
+                val serverList = runCatchingCoroutine { serverListDeferred.await() }.getOrElse {
                     Log.w(TAG, "Server list call has failed!", it)
                     ServerList(-1L, emptyList())
                 }

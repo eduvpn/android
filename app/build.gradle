@@ -119,6 +119,8 @@ android {
 
     kotlinOptions {
         jvmTarget = '1.8'
+        // Necessary for nl.eduvpn.app.utils.runCatchingCoroutine
+        kotlinOptions.freeCompilerArgs = ["-Xallow-result-return-type"]
     }
 
     kapt {

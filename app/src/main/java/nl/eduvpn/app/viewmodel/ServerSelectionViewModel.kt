@@ -30,6 +30,7 @@ import nl.eduvpn.app.entity.ServerList
 import nl.eduvpn.app.service.*
 import nl.eduvpn.app.utils.Log
 import nl.eduvpn.app.utils.getCountryText
+import nl.eduvpn.app.utils.runCatchingCoroutine
 import java.util.*
 import javax.inject.Inject
 
@@ -91,7 +92,7 @@ class ServerSelectionViewModel @Inject constructor(
         connectionState.value = ConnectionState.FetchingServerList
         Log.v(TAG, "Fetching server list...")
         viewModelScope.launch {
-            kotlin.runCatching { organizationService.fetchServerList() }.onSuccess { serverList ->
+            runCatchingCoroutine { organizationService.fetchServerList() }.onSuccess { serverList ->
                 Log.v(TAG, "Updated server list with latest entries.")
                 serverListCache.value = Pair(System.currentTimeMillis(), serverList)
                 preferencesService.serverList = serverList

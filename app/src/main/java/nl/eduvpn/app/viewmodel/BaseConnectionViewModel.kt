@@ -36,6 +36,7 @@ import nl.eduvpn.app.service.*
 import nl.eduvpn.app.utils.ErrorDialog
 import nl.eduvpn.app.utils.FormattingUtils
 import nl.eduvpn.app.utils.Log
+import nl.eduvpn.app.utils.runCatchingCoroutine
 import org.json.JSONObject
 import java.io.UnsupportedEncodingException
 import java.net.URLEncoder
@@ -73,7 +74,7 @@ abstract class BaseConnectionViewModel(
         connectionState.value = ConnectionState.DiscoveringApi
         // Discover the API
         viewModelScope.launch(Dispatchers.Main) {
-            kotlin.runCatching {
+            runCatchingCoroutine {
                 apiService.getJSON(instance.sanitizedBaseURI + Constants.API_DISCOVERY_POSTFIX, null)
             }.onSuccess { result ->
                 try {
@@ -124,7 +125,7 @@ abstract class BaseConnectionViewModel(
     private fun fetchProfiles(instance: Instance, discoveredAPI: DiscoveredAPI, authState: AuthState) {
         connectionState.value = ConnectionState.FetchingProfiles
         viewModelScope.launch(Dispatchers.Main) {
-            kotlin.runCatching {
+            runCatchingCoroutine {
                 apiService.getJSON(discoveredAPI.profileListEndpoint, authState)
             }.onSuccess { result ->
                 try {
@@ -212,7 +213,7 @@ abstract class BaseConnectionViewModel(
 
         val createKeyPairEndpoint = discoveredAPI.createKeyPairEndpoint
         viewModelScope.launch(Dispatchers.Main) {
-            kotlin.runCatching {
+            runCatchingCoroutine {
                 apiService.postResource(createKeyPairEndpoint, requestData, authState)
             }.onSuccess { keyPairJson ->
                 try {
@@ -250,7 +251,7 @@ abstract class BaseConnectionViewModel(
                                            authState: AuthState) {
         val requestData = "?profile_id=" + profile.profileId
         viewModelScope.launch(Dispatchers.Main) {
-            kotlin.runCatching {
+            runCatchingCoroutine {
                 apiService.getString(discoveredAPI.profileConfigEndpoint + requestData, authState)
             }.onSuccess { vpnConfig ->
                 // The downloaded profile misses the <cert> and <key> fields. We will insert that via the saved key pair.
@@ -284,7 +285,7 @@ abstract class BaseConnectionViewModel(
             Log.w(TAG, "Could not check if certificate is valid. Downloading again.")
         }
         viewModelScope.launch(Dispatchers.Main) {
-            kotlin.runCatching {
+            runCatchingCoroutine {
                 apiService.getJSON(discoveredAPI.getCheckCertificateEndpoint(commonName), authState)
             }.onSuccess { result ->
                 try {
