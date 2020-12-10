@@ -78,9 +78,7 @@
     <string name="error_while_connecting">An unexpected error occurred while connecting to the VPN provider: %s</string>
     <string name="error_dialog_title_unable_to_connect">Unable to connect</string>
     <string name="undo">Undo</string>
-    <string name="button_login">Log In</string>
     <string name="button_remove">Remove</string>
-    <string name="button_retry">Retry</string>
     <string name="access_rejected_instance">Access to %s has been rejected.</string>
     <string name="instance_access_warning_message">Could not connect to all providers.</string>
     <string name="data_removed">The provider data was already removed.</string>
