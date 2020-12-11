@@ -1,7 +1,5 @@
 package nl.eduvpn.app.service
 
-import android.app.Activity
-import nl.eduvpn.app.entity.VpnConfig
 import java.util.*
 
 abstract class VPNService : Observable() {
@@ -9,14 +7,6 @@ abstract class VPNService : Observable() {
     enum class VPNStatus {
         DISCONNECTED, CONNECTING, CONNECTED, PAUSED, FAILED
     }
-
-    /**
-     * Connects to the VPN using the profile supplied as a parameter.
-     *
-     * @param activity   The current activity, required for providing a context.
-     * @param vpnConfig  The config to use for connecting.
-     */
-    abstract fun connect(activity: Activity, vpnConfig: VpnConfig)
 
     /**
      * Disconnects the current VPN connection.

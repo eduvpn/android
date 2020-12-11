@@ -52,10 +52,8 @@ import de.blinkt.openvpn.core.OpenVPNService;
 import de.blinkt.openvpn.core.ProfileManager;
 import de.blinkt.openvpn.core.VpnStatus;
 import nl.eduvpn.app.R;
-import nl.eduvpn.app.entity.OpenVPNProfile;
 import nl.eduvpn.app.entity.SavedKeyPair;
 import nl.eduvpn.app.entity.SavedProfile;
-import nl.eduvpn.app.entity.VpnConfig;
 import nl.eduvpn.app.utils.Log;
 
 /**
@@ -206,16 +204,10 @@ public class EduOpenVPNService extends VPNService implements VpnStatus.StateList
     /**
      * Connects to the VPN using the profile supplied as a parameter.
      *
-     * @param activity  The current activity, required for providing a context.
-     * @param vpnConfig The profile to connect to.
+     * @param activity   The current activity, required for providing a context.
+     * @param vpnProfile The profile to connect to.
      */
-    public void connect(@NonNull Activity activity, @NonNull VpnConfig vpnConfig) {
-        VpnProfile vpnProfile;
-        if (vpnConfig instanceof OpenVPNProfile) {
-            vpnProfile = ((OpenVPNProfile) vpnConfig).getProfile();
-        } else {
-            throw new RuntimeException("No OpenVPnProfile provided to OpenVPNService connect");
-        }
+    public void connect(@NonNull Activity activity, @NonNull VpnProfile vpnProfile) {
         Log.i(TAG, "Initiating connection with profile:" + vpnProfile.getUUIDString());
         boolean forceTcp = _preferencesService.getAppSettings().forceTcp();
         Log.i(TAG, "Force TCP: " + forceTcp);

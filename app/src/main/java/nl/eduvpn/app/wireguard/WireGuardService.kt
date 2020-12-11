@@ -9,8 +9,6 @@ import com.wireguard.android.backend.Tunnel
 import com.wireguard.config.Config
 import com.wireguard.config.Interface
 import kotlinx.coroutines.*
-import nl.eduvpn.app.entity.VpnConfig
-import nl.eduvpn.app.entity.WireGuardConfig
 import nl.eduvpn.app.service.VPNService
 import nl.eduvpn.app.utils.Log
 
@@ -69,17 +67,20 @@ class WireGuardService(private val context: Context) : VPNService() {
         }
     }
 
-    override fun connect(activity: Activity, vpnConfig: VpnConfig) {
-        if (vpnConfig !is WireGuardConfig) {
-            throw RuntimeException("No WireGuardConfig provided to WireGuardService connect")
-        }
+    /**
+     * Connects to the VPN using the config supplied as a parameter.
+     *
+     * @param activity   The current activity, required for providing a context.
+     * @param vpnConfig  The config to use for connecting.
+     */
+    fun connect(activity: Activity, config: Config) {
 
         connectionStatus = VPNStatus.CONNECTING
 
-        config = vpnConfig.config
+        this.config = config
 
         if (connectionInfoCallback != null) {
-            updateIPs(vpnConfig.config.`interface`, connectionInfoCallback!!)
+            updateIPs(config.`interface`, connectionInfoCallback!!)
         }
 
         authorizeVPN(activity)
@@ -87,7 +88,7 @@ class WireGuardService(private val context: Context) : VPNService() {
         GlobalScope.launch {
             withContext(Dispatchers.IO) {
                 try {
-                    backend.setState(tunnel, Tunnel.State.UP, vpnConfig.config)
+                    backend.setState(tunnel, Tunnel.State.UP, config)
                 } catch (ex: BackendException) {
                     if (ex.reason == BackendException.Reason.VPN_NOT_AUTHORIZED) {
                         connectionStatus = VPNStatus.DISCONNECTED

@@ -33,7 +33,7 @@ import nl.eduvpn.app.utils.ErrorDialog
 import nl.eduvpn.app.utils.ItemClickSupport
 import nl.eduvpn.app.viewmodel.BaseConnectionViewModel
 import nl.eduvpn.app.viewmodel.ProfileSelectionViewModel
-import java.util.ArrayList
+import java.util.*
 
 /**
  * Fragment which is displayed when the app start.
@@ -73,7 +73,7 @@ class ProfileSelectionFragment : BaseFragment<FragmentProfileSelectionBinding>()
                     }
                 }
                 is BaseConnectionViewModel.ParentAction.ConnectWithProfile -> {
-                    viewModel.vpnConnectionToConfig(requireActivity(), parentAction.vpnService, parentAction.vpnConfig)
+                    viewModel.connect(requireActivity(), parentAction.vpnService, parentAction.currentVPN)
                     (activity as? MainActivity)?.openFragment(ConnectionStatusFragment(parentAction.vpnService), false)
                 }
                 is BaseConnectionViewModel.ParentAction.DisplayError -> {

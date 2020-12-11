@@ -24,7 +24,10 @@ import android.text.Spanned
 import androidx.core.text.HtmlCompat
 import androidx.lifecycle.MutableLiveData
 import nl.eduvpn.app.R
-import nl.eduvpn.app.entity.*
+import nl.eduvpn.app.entity.CurrentVPN
+import nl.eduvpn.app.entity.OpenVPN
+import nl.eduvpn.app.entity.Profile
+import nl.eduvpn.app.entity.WireGuard
 import nl.eduvpn.app.service.*
 import nl.eduvpn.app.utils.getCountryText
 import nl.eduvpn.app.utils.toSingleEvent
@@ -149,33 +152,12 @@ class ConnectionStatusViewModel @Inject constructor(
         }
     }
 
-    fun findCurrentConfig(): VpnConfig? {
-        return when (val currentVPN = preferencesService.currentVPN) {
-            null -> {
-                null
-            }
-            is OpenVPN -> {
-                val matchingSavedProfile = preferencesService.savedProfileList?.firstOrNull { it.profile.profileId == currentVPN.profile.profileId }
-                        ?: return null
-
-                val openVpnProfile = eduOpenVpnService.findMatchingVpnProfile(matchingSavedProfile)
-                return if (openVpnProfile == null) {
-                    null
-                } else {
-                    OpenVPNProfile(openVpnProfile)
-                }
-            }
-            is WireGuard -> WireGuardConfig(currentVPN.config)
-        }
-    }
-
     fun findCurrentVPN(): CurrentVPN? {
         return preferencesService.currentVPN
     }
 
     fun refreshProfile() {
-        val currentVPN = preferencesService.currentVPN
-        when (currentVPN) {
+        when (val currentVPN = preferencesService.currentVPN) {
             null -> {
                 serverName.value = context.getString(R.string.profile_name_not_found)
                 profileName.value = null

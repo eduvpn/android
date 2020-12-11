@@ -24,6 +24,7 @@ import androidx.annotation.StringRes
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import de.blinkt.openvpn.VpnProfile
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -61,7 +62,7 @@ abstract class BaseConnectionViewModel(
         data class DisplayError(@StringRes val title: Int, val message: String) : ParentAction()
         data class OpenProfileSelector(val profiles: List<Profile>) : ParentAction()
         data class InitiateConnection(val instance: Instance, val discoveredAPI: DiscoveredAPI) : ParentAction()
-        data class ConnectWithProfile(val vpnService: VPNService, val vpnConfig: VpnConfig) : ParentAction()
+        data class ConnectWithProfile(val vpnService: VPNService, val currentVPN: CurrentVPN) : ParentAction()
     }
 
     val connectionState = MutableLiveData<ConnectionState>().also { it.value = ConnectionState.Ready }
@@ -181,9 +182,9 @@ abstract class BaseConnectionViewModel(
 
         preferencesService.currentVPN = WireGuard(config)
 
-        val vpnConfig = WireGuardConfig(config)
+        val vpnProfile = WireGuard(config)
         connectionState.value = ConnectionState.Ready
-        parentAction.value = ParentAction.ConnectWithProfile(WireGuardService(context) /*todo: dependency injection? */, vpnConfig)
+        parentAction.value = ParentAction.ConnectWithProfile(WireGuardService(context) /*todo: dependency injection? */, vpnProfile)
 
         return false
     }
@@ -258,7 +259,6 @@ abstract class BaseConnectionViewModel(
             return
         }
         preferencesService.currentInstance = instance
-        preferencesService.currentVPN = OpenVPN(profile)
         preferencesService.currentAuthState = authState
         // Always download a new profile.
         // Just to be sure,
@@ -340,8 +340,9 @@ abstract class BaseConnectionViewModel(
                     // Cache the profile
                     val savedProfile = SavedProfile(instance, profile, vpnProfile.uuidString)
                     historyService.cacheSavedProfile(savedProfile)
+                    preferencesService.currentVPN = OpenVPN(profile)
                     // Connect with the profile
-                    parentAction.value = ParentAction.ConnectWithProfile(eduOpenVpnService, OpenVPNProfile(vpnProfile))
+                    parentAction.value = ParentAction.ConnectWithProfile(eduOpenVpnService, OpenVPN(profile))
                 } else {
                     connectionState.value = ConnectionState.Ready
                     parentAction.value = ParentAction.DisplayError(R.string.error_dialog_title, context.getString(R.string.error_importing_profile))
@@ -419,9 +420,32 @@ abstract class BaseConnectionViewModel(
         return preferencesService.currentInstance
     }
 
-    fun vpnConnectionToConfig(activity: Activity, vpnService: VPNService, vpnConfig: VpnConfig) {
-        connectionState.value = ConnectionState.Ready
-        vpnService.connect(activity, vpnConfig)
+    private fun findOpenVPNProfile(profile: Profile): VpnProfile? {
+        val matchingSavedProfile = preferencesService.savedProfileList?.firstOrNull { it.profile.profileId == profile.profileId }
+                ?: return null
+
+        return eduOpenVpnService.findMatchingVpnProfile(matchingSavedProfile)
+    }
+
+    fun connect(activity: Activity, vpnService: VPNService, currentVPN: CurrentVPN) {
+        when (vpnService) {
+            is EduOpenVPNService -> {
+                if (currentVPN !is OpenVPN) {
+                    throw RuntimeException("CurrentVPN and vpnService not in sync. " +
+                            "No OpenVPN profile for EduOpenVPNService.")
+                }
+                val config = findOpenVPNProfile(currentVPN.profile)
+                        ?: throw RuntimeException("No saved profile.")
+                vpnService.connect(activity, config)
+            }
+            is WireGuardService -> {
+                if (currentVPN !is WireGuard) {
+                    throw RuntimeException("CurrentVPN and vpnService not in sync. " +
+                            "No WireGuard config for WireGuardService.")
+                }
+                vpnService.connect(activity, currentVPN.config)
+            }
+        }
     }
 
 

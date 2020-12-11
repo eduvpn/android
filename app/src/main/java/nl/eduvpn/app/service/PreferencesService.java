@@ -21,6 +21,10 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.VisibleForTesting;
+
 import net.openid.appauth.AuthState;
 
 import org.json.JSONException;
@@ -28,15 +32,11 @@ import org.json.JSONObject;
 
 import java.util.List;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.annotation.VisibleForTesting;
 import nl.eduvpn.app.Constants;
 import nl.eduvpn.app.entity.CurrentVPN;
 import nl.eduvpn.app.entity.DiscoveredAPI;
 import nl.eduvpn.app.entity.Instance;
 import nl.eduvpn.app.entity.OpenVPN;
-import nl.eduvpn.app.entity.OpenVPNProfile;
 import nl.eduvpn.app.entity.Organization;
 import nl.eduvpn.app.entity.Profile;
 import nl.eduvpn.app.entity.SavedAuthState;
@@ -44,9 +44,6 @@ import nl.eduvpn.app.entity.SavedKeyPair;
 import nl.eduvpn.app.entity.SavedProfile;
 import nl.eduvpn.app.entity.ServerList;
 import nl.eduvpn.app.entity.Settings;
-import nl.eduvpn.app.entity.VpnConfig;
-import nl.eduvpn.app.entity.WireGuard;
-import nl.eduvpn.app.entity.WireGuardConfig;
 import nl.eduvpn.app.utils.Log;
 
 /**
@@ -144,10 +141,10 @@ public class PreferencesService {
                 Log.d(TAG, "Migrated over to storage version v3.");
             }
         }
-        if(version < 4) {
+        if (version < 4) {
             SharedPreferences.Editor editor = newPreferences.edit();
             Profile profile = getCurrentProfile();
-            if(profile != null) {
+            if (profile != null) {
                 setCurrentVPN(new OpenVPN(profile));
             }
             editor.remove(KEY_PROFILE);
