@@ -68,10 +68,8 @@ class ConnectionService(private val preferencesService: PreferencesService,
     }
 
     fun onStop() {
-        if (authorizationService != null) {
-            authorizationService!!.dispose()
-            authorizationService = null
-        }
+        authorizationService?.dispose()
+        authorizationService = null
     }
 
     /**
