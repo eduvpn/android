@@ -3,11 +3,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-kapt'
-apply plugin: 'kotlin-android-extensions'
-
-androidExtensions {
-    experimental = true
-}
+apply plugin: 'kotlin-parcelize'
 
 android {
     compileSdkVersion 29
