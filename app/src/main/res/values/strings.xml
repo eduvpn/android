@@ -127,7 +127,6 @@
     <string name="fetching_organization_servers">Fetching organizations...</string>
     <string name="fetching_server_list">Fetching latest server list...</string>
     <string name="error_fetching_organization_servers">Error fetching organization servers</string>
-    <string name="error_fetching_organizations">Error fetching organization / server list</string>
     <string name="discovering_group_servers">Discovering group servers...</string>
     <string name="reset_app_data_title">Reset Organization. This will delete all your saved profiles and authorization data. After the reset, you will have to choose an organization again.</string>
     <string name="reset_app_data_button">Reset</string>

@@ -3,11 +3,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-kapt'
-apply plugin: 'kotlin-android-extensions'
-
-androidExtensions {
-    experimental = true
-}
+apply plugin: 'kotlin-parcelize'
 
 android {
     compileSdkVersion 29
@@ -119,6 +115,8 @@ android {
 
     kotlinOptions {
         jvmTarget = '1.8'
+        // Necessary for nl.eduvpn.app.utils.runCatchingCoroutine
+        kotlinOptions.freeCompilerArgs = ["-Xallow-result-return-type"]
     }
 
     kapt {
@@ -130,6 +128,11 @@ android {
             // This will fail the build on warnings which are run in a build phase executed by kapt.
             option("-Werror")
         }
+    }
+
+    packagingOptions {
+        // Created by kotlinx-coroutines-core for debugging
+        exclude "DebugProbesKt.bin"
     }
 }
 
@@ -168,9 +171,9 @@ dependencies {
     implementation 'com.squareup.picasso:picasso:2.71828'
     // Public key verification
     implementation "com.github.joshjdevl.libsodiumjni:libsodium-jni-aar:2.0.2@aar"
-    // Reactive extensions for asynchronous events
-    implementation 'io.reactivex.rxjava2:rxandroid:2.1.1'
-    implementation 'io.reactivex.rxjava2:rxjava:2.2.19'
+
+    // Kotlin coroutines
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.2"
 
     // All testing related libraries
     testImplementation 'junit:junit:4.12'

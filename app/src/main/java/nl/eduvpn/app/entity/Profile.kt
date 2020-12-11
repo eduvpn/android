@@ -18,7 +18,7 @@
 package nl.eduvpn.app.entity
 
 import android.os.Parcelable
-import kotlinx.android.parcel.Parcelize
+import kotlinx.parcelize.Parcelize
 
 /**
  * Represents a VPN connection profile.

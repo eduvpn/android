@@ -19,25 +19,16 @@
 package nl.eduvpn.app.viewmodel
 
 import android.content.Context
+import android.os.Handler
 import android.text.Spanned
 import androidx.core.text.HtmlCompat
 import androidx.lifecycle.MutableLiveData
 import de.blinkt.openvpn.VpnProfile
-import io.reactivex.Observable
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.disposables.Disposable
 import nl.eduvpn.app.R
 import nl.eduvpn.app.entity.Profile
-import nl.eduvpn.app.service.APIService
-import nl.eduvpn.app.service.ConnectionService
-import nl.eduvpn.app.service.HistoryService
-import nl.eduvpn.app.service.PreferencesService
-import nl.eduvpn.app.service.SerializerService
-import nl.eduvpn.app.service.VPNService
-import nl.eduvpn.app.utils.Log
+import nl.eduvpn.app.service.*
 import nl.eduvpn.app.utils.getCountryText
 import nl.eduvpn.app.utils.toSingleEvent
-import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 class ConnectionStatusViewModel @Inject constructor(
@@ -67,7 +58,11 @@ class ConnectionStatusViewModel @Inject constructor(
     private val _connectionParentAction = MutableLiveData<ParentAction>()
     val connectionParentAction = _connectionParentAction.toSingleEvent()
 
-    private var updateCertDisposable: Disposable? = null
+    private var updateCertHandler: Handler = Handler()
+    private var updateCertCallback: Runnable = Runnable {
+        updateCertExpiry()
+        runUpdateCertExpiryEverySecond()
+    }
 
 
     init {
@@ -97,33 +92,33 @@ class ConnectionStatusViewModel @Inject constructor(
 
     override fun onResume() {
         super.onResume()
-        updateCertDisposable = Observable.interval(1, TimeUnit.SECONDS)
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({
-                    updateCertExpiry()
-                }, { ex ->
-                    Log.e(TAG, "Unable to update cert expiry", ex)
-                })
+        runUpdateCertExpiryEverySecond()
     }
 
     fun onPause() {
-        updateCertDisposable?.dispose()
+        stopUpdateCertExpiry()
+    }
+
+    private fun runUpdateCertExpiryEverySecond() {
+        updateCertHandler.postDelayed(updateCertCallback, 1 * 1000)
+    }
+
+    private fun stopUpdateCertExpiry() {
+        updateCertHandler.removeCallbacks(updateCertCallback)
     }
 
     private fun updateCertExpiry() {
         val currentTime = System.currentTimeMillis()
         if (certExpiryTime == null) {
             // No cert or time, nothing to display
-            updateCertDisposable?.dispose()
-            updateCertDisposable = null
+            stopUpdateCertExpiry()
             certValidity.value = null
             return
         }
         val timeDifferenceInSeconds = (certExpiryTime - currentTime) / 1000
         if (timeDifferenceInSeconds < 0) {
             // Cert expired
-            updateCertDisposable?.dispose()
-            updateCertDisposable = null
+            stopUpdateCertExpiry()
             certValidity.value = HtmlCompat.fromHtml(context.getString(R.string.connection_certificate_status_expired), HtmlCompat.FROM_HTML_MODE_COMPACT)
             _connectionParentAction.value = ParentAction.SessionExpired
         } else if (timeDifferenceInSeconds < 60) {
@@ -159,7 +154,7 @@ class ConnectionStatusViewModel @Inject constructor(
         return vpnService.findMatchingVpnProfile(matchingSavedProfile)
     }
 
-    fun findCurrentProfile() : Profile? {
+    fun findCurrentProfile(): Profile? {
         return preferencesService.currentProfile
     }
 
