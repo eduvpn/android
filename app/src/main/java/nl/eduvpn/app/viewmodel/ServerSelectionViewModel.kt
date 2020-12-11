@@ -41,14 +41,14 @@ class ServerSelectionViewModel @Inject constructor(
         private val historyService: HistoryService,
         private val preferencesService: PreferencesService,
         connectionService: ConnectionService,
-        vpnService: VPNService,
+        eduOpenVpnService: EduOpenVPNService,
         private val organizationService: OrganizationService) : BaseConnectionViewModel(
         context, apiService,
         serializerService,
         historyService,
         preferencesService,
         connectionService,
-        vpnService), Observer {
+        eduOpenVpnService), Observer {
 
 
     val adapterItems = MutableLiveData<List<OrganizationAdapter.OrganizationAdapterItem>>()

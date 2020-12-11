@@ -191,4 +191,8 @@
     <string name="error_organization_list_version_check_title">Problem downloading organization list</string>
     <string name="error_server_list_version_check_message">Server list version is outdated.</string>
     <string name="error_server_list_version_check_title">Problem downloading server list</string>
+
+    <string name="settings_use_wireguard_title">Use WireGuard when available</string>
+    <string name="checking_server_wireguard_support">Checking if server supports WireGuard...</string>
+    <string name="vpn_implementation">VPN</string>
 </resources>

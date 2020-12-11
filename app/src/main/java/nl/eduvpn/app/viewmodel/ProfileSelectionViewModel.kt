@@ -24,12 +24,12 @@ import nl.eduvpn.app.service.ConnectionService
 import nl.eduvpn.app.service.HistoryService
 import nl.eduvpn.app.service.PreferencesService
 import nl.eduvpn.app.service.SerializerService
-import nl.eduvpn.app.service.VPNService
+import nl.eduvpn.app.service.EduOpenVPNService
 import javax.inject.Inject
 
 class ProfileSelectionViewModel @Inject constructor(
         context: Context, apiService: APIService, serializerService: SerializerService,
         historyService: HistoryService, preferencesService: PreferencesService,
-        connectionService: ConnectionService, vpnService: VPNService) :
+        connectionService: ConnectionService, eduOpenVpnService: EduOpenVPNService) :
         BaseConnectionViewModel(context, apiService, serializerService, historyService,
-                preferencesService, connectionService, vpnService)
+                preferencesService, connectionService, eduOpenVpnService)

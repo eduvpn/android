@@ -71,8 +71,8 @@ class AddServerFragment : BaseFragment<FragmentAddServerBinding>() {
                     }
                 }
                 is BaseConnectionViewModel.ParentAction.ConnectWithProfile -> {
-                    viewModel.openVpnConnectionToProfile(requireActivity(), parentAction.vpnProfile)
-                    (activity as? MainActivity)?.openFragment(ConnectionStatusFragment(), false)
+                    viewModel.vpnConnectionToConfig(requireActivity(), parentAction.vpnService, parentAction.vpnConfig)
+                    (activity as? MainActivity)?.openFragment(ConnectionStatusFragment(parentAction.vpnService), false)
                 }
                 is BaseConnectionViewModel.ParentAction.DisplayError -> {
                     ErrorDialog.show(requireContext(), parentAction.title, parentAction.message)
