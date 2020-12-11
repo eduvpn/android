@@ -32,7 +32,7 @@ class ProviderSelectionViewModel @Inject constructor(
         historyService: HistoryService,
         private val preferencesService: PreferencesService,
         connectionService: ConnectionService,
-        vpnService: VPNService,
+        eduOpenVpnService: EduOpenVPNService,
         private val organizationService: OrganizationService) : BaseConnectionViewModel(
         context,
         apiService,
@@ -40,7 +40,7 @@ class ProviderSelectionViewModel @Inject constructor(
         historyService,
         preferencesService,
         connectionService,
-        vpnService) {
+        eduOpenVpnService) {
 
     val currentOrganization = MutableLiveData<Organization>()
     val currentOrganizationInstances = MutableLiveData<List<Instance>>()

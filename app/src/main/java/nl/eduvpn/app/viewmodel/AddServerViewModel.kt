@@ -26,7 +26,7 @@ import nl.eduvpn.app.service.ConnectionService
 import nl.eduvpn.app.service.HistoryService
 import nl.eduvpn.app.service.PreferencesService
 import nl.eduvpn.app.service.SerializerService
-import nl.eduvpn.app.service.VPNService
+import nl.eduvpn.app.service.EduOpenVPNService
 import javax.inject.Inject
 
 class AddServerViewModel @Inject constructor(
@@ -36,7 +36,7 @@ class AddServerViewModel @Inject constructor(
         serializerService: SerializerService,
         historyService: HistoryService,
         connectionService: ConnectionService,
-        vpnService: VPNService) : BaseConnectionViewModel(context, apiService, serializerService, historyService, preferencesService, connectionService, vpnService) {
+        eduOpenVpnService: EduOpenVPNService) : BaseConnectionViewModel(context, apiService, serializerService, historyService, preferencesService, connectionService, eduOpenVpnService) {
 
     val serverUrl = MutableLiveData("")
 

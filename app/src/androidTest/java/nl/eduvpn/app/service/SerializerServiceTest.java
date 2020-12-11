@@ -79,16 +79,18 @@ public class SerializerServiceTest {
 
     @Test
     public void testAppSettingsSerialization() throws SerializerService.UnknownFormatException {
-        Settings settings = new Settings(true, true);
+        Settings settings = new Settings(true, true, true);
         JSONObject jsonObject = _serializerService.serializeAppSettings(settings);
         Settings deserializedSettings = _serializerService.deserializeAppSettings(jsonObject);
         assertEquals(settings.forceTcp(), deserializedSettings.forceTcp());
         assertEquals(settings.useCustomTabs(), deserializedSettings.useCustomTabs());
-        settings = new Settings(false, false);
+        assertEquals(settings.useWireGuard(), deserializedSettings.useWireGuard());
+        settings = new Settings(false, false, false);
         jsonObject = _serializerService.serializeAppSettings(settings);
         deserializedSettings = _serializerService.deserializeAppSettings(jsonObject);
         assertEquals(settings.forceTcp(), deserializedSettings.forceTcp());
         assertEquals(settings.useCustomTabs(), deserializedSettings.useCustomTabs());
+        assertEquals(settings.useWireGuard(), deserializedSettings.useWireGuard());
     }
 
     @Test

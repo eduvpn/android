@@ -39,7 +39,7 @@ import nl.eduvpn.app.service.OrganizationService;
 import nl.eduvpn.app.service.PreferencesService;
 import nl.eduvpn.app.service.SecurityService;
 import nl.eduvpn.app.service.SerializerService;
-import nl.eduvpn.app.service.VPNService;
+import nl.eduvpn.app.service.EduOpenVPNService;
 import nl.eduvpn.app.utils.Log;
 import okhttp3.Cache;
 import okhttp3.OkHttpClient;
@@ -104,9 +104,22 @@ public class ApplicationModule {
 
     @Provides
     @Singleton
-    protected VPNService provideVPNService(Context context, PreferencesService preferencesService) {
-        return new VPNService(context, preferencesService);
+    protected EduOpenVPNService provideEduOpenVPNService(Context context, PreferencesService preferencesService) {
+        return new EduOpenVPNService(context, preferencesService);
     }
+
+    /*
+    @Provides
+    protected VPNService provideVPNService(boolean useWireGuard /* todo: enum *//*,
+                                           Provider<EduOpenVPNService> eduOpenVPNServiceProvider,
+                                           Provider<WireGuardService> wireGuardServiceProvider) {
+        if(useWireGuard) {
+            return wireGuardServiceProvider.get();
+        } else {
+            return eduOpenVPNServiceProvider.get();
+        }
+    }
+    */
 
     @Provides
     @Singleton

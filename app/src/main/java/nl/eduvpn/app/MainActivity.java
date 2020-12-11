@@ -40,7 +40,7 @@ import nl.eduvpn.app.fragment.OrganizationSelectionFragment;
 import nl.eduvpn.app.fragment.ServerSelectionFragment;
 import nl.eduvpn.app.service.ConnectionService;
 import nl.eduvpn.app.service.HistoryService;
-import nl.eduvpn.app.service.VPNService;
+import nl.eduvpn.app.service.EduOpenVPNService;
 import nl.eduvpn.app.utils.ErrorDialog;
 import nl.eduvpn.app.utils.Log;
 
@@ -55,7 +55,7 @@ public class MainActivity extends BaseActivity<ActivityMainBinding> {
     protected HistoryService _historyService;
 
     @Inject
-    protected VPNService _vpnService;
+    protected EduOpenVPNService _eduOpenvpnService;
 
     @Inject
     protected ConnectionService _connectionService;
@@ -73,11 +73,12 @@ public class MainActivity extends BaseActivity<ActivityMainBinding> {
         super.onCreate(savedInstanceState);
         EduVPNApplication.get(this).component().inject(this);
         setSupportActionBar(binding.toolbar.toolbar);
-        _vpnService.onCreate(this);
+        _eduOpenvpnService.onCreate(this);
         if (savedInstanceState == null) {
             // If there's an ongoing VPN connection, open the status screen.
-            if (_vpnService.getStatus() != VPNService.VPNStatus.DISCONNECTED) {
-                openFragment(new ConnectionStatusFragment(), false);
+            // todo: also do this for WireGuard
+            if (_eduOpenvpnService.getStatus() != EduOpenVPNService.VPNStatus.DISCONNECTED) {
+                openFragment(new ConnectionStatusFragment(_eduOpenvpnService), false);
             } else if (!_historyService.getSavedAuthStateList().isEmpty()) {
                 openFragment(ServerSelectionFragment.Companion.newInstance(false), false);
             } else if (BuildConfig.API_DISCOVERY_ENABLED){
@@ -169,7 +170,7 @@ public class MainActivity extends BaseActivity<ActivityMainBinding> {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        _vpnService.onDestroy(this);
+        _eduOpenvpnService.onDestroy(this);
     }
 
     public void openFragment(Fragment fragment, boolean openOnTop) {
@@ -232,8 +233,8 @@ public class MainActivity extends BaseActivity<ActivityMainBinding> {
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         if (requestCode == REQUEST_CODE_SETTINGS) {
             if (resultCode == SettingsActivity.RESULT_APP_DATA_CLEARED) {
-                if (_vpnService.getStatus() != VPNService.VPNStatus.DISCONNECTED) {
-                    _vpnService.disconnect();
+                if (_eduOpenvpnService.getStatus() != EduOpenVPNService.VPNStatus.DISCONNECTED) {
+                    _eduOpenvpnService.disconnect();
                 }
                 openFragment(new OrganizationSelectionFragment(), false);
             }

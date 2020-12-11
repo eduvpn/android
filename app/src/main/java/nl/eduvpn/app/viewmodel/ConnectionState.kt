@@ -29,5 +29,6 @@ enum class ConnectionState(@StringRes val displayString: Int?) {
         FetchingProfiles(R.string.loading_available_profiles),
         Authorizing(R.string.loading_browser_for_authorization),
         ProfileCheckingCertificate(R.string.vpn_profile_checking_certificate),
-        ProfileDownloadingKeyPair(R.string.vpn_profile_creating_keypair)
+        ProfileDownloadingKeyPair(R.string.vpn_profile_creating_keypair),
+        CheckingServerWireGuardSupport(R.string.checking_server_wireguard_support),
     }
