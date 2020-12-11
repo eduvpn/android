@@ -52,10 +52,10 @@ class ConnectionService(private val preferencesService: PreferencesService,
 
     private var authorizationService: AuthorizationService? = null
 
-    fun onStart(activity: Activity?) {
+    fun onStart(activity: Activity) {
         authorizationService = if (!preferencesService.appSettings.useCustomTabs()) {
             // We do not allow any custom tab implementation.
-            AuthorizationService(activity!!, AppAuthConfiguration.Builder()
+            AuthorizationService(activity, AppAuthConfiguration.Builder()
                     .setBrowserMatcher(BrowserDenyList(
                             VersionedBrowserMatcher.CHROME_CUSTOM_TAB,
                             VersionedBrowserMatcher.SAMSUNG_CUSTOM_TAB)
@@ -63,7 +63,7 @@ class ConnectionService(private val preferencesService: PreferencesService,
                     .build())
         } else {
             // Default behavior
-            AuthorizationService(activity!!)
+            AuthorizationService(activity)
         }
     }
 
