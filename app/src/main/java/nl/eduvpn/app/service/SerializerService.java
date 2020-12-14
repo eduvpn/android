@@ -47,7 +47,6 @@ import java.util.TimeZone;
 
 import nl.eduvpn.app.Constants;
 import nl.eduvpn.app.entity.AuthorizationType;
-import nl.eduvpn.app.entity.CurrentVPN;
 import nl.eduvpn.app.entity.DiscoveredAPI;
 import nl.eduvpn.app.entity.Instance;
 import nl.eduvpn.app.entity.InstanceList;
@@ -62,6 +61,7 @@ import nl.eduvpn.app.entity.SavedProfile;
 import nl.eduvpn.app.entity.ServerList;
 import nl.eduvpn.app.entity.Settings;
 import nl.eduvpn.app.entity.TranslatableString;
+import nl.eduvpn.app.entity.VpnProtocol;
 import nl.eduvpn.app.entity.WireGuard;
 import nl.eduvpn.app.entity.message.Maintenance;
 import nl.eduvpn.app.entity.message.Message;
@@ -144,18 +144,18 @@ public class SerializerService {
         }
     }
 
-    public JSONObject serializeCurrentVPN(CurrentVPN currentVPN) throws UnknownFormatException {
+    public JSONObject serializeVpnProtocol(VpnProtocol vpnProtocol) throws UnknownFormatException {
         JSONObject result = new JSONObject();
         try {
-            if (currentVPN instanceof OpenVPN) {
+            if (vpnProtocol instanceof OpenVPN) {
                 result.put("vpn_type", "OpenVPN");
-                result.put("vpn_value", serializeProfile(((OpenVPN) currentVPN).getProfile()));
-            } else if (currentVPN instanceof WireGuard) {
+                result.put("vpn_value", serializeProfile(((OpenVPN) vpnProtocol).getProfile()));
+            } else if (vpnProtocol instanceof WireGuard) {
                 result.put("vpn_type", "WireGuard");
-                result.put("vpn_value", serializeWireGuardConfig(((WireGuard) currentVPN).getConfig()));
+                result.put("vpn_value", serializeWireGuardConfig(((WireGuard) vpnProtocol).getConfig()));
             } else {
                 //todo: remove this case by converting this file to Kotlin
-                throw new RuntimeException("Unknown current vpn when serializing.");
+                throw new RuntimeException("Unknown vpn protocol when serializing.");
             }
         } catch (JSONException ex) {
             throw new UnknownFormatException(ex);
@@ -163,17 +163,17 @@ public class SerializerService {
         return result;
     }
 
-    public CurrentVPN deserializeCurrentVPN(JSONObject jsonObject) throws UnknownFormatException{
+    public VpnProtocol deserializeVpnProtocol(JSONObject jsonObject) throws UnknownFormatException {
         try {
             String type = jsonObject.getString("vpn_type");
-            if(type.equals("OpenVPN")) {
+            if (type.equals("OpenVPN")) {
                 JSONObject value = jsonObject.getJSONObject("vpn_value");
                 return new OpenVPN(deserializeProfile(value));
-            } else if(type.equals("WireGuard")) {
+            } else if (type.equals("WireGuard")) {
                 String value = jsonObject.getString("vpn_value");
                 return new WireGuard(deserializeWireGuardConfig(value));
             } else {
-                throw new UnknownFormatException("Unknown vpn type when deserializing current vpn: " + type);
+                throw new UnknownFormatException("Unknown vpn protocol when deserializing: " + type);
             }
         } catch (JSONException ex) {
             throw new UnknownFormatException(ex);

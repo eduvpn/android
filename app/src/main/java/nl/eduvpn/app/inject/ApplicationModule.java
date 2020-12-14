@@ -33,8 +33,8 @@ import dagger.Module;
 import dagger.Provides;
 import nl.eduvpn.app.BuildConfig;
 import nl.eduvpn.app.EduVPNApplication;
-import nl.eduvpn.app.entity.CurrentVPN;
 import nl.eduvpn.app.entity.OpenVPN;
+import nl.eduvpn.app.entity.VpnProtocol;
 import nl.eduvpn.app.entity.WireGuard;
 import nl.eduvpn.app.service.APIService;
 import nl.eduvpn.app.service.ConnectionService;
@@ -124,10 +124,10 @@ public class ApplicationModule {
     protected VPNService provideVPNService(PreferencesService preferencesService,
                                            Provider<EduOpenVPNService> eduOpenVPNServiceProvider,
                                            Provider<WireGuardService> wireGuardServiceProvider) {
-        CurrentVPN currentVPN = preferencesService.getCurrentVPN();
-        if (currentVPN instanceof WireGuard) {
+        VpnProtocol vpnProtocol = preferencesService.getCurrentVPN();
+        if (vpnProtocol instanceof WireGuard) {
             return wireGuardServiceProvider.get();
-        } else if (currentVPN instanceof OpenVPN) {
+        } else if (vpnProtocol instanceof OpenVPN) {
             return eduOpenVPNServiceProvider.get();
         } else {
             throw new RuntimeException("Could not determine what VPN service to use.");

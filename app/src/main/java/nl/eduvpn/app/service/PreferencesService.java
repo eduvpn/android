@@ -33,7 +33,6 @@ import org.json.JSONObject;
 import java.util.List;
 
 import nl.eduvpn.app.Constants;
-import nl.eduvpn.app.entity.CurrentVPN;
 import nl.eduvpn.app.entity.DiscoveredAPI;
 import nl.eduvpn.app.entity.Instance;
 import nl.eduvpn.app.entity.OpenVPN;
@@ -44,6 +43,7 @@ import nl.eduvpn.app.entity.SavedKeyPair;
 import nl.eduvpn.app.entity.SavedProfile;
 import nl.eduvpn.app.entity.ServerList;
 import nl.eduvpn.app.entity.Settings;
+import nl.eduvpn.app.entity.VpnProtocol;
 import nl.eduvpn.app.utils.Log;
 
 /**
@@ -256,15 +256,15 @@ public class PreferencesService {
     /**
      * Saves the current vpn as the selected one.
      *
-     * @param currentVPN The vpn to save.
+     * @param vpnProtocol The vpn to save.
      */
-    public void setCurrentVPN(@Nullable CurrentVPN currentVPN) {
+    public void setCurrentVPN(@Nullable VpnProtocol vpnProtocol) {
         try {
-            if (currentVPN == null) {
+            if (vpnProtocol == null) {
                 _getSharedPreferences().edit().remove(CURRENT_VPN).apply();
             } else {
                 _getSharedPreferences().edit()
-                        .putString(CURRENT_VPN, _serializerService.serializeCurrentVPN(currentVPN).toString())
+                        .putString(CURRENT_VPN, _serializerService.serializeVpnProtocol(vpnProtocol).toString())
                         .apply();
             }
         } catch (SerializerService.UnknownFormatException ex) {
@@ -275,16 +275,16 @@ public class PreferencesService {
     /**
      * Returns the previously saved vpn.
      *
-     * @return The lastly saved vpn with {@link #setCurrentVPN(CurrentVPN)}.
+     * @return The lastly saved vpn with {@link #setCurrentVPN(VpnProtocol)}.
      */
     @Nullable
-    public CurrentVPN getCurrentVPN() {
+    public VpnProtocol getCurrentVPN() {
         String serializedVPN = _getSharedPreferences().getString(CURRENT_VPN, null);
         if (serializedVPN == null) {
             return null;
         }
         try {
-            return _serializerService.deserializeCurrentVPN(new JSONObject(serializedVPN));
+            return _serializerService.deserializeVpnProtocol(new JSONObject(serializedVPN));
         } catch (SerializerService.UnknownFormatException | JSONException ex) {
             Log.e(TAG, "Unable to deserialize saved profile!", ex);
             return null;

@@ -24,9 +24,9 @@ import android.text.Spanned
 import androidx.core.text.HtmlCompat
 import androidx.lifecycle.MutableLiveData
 import nl.eduvpn.app.R
-import nl.eduvpn.app.entity.CurrentVPN
 import nl.eduvpn.app.entity.OpenVPN
 import nl.eduvpn.app.entity.Profile
+import nl.eduvpn.app.entity.VpnProtocol
 import nl.eduvpn.app.entity.WireGuard
 import nl.eduvpn.app.service.*
 import nl.eduvpn.app.utils.getCountryText
@@ -154,7 +154,7 @@ class ConnectionStatusViewModel @Inject constructor(
         }
     }
 
-    fun findCurrentVPN(): CurrentVPN? {
+    fun findCurrentVPN(): VpnProtocol? {
         return preferencesService.currentVPN
     }
 

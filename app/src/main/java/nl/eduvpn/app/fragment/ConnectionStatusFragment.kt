@@ -124,7 +124,7 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
                 }
                 is BaseConnectionViewModel.ParentAction.ConnectWithProfile -> {
                     viewModel.refreshProfile()
-                    viewModel.connect(requireActivity(), parentAction.currentVPN)
+                    viewModel.connect(requireActivity(), parentAction.vpnProtocol)
                 }
                 is BaseConnectionViewModel.ParentAction.DisplayError -> {
                     ErrorDialog.show(requireContext(), parentAction.title, parentAction.message)

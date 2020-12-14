@@ -116,7 +116,7 @@ class OrganizationSelectionFragment : BaseFragment<FragmentOrganizationSelection
                     }
                 }
                 is BaseConnectionViewModel.ParentAction.ConnectWithProfile -> {
-                    viewModel.connect(requireActivity(), parentAction.currentVPN)
+                    viewModel.connect(requireActivity(), parentAction.vpnProtocol)
                     (activity as? MainActivity)?.openFragment(ConnectionStatusFragment(), false)
                 }
                 is BaseConnectionViewModel.ParentAction.DisplayError -> {
