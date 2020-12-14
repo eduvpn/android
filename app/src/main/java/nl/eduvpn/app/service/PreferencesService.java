@@ -390,7 +390,7 @@ public class PreferencesService {
      */
     @NonNull
     public Settings getAppSettings() {
-        Settings defaultSettings = new Settings(Settings.USE_CUSTOM_TABS_DEFAULT_VALUE, Settings.FORCE_TCP_DEFAULT_VALUE, Settings.FORCE_TCP_DEFAULT_VALUE);
+        Settings defaultSettings = new Settings(Settings.USE_CUSTOM_TABS_DEFAULT_VALUE, Settings.FORCE_TCP_DEFAULT_VALUE, Settings.USE_WIREGUARD_DEFAULT_VALUE);
         String serializedSettings = _getSharedPreferences().getString(KEY_APP_SETTINGS, null);
         if (serializedSettings == null) {
             // Default settings.
