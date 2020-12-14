@@ -31,18 +31,20 @@ import nl.eduvpn.app.entity.WireGuard
 import nl.eduvpn.app.service.*
 import nl.eduvpn.app.utils.getCountryText
 import nl.eduvpn.app.utils.toSingleEvent
+import nl.eduvpn.app.wireguard.WireGuardService
 import javax.inject.Inject
 
 class ConnectionStatusViewModel @Inject constructor(
         private val context: Context,
         private val preferencesService: PreferencesService,
         private val eduOpenVpnService: EduOpenVPNService,
+        private val wireGuardService: WireGuardService,
         historyService: HistoryService,
         apiService: APIService,
         serializerService: SerializerService,
         connectionService: ConnectionService
 ) : BaseConnectionViewModel(context, apiService, serializerService, historyService,
-        preferencesService, connectionService, eduOpenVpnService) {
+        preferencesService, connectionService, eduOpenVpnService, wireGuardService) {
 
     sealed class ParentAction {
         object SessionExpired : ParentAction()

@@ -36,17 +36,21 @@ import nl.eduvpn.app.utils.Log
 import nl.eduvpn.app.viewmodel.BaseConnectionViewModel
 import nl.eduvpn.app.viewmodel.ConnectionStatusViewModel
 import java.util.*
+import javax.inject.Inject
 
 /**
  * The fragment which displays the status of the current connection.
  * Created by Daniel Zolnai on 2016-10-07.
  */
-class ConnectionStatusFragment(private val vpnService: VPNService) : BaseFragment<FragmentConnectionStatusBinding>(), ConnectionInfoCallback {
+class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>(), ConnectionInfoCallback {
     private var vpnStatusObserver: Observer? = null
     private val gracefulDisconnectHandler = Handler()
 
     private var isAutomaticCheckChange = false
     private var skipNextDisconnect = true
+
+    @Inject
+    protected lateinit var vpnService: VPNService
 
     override val layout = R.layout.fragment_connection_status
 
@@ -120,7 +124,7 @@ class ConnectionStatusFragment(private val vpnService: VPNService) : BaseFragmen
                 }
                 is BaseConnectionViewModel.ParentAction.ConnectWithProfile -> {
                     viewModel.refreshProfile()
-                    viewModel.connect(requireActivity(), parentAction.vpnService, parentAction.currentVPN)
+                    viewModel.connect(requireActivity(), parentAction.currentVPN)
                 }
                 is BaseConnectionViewModel.ParentAction.DisplayError -> {
                     ErrorDialog.show(requireContext(), parentAction.title, parentAction.message)
@@ -220,7 +224,7 @@ class ConnectionStatusFragment(private val vpnService: VPNService) : BaseFragmen
 
     private fun connect() {
         skipNextDisconnect = true
-        viewModel.connect(requireActivity(), vpnService, viewModel.findCurrentVPN()!!)
+        viewModel.connect(requireActivity(), viewModel.findCurrentVPN()!!)
         viewModel.isInDisconnectMode.value = false
     }
 

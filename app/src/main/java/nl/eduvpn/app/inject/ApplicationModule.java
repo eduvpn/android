@@ -26,21 +26,27 @@ import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.util.concurrent.TimeUnit;
 
+import javax.inject.Provider;
 import javax.inject.Singleton;
 
 import dagger.Module;
 import dagger.Provides;
 import nl.eduvpn.app.BuildConfig;
 import nl.eduvpn.app.EduVPNApplication;
+import nl.eduvpn.app.entity.CurrentVPN;
+import nl.eduvpn.app.entity.OpenVPN;
+import nl.eduvpn.app.entity.WireGuard;
 import nl.eduvpn.app.service.APIService;
 import nl.eduvpn.app.service.ConnectionService;
+import nl.eduvpn.app.service.EduOpenVPNService;
 import nl.eduvpn.app.service.HistoryService;
 import nl.eduvpn.app.service.OrganizationService;
 import nl.eduvpn.app.service.PreferencesService;
 import nl.eduvpn.app.service.SecurityService;
 import nl.eduvpn.app.service.SerializerService;
-import nl.eduvpn.app.service.EduOpenVPNService;
+import nl.eduvpn.app.service.VPNService;
 import nl.eduvpn.app.utils.Log;
+import nl.eduvpn.app.wireguard.WireGuardService;
 import okhttp3.Cache;
 import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;
@@ -108,18 +114,25 @@ public class ApplicationModule {
         return new EduOpenVPNService(context, preferencesService);
     }
 
-    /*
     @Provides
-    protected VPNService provideVPNService(boolean useWireGuard /* todo: enum *//*,
+    @Singleton
+    protected WireGuardService provideWireGuardService(Context context) {
+        return new WireGuardService(context);
+    }
+
+    @Provides
+    protected VPNService provideVPNService(PreferencesService preferencesService,
                                            Provider<EduOpenVPNService> eduOpenVPNServiceProvider,
                                            Provider<WireGuardService> wireGuardServiceProvider) {
-        if(useWireGuard) {
+        CurrentVPN currentVPN = preferencesService.getCurrentVPN();
+        if (currentVPN instanceof WireGuard) {
             return wireGuardServiceProvider.get();
-        } else {
+        } else if (currentVPN instanceof OpenVPN) {
             return eduOpenVPNServiceProvider.get();
+        } else {
+            throw new RuntimeException("Could not determine what VPN service to use.");
         }
     }
-    */
 
     @Provides
     @Singleton

@@ -21,12 +21,8 @@ package nl.eduvpn.app.viewmodel
 import android.content.Context
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Transformations
-import nl.eduvpn.app.service.APIService
-import nl.eduvpn.app.service.ConnectionService
-import nl.eduvpn.app.service.HistoryService
-import nl.eduvpn.app.service.PreferencesService
-import nl.eduvpn.app.service.SerializerService
-import nl.eduvpn.app.service.EduOpenVPNService
+import nl.eduvpn.app.service.*
+import nl.eduvpn.app.wireguard.WireGuardService
 import javax.inject.Inject
 
 class AddServerViewModel @Inject constructor(
@@ -36,7 +32,9 @@ class AddServerViewModel @Inject constructor(
         serializerService: SerializerService,
         historyService: HistoryService,
         connectionService: ConnectionService,
-        eduOpenVpnService: EduOpenVPNService) : BaseConnectionViewModel(context, apiService, serializerService, historyService, preferencesService, connectionService, eduOpenVpnService) {
+        eduOpenVpnService: EduOpenVPNService,
+        wireGuardService: WireGuardService,
+) : BaseConnectionViewModel(context, apiService, serializerService, historyService, preferencesService, connectionService, eduOpenVpnService, wireGuardService) {
 
     val serverUrl = MutableLiveData("")
 

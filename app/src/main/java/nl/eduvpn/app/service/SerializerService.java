@@ -211,7 +211,7 @@ public class SerializerService {
      * @param profile The profile to serialize.
      * @return The profile in a JSON format.
      */
-    private JSONObject serializeProfile(Profile profile) throws UnknownFormatException {
+    public JSONObject serializeProfile(Profile profile) throws UnknownFormatException {
         JSONObject result = new JSONObject();
         try {
             result.put("display_name", profile.getDisplayName());

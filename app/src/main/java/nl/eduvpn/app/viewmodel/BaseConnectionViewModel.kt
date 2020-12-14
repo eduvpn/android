@@ -55,14 +55,15 @@ abstract class BaseConnectionViewModel(
         private val historyService: HistoryService,
         private val preferencesService: PreferencesService,
         private val connectionService: ConnectionService,
-        private val eduOpenVpnService: EduOpenVPNService
+        private val eduOpenVpnService: EduOpenVPNService,
+        private val wireGuardService: WireGuardService,
 ) : ViewModel() {
 
     sealed class ParentAction {
         data class DisplayError(@StringRes val title: Int, val message: String) : ParentAction()
         data class OpenProfileSelector(val profiles: List<Profile>) : ParentAction()
         data class InitiateConnection(val instance: Instance, val discoveredAPI: DiscoveredAPI) : ParentAction()
-        data class ConnectWithProfile(val vpnService: VPNService, val currentVPN: CurrentVPN) : ParentAction()
+        data class ConnectWithProfile(val currentVPN: CurrentVPN) : ParentAction()
     }
 
     val connectionState = MutableLiveData<ConnectionState>().also { it.value = ConnectionState.Ready }
@@ -184,7 +185,7 @@ abstract class BaseConnectionViewModel(
 
         val vpnProfile = WireGuard(config)
         connectionState.value = ConnectionState.Ready
-        parentAction.value = ParentAction.ConnectWithProfile(WireGuardService(context) /*todo: dependency injection? */, vpnProfile)
+        parentAction.value = ParentAction.ConnectWithProfile(vpnProfile)
 
         return false
     }
@@ -342,7 +343,7 @@ abstract class BaseConnectionViewModel(
                     historyService.cacheSavedProfile(savedProfile)
                     preferencesService.currentVPN = OpenVPN(profile)
                     // Connect with the profile
-                    parentAction.value = ParentAction.ConnectWithProfile(eduOpenVpnService, OpenVPN(profile))
+                    parentAction.value = ParentAction.ConnectWithProfile(OpenVPN(profile))
                 } else {
                     connectionState.value = ConnectionState.Ready
                     parentAction.value = ParentAction.DisplayError(R.string.error_dialog_title, context.getString(R.string.error_importing_profile))
@@ -427,23 +428,15 @@ abstract class BaseConnectionViewModel(
         return eduOpenVpnService.findMatchingVpnProfile(matchingSavedProfile)
     }
 
-    fun connect(activity: Activity, vpnService: VPNService, currentVPN: CurrentVPN) {
-        when (vpnService) {
-            is EduOpenVPNService -> {
-                if (currentVPN !is OpenVPN) {
-                    throw RuntimeException("CurrentVPN and vpnService not in sync. " +
-                            "No OpenVPN profile for EduOpenVPNService.")
-                }
+    fun connect(activity: Activity, currentVPN: CurrentVPN) {
+        when (currentVPN) {
+            is OpenVPN -> {
                 val config = findOpenVPNProfile(currentVPN.profile)
                         ?: throw RuntimeException("No saved profile.")
-                vpnService.connect(activity, config)
+                eduOpenVpnService.connect(activity, config)
             }
-            is WireGuardService -> {
-                if (currentVPN !is WireGuard) {
-                    throw RuntimeException("CurrentVPN and vpnService not in sync. " +
-                            "No WireGuard config for WireGuardService.")
-                }
-                vpnService.connect(activity, currentVPN.config)
+            is WireGuard -> {
+                wireGuardService.connect(activity, currentVPN.config)
             }
         }
     }

@@ -23,15 +23,16 @@ import android.os.Bundle;
 import android.view.MenuItem;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.ActionBar;
+import androidx.fragment.app.Fragment;
+
 import net.openid.appauth.AuthorizationException;
 import net.openid.appauth.AuthorizationResponse;
 
 import javax.inject.Inject;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.ActionBar;
-import androidx.fragment.app.Fragment;
 import nl.eduvpn.app.base.BaseActivity;
 import nl.eduvpn.app.databinding.ActivityMainBinding;
 import nl.eduvpn.app.fragment.AddServerFragment;
@@ -39,8 +40,8 @@ import nl.eduvpn.app.fragment.ConnectionStatusFragment;
 import nl.eduvpn.app.fragment.OrganizationSelectionFragment;
 import nl.eduvpn.app.fragment.ServerSelectionFragment;
 import nl.eduvpn.app.service.ConnectionService;
-import nl.eduvpn.app.service.HistoryService;
 import nl.eduvpn.app.service.EduOpenVPNService;
+import nl.eduvpn.app.service.HistoryService;
 import nl.eduvpn.app.utils.ErrorDialog;
 import nl.eduvpn.app.utils.Log;
 
@@ -78,7 +79,7 @@ public class MainActivity extends BaseActivity<ActivityMainBinding> {
             // If there's an ongoing VPN connection, open the status screen.
             // todo: also do this for WireGuard
             if (_eduOpenvpnService.getStatus() != EduOpenVPNService.VPNStatus.DISCONNECTED) {
-                openFragment(new ConnectionStatusFragment(_eduOpenvpnService), false);
+                openFragment(new ConnectionStatusFragment(), false);
             } else if (!_historyService.getSavedAuthStateList().isEmpty()) {
                 openFragment(ServerSelectionFragment.Companion.newInstance(false), false);
             } else if (BuildConfig.API_DISCOVERY_ENABLED){
