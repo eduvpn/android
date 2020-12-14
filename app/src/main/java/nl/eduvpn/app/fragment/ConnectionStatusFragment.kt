@@ -134,7 +134,7 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
         viewModel.isInDisconnectMode.observe(viewLifecycleOwner) { isInDisconnectMode ->
             (activity as? MainActivity)?.setBackNavigationEnabled(isInDisconnectMode)
         }
-        binding.valueVpnImplementation.text = vpnService.getAbout()
+        binding.valueVpnImplementation.text = vpnService.getProtocolName()
     }
 
     override fun onStart() {

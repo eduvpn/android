@@ -454,7 +454,7 @@ public class EduOpenVPNService extends VPNService implements VpnStatus.StateList
     }
 
     @NotNull
-    public String getAbout() {
+    public String getProtocolName() {
         return "OpenVPN";
     }
 

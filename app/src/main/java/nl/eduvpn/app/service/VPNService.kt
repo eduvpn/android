@@ -45,5 +45,5 @@ abstract class VPNService : Observable() {
 
     }
 
-    abstract fun getAbout(): String
+    abstract fun getProtocolName(): String
 }

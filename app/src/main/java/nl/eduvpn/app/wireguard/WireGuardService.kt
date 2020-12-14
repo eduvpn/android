@@ -168,7 +168,7 @@ class WireGuardService(private val context: Context) : VPNService() {
         updatesHandler.removeCallbacksAndMessages(null)
     }
 
-    override fun getAbout(): String {
+    override fun getProtocolName(): String {
         return "WireGuard"
     }
 
