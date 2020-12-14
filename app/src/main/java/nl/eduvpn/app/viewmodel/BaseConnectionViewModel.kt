@@ -97,26 +97,7 @@ abstract class BaseConnectionViewModel(
                             preferencesService.currentProfileList = null
                             historyService.cacheAuthorizationState(instance, savedToken.authState)
                         }
-                        if (preferencesService.appSettings.useWireGuard()) {
-                            val wireguardAPI = WireGuardAPI(apiService, discoveredAPI.apiBaseUri)
-                            connectionState.value = ConnectionState.CheckingServerWireGuardSupport
-                            runCatchingCoroutine {
-                                wireguardAPI.wireguardEnabled(savedToken.authState)
-                            }.onSuccess { wireguardEnabled ->
-                                if (wireguardEnabled) {
-                                    Log.d(TAG, "WireGuard enabled.")
-                                } else {
-                                    Log.d(TAG, "WireGuard not enabled.")
-                                }
-                                if (wireguard(instance, discoveredAPI, savedToken.authState)) {
-                                    fetchProfiles(instance, discoveredAPI, savedToken.authState)
-                                }
-                            }.onFailure { thr ->
-                                Log.e(TAG, "Error checking if WireGuard is supported on server!", thr)
-                                connectionState.value = ConnectionState.Ready
-                                parentAction.value = ParentAction.DisplayError(R.string.error_dialog_title, thr.toString())
-                            }
-                        } else {
+                        if (wireguard(instance, discoveredAPI, savedToken.authState)) {
                             fetchProfiles(instance, discoveredAPI, savedToken.authState)
                         }
                     }
