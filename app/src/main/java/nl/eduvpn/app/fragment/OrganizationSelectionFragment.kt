@@ -36,8 +36,8 @@ import nl.eduvpn.app.service.OrganizationService
 import nl.eduvpn.app.utils.ErrorDialog
 import nl.eduvpn.app.utils.ItemClickSupport
 import nl.eduvpn.app.utils.hideKeyboard
-import nl.eduvpn.app.viewmodel.ConnectionState
 import nl.eduvpn.app.viewmodel.BaseConnectionViewModel
+import nl.eduvpn.app.viewmodel.ConnectionState
 import nl.eduvpn.app.viewmodel.OrganizationSelectionViewModel
 import javax.inject.Inject
 
@@ -75,7 +75,7 @@ class OrganizationSelectionFragment : BaseFragment<FragmentOrganizationSelection
             } else if (item is OrganizationAdapter.OrganizationAdapterItem.InstituteAccess) {
                 viewModel.selectOrganizationAndInstance(null, item.server)
             } else if (item is OrganizationAdapter.OrganizationAdapterItem.AddServer) {
-                val customUrl  = if (item.url.startsWith("http://") || item.url.startsWith("https://")) {
+                val customUrl = if (item.url.startsWith("http://") || item.url.startsWith("https://")) {
                     item.url
                 } else {
                     "https://${item.url}"
@@ -116,7 +116,7 @@ class OrganizationSelectionFragment : BaseFragment<FragmentOrganizationSelection
                     }
                 }
                 is BaseConnectionViewModel.ParentAction.ConnectWithProfile -> {
-                    viewModel.openVpnConnectionToProfile(requireActivity(), parentAction.vpnProfile)
+                    viewModel.connect(requireActivity(), parentAction.vpnProtocol)
                     (activity as? MainActivity)?.openFragment(ConnectionStatusFragment(), false)
                 }
                 is BaseConnectionViewModel.ParentAction.DisplayError -> {

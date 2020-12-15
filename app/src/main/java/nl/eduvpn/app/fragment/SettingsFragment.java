@@ -22,11 +22,15 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Toast;
 
-import javax.inject.Inject;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.widget.AppCompatCheckBox;
+
+import java.util.Arrays;
+
+import javax.inject.Inject;
+
 import de.blinkt.openvpn.activities.LogWindow;
 import nl.eduvpn.app.BuildConfig;
 import nl.eduvpn.app.EduVPNApplication;
@@ -38,7 +42,6 @@ import nl.eduvpn.app.databinding.FragmentSettingsBinding;
 import nl.eduvpn.app.entity.Settings;
 import nl.eduvpn.app.service.HistoryService;
 import nl.eduvpn.app.service.PreferencesService;
-import nl.eduvpn.app.service.VPNService;
 
 /**
  * Fragment which displays the available settings to the user.
@@ -51,9 +54,6 @@ public class SettingsFragment extends BaseFragment<FragmentSettingsBinding> {
 
     @Inject
     protected HistoryService _historyService;
-
-    @Inject
-    protected VPNService _vpnService;
 
     private Settings _originalSettings;
 
@@ -71,9 +71,11 @@ public class SettingsFragment extends BaseFragment<FragmentSettingsBinding> {
 
         binding.useCustomTabsSwitch.setChecked(_originalSettings.useCustomTabs());
         binding.forceTcpSwitch.setChecked(_originalSettings.forceTcp());
+        binding.useWireGuardSwitch.setChecked(_originalSettings.useWireGuard());
 
-        binding.useCustomTabsSwitch.setOnClickListener(v -> onSettingChanged());
-        binding.forceTcpSwitch.setOnClickListener(v -> onSettingChanged());
+        for (AppCompatCheckBox b : Arrays.asList(binding.useCustomTabsSwitch, binding.forceTcpSwitch, binding.useWireGuardSwitch)) {
+            b.setOnClickListener(v -> onSettingChanged());
+        }
         binding.saveButton.setOnClickListener(v -> onSaveButtonClicked());
         binding.licensesButton.setOnClickListener(v -> startActivity(new Intent(requireContext(), LicenseActivity.class)));
         binding.resetDataButton.setOnClickListener(v -> onResetDataClicked());
@@ -117,14 +119,18 @@ public class SettingsFragment extends BaseFragment<FragmentSettingsBinding> {
     public void onSettingChanged() {
         boolean useCustomTabs = binding.useCustomTabsSwitch.isChecked();
         boolean forceTcp = binding.forceTcpSwitch.isChecked();
-        boolean settingsChanged = useCustomTabs != _originalSettings.useCustomTabs() || forceTcp != _originalSettings.forceTcp();
+        boolean useWireGuard = binding.useWireGuardSwitch.isChecked();
+        boolean settingsChanged = useCustomTabs != _originalSettings.useCustomTabs()
+                || forceTcp != _originalSettings.forceTcp()
+                || useWireGuard != _originalSettings.useWireGuard();
         binding.saveButton.setEnabled(settingsChanged);
     }
 
     protected void onSaveButtonClicked() {
         boolean useCustomTabs = binding.useCustomTabsSwitch.isChecked();
         boolean forceTcp = binding.forceTcpSwitch.isChecked();
-        _preferencesService.storeAppSettings(new Settings(useCustomTabs, forceTcp));
+        boolean useWireGuard = binding.useWireGuardSwitch.isChecked();
+        _preferencesService.storeAppSettings(new Settings(useCustomTabs, forceTcp, useWireGuard));
         Toast.makeText(getContext(), R.string.settings_saved, Toast.LENGTH_LONG).show();
         requireActivity().finish();
     }

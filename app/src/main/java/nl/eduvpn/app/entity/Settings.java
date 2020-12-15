@@ -25,13 +25,16 @@ public class Settings {
 
     public static final boolean USE_CUSTOM_TABS_DEFAULT_VALUE = true;
     public static final boolean FORCE_TCP_DEFAULT_VALUE = false;
+    public static final boolean USE_WIREGUARD_DEFAULT_VALUE = false;
 
     private boolean _useCustomTabs;
     private boolean _forceTcp;
+    private boolean _useWireGuard;
 
-    public Settings(boolean useCustomTabs, boolean forceTcp) {
+    public Settings(boolean useCustomTabs, boolean forceTcp, boolean useWireGuard) {
         _useCustomTabs = useCustomTabs;
         _forceTcp = forceTcp;
+        _useWireGuard = useWireGuard;
     }
 
     public boolean useCustomTabs() {
@@ -42,4 +45,7 @@ public class Settings {
         return _forceTcp;
     }
 
+    public boolean useWireGuard() {
+        return _useWireGuard;
+    }
 }

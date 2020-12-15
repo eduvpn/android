@@ -37,7 +37,10 @@ import nl.eduvpn.app.utils.ErrorDialog
 import nl.eduvpn.app.utils.FormattingUtils
 import nl.eduvpn.app.utils.Log
 import nl.eduvpn.app.utils.runCatchingCoroutine
+import nl.eduvpn.app.wireguard.WireGuardAPI
+import nl.eduvpn.app.wireguard.WireGuardService
 import org.json.JSONObject
+import java.io.IOException
 import java.io.UnsupportedEncodingException
 import java.net.URLEncoder
 
@@ -52,14 +55,15 @@ abstract class BaseConnectionViewModel(
         private val historyService: HistoryService,
         private val preferencesService: PreferencesService,
         private val connectionService: ConnectionService,
-        private val vpnService: VPNService
+        private val eduOpenVpnService: EduOpenVPNService,
+        private val wireGuardService: WireGuardService,
 ) : ViewModel() {
 
     sealed class ParentAction {
         data class DisplayError(@StringRes val title: Int, val message: String) : ParentAction()
         data class OpenProfileSelector(val profiles: List<Profile>) : ParentAction()
         data class InitiateConnection(val instance: Instance, val discoveredAPI: DiscoveredAPI) : ParentAction()
-        data class ConnectWithProfile(val vpnProfile: VpnProfile) : ParentAction()
+        data class ConnectWithProfile(val vpnProtocol: VpnProtocol) : ParentAction()
     }
 
     val connectionState = MutableLiveData<ConnectionState>().also { it.value = ConnectionState.Ready }
@@ -90,9 +94,21 @@ abstract class BaseConnectionViewModel(
                             preferencesService.currentInstance = instance
                             preferencesService.currentDiscoveredAPI = discoveredAPI
                             preferencesService.currentAuthState = savedToken.authState
+                            preferencesService.currentProfileList = null
                             historyService.cacheAuthorizationState(instance, savedToken.authState)
                         }
-                        fetchProfiles(instance, discoveredAPI, savedToken.authState)
+                        val wireGuardAPI = WireGuardAPI(apiService, discoveredAPI.apiBaseUri)
+                        runCatchingCoroutine {
+                            wireGuardEnabled(wireGuardAPI, instance, discoveredAPI, savedToken.authState)
+                        }.onSuccess { enabled ->
+                            if (!enabled || !tryConnectViaWireGuard(wireGuardAPI, savedToken.authState)) {
+                                fetchProfiles(instance, discoveredAPI, savedToken.authState)
+                            }
+                        }.onFailure { thr ->
+                            Log.e(TAG, "Error checking if WireGuard is supported on server!", thr)
+                            connectionState.value = ConnectionState.Ready
+                            parentAction.value = ParentAction.DisplayError(R.string.error_dialog_title, thr.toString())
+                        }
                     }
                 } catch (ex: SerializerService.UnknownFormatException) {
                     Log.e(TAG, "Error parsing discovered API!", ex)
@@ -107,6 +123,63 @@ abstract class BaseConnectionViewModel(
                         context.getString(R.string.error_discover_api, instance.sanitizedBaseURI, throwable.toString()))
             }
         }
+    }
+
+    /**
+     * @throws IOException If checking server support for WireGuard failed.
+     *
+     * @return If WireGuard is enabled in the app and on the server.
+     */
+    private suspend fun wireGuardEnabled(wireGuardAPI: WireGuardAPI, instance: Instance, discoveredAPI: DiscoveredAPI, authState: AuthState): Boolean {
+
+        if (!preferencesService.appSettings.useWireGuard()) {
+            return false
+        }
+
+        val wireGuardEnabled = try {
+            connectionState.value = ConnectionState.CheckingServerWireGuardSupport
+            wireGuardAPI.wireGuardEnabled(authState)
+        } catch (ex: APIService.UserNotAuthorizedException) {
+            authorize(instance, discoveredAPI)
+            TODO()
+        }
+
+        if (!wireGuardEnabled) {
+            Log.d(TAG, "WireGuard not enabled on server.")
+            return false
+        }
+
+        Log.d(TAG, "WireGuard enabled.")
+        return true
+    }
+
+    /**
+     * Tries to connect using WireGuard.
+     *
+     * @return If the WireGuard connecting is going to start.
+     */
+    private suspend fun tryConnectViaWireGuard(wireGuardAPI: WireGuardAPI, authState: AuthState): Boolean {
+
+        val config = try {
+            connectionState.value = ConnectionState.ProfileDownloadingKeyPair
+            wireGuardAPI.createConfig(authState)
+        } catch (ex: Exception) {
+            if (!(ex is IOException || ex is WireGuardAPI.WireGuardAPIException)) {
+                throw ex
+            }
+            Log.e(TAG, "Error creating WireGuard config!", ex)
+            connectionState.value = ConnectionState.Ready
+            parentAction.value = ParentAction.DisplayError(R.string.error_dialog_title, ex.toString())
+            return false
+        }
+
+        preferencesService.currentVPN = WireGuard(config)
+
+        val vpnProfile = WireGuard(config)
+        connectionState.value = ConnectionState.Ready
+        parentAction.value = ParentAction.ConnectWithProfile(vpnProfile)
+
+        return true
     }
 
     open fun onResume() {
@@ -179,7 +252,6 @@ abstract class BaseConnectionViewModel(
             return
         }
         preferencesService.currentInstance = instance
-        preferencesService.currentProfile = profile
         preferencesService.currentAuthState = authState
         // Always download a new profile.
         // Just to be sure,
@@ -256,13 +328,14 @@ abstract class BaseConnectionViewModel(
             }.onSuccess { vpnConfig ->
                 // The downloaded profile misses the <cert> and <key> fields. We will insert that via the saved key pair.
                 val configName = FormattingUtils.formatProfileName(context, instance, profile)
-                val vpnProfile = vpnService.importConfig(vpnConfig, configName, savedKeyPair)
+                val vpnProfile = eduOpenVpnService.importConfig(vpnConfig, configName, savedKeyPair)
                 if (vpnProfile != null) {
                     // Cache the profile
                     val savedProfile = SavedProfile(instance, profile, vpnProfile.uuidString)
                     historyService.cacheSavedProfile(savedProfile)
+                    preferencesService.currentVPN = OpenVPN(profile)
                     // Connect with the profile
-                    parentAction.value = ParentAction.ConnectWithProfile(vpnProfile)
+                    parentAction.value = ParentAction.ConnectWithProfile(OpenVPN(profile))
                 } else {
                     connectionState.value = ConnectionState.Ready
                     parentAction.value = ParentAction.DisplayError(R.string.error_dialog_title, context.getString(R.string.error_importing_profile))
@@ -340,9 +413,24 @@ abstract class BaseConnectionViewModel(
         return preferencesService.currentInstance
     }
 
-    fun openVpnConnectionToProfile(activity: Activity, vpnProfile: VpnProfile) {
-        connectionState.value = ConnectionState.Ready
-        vpnService.connect(activity, vpnProfile)
+    private fun findOpenVPNProfile(profile: Profile): VpnProfile? {
+        val matchingSavedProfile = preferencesService.savedProfileList?.firstOrNull { it.profile.profileId == profile.profileId }
+                ?: return null
+
+        return eduOpenVpnService.findMatchingVpnProfile(matchingSavedProfile)
+    }
+
+    fun connect(activity: Activity, vpnProtocol: VpnProtocol) {
+        when (vpnProtocol) {
+            is OpenVPN -> {
+                val config = findOpenVPNProfile(vpnProtocol.profile)
+                        ?: throw RuntimeException("No saved profile.")
+                eduOpenVpnService.connect(activity, config)
+            }
+            is WireGuard -> {
+                wireGuardService.connect(activity, vpnProtocol.config)
+            }
+        }
     }
 
 

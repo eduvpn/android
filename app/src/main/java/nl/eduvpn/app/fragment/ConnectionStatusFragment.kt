@@ -21,7 +21,6 @@ import android.os.Handler
 import android.view.View
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.viewModels
-import de.blinkt.openvpn.VpnProfile
 import nl.eduvpn.app.EduVPNApplication
 import nl.eduvpn.app.MainActivity
 import nl.eduvpn.app.R
@@ -36,8 +35,7 @@ import nl.eduvpn.app.utils.FormattingUtils
 import nl.eduvpn.app.utils.Log
 import nl.eduvpn.app.viewmodel.BaseConnectionViewModel
 import nl.eduvpn.app.viewmodel.ConnectionStatusViewModel
-import java.util.Observable
-import java.util.Observer
+import java.util.*
 import javax.inject.Inject
 
 /**
@@ -50,7 +48,6 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
 
     private var isAutomaticCheckChange = false
     private var skipNextDisconnect = true
-
 
     @Inject
     protected lateinit var vpnService: VPNService
@@ -70,16 +67,7 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
             if (!isChecked) {
                 disconnect()
             } else {
-                val currentProfile = viewModel.findCurrentProfile()
-                val config = viewModel.findCurrentConfig()
-                if (config != null) {
-                    connect(config)
-                } else if (currentProfile != null) {
-                    viewModel.selectProfileToConnectTo(currentProfile)
-                } else {
-                    // Should not happen
-                    returnToHome()
-                }
+                connect()
             }
         }
         binding.connectionInfoDropdown.setOnClickListener {
@@ -136,7 +124,7 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
                 }
                 is BaseConnectionViewModel.ParentAction.ConnectWithProfile -> {
                     viewModel.refreshProfile()
-                    viewModel.openVpnConnectionToProfile(requireActivity(), parentAction.vpnProfile)
+                    viewModel.connect(requireActivity(), parentAction.vpnProtocol)
                 }
                 is BaseConnectionViewModel.ParentAction.DisplayError -> {
                     ErrorDialog.show(requireContext(), parentAction.title, parentAction.message)
@@ -146,6 +134,7 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
         viewModel.isInDisconnectMode.observe(viewLifecycleOwner) { isInDisconnectMode ->
             (activity as? MainActivity)?.setBackNavigationEnabled(isInDisconnectMode)
         }
+        binding.valueVpnImplementation.text = vpnService.getProtocolName()
     }
 
     override fun onStart() {
@@ -189,7 +178,7 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
                 }
                 VPNStatus.FAILED -> {
                     skipNextDisconnect = false
-                    val message = getString(R.string.error_while_connecting, vpnService.errorString)
+                    val message = getString(R.string.error_while_connecting, vpnService.getErrorString())
                     ErrorDialog.show(requireContext(), R.string.error_dialog_title_unable_to_connect, message)
                     binding.connectionStatusIcon.setImageResource(R.drawable.ic_connection_status_disconnected)
                     binding.connectionStatus.setText(R.string.connection_info_state_disconnected)
@@ -201,7 +190,7 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
             }
         }
         // Update the icon immediately
-        vpnStatusObserver?.update(vpnService, vpnService.status)
+        vpnStatusObserver?.update(vpnService, vpnService.getStatus())
         vpnService.addObserver(vpnStatusObserver)
         vpnService.attachConnectionInfoListener(this)
     }
@@ -233,14 +222,14 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
         vpnService.detachConnectionInfoListener()
     }
 
-    private fun connect(vpnProfile: VpnProfile) {
+    private fun connect() {
         skipNextDisconnect = true
-        vpnService.connect(requireActivity(), vpnProfile)
+        viewModel.connect(requireActivity(), viewModel.findCurrentVPN()!!)
         viewModel.isInDisconnectMode.value = false
     }
 
     private fun disconnect(retryCount: Int = 0) {
-        val isConnecting = vpnService.status == VPNStatus.CONNECTING
+        val isConnecting = vpnService.getStatus() == VPNStatus.CONNECTING
         if (isConnecting) {
             // In this case, if we call disconnect, the process can be killed.
             // That means we won't get any notification from the disconnect event.

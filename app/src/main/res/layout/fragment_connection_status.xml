@@ -244,6 +244,26 @@
                     tools:text="231Mb" />
 
                 <TextView
+                    android:id="@+id/label_vpn_implementation"
+                    style="@style/ConnectionInfoLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="@string/vpn_implementation"
+                    app:layout_constraintLeft_toRightOf="@id/guide_vertical_divide"
+                    app:layout_constraintBottom_toBottomOf="@id/label_duration" />
+
+                <TextView
+                    android:id="@+id/value_vpn_implementation"
+                    style="@style/ConnectionInfoValue"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="8dp"
+                    app:layout_constraintLeft_toRightOf="@id/label_vpn_implementation"
+                    app:layout_constraintTop_toTopOf="@id/label_vpn_implementation"
+                    tools:text="OpenVPN" />
+
+                <TextView
                     android:id="@+id/label_uploaded"
                     style="@style/ConnectionInfoLabel"
                     android:layout_width="wrap_content"

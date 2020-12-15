@@ -23,24 +23,28 @@ import android.os.Handler
 import android.text.Spanned
 import androidx.core.text.HtmlCompat
 import androidx.lifecycle.MutableLiveData
-import de.blinkt.openvpn.VpnProfile
 import nl.eduvpn.app.R
+import nl.eduvpn.app.entity.OpenVPN
 import nl.eduvpn.app.entity.Profile
+import nl.eduvpn.app.entity.VpnProtocol
+import nl.eduvpn.app.entity.WireGuard
 import nl.eduvpn.app.service.*
 import nl.eduvpn.app.utils.getCountryText
 import nl.eduvpn.app.utils.toSingleEvent
+import nl.eduvpn.app.wireguard.WireGuardService
 import javax.inject.Inject
 
 class ConnectionStatusViewModel @Inject constructor(
         private val context: Context,
         private val preferencesService: PreferencesService,
-        private val vpnService: VPNService,
+        private val eduOpenVpnService: EduOpenVPNService,
+        private val wireGuardService: WireGuardService,
         historyService: HistoryService,
         apiService: APIService,
         serializerService: SerializerService,
         connectionService: ConnectionService
 ) : BaseConnectionViewModel(context, apiService, serializerService, historyService,
-        preferencesService, connectionService, vpnService) {
+        preferencesService, connectionService, eduOpenVpnService, wireGuardService) {
 
     sealed class ParentAction {
         object SessionExpired : ParentAction()
@@ -87,7 +91,10 @@ class ConnectionStatusViewModel @Inject constructor(
         } else {
             serverSupport.value = null
         }
-        certExpiryTime = historyService.getSavedKeyPairForInstance(connectionInstance).keyPair.expiryTimeMillis
+        certExpiryTime = when (preferencesService.currentVPN!!) {
+            is OpenVPN -> historyService.getSavedKeyPairForInstance(connectionInstance).keyPair.expiryTimeMillis
+            is WireGuard -> null
+        }
     }
 
     override fun onResume() {
@@ -147,28 +154,30 @@ class ConnectionStatusViewModel @Inject constructor(
         }
     }
 
-    fun findCurrentConfig(): VpnProfile? {
-        val currentProfile = preferencesService.currentProfile ?: return null
-        val matchingSavedProfile = preferencesService.savedProfileList?.firstOrNull { it.profile.profileId == currentProfile.profileId }
-                ?: return null
-        return vpnService.findMatchingVpnProfile(matchingSavedProfile)
-    }
-
-    fun findCurrentProfile(): Profile? {
-        return preferencesService.currentProfile
+    fun findCurrentVPN(): VpnProtocol? {
+        return preferencesService.currentVPN
     }
 
     fun refreshProfile() {
-        val savedProfile = preferencesService.currentProfile
-        val connectionInstance = preferencesService.currentInstance
-        if (connectionInstance?.countryCode != null) {
-            serverName.value = connectionInstance.getCountryText()
-        } else if (savedProfile != null) {
-            serverName.value = savedProfile.displayName
-        } else {
-            serverName.value = context.getString(R.string.profile_name_not_found)
+        when (val currentVPN = preferencesService.currentVPN) {
+            null -> {
+                serverName.value = context.getString(R.string.profile_name_not_found)
+                profileName.value = null
+            }
+            is OpenVPN -> {
+                val connectionInstance = preferencesService.currentInstance
+                if (connectionInstance?.countryCode != null) {
+                    serverName.value = connectionInstance.getCountryText()
+                } else {
+                    serverName.value = currentVPN.profile.displayName
+                }
+                profileName.value = currentVPN.profile.displayName
+            }
+            is WireGuard -> {
+                profileName.value = "WireGuard" //todo
+                serverName.value = "WireGuard" //todo
+            }
         }
-        profileName.value = savedProfile?.displayName
         updateCertExpiry()
     }
 

@@ -25,6 +25,12 @@ import android.content.ServiceConnection;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.RemoteException;
+import android.util.Pair;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.io.StringReader;
@@ -34,12 +40,8 @@ import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Observable;
 import java.util.regex.Pattern;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.core.util.Pair;
 import de.blinkt.openvpn.LaunchVPN;
 import de.blinkt.openvpn.VpnProfile;
 import de.blinkt.openvpn.core.ConfigParser;
@@ -55,19 +57,15 @@ import nl.eduvpn.app.entity.SavedProfile;
 import nl.eduvpn.app.utils.Log;
 
 /**
- * Service responsible for managing the VPN profiles and the connection.
+ * Service responsible for managing the OpenVPN profiles and the connection.
  * Created by Daniel Zolnai on 2016-10-13.
  */
-public class VPNService extends Observable implements VpnStatus.StateListener {
-
-    public enum VPNStatus {
-        DISCONNECTED, CONNECTING, CONNECTED, PAUSED, FAILED
-    }
+public class EduOpenVPNService extends VPNService implements VpnStatus.StateListener {
 
     private static final Long CONNECTION_INFO_UPDATE_INTERVAL_MS = 1000L;
     private static final String VPN_INTERFACE_NAME = "tun0";
 
-    private static final String TAG = VPNService.class.getName();
+    private static final String TAG = EduOpenVPNService.class.getName();
 
     private Context _context;
 
@@ -114,7 +112,7 @@ public class VPNService extends Observable implements VpnStatus.StateListener {
      *
      * @param context The application or activity context.
      */
-    public VPNService(Context context, PreferencesService preferencesService) {
+    public EduOpenVPNService(Context context, PreferencesService preferencesService) {
         _context = context;
         _preferencesService = preferencesService;
     }
@@ -258,6 +256,7 @@ public class VPNService extends Observable implements VpnStatus.StateListener {
      *
      * @return The current status of the VPN.
      */
+    @NotNull
     public VPNStatus getStatus() {
         switch (_connectionStatus) {
             case LEVEL_CONNECTING_NO_SERVER_REPLY_YET:
@@ -454,11 +453,9 @@ public class VPNService extends Observable implements VpnStatus.StateListener {
         VpnStatus.removeByteCountListener(_byteCountListener);
     }
 
-    public interface ConnectionInfoCallback {
-        void updateStatus(Long secondsConnected, Long bytesIn, Long bytesOut);
-
-        void metadataAvailable(String localIpV4, String localIpV6);
+    @NotNull
+    public String getProtocolName() {
+        return "OpenVPN";
     }
-
 
 }

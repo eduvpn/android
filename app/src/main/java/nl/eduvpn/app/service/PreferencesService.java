@@ -21,6 +21,10 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.VisibleForTesting;
+
 import net.openid.appauth.AuthState;
 
 import org.json.JSONException;
@@ -28,12 +32,10 @@ import org.json.JSONObject;
 
 import java.util.List;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.annotation.VisibleForTesting;
 import nl.eduvpn.app.Constants;
 import nl.eduvpn.app.entity.DiscoveredAPI;
 import nl.eduvpn.app.entity.Instance;
+import nl.eduvpn.app.entity.OpenVPN;
 import nl.eduvpn.app.entity.Organization;
 import nl.eduvpn.app.entity.Profile;
 import nl.eduvpn.app.entity.SavedAuthState;
@@ -41,6 +43,7 @@ import nl.eduvpn.app.entity.SavedKeyPair;
 import nl.eduvpn.app.entity.SavedProfile;
 import nl.eduvpn.app.entity.ServerList;
 import nl.eduvpn.app.entity.Settings;
+import nl.eduvpn.app.entity.VpnProtocol;
 import nl.eduvpn.app.utils.Log;
 
 /**
@@ -52,7 +55,7 @@ import nl.eduvpn.app.utils.Log;
 public class PreferencesService {
     private static final String TAG = PreferencesService.class.getName();
 
-    private static final int STORAGE_VERSION = 3;
+    private static final int STORAGE_VERSION = 4;
 
     private static final String KEY_PREFERENCES_NAME = "app_preferences";
 
@@ -61,6 +64,9 @@ public class PreferencesService {
 
     static final String KEY_ORGANIZATION = "organization";
     static final String KEY_INSTANCE = "instance";
+
+    static final String CURRENT_VPN = "current_vpn";
+    @Deprecated
     static final String KEY_PROFILE = "profile";
     static final String KEY_PROFILE_LIST = "profile_list";
     static final String KEY_DISCOVERED_API = "discovered_api";
@@ -118,7 +124,7 @@ public class PreferencesService {
             editor.putString(KEY_SAVED_AUTH_STATES, oldPreferences.getString(KEY_SAVED_AUTH_STATES, null));
             editor.putString(KEY_SAVED_KEY_PAIRS, oldPreferences.getString(KEY_SAVED_KEY_PAIRS, null));
 
-            editor.putInt(KEY_STORAGE_VERSION, STORAGE_VERSION);
+            editor.putInt(KEY_STORAGE_VERSION, 3);
 
             editor.commit();
             oldPreferences.edit().clear().commit();
@@ -133,6 +139,19 @@ public class PreferencesService {
             editor.commit();
             if (Constants.DEBUG) {
                 Log.d(TAG, "Migrated over to storage version v3.");
+            }
+        }
+        if (version < 4) {
+            SharedPreferences.Editor editor = newPreferences.edit();
+            Profile profile = getCurrentProfile();
+            if (profile != null) {
+                setCurrentVPN(new OpenVPN(profile));
+            }
+            editor.remove(KEY_PROFILE);
+            editor.putInt(KEY_STORAGE_VERSION, 4);
+            editor.commit();
+            if (Constants.DEBUG) {
+                Log.d(TAG, "Migrated over to storage version v4.");
             }
         }
     }
@@ -233,32 +252,53 @@ public class PreferencesService {
         }
     }
 
+
     /**
-     * Saves the current profile as the selected one.
+     * Saves the current vpn as the selected one.
      *
-     * @param profile The profile to save.
+     * @param vpnProtocol The vpn to save.
      */
-    public void setCurrentProfile(@Nullable Profile profile) {
+    public void setCurrentVPN(@Nullable VpnProtocol vpnProtocol) {
         try {
-            if (profile == null) {
-                _getSharedPreferences().edit().remove(KEY_PROFILE).apply();
+            if (vpnProtocol == null) {
+                _getSharedPreferences().edit().remove(CURRENT_VPN).apply();
             } else {
                 _getSharedPreferences().edit()
-                        .putString(KEY_PROFILE, _serializerService.serializeProfile(profile).toString())
+                        .putString(CURRENT_VPN, _serializerService.serializeVpnProtocol(vpnProtocol).toString())
                         .apply();
             }
         } catch (SerializerService.UnknownFormatException ex) {
-            Log.e(TAG, "Unable to serialize profile!", ex);
+            Log.e(TAG, "Unable to serialize current vpn!", ex);
+        }
+    }
+
+    /**
+     * Returns the previously saved vpn.
+     *
+     * @return The lastly saved vpn with {@link #setCurrentVPN(VpnProtocol)}.
+     */
+    @Nullable
+    public VpnProtocol getCurrentVPN() {
+        String serializedVPN = _getSharedPreferences().getString(CURRENT_VPN, null);
+        if (serializedVPN == null) {
+            return null;
+        }
+        try {
+            return _serializerService.deserializeVpnProtocol(new JSONObject(serializedVPN));
+        } catch (SerializerService.UnknownFormatException | JSONException ex) {
+            Log.e(TAG, "Unable to deserialize saved profile!", ex);
+            return null;
         }
     }
 
     /**
      * Returns the previously saved profile.
      *
-     * @return The lastly saved profile with {@link #setCurrentProfile(Profile)}.
+     * @return The lastly saved profile.
      */
+    @Deprecated
     @Nullable
-    public Profile getCurrentProfile() {
+    private Profile getCurrentProfile() {
         String serializedProfile = _getSharedPreferences().getString(KEY_PROFILE, null);
         if (serializedProfile == null) {
             return null;
@@ -350,7 +390,7 @@ public class PreferencesService {
      */
     @NonNull
     public Settings getAppSettings() {
-        Settings defaultSettings = new Settings(Settings.USE_CUSTOM_TABS_DEFAULT_VALUE, Settings.FORCE_TCP_DEFAULT_VALUE);
+        Settings defaultSettings = new Settings(Settings.USE_CUSTOM_TABS_DEFAULT_VALUE, Settings.FORCE_TCP_DEFAULT_VALUE, Settings.USE_WIREGUARD_DEFAULT_VALUE);
         String serializedSettings = _getSharedPreferences().getString(KEY_APP_SETTINGS, null);
         if (serializedSettings == null) {
             // Default settings.

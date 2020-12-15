@@ -23,15 +23,16 @@ import android.os.Bundle;
 import android.view.MenuItem;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.ActionBar;
+import androidx.fragment.app.Fragment;
+
 import net.openid.appauth.AuthorizationException;
 import net.openid.appauth.AuthorizationResponse;
 
 import javax.inject.Inject;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.ActionBar;
-import androidx.fragment.app.Fragment;
 import nl.eduvpn.app.base.BaseActivity;
 import nl.eduvpn.app.databinding.ActivityMainBinding;
 import nl.eduvpn.app.fragment.AddServerFragment;
@@ -39,8 +40,8 @@ import nl.eduvpn.app.fragment.ConnectionStatusFragment;
 import nl.eduvpn.app.fragment.OrganizationSelectionFragment;
 import nl.eduvpn.app.fragment.ServerSelectionFragment;
 import nl.eduvpn.app.service.ConnectionService;
+import nl.eduvpn.app.service.EduOpenVPNService;
 import nl.eduvpn.app.service.HistoryService;
-import nl.eduvpn.app.service.VPNService;
 import nl.eduvpn.app.utils.ErrorDialog;
 import nl.eduvpn.app.utils.Log;
 
@@ -55,7 +56,7 @@ public class MainActivity extends BaseActivity<ActivityMainBinding> {
     protected HistoryService _historyService;
 
     @Inject
-    protected VPNService _vpnService;
+    protected EduOpenVPNService _eduOpenvpnService;
 
     @Inject
     protected ConnectionService _connectionService;
@@ -73,10 +74,11 @@ public class MainActivity extends BaseActivity<ActivityMainBinding> {
         super.onCreate(savedInstanceState);
         EduVPNApplication.get(this).component().inject(this);
         setSupportActionBar(binding.toolbar.toolbar);
-        _vpnService.onCreate(this);
+        _eduOpenvpnService.onCreate(this);
         if (savedInstanceState == null) {
             // If there's an ongoing VPN connection, open the status screen.
-            if (_vpnService.getStatus() != VPNService.VPNStatus.DISCONNECTED) {
+            // todo: also do this for WireGuard
+            if (_eduOpenvpnService.getStatus() != EduOpenVPNService.VPNStatus.DISCONNECTED) {
                 openFragment(new ConnectionStatusFragment(), false);
             } else if (!_historyService.getSavedAuthStateList().isEmpty()) {
                 openFragment(ServerSelectionFragment.Companion.newInstance(false), false);
@@ -169,7 +171,7 @@ public class MainActivity extends BaseActivity<ActivityMainBinding> {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        _vpnService.onDestroy(this);
+        _eduOpenvpnService.onDestroy(this);
     }
 
     public void openFragment(Fragment fragment, boolean openOnTop) {
@@ -232,8 +234,8 @@ public class MainActivity extends BaseActivity<ActivityMainBinding> {
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         if (requestCode == REQUEST_CODE_SETTINGS) {
             if (resultCode == SettingsActivity.RESULT_APP_DATA_CLEARED) {
-                if (_vpnService.getStatus() != VPNService.VPNStatus.DISCONNECTED) {
-                    _vpnService.disconnect();
+                if (_eduOpenvpnService.getStatus() != EduOpenVPNService.VPNStatus.DISCONNECTED) {
+                    _eduOpenvpnService.disconnect();
                 }
                 openFragment(new OrganizationSelectionFragment(), false);
             }

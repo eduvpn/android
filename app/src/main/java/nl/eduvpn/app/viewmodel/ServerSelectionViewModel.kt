@@ -31,6 +31,7 @@ import nl.eduvpn.app.service.*
 import nl.eduvpn.app.utils.Log
 import nl.eduvpn.app.utils.getCountryText
 import nl.eduvpn.app.utils.runCatchingCoroutine
+import nl.eduvpn.app.wireguard.WireGuardService
 import java.util.*
 import javax.inject.Inject
 
@@ -41,14 +42,17 @@ class ServerSelectionViewModel @Inject constructor(
         private val historyService: HistoryService,
         private val preferencesService: PreferencesService,
         connectionService: ConnectionService,
-        vpnService: VPNService,
+        eduOpenVpnService: EduOpenVPNService,
+        wireGuardService: WireGuardService,
         private val organizationService: OrganizationService) : BaseConnectionViewModel(
         context, apiService,
         serializerService,
         historyService,
         preferencesService,
         connectionService,
-        vpnService), Observer {
+        eduOpenVpnService,
+        wireGuardService,
+), Observer {
 
 
     val adapterItems = MutableLiveData<List<OrganizationAdapter.OrganizationAdapterItem>>()

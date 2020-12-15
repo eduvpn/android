@@ -19,12 +19,20 @@ package nl.eduvpn.app.service;
 
 import android.util.Pair;
 
+import androidx.annotation.NonNull;
+
+import com.wireguard.config.BadConfigException;
+import com.wireguard.config.Config;
+
 import net.openid.appauth.AuthState;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.StringReader;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -37,13 +45,13 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
 
-import androidx.annotation.NonNull;
 import nl.eduvpn.app.Constants;
 import nl.eduvpn.app.entity.AuthorizationType;
 import nl.eduvpn.app.entity.DiscoveredAPI;
 import nl.eduvpn.app.entity.Instance;
 import nl.eduvpn.app.entity.InstanceList;
 import nl.eduvpn.app.entity.KeyPair;
+import nl.eduvpn.app.entity.OpenVPN;
 import nl.eduvpn.app.entity.Organization;
 import nl.eduvpn.app.entity.OrganizationList;
 import nl.eduvpn.app.entity.Profile;
@@ -53,6 +61,8 @@ import nl.eduvpn.app.entity.SavedProfile;
 import nl.eduvpn.app.entity.ServerList;
 import nl.eduvpn.app.entity.Settings;
 import nl.eduvpn.app.entity.TranslatableString;
+import nl.eduvpn.app.entity.VpnProtocol;
+import nl.eduvpn.app.entity.WireGuard;
 import nl.eduvpn.app.entity.message.Maintenance;
 import nl.eduvpn.app.entity.message.Message;
 import nl.eduvpn.app.entity.message.Notification;
@@ -133,6 +143,67 @@ public class SerializerService {
             throw new UnknownFormatException(ex);
         }
     }
+
+    public JSONObject serializeVpnProtocol(VpnProtocol vpnProtocol) throws UnknownFormatException {
+        JSONObject result = new JSONObject();
+        try {
+            if (vpnProtocol instanceof OpenVPN) {
+                result.put("vpn_type", "OpenVPN");
+                result.put("vpn_value", serializeProfile(((OpenVPN) vpnProtocol).getProfile()));
+            } else if (vpnProtocol instanceof WireGuard) {
+                result.put("vpn_type", "WireGuard");
+                result.put("vpn_value", serializeWireGuardConfig(((WireGuard) vpnProtocol).getConfig()));
+            } else {
+                //todo: remove this case by converting this file to Kotlin
+                throw new RuntimeException("Unknown vpn protocol when serializing.");
+            }
+        } catch (JSONException ex) {
+            throw new UnknownFormatException(ex);
+        }
+        return result;
+    }
+
+    public VpnProtocol deserializeVpnProtocol(JSONObject jsonObject) throws UnknownFormatException {
+        try {
+            String type = jsonObject.getString("vpn_type");
+            if (type.equals("OpenVPN")) {
+                JSONObject value = jsonObject.getJSONObject("vpn_value");
+                return new OpenVPN(deserializeProfile(value));
+            } else if (type.equals("WireGuard")) {
+                String value = jsonObject.getString("vpn_value");
+                return new WireGuard(deserializeWireGuardConfig(value));
+            } else {
+                throw new UnknownFormatException("Unknown vpn protocol when deserializing: " + type);
+            }
+        } catch (JSONException ex) {
+            throw new UnknownFormatException(ex);
+        }
+    }
+
+    /**
+     * Serializes a WireGuard Config to a string.
+     *
+     * @param config The config to serialize.
+     * @return The config as string.
+     */
+    private String serializeWireGuardConfig(Config config) {
+        return config.toWgQuickString();
+    }
+
+    /**
+     * Deserializes a WireGuard string to an object instance.
+     *
+     * @param configString The string to deserialize.
+     * @return The config
+     */
+    private Config deserializeWireGuardConfig(String configString) throws UnknownFormatException{
+        try {
+            return Config.parse(new BufferedReader(new StringReader(configString)));
+        } catch (BadConfigException | IOException ex) {
+            throw new UnknownFormatException(ex);
+        }
+    }
+
 
     /**
      * Serializes a profile to JSON.
@@ -497,11 +568,11 @@ public class SerializerService {
                 JSONObject messageObject = new JSONObject();
                 messageObject.put("date_time", API_DATE_FORMAT.format(message.getDate()));
                 if (message instanceof Maintenance) {
-                    messageObject.put("begin", API_DATE_FORMAT.format(((Maintenance)message).getStart()));
-                    messageObject.put("end", API_DATE_FORMAT.format(((Maintenance)message).getEnd()));
+                    messageObject.put("begin", API_DATE_FORMAT.format(((Maintenance) message).getStart()));
+                    messageObject.put("end", API_DATE_FORMAT.format(((Maintenance) message).getEnd()));
                     messageObject.put("type", "maintenance");
                 } else if (message instanceof Notification) {
-                    messageObject.put("message", ((Notification)message).getContent());
+                    messageObject.put("message", ((Notification) message).getContent());
                     messageObject.put("type", "notification");
                 } else {
                     throw new RuntimeException("Unexpected message format!");
@@ -681,7 +752,11 @@ public class SerializerService {
             if (jsonObject.has("force_tcp")) {
                 forceTcp = jsonObject.getBoolean("force_tcp");
             }
-            return new Settings(useCustomTabs, forceTcp);
+            boolean useWireGuard = Settings.USE_WIREGUARD_DEFAULT_VALUE;
+            if (jsonObject.has("use_wireguard")) {
+                useWireGuard = jsonObject.getBoolean("use_wireguard");
+            }
+            return new Settings(useCustomTabs, forceTcp, useWireGuard);
         } catch (JSONException ex) {
             throw new UnknownFormatException(ex);
         }
@@ -699,6 +774,7 @@ public class SerializerService {
         try {
             result.put("use_custom_tabs", settings.useCustomTabs());
             result.put("force_tcp", settings.forceTcp());
+            result.put("use_wireguard", settings.useWireGuard());
             return result;
         } catch (JSONException ex) {
             throw new UnknownFormatException(ex);
