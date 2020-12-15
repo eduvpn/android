@@ -41,7 +41,7 @@ class WireGuardAPI(private val apiService: APIService,
      * @throws UserNotAuthorizedException
      * @throws IOException
      */
-    suspend fun wireguardEnabled(authState: AuthState?): Boolean {
+    suspend fun wireGuardEnabled(authState: AuthState?): Boolean {
         //todo: checking response code does not seem to be possible with .getString
         val string: String = apiService.getString(getURL("available"), authState)
         return string == "y"

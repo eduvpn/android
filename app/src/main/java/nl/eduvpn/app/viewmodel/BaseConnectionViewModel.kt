@@ -138,7 +138,7 @@ abstract class BaseConnectionViewModel(
 
         val wireGuardEnabled = try {
             connectionState.value = ConnectionState.CheckingServerWireGuardSupport
-            wireGuardAPI.wireguardEnabled(authState)
+            wireGuardAPI.wireGuardEnabled(authState)
         } catch (ex: APIService.UserNotAuthorizedException) {
             authorize(instance, discoveredAPI)
             TODO()

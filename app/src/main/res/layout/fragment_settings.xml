@@ -98,14 +98,14 @@
                     android:text="@string/settings_use_wireguard_title" />
 
                 <View
-                    android:id="@+id/wireguardSeparator"
+                    android:id="@+id/wireGuardSeparator"
                     style="@style/SettingsSeparator"
                     android:layout_below="@id/useWireGuardSwitch" />
 
                 <androidx.appcompat.widget.AppCompatCheckBox
                     android:id="@+id/useCustomTabsSwitch"
                     style="@style/SettingsLabelTitle"
-                    android:layout_below="@+id/wireguardSeparator"
+                    android:layout_below="@+id/wireGuardSeparator"
                     android:paddingLeft="8dp"
                     android:text="@string/settings_custom_tabs_opt_out_title" />
 
