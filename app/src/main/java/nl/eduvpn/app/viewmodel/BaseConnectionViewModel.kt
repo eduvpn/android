@@ -25,7 +25,6 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import de.blinkt.openvpn.VpnProfile
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import net.openid.appauth.AuthState
@@ -41,6 +40,7 @@ import nl.eduvpn.app.utils.runCatchingCoroutine
 import nl.eduvpn.app.wireguard.WireGuardAPI
 import nl.eduvpn.app.wireguard.WireGuardService
 import org.json.JSONObject
+import java.io.IOException
 import java.io.UnsupportedEncodingException
 import java.net.URLEncoder
 
@@ -97,8 +97,17 @@ abstract class BaseConnectionViewModel(
                             preferencesService.currentProfileList = null
                             historyService.cacheAuthorizationState(instance, savedToken.authState)
                         }
-                        if (wireguard(instance, discoveredAPI, savedToken.authState)) {
-                            fetchProfiles(instance, discoveredAPI, savedToken.authState)
+                        val wireGuardAPI = WireGuardAPI(apiService, discoveredAPI.apiBaseUri)
+                        runCatchingCoroutine {
+                            wireGuardEnabled(wireGuardAPI, instance, discoveredAPI, savedToken.authState)
+                        }.onSuccess { enabled ->
+                            if (!enabled || !tryConnectViaWireGuard(wireGuardAPI, savedToken.authState)) {
+                                fetchProfiles(instance, discoveredAPI, savedToken.authState)
+                            }
+                        }.onFailure { thr ->
+                            Log.e(TAG, "Error checking if WireGuard is supported on server!", thr)
+                            connectionState.value = ConnectionState.Ready
+                            parentAction.value = ParentAction.DisplayError(R.string.error_dialog_title, thr.toString())
                         }
                     }
                 } catch (ex: SerializerService.UnknownFormatException) {
@@ -117,43 +126,45 @@ abstract class BaseConnectionViewModel(
     }
 
     /**
-     * @return if we should use OpenVPN
+     * @throws IOException If checking server support for WireGuard failed.
+     *
+     * @return If WireGuard is enabled in the app and on the server.
      */
-    private suspend fun wireguard(instance: Instance, discoveredAPI: DiscoveredAPI, authState: AuthState): Boolean {
+    private suspend fun wireGuardEnabled(wireGuardAPI: WireGuardAPI, instance: Instance, discoveredAPI: DiscoveredAPI, authState: AuthState): Boolean {
 
         if (!preferencesService.appSettings.useWireGuard()) {
-            return true
-        }
-
-        val wireguardAPI = WireGuardAPI(apiService, discoveredAPI.apiBaseUri)
-
-        val wireguardEnabled = try {
-            connectionState.value = ConnectionState.CheckingServerWireGuardSupport
-            wireguardAPI.wireguardEnabled(authState)
-        } catch (ex: APIService.UserNotAuthorizedException) {
-            authorize(instance, discoveredAPI)
-            TODO()
-        } catch (ex: Exception) {
-            if (ex is CancellationException) {
-                throw ex
-            }
-            Log.e(TAG, "Error checking if WireGuard is supported on server!", ex)
-            connectionState.value = ConnectionState.Ready
-            parentAction.value = ParentAction.DisplayError(R.string.error_dialog_title, ex.toString())
             return false
         }
 
-        if (!wireguardEnabled) {
-            Log.d(TAG, "WireGuard not enabled.")
-            return true
+        val wireGuardEnabled = try {
+            connectionState.value = ConnectionState.CheckingServerWireGuardSupport
+            wireGuardAPI.wireguardEnabled(authState)
+        } catch (ex: APIService.UserNotAuthorizedException) {
+            authorize(instance, discoveredAPI)
+            TODO()
         }
+
+        if (!wireGuardEnabled) {
+            Log.d(TAG, "WireGuard not enabled on server.")
+            return false
+        }
+
         Log.d(TAG, "WireGuard enabled.")
+        return true
+    }
+
+    /**
+     * Tries to connect using WireGuard.
+     *
+     * @return If the WireGuard connecting is going to start.
+     */
+    private suspend fun tryConnectViaWireGuard(wireGuardAPI: WireGuardAPI, authState: AuthState): Boolean {
 
         val config = try {
             connectionState.value = ConnectionState.ProfileDownloadingKeyPair
-            wireguardAPI.createConfig(authState)
+            wireGuardAPI.createConfig(authState)
         } catch (ex: Exception) {
-            if (ex is CancellationException) {
+            if (!(ex is IOException || ex is WireGuardAPI.WireGuardAPIException)) {
                 throw ex
             }
             Log.e(TAG, "Error creating WireGuard config!", ex)
@@ -168,7 +179,7 @@ abstract class BaseConnectionViewModel(
         connectionState.value = ConnectionState.Ready
         parentAction.value = ParentAction.ConnectWithProfile(vpnProfile)
 
-        return false
+        return true
     }
 
     open fun onResume() {

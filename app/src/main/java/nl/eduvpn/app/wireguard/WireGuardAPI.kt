@@ -26,7 +26,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import net.openid.appauth.AuthState
 import nl.eduvpn.app.service.APIService
+import nl.eduvpn.app.service.APIService.UserNotAuthorizedException
 import java.io.BufferedReader
+import java.io.IOException
 import java.io.StringReader
 import java.net.URLEncoder
 
@@ -35,6 +37,10 @@ class WireGuardAPI(private val apiService: APIService,
 
     class WireGuardAPIException(message: String, exception: Exception) : Exception(message, exception)
 
+    /**
+     * @throws UserNotAuthorizedException
+     * @throws IOException
+     */
     suspend fun wireguardEnabled(authState: AuthState?): Boolean {
         //todo: checking response code does not seem to be possible with .getString
         val string: String = apiService.getString(getURL("available"), authState)
@@ -42,6 +48,8 @@ class WireGuardAPI(private val apiService: APIService,
     }
 
     /**
+     * @throws IOException
+     * @throws UserNotAuthorizedException
      * @throws WireGuardAPIException
      */
     suspend fun createConfig(authState: AuthState?): Config {
@@ -63,6 +71,10 @@ class WireGuardAPI(private val apiService: APIService,
         return config
     }
 
+    /**
+     * @throws UserNotAuthorizedException
+     * @throws IOException
+     */
     private suspend fun createConfig(publicKey: Key, authSate: AuthState?): String {
         val configString: String = apiService.postResource(
                 getURL("create_config"),
