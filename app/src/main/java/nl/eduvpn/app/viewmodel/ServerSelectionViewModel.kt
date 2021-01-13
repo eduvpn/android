@@ -31,6 +31,7 @@ import nl.eduvpn.app.service.*
 import nl.eduvpn.app.utils.Log
 import nl.eduvpn.app.utils.getCountryText
 import nl.eduvpn.app.utils.runCatchingCoroutine
+import nl.eduvpn.app.wireguard.WireGuardAPI
 import nl.eduvpn.app.wireguard.WireGuardService
 import java.util.*
 import javax.inject.Inject
@@ -38,6 +39,7 @@ import javax.inject.Inject
 class ServerSelectionViewModel @Inject constructor(
         context: Context,
         apiService: APIService,
+        wireGuardAPI: WireGuardAPI,
         serializerService: SerializerService,
         private val historyService: HistoryService,
         private val preferencesService: PreferencesService,
@@ -45,7 +47,9 @@ class ServerSelectionViewModel @Inject constructor(
         eduOpenVpnService: EduOpenVPNService,
         wireGuardService: WireGuardService,
         private val organizationService: OrganizationService) : BaseConnectionViewModel(
-        context, apiService,
+        context,
+        apiService,
+        wireGuardAPI,
         serializerService,
         historyService,
         preferencesService,

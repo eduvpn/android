@@ -51,6 +51,7 @@ import java.net.URLEncoder
 abstract class BaseConnectionViewModel(
         private val context: Context,
         private val apiService: APIService,
+        private val wireGuardAPI: WireGuardAPI,
         private val serializerService: SerializerService,
         private val historyService: HistoryService,
         private val preferencesService: PreferencesService,
@@ -97,11 +98,15 @@ abstract class BaseConnectionViewModel(
                             preferencesService.currentProfileList = null
                             historyService.cacheAuthorizationState(instance, savedToken.authState)
                         }
-                        val wireGuardAPI = WireGuardAPI(apiService, discoveredAPI.apiBaseUri)
                         runCatchingCoroutine {
-                            wireGuardEnabled(wireGuardAPI, instance, discoveredAPI, savedToken.authState)
+                            wireGuardEnabled(instance, discoveredAPI, savedToken.authState)
                         }.onSuccess { enabled ->
-                            if (!enabled || !tryConnectViaWireGuard(wireGuardAPI, savedToken.authState)) {
+                            if (enabled) {
+                                preferencesService.currentInstance = instance
+                                preferencesService.currentDiscoveredAPI = discoveredAPI
+                                preferencesService.currentAuthState = savedToken.authState
+                                connectViaWireGuard()
+                            } else {
                                 fetchProfiles(instance, discoveredAPI, savedToken.authState)
                             }
                         }.onFailure { thr ->
@@ -130,7 +135,7 @@ abstract class BaseConnectionViewModel(
      *
      * @return If WireGuard is enabled in the app and on the server.
      */
-    private suspend fun wireGuardEnabled(wireGuardAPI: WireGuardAPI, instance: Instance, discoveredAPI: DiscoveredAPI, authState: AuthState): Boolean {
+    private suspend fun wireGuardEnabled(instance: Instance, discoveredAPI: DiscoveredAPI, authState: AuthState): Boolean {
 
         if (!preferencesService.appSettings.useWireGuard()) {
             return false
@@ -138,7 +143,7 @@ abstract class BaseConnectionViewModel(
 
         val wireGuardEnabled = try {
             connectionState.value = ConnectionState.CheckingServerWireGuardSupport
-            wireGuardAPI.wireGuardEnabled(authState)
+            wireGuardAPI.wireGuardEnabled(discoveredAPI.apiBaseUri, authState)
         } catch (ex: APIService.UserNotAuthorizedException) {
             authorize(instance, discoveredAPI)
             TODO()
@@ -154,32 +159,12 @@ abstract class BaseConnectionViewModel(
     }
 
     /**
-     * Tries to connect using WireGuard.
-     *
-     * @return If the WireGuard connecting is going to start.
+     * Connect using WireGuard.
      */
-    private suspend fun tryConnectViaWireGuard(wireGuardAPI: WireGuardAPI, authState: AuthState): Boolean {
-
-        val config = try {
-            connectionState.value = ConnectionState.ProfileDownloadingKeyPair
-            wireGuardAPI.createConfig(authState)
-        } catch (ex: Exception) {
-            if (!(ex is IOException || ex is WireGuardAPI.WireGuardAPIException)) {
-                throw ex
-            }
-            Log.e(TAG, "Error creating WireGuard config!", ex)
-            connectionState.value = ConnectionState.Ready
-            parentAction.value = ParentAction.DisplayError(R.string.error_dialog_title, ex.toString())
-            return false
-        }
-
-        preferencesService.currentVPN = WireGuard(config)
-
-        val vpnProfile = WireGuard(config)
+    private fun connectViaWireGuard() {
+        preferencesService.currentVPN = WireGuard
         connectionState.value = ConnectionState.Ready
-        parentAction.value = ParentAction.ConnectWithProfile(vpnProfile)
-
-        return true
+        parentAction.value = ParentAction.ConnectWithProfile(WireGuard)
     }
 
     open fun onResume() {
@@ -428,7 +413,9 @@ abstract class BaseConnectionViewModel(
                 eduOpenVpnService.connect(activity, config)
             }
             is WireGuard -> {
-                wireGuardService.connect(activity, vpnProtocol.config)
+                viewModelScope.launch {
+                    wireGuardService.connect(activity, preferencesService.currentDiscoveredAPI!!.apiBaseUri, preferencesService.currentAuthState!!)
+                }
             }
         }
     }

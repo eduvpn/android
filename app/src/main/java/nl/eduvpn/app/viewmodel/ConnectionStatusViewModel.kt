@@ -31,6 +31,7 @@ import nl.eduvpn.app.entity.WireGuard
 import nl.eduvpn.app.service.*
 import nl.eduvpn.app.utils.getCountryText
 import nl.eduvpn.app.utils.toSingleEvent
+import nl.eduvpn.app.wireguard.WireGuardAPI
 import nl.eduvpn.app.wireguard.WireGuardService
 import javax.inject.Inject
 
@@ -41,9 +42,10 @@ class ConnectionStatusViewModel @Inject constructor(
         private val wireGuardService: WireGuardService,
         historyService: HistoryService,
         apiService: APIService,
+        wireGuardAPI: WireGuardAPI,
         serializerService: SerializerService,
         connectionService: ConnectionService
-) : BaseConnectionViewModel(context, apiService, serializerService, historyService,
+) : BaseConnectionViewModel(context, apiService, wireGuardAPI, serializerService, historyService,
         preferencesService, connectionService, eduOpenVpnService, wireGuardService) {
 
     sealed class ParentAction {

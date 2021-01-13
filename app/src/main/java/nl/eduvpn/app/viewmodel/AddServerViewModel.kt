@@ -22,6 +22,7 @@ import android.content.Context
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Transformations
 import nl.eduvpn.app.service.*
+import nl.eduvpn.app.wireguard.WireGuardAPI
 import nl.eduvpn.app.wireguard.WireGuardService
 import javax.inject.Inject
 
@@ -29,16 +30,17 @@ class AddServerViewModel @Inject constructor(
         preferencesService: PreferencesService,
         context: Context,
         apiService: APIService,
+        wireGuardAPI: WireGuardAPI,
         serializerService: SerializerService,
         historyService: HistoryService,
         connectionService: ConnectionService,
         eduOpenVpnService: EduOpenVPNService,
         wireGuardService: WireGuardService,
-) : BaseConnectionViewModel(context, apiService, serializerService, historyService, preferencesService, connectionService, eduOpenVpnService, wireGuardService) {
+) : BaseConnectionViewModel(context, apiService, wireGuardAPI, serializerService, historyService, preferencesService, connectionService, eduOpenVpnService, wireGuardService) {
 
     val serverUrl = MutableLiveData("")
 
-    val addButtonEnabled = Transformations.map(serverUrl) {url ->
+    val addButtonEnabled = Transformations.map(serverUrl) { url ->
         url != null && url.contains(".") && url.length > 3
     }
 }

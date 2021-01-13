@@ -46,6 +46,7 @@ import nl.eduvpn.app.service.SecurityService;
 import nl.eduvpn.app.service.SerializerService;
 import nl.eduvpn.app.service.VPNService;
 import nl.eduvpn.app.utils.Log;
+import nl.eduvpn.app.wireguard.WireGuardAPI;
 import nl.eduvpn.app.wireguard.WireGuardService;
 import okhttp3.Cache;
 import okhttp3.OkHttpClient;
@@ -116,8 +117,14 @@ public class ApplicationModule {
 
     @Provides
     @Singleton
-    protected WireGuardService provideWireGuardService(Context context) {
-        return new WireGuardService(context);
+    protected WireGuardAPI provideWireGuardAPI(APIService apiService) {
+        return new WireGuardAPI(apiService);
+    }
+
+    @Provides
+    @Singleton
+    protected WireGuardService provideWireGuardService(Context context, WireGuardAPI wireGuardAPI) {
+        return new WireGuardService(context, wireGuardAPI);
     }
 
     @Provides

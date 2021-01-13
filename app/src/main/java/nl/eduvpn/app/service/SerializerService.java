@@ -21,18 +21,12 @@ import android.util.Pair;
 
 import androidx.annotation.NonNull;
 
-import com.wireguard.config.BadConfigException;
-import com.wireguard.config.Config;
-
 import net.openid.appauth.AuthState;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.StringReader;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -152,7 +146,6 @@ public class SerializerService {
                 result.put("vpn_value", serializeProfile(((OpenVPN) vpnProtocol).getProfile()));
             } else if (vpnProtocol instanceof WireGuard) {
                 result.put("vpn_type", "WireGuard");
-                result.put("vpn_value", serializeWireGuardConfig(((WireGuard) vpnProtocol).getConfig()));
             } else {
                 //todo: remove this case by converting this file to Kotlin
                 throw new RuntimeException("Unknown vpn protocol when serializing.");
@@ -170,36 +163,11 @@ public class SerializerService {
                 JSONObject value = jsonObject.getJSONObject("vpn_value");
                 return new OpenVPN(deserializeProfile(value));
             } else if (type.equals("WireGuard")) {
-                String value = jsonObject.getString("vpn_value");
-                return new WireGuard(deserializeWireGuardConfig(value));
+                return WireGuard.INSTANCE;
             } else {
                 throw new UnknownFormatException("Unknown vpn protocol when deserializing: " + type);
             }
         } catch (JSONException ex) {
-            throw new UnknownFormatException(ex);
-        }
-    }
-
-    /**
-     * Serializes a WireGuard Config to a string.
-     *
-     * @param config The config to serialize.
-     * @return The config as string.
-     */
-    private String serializeWireGuardConfig(Config config) {
-        return config.toWgQuickString();
-    }
-
-    /**
-     * Deserializes a WireGuard string to an object instance.
-     *
-     * @param configString The string to deserialize.
-     * @return The config
-     */
-    private Config deserializeWireGuardConfig(String configString) throws UnknownFormatException{
-        try {
-            return Config.parse(new BufferedReader(new StringReader(configString)));
-        } catch (BadConfigException | IOException ex) {
             throw new UnknownFormatException(ex);
         }
     }

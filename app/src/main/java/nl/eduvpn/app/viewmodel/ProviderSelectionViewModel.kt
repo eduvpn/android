@@ -23,12 +23,14 @@ import androidx.lifecycle.MutableLiveData
 import nl.eduvpn.app.entity.Instance
 import nl.eduvpn.app.entity.Organization
 import nl.eduvpn.app.service.*
+import nl.eduvpn.app.wireguard.WireGuardAPI
 import nl.eduvpn.app.wireguard.WireGuardService
 import javax.inject.Inject
 
 class ProviderSelectionViewModel @Inject constructor(
         context: Context,
         apiService: APIService,
+        wireGuardAPI: WireGuardAPI,
         serializerService: SerializerService,
         historyService: HistoryService,
         private val preferencesService: PreferencesService,
@@ -38,6 +40,7 @@ class ProviderSelectionViewModel @Inject constructor(
         private val organizationService: OrganizationService) : BaseConnectionViewModel(
         context,
         apiService,
+        wireGuardAPI,
         serializerService,
         historyService,
         preferencesService,
