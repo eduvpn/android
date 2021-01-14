@@ -24,10 +24,8 @@ import android.text.Spanned
 import androidx.core.text.HtmlCompat
 import androidx.lifecycle.MutableLiveData
 import nl.eduvpn.app.R
-import nl.eduvpn.app.entity.OpenVPN
 import nl.eduvpn.app.entity.Profile
 import nl.eduvpn.app.entity.VpnProtocol
-import nl.eduvpn.app.entity.WireGuard
 import nl.eduvpn.app.service.*
 import nl.eduvpn.app.utils.getCountryText
 import nl.eduvpn.app.utils.toSingleEvent
@@ -94,8 +92,8 @@ class ConnectionStatusViewModel @Inject constructor(
             serverSupport.value = null
         }
         certExpiryTime = when (preferencesService.currentVPN!!) {
-            is OpenVPN -> historyService.getSavedKeyPairForInstance(connectionInstance).keyPair.expiryTimeMillis
-            is WireGuard -> null
+            is VpnProtocol.OpenVPN -> historyService.getSavedKeyPairForInstance(connectionInstance).keyPair.expiryTimeMillis
+            is VpnProtocol.WireGuard -> null
         }
     }
 
@@ -166,7 +164,7 @@ class ConnectionStatusViewModel @Inject constructor(
                 serverName.value = context.getString(R.string.profile_name_not_found)
                 profileName.value = null
             }
-            is OpenVPN -> {
+            is VpnProtocol.OpenVPN -> {
                 val connectionInstance = preferencesService.currentInstance
                 if (connectionInstance?.countryCode != null) {
                     serverName.value = connectionInstance.getCountryText()
@@ -175,7 +173,7 @@ class ConnectionStatusViewModel @Inject constructor(
                 }
                 profileName.value = currentVPN.profile.displayName
             }
-            is WireGuard -> {
+            is VpnProtocol.WireGuard -> {
                 profileName.value = "WireGuard" //todo
                 serverName.value = "WireGuard" //todo
             }

@@ -45,7 +45,6 @@ import nl.eduvpn.app.entity.DiscoveredAPI;
 import nl.eduvpn.app.entity.Instance;
 import nl.eduvpn.app.entity.InstanceList;
 import nl.eduvpn.app.entity.KeyPair;
-import nl.eduvpn.app.entity.OpenVPN;
 import nl.eduvpn.app.entity.Organization;
 import nl.eduvpn.app.entity.OrganizationList;
 import nl.eduvpn.app.entity.Profile;
@@ -56,7 +55,6 @@ import nl.eduvpn.app.entity.ServerList;
 import nl.eduvpn.app.entity.Settings;
 import nl.eduvpn.app.entity.TranslatableString;
 import nl.eduvpn.app.entity.VpnProtocol;
-import nl.eduvpn.app.entity.WireGuard;
 import nl.eduvpn.app.entity.message.Maintenance;
 import nl.eduvpn.app.entity.message.Message;
 import nl.eduvpn.app.entity.message.Notification;
@@ -141,10 +139,10 @@ public class SerializerService {
     public JSONObject serializeVpnProtocol(VpnProtocol vpnProtocol) throws UnknownFormatException {
         JSONObject result = new JSONObject();
         try {
-            if (vpnProtocol instanceof OpenVPN) {
+            if (vpnProtocol instanceof VpnProtocol.OpenVPN) {
                 result.put("vpn_type", "OpenVPN");
-                result.put("vpn_value", serializeProfile(((OpenVPN) vpnProtocol).getProfile()));
-            } else if (vpnProtocol instanceof WireGuard) {
+                result.put("vpn_value", serializeProfile(((VpnProtocol.OpenVPN) vpnProtocol).getProfile()));
+            } else if (vpnProtocol instanceof VpnProtocol.WireGuard) {
                 result.put("vpn_type", "WireGuard");
             } else {
                 //todo: remove this case by converting this file to Kotlin
@@ -161,9 +159,9 @@ public class SerializerService {
             String type = jsonObject.getString("vpn_type");
             if (type.equals("OpenVPN")) {
                 JSONObject value = jsonObject.getJSONObject("vpn_value");
-                return new OpenVPN(deserializeProfile(value));
+                return new VpnProtocol.OpenVPN(deserializeProfile(value));
             } else if (type.equals("WireGuard")) {
-                return WireGuard.INSTANCE;
+                return VpnProtocol.WireGuard.INSTANCE;
             } else {
                 throw new UnknownFormatException("Unknown vpn protocol when deserializing: " + type);
             }

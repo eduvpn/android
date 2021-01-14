@@ -162,9 +162,9 @@ abstract class BaseConnectionViewModel(
      * Connect using WireGuard.
      */
     private fun connectViaWireGuard() {
-        preferencesService.currentVPN = WireGuard
+        preferencesService.currentVPN = VpnProtocol.WireGuard
         connectionState.value = ConnectionState.Ready
-        parentAction.value = ParentAction.ConnectWithProfile(WireGuard)
+        parentAction.value = ParentAction.ConnectWithProfile(VpnProtocol.WireGuard)
     }
 
     open fun onResume() {
@@ -318,9 +318,9 @@ abstract class BaseConnectionViewModel(
                     // Cache the profile
                     val savedProfile = SavedProfile(instance, profile, vpnProfile.uuidString)
                     historyService.cacheSavedProfile(savedProfile)
-                    preferencesService.currentVPN = OpenVPN(profile)
+                    preferencesService.currentVPN = VpnProtocol.OpenVPN(profile)
                     // Connect with the profile
-                    parentAction.value = ParentAction.ConnectWithProfile(OpenVPN(profile))
+                    parentAction.value = ParentAction.ConnectWithProfile(VpnProtocol.OpenVPN(profile))
                 } else {
                     connectionState.value = ConnectionState.Ready
                     parentAction.value = ParentAction.DisplayError(R.string.error_dialog_title, context.getString(R.string.error_importing_profile))
@@ -407,12 +407,12 @@ abstract class BaseConnectionViewModel(
 
     fun connect(activity: Activity, vpnProtocol: VpnProtocol) {
         when (vpnProtocol) {
-            is OpenVPN -> {
+            is VpnProtocol.OpenVPN -> {
                 val config = findOpenVPNProfile(vpnProtocol.profile)
                         ?: throw RuntimeException("No saved profile.")
                 eduOpenVpnService.connect(activity, config)
             }
-            is WireGuard -> {
+            is VpnProtocol.WireGuard -> {
                 viewModelScope.launch {
                     wireGuardService.connect(activity, preferencesService.currentDiscoveredAPI!!.apiBaseUri, preferencesService.currentAuthState!!)
                 }
