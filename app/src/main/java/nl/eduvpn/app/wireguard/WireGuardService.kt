@@ -9,21 +9,27 @@ import com.wireguard.android.backend.Tunnel
 import com.wireguard.config.Config
 import com.wireguard.config.Interface
 import kotlinx.coroutines.*
+import net.openid.appauth.AuthState
 import nl.eduvpn.app.service.VPNService
 import nl.eduvpn.app.utils.Log
+import nl.eduvpn.app.utils.runCatchingCoroutine
+import java.io.IOException
 
 /**
  * Service responsible for managing the WireGuard profiles and the connection.
  * todo: support always-on vpn
  * todo: support per-app vpn
- * todo: show notification which allows the user to disable the vpn
+ * todo: show notification which allows the user to disable and pause the vpn. When pausing, the
+ *  config should not be recreated.
  */
-class WireGuardService(private val context: Context) : VPNService() {
+class WireGuardService(private val context: Context, private val wireGuardAPI: WireGuardAPI) : VPNService() {
 
     //todo: support kernel module
     private val backend = GoBackend(context)
 
-    private var config: Config? = null
+    private data class ConnectInfo(val config: Config, val baseURI: String, val authState: AuthState)
+
+    private var connectInfo: ConnectInfo? = null
 
     // Stores the current VPN status.
     private var connectionStatus = VPNStatus.DISCONNECTED
@@ -47,9 +53,33 @@ class WireGuardService(private val context: Context) : VPNService() {
         if (newTunnelState == Tunnel.State.UP) {
             connectionTime = System.currentTimeMillis()
         } else if (newTunnelState == Tunnel.State.DOWN) {
+            val connectInfo = this.connectInfo
+            if (connectInfo != null) {
+                // We do not wait for the disconnect request to finish when disconnecting,
+                // but when connecting again, the create_config call will wait for the disconnect to finish.
+                GlobalScope.launch {
+                    runCatchingCoroutine {
+                        wireGuardAPI.disconnect(connectInfo.config.`interface`.keyPair.publicKey, connectInfo.baseURI, connectInfo.authState)
+                    }.onSuccess {
+                        Log.d(TAG, "Successfully send disconnect to server.")
+                    }.onFailure { thr ->
+                        Log.d(TAG, "Failed sending disconnect to server: $thr")
+                    }
+                }
+            }
+
             onDisconnect()
         }
-        connectionStatus = tunnelStateToStatus(newTunnelState)
+
+        setConnectionStatus(tunnelStateToStatus(newTunnelState))
+    }
+
+    override fun getStatus(): VPNStatus {
+        return connectionStatus
+    }
+
+    private fun setConnectionStatus(status: VPNStatus) {
+        connectionStatus = status
         // Notify the observers.
         updatesHandler.post {
             setChanged()
@@ -73,35 +103,46 @@ class WireGuardService(private val context: Context) : VPNService() {
      * @param activity   The current activity, required for providing a context.
      * @param vpnConfig  The config to use for connecting.
      */
-    fun connect(activity: Activity, config: Config) {
+    suspend fun connect(activity: Activity, baseURI: String, authState: AuthState) {
+        // todo: check if a disconnect was send for a previous config, if not, send it
 
-        connectionStatus = VPNStatus.CONNECTING
+        setConnectionStatus(VPNStatus.CONNECTING)
 
-        this.config = config
-
-        if (connectionInfoCallback != null) {
-            updateIPs(config.`interface`, connectionInfoCallback!!)
+        val config = try {
+            wireGuardAPI.createConfig(baseURI, authState)
+        } catch (ex: Exception) {
+            if (!(ex is IOException || ex is WireGuardAPI.WireGuardAPIException)) {
+                throw ex
+            }
+            fail(ex.toString());
+            return
         }
 
-        authorizeVPN(activity)
+        this.connectInfo = ConnectInfo(config, baseURI, authState)
 
-        GlobalScope.launch {
-            withContext(Dispatchers.IO) {
-                try {
-                    backend.setState(tunnel, Tunnel.State.UP, config)
-                } catch (ex: BackendException) {
-                    if (ex.reason == BackendException.Reason.VPN_NOT_AUTHORIZED) {
-                        connectionStatus = VPNStatus.DISCONNECTED
-                    } else {
-                        fail(ex.toString())
-                    }
+        withContext(Dispatchers.Main) {
+            if (connectionInfoCallback != null) {
+                updateIPs(config.`interface`, connectionInfoCallback!!)
+            }
+
+            authorizeVPN(activity)
+        }
+
+        withContext(Dispatchers.IO) {
+            try {
+                backend.setState(tunnel, Tunnel.State.UP, config)
+            } catch (ex: BackendException) {
+                if (ex.reason == BackendException.Reason.VPN_NOT_AUTHORIZED) {
+                    setConnectionStatus(VPNStatus.DISCONNECTED)
+                } else {
+                    fail(ex.toString())
                 }
             }
         }
     }
 
     private fun fail(errorString: String) {
-        connectionStatus = VPNStatus.FAILED
+        setConnectionStatus(VPNStatus.FAILED)
         this.errorString = errorString
     }
 
@@ -111,7 +152,6 @@ class WireGuardService(private val context: Context) : VPNService() {
         } catch (ex: Exception) {
             Log.e(TAG, "Exception when trying to stop WireGuard connection. Connection might not be closed!", ex)
         }
-        onDisconnect()
     }
 
     /**
@@ -135,15 +175,12 @@ class WireGuardService(private val context: Context) : VPNService() {
         }
     }
 
-    override fun getStatus(): VPNStatus {
-        return connectionStatus
-    }
-
     override fun attachConnectionInfoListener(callback: ConnectionInfoCallback?) {
         connectionInfoCallback = callback
         if (callback != null) {
+            val config = connectInfo?.config
             if (config != null) {
-                updateIPs(config!!.`interface`, callback)
+                updateIPs(config.`interface`, callback)
             }
             updatesHandler.post(object : Runnable {
                 override fun run() {

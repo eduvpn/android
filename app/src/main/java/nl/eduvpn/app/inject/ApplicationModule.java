@@ -33,9 +33,7 @@ import dagger.Module;
 import dagger.Provides;
 import nl.eduvpn.app.BuildConfig;
 import nl.eduvpn.app.EduVPNApplication;
-import nl.eduvpn.app.entity.OpenVPN;
 import nl.eduvpn.app.entity.VpnProtocol;
-import nl.eduvpn.app.entity.WireGuard;
 import nl.eduvpn.app.service.APIService;
 import nl.eduvpn.app.service.ConnectionService;
 import nl.eduvpn.app.service.EduOpenVPNService;
@@ -46,6 +44,7 @@ import nl.eduvpn.app.service.SecurityService;
 import nl.eduvpn.app.service.SerializerService;
 import nl.eduvpn.app.service.VPNService;
 import nl.eduvpn.app.utils.Log;
+import nl.eduvpn.app.wireguard.WireGuardAPI;
 import nl.eduvpn.app.wireguard.WireGuardService;
 import okhttp3.Cache;
 import okhttp3.OkHttpClient;
@@ -116,8 +115,14 @@ public class ApplicationModule {
 
     @Provides
     @Singleton
-    protected WireGuardService provideWireGuardService(Context context) {
-        return new WireGuardService(context);
+    protected WireGuardAPI provideWireGuardAPI(APIService apiService) {
+        return new WireGuardAPI(apiService);
+    }
+
+    @Provides
+    @Singleton
+    protected WireGuardService provideWireGuardService(Context context, WireGuardAPI wireGuardAPI) {
+        return new WireGuardService(context, wireGuardAPI);
     }
 
     @Provides
@@ -125,9 +130,9 @@ public class ApplicationModule {
                                            Provider<EduOpenVPNService> eduOpenVPNServiceProvider,
                                            Provider<WireGuardService> wireGuardServiceProvider) {
         VpnProtocol vpnProtocol = preferencesService.getCurrentVPN();
-        if (vpnProtocol instanceof WireGuard) {
+        if (vpnProtocol instanceof VpnProtocol.WireGuard) {
             return wireGuardServiceProvider.get();
-        } else if (vpnProtocol instanceof OpenVPN) {
+        } else if (vpnProtocol instanceof VpnProtocol.OpenVPN) {
             return eduOpenVPNServiceProvider.get();
         } else {
             throw new RuntimeException("Could not determine what VPN service to use.");

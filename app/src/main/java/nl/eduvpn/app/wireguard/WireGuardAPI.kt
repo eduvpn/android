@@ -32,8 +32,7 @@ import java.io.IOException
 import java.io.StringReader
 import java.net.URLEncoder
 
-class WireGuardAPI(private val apiService: APIService,
-                   private val baseURI: String) {
+class WireGuardAPI(private val apiService: APIService) {
 
     class WireGuardAPIException(message: String, exception: Exception) : Exception(message, exception)
 
@@ -41,9 +40,9 @@ class WireGuardAPI(private val apiService: APIService,
      * @throws UserNotAuthorizedException
      * @throws IOException
      */
-    suspend fun wireGuardEnabled(authState: AuthState?): Boolean {
+    suspend fun wireGuardEnabled(baseURI: String, authState: AuthState?): Boolean {
         //todo: checking response code does not seem to be possible with .getString
-        val string: String = apiService.getString(getURL("available"), authState)
+        val string: String = apiService.getString(getURL(baseURI, "available"), authState)
         return string == "y"
     }
 
@@ -52,9 +51,9 @@ class WireGuardAPI(private val apiService: APIService,
      * @throws UserNotAuthorizedException
      * @throws WireGuardAPIException
      */
-    suspend fun createConfig(authState: AuthState?): Config {
+    suspend fun createConfig(baseURI: String, authState: AuthState?): Config {
         val keyPair = com.wireguard.crypto.KeyPair()
-        val configString = createConfig(keyPair.publicKey, authState)
+        val configString = createConfig(keyPair.publicKey, baseURI, authState)
         val configStringWithPrivateKey = configString
                 .replace("[Interface]",
                         "[Interface]\n" +
@@ -72,19 +71,31 @@ class WireGuardAPI(private val apiService: APIService,
     }
 
     /**
+     * @throws IOException
+     * @throws UserNotAuthorizedException
+     */
+    suspend fun disconnect(publicKey: Key, baseURI: String, authState: AuthState?) {
+        //todo: check if response code is 204
+        apiService.postResource(
+                getURL(baseURI, "disconnect"),
+                "publicKey=" + URLEncoder.encode(publicKey.toBase64(), Charsets.UTF_8.name()),
+                authState)
+    }
+
+    /**
      * @throws UserNotAuthorizedException
      * @throws IOException
      */
-    private suspend fun createConfig(publicKey: Key, authSate: AuthState?): String {
+    private suspend fun createConfig(publicKey: Key, baseURI: String, authSate: AuthState?): String {
         val configString: String = apiService.postResource(
-                getURL("create_config"),
+                getURL(baseURI, "create_config"),
                 "publicKey=" + URLEncoder.encode(publicKey.toBase64(), Charsets.UTF_8.name()),
                 authSate)
 
         return configString
     }
 
-    private fun getURL(path: String): String = Uri.parse(baseURI)
+    private fun getURL(baseURI: String, path: String): String = Uri.parse(baseURI)
             .buildUpon().appendPath("wg")
             .appendPath(path)
             .build().toString()

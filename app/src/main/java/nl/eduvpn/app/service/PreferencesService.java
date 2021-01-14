@@ -35,7 +35,6 @@ import java.util.List;
 import nl.eduvpn.app.Constants;
 import nl.eduvpn.app.entity.DiscoveredAPI;
 import nl.eduvpn.app.entity.Instance;
-import nl.eduvpn.app.entity.OpenVPN;
 import nl.eduvpn.app.entity.Organization;
 import nl.eduvpn.app.entity.Profile;
 import nl.eduvpn.app.entity.SavedAuthState;
@@ -145,7 +144,7 @@ public class PreferencesService {
             SharedPreferences.Editor editor = newPreferences.edit();
             Profile profile = getCurrentProfile();
             if (profile != null) {
-                setCurrentVPN(new OpenVPN(profile));
+                setCurrentVPN(new VpnProtocol.OpenVPN(profile));
             }
             editor.remove(KEY_PROFILE);
             editor.putInt(KEY_STORAGE_VERSION, 4);
