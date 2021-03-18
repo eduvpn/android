@@ -56,7 +56,7 @@ not tested, but 1GB definitely does not work.
         java-1.8.0-openjdk-devel \
         ncurses-compat-libs
 
-We last tested this (successfully) on 2020-08-26 with Fedora 32.
+We last tested this (successfully) on 2021-03-18 with Fedora 33.
 
 ### Debian
 
