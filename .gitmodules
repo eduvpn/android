@@ -1,6 +1,6 @@
 [submodule "ics-openvpn"]
 	path = ics-openvpn
-	url = https://github.com/eduvpn/ics-openvpn.git
+	url = https://github.com/fkooman/ics-openvpn
 [submodule "appauth"]
 	path = appauth
 	url = https://github.com/eduvpn/AppAuth-Android.git
