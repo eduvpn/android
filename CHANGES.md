@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.0.3 (...)
+- update ics-openvpn
+
 ## 2.0.2 (2020-11-06)
 - fix certificate expiry countdown (#311)
 - Fix UI tests
