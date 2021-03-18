@@ -66,6 +66,7 @@
 
 
         <service
+            tools:replace="android:icon"
             android:name="de.blinkt.openvpn.OpenVPNTileService"
             android:icon="@drawable/logo_black"
             android:label="@string/qs_title"

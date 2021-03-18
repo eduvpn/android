@@ -14,7 +14,7 @@ android {
         targetSdkVersion 29
         versionCode 15
         versionName "2.0.2"
-        ndkVersion "20.0.5594570"
+        ndkVersion "21.0.6113669"
 
         vectorDrawables.useSupportLibrary = true
 
