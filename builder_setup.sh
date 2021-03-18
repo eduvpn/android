@@ -8,16 +8,16 @@ SDK_DIR=${HOME}/android-sdk
 
 # current as of 20191028
 # see https://developer.android.com/studio/#downloads "Command line tools only"
-SDK_VERSION=4333796
+SDK_VERSION=6858069
 
 # Always use latest from https://developer.android.com/studio/releases/build-tools
-BUILD_TOOLS_VERSION=29.0.2
+BUILD_TOOLS_VERSION=29.0.3
 
 # see app/build.gradle for "targetSdkVersion"
 PLATFORM_VERSION=29
 
 # should not require modification...
-SDK_URL=https://dl.google.com/android/repository/sdk-tools-linux-${SDK_VERSION}.zip
+SDK_URL=https://dl.google.com/android/repository/commandlinetools-linux-${SDK_VERSION}_latest.zip
 
 ###############################################################################
 # SETUP
@@ -28,21 +28,21 @@ SDK_URL=https://dl.google.com/android/repository/sdk-tools-linux-${SDK_VERSION}.
     mkdir -p "${SDK_DIR}"
     cd "${SDK_DIR}" || exit
     curl -L -O ${SDK_URL}
-    unzip -q sdk-tools-linux-${SDK_VERSION}.zip
-    rm sdk-tools-linux-${SDK_VERSION}.zip
+    unzip -q commandlinetools-linux-${SDK_VERSION}_latest.zip
+    rm commandlinetools-linux-${SDK_VERSION}_latest.zip
 )
 
 # accept licenses
 (
     cd "${SDK_DIR}" || exit
-    yes | tools/bin/sdkmanager --licenses
+    yes | cmdline-tools/bin/sdkmanager --sdk_root=${SDK_DIR} --licenses
 )
 
 # install required SDK components
 (
     cd "${SDK_DIR}" || exit
-    tools/bin/sdkmanager --update
-    tools/bin/sdkmanager "ndk;20.0.5594570"
-    tools/bin/sdkmanager "build-tools;${BUILD_TOOLS_VERSION}"
-    tools/bin/sdkmanager "platforms;android-${PLATFORM_VERSION}"
+    cmdline-tools/bin/sdkmanager --sdk_root=${SDK_DIR} --update
+    cmdline-tools/bin/sdkmanager --sdk_root=${HOME}/android-sdk "ndk;21.0.6113669"
+    cmdline-tools/bin/sdkmanager --sdk_root=${HOME}/android-sdk "build-tools;${BUILD_TOOLS_VERSION}"
+    cmdline-tools/bin/sdkmanager --sdk_root=${HOME}/android-sdk "platforms;android-${PLATFORM_VERSION}"
 )
