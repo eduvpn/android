@@ -17,13 +17,13 @@
   -->
 
 <resources>
-    <string name="content_description_secure_internet">Secure Internet</string>
-    <string name="content_description_institute_access">Institute Access</string>
-    <string name="content_description_connection_status_icon">Connection status</string>
-    <string name="content_description_provider_icon">Provider icon</string>
-    <string name="content_description_application_logo">Application logo</string>
-    <string name="content_description_settings_button">Settings button</string>
-    <string name="content_description_message_icon">Message icon</string>
-    <string name="content_description_warning_icon">Warning icon</string>
-    <string name="content_description_expand_arrow">Expand / collapse arrow</string>
+    <string name="content_description_secure_internet">Internet Seguro</string>
+    <string name="content_description_institute_access">Acceso Institucional</string>
+    <string name="content_description_connection_status_icon">Estado de conexión</string>
+    <string name="content_description_provider_icon">Icono de proveedor</string>
+    <string name="content_description_application_logo">Logo de aplicación</string>
+    <string name="content_description_settings_button">Botón de configuraciones</string>
+    <string name="content_description_message_icon">Icono de mensaje</string>
+    <string name="content_description_warning_icon">Icono de advertencia</string>
+    <string name="content_description_expand_arrow">Flecha de expandir / colapsar</string>
 </resources>
