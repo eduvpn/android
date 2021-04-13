@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.0.4 (2021-04-13)
+- add Spanish (Latin America) translation
+- fix parallel installation issue with other ics-openvpn based apps (#325)
+
 ## 2.0.3 (2021-03-18)
 - update ics-openvpn
 

@@ -12,8 +12,8 @@ android {
         applicationId "nl.eduvpn.app"
         minSdkVersion 21
         targetSdkVersion 29
-        versionCode 16
-        versionName "2.0.3"
+        versionCode 17
+        versionName "2.0.4"
         ndkVersion "21.0.6113669"
 
         vectorDrawables.useSupportLibrary = true
