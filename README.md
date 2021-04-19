@@ -54,13 +54,16 @@ not tested, but 1GB definitely does not work.
         swig \
         java-1.8.0-openjdk \
         java-1.8.0-openjdk-devel \
-        ncurses-compat-libs
+        ncurses-compat-libs \
+        ninja-build \
+        cmake \
+	    pv
 
-We last tested this (successfully) on 2021-03-18 with Fedora 33.
+We last tested this (successfully) on 2021-05-11 with Fedora 34.
 
 ### Debian
 
-    $ sudo apt -y install openjdk-8-jdk git curl unzip swig ninja-build
+    $ sudo apt -y install openjdk-8-jdk git curl unzip swig ninja-build cmake pv
 
 ## Key Store
 
