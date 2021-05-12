@@ -60,10 +60,10 @@ class ConnectionStatusViewModel @Inject constructor(
 
     private var updateCertHandler: Handler = Handler()
     private var updateCertCallback: Runnable = Runnable {
-        updateCertExpiry()
-        runUpdateCertExpiryEverySecond()
+        if(updateCertExpiry()) {
+            runUpdateCertExpiryEverySecond()
+        }
     }
-
 
     init {
         refreshProfile()
@@ -107,20 +107,22 @@ class ConnectionStatusViewModel @Inject constructor(
         updateCertHandler.removeCallbacks(updateCertCallback)
     }
 
-    private fun updateCertExpiry() {
+    /**
+     * @return If the cert expiry time should continue to be updated.
+     */
+    private fun updateCertExpiry(): Boolean {
         val currentTime = System.currentTimeMillis()
         if (certExpiryTime == null) {
             // No cert or time, nothing to display
-            stopUpdateCertExpiry()
             certValidity.value = null
-            return
+            return false
         }
         val timeDifferenceInSeconds = (certExpiryTime - currentTime) / 1000
         if (timeDifferenceInSeconds < 0) {
             // Cert expired
-            stopUpdateCertExpiry()
             certValidity.value = HtmlCompat.fromHtml(context.getString(R.string.connection_certificate_status_expired), HtmlCompat.FROM_HTML_MODE_COMPACT)
             _connectionParentAction.value = ParentAction.SessionExpired
+            return false
         } else if (timeDifferenceInSeconds < 60) {
             // Expires within a minute
             val seconds = context.resources.getQuantityString(R.plurals.certificate_status_seconds, timeDifferenceInSeconds.toInt(), timeDifferenceInSeconds)
@@ -145,6 +147,7 @@ class ConnectionStatusViewModel @Inject constructor(
             val days = context.resources.getQuantityString(R.plurals.certificate_status_days, timeDifferenceInSeconds.div(3600 * 24).toInt(), timeDifferenceInSeconds.div(3600 * 24).toInt())
             certValidity.value = HtmlCompat.fromHtml(context.getString(R.string.connection_certificate_status_valid_for_one_part, days), HtmlCompat.FROM_HTML_MODE_COMPACT)
         }
+        return true
     }
 
     fun findCurrentConfig(): VpnProfile? {
