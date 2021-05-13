@@ -123,7 +123,8 @@ class ConnectionStatusViewModel @Inject constructor(
             certValidity.value = HtmlCompat.fromHtml(context.getString(R.string.connection_certificate_status_expired), HtmlCompat.FROM_HTML_MODE_COMPACT)
             _connectionParentAction.value = ParentAction.SessionExpired
             return false
-        } else if (timeDifferenceInSeconds < 60) {
+        }
+        if (timeDifferenceInSeconds < 60) {
             // Expires within a minute
             val seconds = context.resources.getQuantityString(R.plurals.certificate_status_seconds, timeDifferenceInSeconds.toInt(), timeDifferenceInSeconds)
             certValidity.value = HtmlCompat.fromHtml(context.getString(R.string.connection_certificate_status_valid_for_one_part, seconds), HtmlCompat.FROM_HTML_MODE_COMPACT)
