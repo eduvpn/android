@@ -92,7 +92,7 @@ class ConnectionStatusViewModel @Inject constructor(
 
     override fun onResume() {
         super.onResume()
-        runUpdateCertExpiryEverySecond()
+        updateCertHandler.post(updateCertCallback)
     }
 
     fun onPause() {
