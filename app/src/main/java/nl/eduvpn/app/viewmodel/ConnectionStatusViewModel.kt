@@ -18,12 +18,16 @@
 
 package nl.eduvpn.app.viewmodel
 
+import android.app.AlarmManager
+import android.app.PendingIntent
 import android.content.Context
+import android.content.Intent
 import android.os.Handler
 import android.text.Spanned
 import androidx.core.text.HtmlCompat
 import androidx.lifecycle.MutableLiveData
 import de.blinkt.openvpn.VpnProfile
+import nl.eduvpn.app.CertExpiredBroadcastReceiver
 import nl.eduvpn.app.R
 import nl.eduvpn.app.entity.Profile
 import nl.eduvpn.app.service.*
@@ -57,6 +61,12 @@ class ConnectionStatusViewModel @Inject constructor(
 
     private val _connectionParentAction = MutableLiveData<ParentAction>()
     val connectionParentAction = _connectionParentAction.toSingleEvent()
+
+    private val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+    private val intent = Intent(context, CertExpiredBroadcastReceiver::class.java)
+        .setAction(CertExpiredBroadcastReceiver.ACTION)
+    private val pendingIntent =
+        PendingIntent.getBroadcast(context, 0, intent, 0)
 
     private var updateCertHandler: Handler = Handler()
     private var updateCertCallback: Runnable = Runnable {
@@ -93,10 +103,22 @@ class ConnectionStatusViewModel @Inject constructor(
     override fun onResume() {
         super.onResume()
         runUpdateCertExpiryEverySecond()
+        cancelAllExpiryNotifications()
     }
 
     fun onPause() {
+        planExpiryNotification()
         stopUpdateCertExpiry()
+    }
+
+    private fun planExpiryNotification() {
+        if (certExpiryTime != null && vpnService.status != VPNService.VPNStatus.DISCONNECTED) {
+            alarmManager.setExact(AlarmManager.RTC, certExpiryTime, pendingIntent)
+        }
+    }
+
+    private fun cancelAllExpiryNotifications() {
+        alarmManager.cancel(pendingIntent)
     }
 
     private fun runUpdateCertExpiryEverySecond() {

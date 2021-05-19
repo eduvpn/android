@@ -191,4 +191,7 @@
     <string name="error_organization_list_version_check_title">Problem downloading organization list</string>
     <string name="error_server_list_version_check_message">Server list version is outdated.</string>
     <string name="error_server_list_version_check_title">Problem downloading server list</string>
+    <string name="cert_expiry_channel_name">VPN certificate expired warning</string>
+    <string name="cert_expiry_notification_title">VPN certificate expired</string>
+    <string name="cert_expiry_notification_text">The VPN certificate has expired</string>
 </resources>

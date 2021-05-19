@@ -38,6 +38,8 @@
             android:theme="@style/AppTheme.NoActionBar"
             tools:ignore="LockedOrientationActivity" />
 
+        <receiver android:name=".CertExpiredBroadcastReceiver" />
+
         <!-- Activities and services inherited from the OpenVPN library. -->
         <service
             android:name="de.blinkt.openvpn.core.OpenVPNService"
