@@ -37,7 +37,7 @@ class CertExpiredBroadcastReceiver : BroadcastReceiver() {
         val notificationManager =
             context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
-        notificationManager.notify(1, notification)
+        notificationManager.notify(Constants.CERT_EXPIRY_NOTIFICATION_ID, notification)
     }
 
     companion object {

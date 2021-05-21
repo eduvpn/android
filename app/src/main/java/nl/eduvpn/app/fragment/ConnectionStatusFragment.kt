@@ -16,12 +16,15 @@
  */
 package nl.eduvpn.app.fragment
 
+import android.app.NotificationManager
+import android.content.Context
 import android.os.Bundle
 import android.os.Handler
 import android.view.View
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.viewModels
 import de.blinkt.openvpn.VpnProfile
+import nl.eduvpn.app.Constants
 import nl.eduvpn.app.EduVPNApplication
 import nl.eduvpn.app.MainActivity
 import nl.eduvpn.app.R
@@ -36,8 +39,7 @@ import nl.eduvpn.app.utils.FormattingUtils
 import nl.eduvpn.app.utils.Log
 import nl.eduvpn.app.viewmodel.BaseConnectionViewModel
 import nl.eduvpn.app.viewmodel.ConnectionStatusViewModel
-import java.util.Observable
-import java.util.Observer
+import java.util.*
 import javax.inject.Inject
 
 /**
@@ -117,11 +119,15 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
         viewModel.connectionParentAction.observe(viewLifecycleOwner) { parentAction ->
             when (parentAction) {
                 ConnectionStatusViewModel.ParentAction.SessionExpired -> {
-                    val dialog = ErrorDialog.show(requireContext(), R.string.error_certificate_expired_title, R.string.error_certificate_expired_message)
+                    val context = requireContext()
+                    val dialog = ErrorDialog.show(context, R.string.error_certificate_expired_title, R.string.error_certificate_expired_message)
                     disconnect()
                     dialog?.setOnDismissListener {
                         returnToHome()
                     }
+                    val notificationManager =
+                        context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+                    notificationManager.cancel(Constants.CERT_EXPIRY_NOTIFICATION_ID)
                 }
             }
         }
