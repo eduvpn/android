@@ -1,0 +1,2 @@
+* Continue to add server screen if selection screen is empty
+* Fix app being stuck in creating keypair
