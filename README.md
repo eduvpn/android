@@ -54,13 +54,16 @@ not tested, but 1GB definitely does not work.
         swig \
         java-1.8.0-openjdk \
         java-1.8.0-openjdk-devel \
-        ncurses-compat-libs
+        ncurses-compat-libs \
+        ninja-build \
+        cmake \
+	    pv
 
-We last tested this (successfully) on 2021-03-18 with Fedora 33.
+We last tested this (successfully) on 2021-05-11 with Fedora 34.
 
 ### Debian
 
-    $ sudo apt -y install openjdk-8-jdk git curl unzip swig ninja-build
+    $ sudo apt -y install openjdk-8-jdk git curl unzip swig ninja-build cmake pv
 
 ## Key Store
 
@@ -81,7 +84,13 @@ Additional documentation
 
 ## Setup
 
+### Google SDK
     $ ./builder_setup.sh
+
+### Android Rebuilds SDK
+    $ ./ar_builder_setup.sh
+
+[Android Rebuilds](https://android-rebuilds.beuc.net) is a reproducibly built version of the Android SDK. This is possible because the entire SDK is licensed under the Open Source APACHE license. This allows you to compile apps without having to accept Google's license agreement within sdkmanager.
 
 ## Build
 
@@ -93,6 +102,10 @@ development release.
 
     $ ./build_app_git.sh
 
+If you have set up the Android Rebuilds SDK you can use
+
+    $ ./ar_build_app_git.sh
+
 You'll find the signed output APK in ${HOME}/Projects.
 
 ### Tar
@@ -102,5 +115,9 @@ including all submodules, use the following after modifying the file if
 necessary. Use this if you want to use an official release.
 
     $ ./build_app_tar.sh
+
+If you have set up the Android Rebuilds SDK you can use
+
+    $ ./ar_build_app_tar.sh
 
 You'll find the signed output APK in ${HOME}/Projects.
