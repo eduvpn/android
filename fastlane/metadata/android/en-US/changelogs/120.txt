@@ -1,0 +1,10 @@
+* Update ics-openvpn submodule to v0.7.4
+* Update client_id
+* Fetch update server VPN configuration on connect
+* Fetch new client certificate if the old one expired
+* Fix connecting to 2FA enabled profile
+* Trigger new authorization on profiles page when OAuth client was revoked
+* Many text changes in the application
+* Initial Let's Connect! branding changes, still WiP
+* Fix use of "refresh token"
+* Update VPN connection status icon to new artwork
