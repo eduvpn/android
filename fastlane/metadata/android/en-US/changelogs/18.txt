@@ -1,0 +1,3 @@
+* fix 'certificate expired' popup loop (issue #329)
+* add fastlane for F-Droid/Google Play release automation
+* update discovery signing keys
