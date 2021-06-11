@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.0.5 (2021-06-11)
+- fix 'certificate expired' popup loop (issue #329)
+- add fastlane for F-Droid/Google Play release automation
+- update discovery signing keys
+
 ## 2.0.4 (2021-04-13)
 - add Spanish (Latin America) translation
 - fix parallel installation issue with other ics-openvpn based apps (#325)
