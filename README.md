@@ -9,13 +9,21 @@ You can clone this repository by executing the following command (provided you h
 Or if your git version is below 2.13:
 
     git clone --recursive https://github.com/eduvpn/android.git
-    
+
+# Download the app
+
+[<img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png"
+     alt="Get it on F-Droid"
+     height="80">](https://f-droid.org/packages/nl.eduvpn.app/)
+[<img src="https://play.google.com/intl/en_us/badges/images/generic/en-play-badge.png"
+     alt="Get it on Google Play"
+     height="80">](https://play.google.com/store/apps/details?id=nl.eduvpn.app)
+
 # Organizations
 
 A future version of the app will contain automatic organization discovery, where you can select your institute from a wide list.
 This way you don't have to manually enter discovery URLs. To build this version of the app, build the `organization` flavor instead of `basic`.
  
-
 # Running with Android Studio
 
 First install the `swig` package with your operating system package manager.
