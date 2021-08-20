@@ -60,6 +60,7 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
     private val viewModel by viewModels<ConnectionStatusViewModel> { viewModelFactory }
 
     init {
+        //todo: replace with repeatOnLifecycle when androidx.lifecycle 2.4 is released
         lifecycleScope.launchWhenResumed {
             while (viewModel.updateCertExpiry()) {
                 delay(1000)
