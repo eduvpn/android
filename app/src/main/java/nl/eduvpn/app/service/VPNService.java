@@ -26,6 +26,11 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.RemoteException;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.core.util.Pair;
+import androidx.lifecycle.LiveData;
+
 import java.io.IOException;
 import java.io.StringReader;
 import java.net.InetAddress;
@@ -34,12 +39,8 @@ import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Observable;
 import java.util.regex.Pattern;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.core.util.Pair;
 import de.blinkt.openvpn.LaunchVPN;
 import de.blinkt.openvpn.VpnProfile;
 import de.blinkt.openvpn.core.ConfigParser;
@@ -58,7 +59,7 @@ import nl.eduvpn.app.utils.Log;
  * Service responsible for managing the VPN profiles and the connection.
  * Created by Daniel Zolnai on 2016-10-13.
  */
-public class VPNService extends Observable implements VpnStatus.StateListener {
+public class VPNService extends LiveData<VPNService.VPNStatus> implements VpnStatus.StateListener {
 
     public enum VPNStatus {
         DISCONNECTED, CONNECTING, CONNECTED, PAUSED, FAILED
@@ -127,11 +128,20 @@ public class VPNService extends Observable implements VpnStatus.StateListener {
      */
     public void onCreate(@NonNull Activity activity) {
         OpenVPNService.setNotificationActivityClass(activity.getClass());
-        VpnStatus.addStateListener(this);
         Intent intent = new Intent(activity, OpenVPNService.class);
         intent.putExtra(OpenVPNService.ALWAYS_SHOW_NOTIFICATION, true);
         intent.setAction(OpenVPNService.START_SERVICE);
         activity.bindService(intent, _serviceConnection, Context.BIND_AUTO_CREATE);
+    }
+
+    @Override
+    public void onActive() {
+        VpnStatus.addStateListener(this);
+    }
+
+    @Override
+    public void onInactive() {
+        VpnStatus.removeStateListener(this);
     }
 
     /**
@@ -143,7 +153,6 @@ public class VPNService extends Observable implements VpnStatus.StateListener {
      */
     public void onDestroy(@NonNull Activity activity) {
         activity.unbindService(_serviceConnection);
-        VpnStatus.removeStateListener(this);
     }
 
     /**
@@ -394,8 +403,7 @@ public class VPNService extends Observable implements VpnStatus.StateListener {
         }
         // Notify the observers.
         _updatesHandler.post(() -> {
-            setChanged();
-            notifyObservers(getStatus());
+            setValue(getStatus());
         });
     }
 

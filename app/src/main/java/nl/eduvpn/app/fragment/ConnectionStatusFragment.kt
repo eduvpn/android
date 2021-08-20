@@ -40,7 +40,6 @@ import nl.eduvpn.app.utils.FormattingUtils
 import nl.eduvpn.app.utils.Log
 import nl.eduvpn.app.viewmodel.BaseConnectionViewModel
 import nl.eduvpn.app.viewmodel.ConnectionStatusViewModel
-import java.util.*
 import javax.inject.Inject
 
 /**
@@ -48,7 +47,7 @@ import javax.inject.Inject
  * Created by Daniel Zolnai on 2016-10-07.
  */
 class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>(), ConnectionInfoCallback {
-    private var vpnStatusObserver: Observer? = null
+
     private val gracefulDisconnectHandler = Handler()
 
     private var isAutomaticCheckChange = false
@@ -159,12 +158,8 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
         viewModel.isInDisconnectMode.observe(viewLifecycleOwner) { isInDisconnectMode ->
             (activity as? MainActivity)?.setBackNavigationEnabled(isInDisconnectMode)
         }
-    }
-
-    override fun onStart() {
-        super.onStart()
-        vpnStatusObserver = Observer { _: Observable?, arg: Any? ->
-            when (arg as VPNStatus?) {
+        val vpnStatusObserver = { vpnStatus: VPNStatus ->
+            when (vpnStatus) {
                 VPNStatus.CONNECTED -> {
                     binding.connectionStatusIcon.setImageResource(R.drawable.ic_connection_status_connected)
                     binding.connectionStatus.setText(R.string.connection_info_state_connected)
@@ -210,12 +205,15 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
                     binding.connectionSwitch.isChecked = false
                     isAutomaticCheckChange = false
                 }
-                else -> throw RuntimeException("Unhandled VPN status!")
             }
         }
         // Update the icon immediately
-        vpnStatusObserver?.update(vpnService, vpnService.status)
-        vpnService.addObserver(vpnStatusObserver)
+        vpnStatusObserver(vpnService.status)
+        vpnService.observe(viewLifecycleOwner, vpnStatusObserver)
+    }
+
+    override fun onStart() {
+        super.onStart()
         vpnService.attachConnectionInfoListener(this)
     }
 
@@ -228,16 +226,8 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
         }
     }
 
-    override fun onResume() {
-        super.onResume()
-        viewModel.onResume()
-    }
-
     override fun onStop() {
         super.onStop()
-        if (vpnStatusObserver != null) {
-            vpnService.deleteObserver(vpnStatusObserver)
-        }
         vpnService.detachConnectionInfoListener()
     }
 
