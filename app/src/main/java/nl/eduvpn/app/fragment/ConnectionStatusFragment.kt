@@ -22,10 +22,8 @@ import android.view.View
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.whenResumed
 import de.blinkt.openvpn.VpnProfile
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import nl.eduvpn.app.EduVPNApplication
 import nl.eduvpn.app.MainActivity
 import nl.eduvpn.app.R
@@ -62,11 +60,9 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
     private val viewModel by viewModels<ConnectionStatusViewModel> { viewModelFactory }
 
     init {
-        lifecycleScope.launch {
-            whenResumed {
-                while (viewModel.updateCertExpiry()) {
-                    delay(1000)
-                }
+        lifecycleScope.launchWhenResumed {
+            while (viewModel.updateCertExpiry()) {
+                delay(1000)
             }
         }
     }
