@@ -21,7 +21,11 @@ import android.os.Handler
 import android.view.View
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.whenResumed
 import de.blinkt.openvpn.VpnProfile
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import nl.eduvpn.app.EduVPNApplication
 import nl.eduvpn.app.MainActivity
 import nl.eduvpn.app.R
@@ -36,8 +40,7 @@ import nl.eduvpn.app.utils.FormattingUtils
 import nl.eduvpn.app.utils.Log
 import nl.eduvpn.app.viewmodel.BaseConnectionViewModel
 import nl.eduvpn.app.viewmodel.ConnectionStatusViewModel
-import java.util.Observable
-import java.util.Observer
+import java.util.*
 import javax.inject.Inject
 
 /**
@@ -58,6 +61,16 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
     override val layout = R.layout.fragment_connection_status
 
     private val viewModel by viewModels<ConnectionStatusViewModel> { viewModelFactory }
+
+    init {
+        lifecycleScope.launch {
+            whenResumed {
+                while (viewModel.updateCertExpiry()) {
+                    delay(1000)
+                }
+            }
+        }
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -218,11 +231,6 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
     override fun onResume() {
         super.onResume()
         viewModel.onResume()
-    }
-
-    override fun onPause() {
-        super.onPause()
-        viewModel.onPause()
     }
 
     override fun onStop() {

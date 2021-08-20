@@ -19,7 +19,6 @@
 package nl.eduvpn.app.viewmodel
 
 import android.content.Context
-import android.os.Handler
 import android.text.Spanned
 import androidx.core.text.HtmlCompat
 import androidx.lifecycle.MutableLiveData
@@ -58,13 +57,6 @@ class ConnectionStatusViewModel @Inject constructor(
     private val _connectionParentAction = MutableLiveData<ParentAction>()
     val connectionParentAction = _connectionParentAction.toSingleEvent()
 
-    private var updateCertHandler: Handler = Handler()
-    private var updateCertCallback: Runnable = Runnable {
-        if(updateCertExpiry()) {
-            runUpdateCertExpiryEverySecond()
-        }
-    }
-
     init {
         refreshProfile()
         val connectionInstance = preferencesService.currentInstance
@@ -90,27 +82,10 @@ class ConnectionStatusViewModel @Inject constructor(
         certExpiryTime = historyService.getSavedKeyPairForInstance(connectionInstance).keyPair.expiryTimeMillis
     }
 
-    override fun onResume() {
-        super.onResume()
-        updateCertHandler.post(updateCertCallback)
-    }
-
-    fun onPause() {
-        stopUpdateCertExpiry()
-    }
-
-    private fun runUpdateCertExpiryEverySecond() {
-        updateCertHandler.postDelayed(updateCertCallback, 1 * 1000)
-    }
-
-    private fun stopUpdateCertExpiry() {
-        updateCertHandler.removeCallbacks(updateCertCallback)
-    }
-
     /**
      * @return If the cert expiry time should continue to be updated.
      */
-    private fun updateCertExpiry(): Boolean {
+    fun updateCertExpiry(): Boolean {
         val currentTime = System.currentTimeMillis()
         if (certExpiryTime == null) {
             // No cert or time, nothing to display
