@@ -30,6 +30,7 @@ import nl.eduvpn.app.R
 import nl.eduvpn.app.base.BaseFragment
 import nl.eduvpn.app.databinding.FragmentConnectionStatusBinding
 import nl.eduvpn.app.fragment.ServerSelectionFragment.Companion.newInstance
+import nl.eduvpn.app.livedata.IPLiveData
 import nl.eduvpn.app.service.VPNService
 import nl.eduvpn.app.service.VPNService.ConnectionInfoCallback
 import nl.eduvpn.app.service.VPNService.VPNStatus
@@ -59,6 +60,8 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
 
     private val viewModel by viewModels<ConnectionStatusViewModel> { viewModelFactory }
 
+    private val ips = IPLiveData
+
     init {
         //todo: replace with repeatOnLifecycle when androidx.lifecycle 2.4 is released
         lifecycleScope.launchWhenResumed {
@@ -72,6 +75,7 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
         super.onViewCreated(view, savedInstanceState)
         EduVPNApplication.get(view.context).component().inject(this)
         binding.viewModel = viewModel
+        binding.ips = ips
         binding.connectionSwitch.setOnCheckedChangeListener { _, isChecked ->
             if (isAutomaticCheckChange) {
                 return@setOnCheckedChangeListener
@@ -263,13 +267,6 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
         binding.valueDuration.text = FormattingUtils.formatDurationSeconds(context, secondsConnected)
         binding.valueDowloaded.text = FormattingUtils.formatBytesTraffic(context, bytesIn)
         binding.valueUploaded.text = FormattingUtils.formatBytesTraffic(context, bytesOut)
-    }
-
-    override fun metadataAvailable(localIpV4: String?, localIpV6: String?) {
-        val ipV4DisplayText = localIpV4 ?: getString(R.string.not_available)
-        binding.valueIpv4.text = ipV4DisplayText
-        val ipV6DisplayText = localIpV6 ?: getString(R.string.not_available)
-        binding.valueIpv6.text = ipV6DisplayText
     }
 
     companion object {

@@ -154,9 +154,9 @@ dependencies {
     implementation "androidx.constraintlayout:constraintlayout:1.0.0"
 
 
-    implementation "androidx.lifecycle:lifecycle-viewmodel:$lifecycleVersion"
     implementation "androidx.lifecycle:lifecycle-extensions:$lifecycleVersion"
     implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycleVersion"
+    implementation "androidx.lifecycle:lifecycle-livedata-ktx:$lifecycleVersion"
 
     // Secure preferences (deprecated, only kept for backwards compatibility)
     implementation 'com.scottyab:secure-preferences-lib:0.1.4'
