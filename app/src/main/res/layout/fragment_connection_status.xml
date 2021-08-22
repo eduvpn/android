@@ -5,9 +5,23 @@
 
     <data>
 
+        <import type="androidx.lifecycle.LiveData" />
+
         <variable
             name="viewModel"
             type="nl.eduvpn.app.viewmodel.ConnectionStatusViewModel" />
+
+        <variable
+            name="secondsConnected"
+            type="LiveData&lt;String>" />
+
+        <variable
+            name="bytesDownloaded"
+            type="LiveData&lt;String>" />
+
+        <variable
+            name="bytesUploaded"
+            type="LiveData&lt;String>" />
 
         <variable
             name="ips"
@@ -223,6 +237,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginLeft="8dp"
+                    android:text="@{secondsConnected}"
                     app:layout_constraintLeft_toRightOf="@id/label_downloaded"
                     app:layout_constraintTop_toTopOf="parent"
                     tools:text="1h 23m 45s" />
@@ -243,6 +258,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginLeft="8dp"
+                    android:text="@{bytesDownloaded}"
                     app:layout_constraintLeft_toRightOf="@id/label_downloaded"
                     app:layout_constraintTop_toTopOf="@id/label_downloaded"
                     tools:text="231Mb" />
@@ -263,6 +279,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginLeft="8dp"
+                    android:text="@{bytesUploaded}"
                     app:layout_constraintLeft_toRightOf="@id/label_uploaded"
                     app:layout_constraintTop_toTopOf="@id/label_uploaded"
                     tools:text="7Mb" />

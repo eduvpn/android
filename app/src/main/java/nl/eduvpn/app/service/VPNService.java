@@ -69,13 +69,7 @@ public class VPNService extends LiveData<VPNService.VPNStatus> implements VpnSta
 
     // Stores the current VPN status.
     private ConnectionStatus _connectionStatus = ConnectionStatus.LEVEL_NOTCONNECTED;
-    // These are used to provide connection info updates
-    private ConnectionInfoCallback _connectionInfoCallback;
     private Handler _updatesHandler = new Handler();
-    // These store the current connection statistics
-    private Long _connectionTime;
-    private Long _bytesIn;
-    private Long _bytesOut;
 
     private Integer _errorResource;
 
@@ -91,14 +85,6 @@ public class VPNService extends LiveData<VPNService.VPNStatus> implements VpnSta
         @Override
         public void onServiceDisconnected(ComponentName arg0) {
             _openVPNService = null;
-        }
-    };
-
-    private VpnStatus.ByteCountListener _byteCountListener = new VpnStatus.ByteCountListener() {
-        @Override
-        public void updateByteCount(long in, long out, long diffIn, long diffOut) {
-            _bytesIn = in;
-            _bytesOut = out;
         }
     };
 
@@ -245,9 +231,6 @@ public class VPNService extends LiveData<VPNService.VPNStatus> implements VpnSta
      */
     private void _onDisconnect() {
         // Reset all statistics
-        _connectionTime = null;
-        _bytesIn = null;
-        _bytesOut = null;
         _errorResource = null;
     }
 
@@ -312,10 +295,7 @@ public class VPNService extends LiveData<VPNService.VPNStatus> implements VpnSta
             // Nothing changed.
             return;
         }
-        if (getStatus() == VPNStatus.CONNECTED) {
-            VpnStatus.addByteCountListener(_byteCountListener);
-            _connectionTime = System.currentTimeMillis();
-        } else if (getStatus() == VPNStatus.FAILED) {
+        if (getStatus() == VPNStatus.FAILED) {
             _errorResource = localizedResId;
         } else if (getStatus() == VPNStatus.DISCONNECTED) {
             _onDisconnect();
@@ -323,32 +303,6 @@ public class VPNService extends LiveData<VPNService.VPNStatus> implements VpnSta
         // Notify the observers.
         _updatesHandler.post(() -> {
             setValue(getStatus());
-        });
-    }
-
-
-    /**
-     * Attaches a connection info listener callback, which will be called frequently with the latest data.
-     *
-     * @param callback The callback.
-     */
-    public void attachConnectionInfoListener(ConnectionInfoCallback callback) {
-        _connectionInfoCallback = callback;
-        if (getStatus() == VPNStatus.CONNECTED) {
-            VpnStatus.addByteCountListener(_byteCountListener);
-        }
-        _updatesHandler.post(new Runnable() {
-            @Override
-            public void run() {
-                if (_connectionInfoCallback != null) {
-                    Long secondsElapsed = null;
-                    if (_connectionTime != null) {
-                        secondsElapsed = (System.currentTimeMillis() - _connectionTime) / 1000L;
-                    }
-                    _connectionInfoCallback.updateStatus(secondsElapsed, _bytesIn, _bytesOut);
-                    _updatesHandler.postDelayed(this, CONNECTION_INFO_UPDATE_INTERVAL_MS);
-                }
-            }
         });
     }
 
@@ -368,19 +322,4 @@ public class VPNService extends LiveData<VPNService.VPNStatus> implements VpnSta
         }
         return null;
     }
-
-    /**
-     * Detaches the current connection info listener.
-     */
-    public void detachConnectionInfoListener() {
-        _connectionInfoCallback = null;
-        _updatesHandler.removeCallbacksAndMessages(null);
-        VpnStatus.removeByteCountListener(_byteCountListener);
-    }
-
-    public interface ConnectionInfoCallback {
-        void updateStatus(Long secondsConnected, Long bytesIn, Long bytesOut);
-    }
-
-
 }

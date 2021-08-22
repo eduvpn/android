@@ -22,6 +22,7 @@ import android.view.View
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.map
 import de.blinkt.openvpn.VpnProfile
 import kotlinx.coroutines.delay
 import nl.eduvpn.app.EduVPNApplication
@@ -30,9 +31,11 @@ import nl.eduvpn.app.R
 import nl.eduvpn.app.base.BaseFragment
 import nl.eduvpn.app.databinding.FragmentConnectionStatusBinding
 import nl.eduvpn.app.fragment.ServerSelectionFragment.Companion.newInstance
+import nl.eduvpn.app.livedata.ByteCountLiveData
+import nl.eduvpn.app.livedata.ConnectionTimeLiveData
 import nl.eduvpn.app.livedata.IPLiveData
+import nl.eduvpn.app.livedata.UnlessDisconnectedLiveData
 import nl.eduvpn.app.service.VPNService
-import nl.eduvpn.app.service.VPNService.ConnectionInfoCallback
 import nl.eduvpn.app.service.VPNService.VPNStatus
 import nl.eduvpn.app.utils.ErrorDialog
 import nl.eduvpn.app.utils.FormattingUtils
@@ -45,7 +48,7 @@ import javax.inject.Inject
  * The fragment which displays the status of the current connection.
  * Created by Daniel Zolnai on 2016-10-07.
  */
-class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>(), ConnectionInfoCallback {
+class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>() {
 
     private val gracefulDisconnectHandler = Handler()
 
@@ -75,6 +78,23 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
         super.onViewCreated(view, savedInstanceState)
         EduVPNApplication.get(view.context).component().inject(this)
         binding.viewModel = viewModel
+        binding.secondsConnected =
+            ConnectionTimeLiveData.get(vpnService).map { secondsConnected ->
+                FormattingUtils.formatDurationSeconds(
+                    context,
+                    secondsConnected
+                )
+            }
+        val byteCountLiveData = UnlessDisconnectedLiveData.get(ByteCountLiveData, vpnService)
+        binding.bytesDownloaded =
+            byteCountLiveData.map { bc -> FormattingUtils.formatBytesTraffic(context, bc?.bytesIn) }
+        binding.bytesUploaded =
+            byteCountLiveData.map { bc ->
+                FormattingUtils.formatBytesTraffic(
+                    context,
+                    bc?.bytesOut
+                )
+            }
         binding.ips = ips
         binding.connectionSwitch.setOnCheckedChangeListener { _, isChecked ->
             if (isAutomaticCheckChange) {
@@ -109,22 +129,22 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
             if (viewModel.isInDisconnectMode.value == true) {
                 val profileItems = viewModel.serverProfiles.value ?: emptyList()
                 AlertDialog.Builder(requireContext(), R.style.AppTheme_AlertDialog)
-                        .setTitle(R.string.connection_select_profile)
-                        .setItems(profileItems.map { it.displayName }.toTypedArray()) { _, which ->
-                            val profileToConnectTo = profileItems[which]
-                            activity?.let {
-                                viewModel.isInDisconnectMode.value = false
-                                viewModel.selectProfileToConnectTo(profileToConnectTo)
-                            }
-                        }.show()
+                    .setTitle(R.string.connection_select_profile)
+                    .setItems(profileItems.map { it.displayName }.toTypedArray()) { _, which ->
+                        val profileToConnectTo = profileItems[which]
+                        activity?.let {
+                            viewModel.isInDisconnectMode.value = false
+                            viewModel.selectProfileToConnectTo(profileToConnectTo)
+                        }
+                    }.show()
             } else {
                 AlertDialog.Builder(requireContext(), R.style.AppTheme_AlertDialog)
-                        .setTitle(R.string.connection_warning_disconnect_first_title)
-                        .setMessage(R.string.connection_warning_disconnect_first_message)
-                        .setPositiveButton(R.string.connection_warning_disconnect_first_ok_button) { dialog, _ ->
-                            dialog.dismiss()
-                        }
-                        .show()
+                    .setTitle(R.string.connection_warning_disconnect_first_title)
+                    .setMessage(R.string.connection_warning_disconnect_first_message)
+                    .setPositiveButton(R.string.connection_warning_disconnect_first_ok_button) { dialog, _ ->
+                        dialog.dismiss()
+                    }
+                    .show()
             }
         }
         viewModel.connectionParentAction.observe(viewLifecycleOwner) { parentAction ->
@@ -213,11 +233,6 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
         vpnService.observe(viewLifecycleOwner, vpnStatusObserver)
     }
 
-    override fun onStart() {
-        super.onStart()
-        vpnService.attachConnectionInfoListener(this)
-    }
-
     fun returnToHome() {
         disconnect()
         val activity = activity as MainActivity?
@@ -225,11 +240,6 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
             activity.setBackNavigationEnabled(false)
             activity.openFragment(newInstance(false), false)
         }
-    }
-
-    override fun onStop() {
-        super.onStop()
-        vpnService.detachConnectionInfoListener()
     }
 
     private fun connect(vpnProfile: VpnProfile) {
@@ -261,12 +271,6 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
             vpnService.disconnect()
             viewModel.isInDisconnectMode.value = true
         }
-    }
-
-    override fun updateStatus(secondsConnected: Long?, bytesIn: Long?, bytesOut: Long?) {
-        binding.valueDuration.text = FormattingUtils.formatDurationSeconds(context, secondsConnected)
-        binding.valueDowloaded.text = FormattingUtils.formatBytesTraffic(context, bytesIn)
-        binding.valueUploaded.text = FormattingUtils.formatBytesTraffic(context, bytesOut)
     }
 
     companion object {
