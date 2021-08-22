@@ -52,7 +52,7 @@ object ConnectionTimeLiveData {
         vpnStatusLiveData.observeForever { vpnStatus ->
             if (vpnStatus == VPNService.VPNStatus.CONNECTED) {
                 connectionTime = System.currentTimeMillis()
-                connectionTimeLiveData.postValue(0)
+                connectionTimeLiveData.value = 0
                 try {
                     // the timer will be automatically stopped onPause and will be restarted onResume
                     connectionTimeLiveData.addSource(timer) { update() }
@@ -61,7 +61,7 @@ object ConnectionTimeLiveData {
                 }
             } else if (vpnStatus == VPNService.VPNStatus.DISCONNECTED) {
                 connectionTimeLiveData.removeSource(timer)
-                connectionTimeLiveData.postValue(null)
+                connectionTimeLiveData.value = null
             }
         }
 

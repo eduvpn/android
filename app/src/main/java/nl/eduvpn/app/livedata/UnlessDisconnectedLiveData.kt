@@ -31,16 +31,15 @@ object UnlessDisconnectedLiveData {
     ): LiveData<T?> {
         val mediator = MediatorLiveData<T?>()
         mediator.addSource(liveData) { value ->
-            val newValue = if (vpnStatusLiveData.value == VPNService.VPNStatus.DISCONNECTED) {
+            mediator.value = if (vpnStatusLiveData.value == VPNService.VPNStatus.DISCONNECTED) {
                 null
             } else {
                 value
             }
-            mediator.postValue(newValue)
         }
         mediator.addSource(vpnStatusLiveData) { vpnStatus ->
             if (vpnStatus == VPNService.VPNStatus.DISCONNECTED) {
-                mediator.postValue(null)
+                mediator.value = null
             }
         }
         return mediator
