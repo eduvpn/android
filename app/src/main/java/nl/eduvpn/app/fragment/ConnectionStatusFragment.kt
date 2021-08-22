@@ -63,8 +63,6 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
 
     private val viewModel by viewModels<ConnectionStatusViewModel> { viewModelFactory }
 
-    private val ips = IPLiveData
-
     init {
         //todo: replace with repeatOnLifecycle when androidx.lifecycle 2.4 is released
         lifecycleScope.launchWhenResumed {
@@ -95,7 +93,7 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
                     bc?.bytesOut
                 )
             }
-        binding.ips = ips
+        binding.ips = IPLiveData
         binding.connectionSwitch.setOnCheckedChangeListener { _, isChecked ->
             if (isAutomaticCheckChange) {
                 return@setOnCheckedChangeListener
