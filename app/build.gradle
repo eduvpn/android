@@ -11,7 +11,7 @@ android {
     defaultConfig {
         applicationId "nl.eduvpn.app"
         minSdkVersion 21
-        targetSdkVersion 29
+        targetSdkVersion 30
         versionCode 18
         versionName "2.0.5"
         ndkVersion "21.0.6113669"
