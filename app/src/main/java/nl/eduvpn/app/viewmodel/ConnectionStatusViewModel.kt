@@ -25,6 +25,10 @@ import androidx.lifecycle.MutableLiveData
 import de.blinkt.openvpn.VpnProfile
 import nl.eduvpn.app.R
 import nl.eduvpn.app.entity.Profile
+import nl.eduvpn.app.livedata.ByteCountLiveData
+import nl.eduvpn.app.livedata.ConnectionTimeLiveData
+import nl.eduvpn.app.livedata.IPLiveData
+import nl.eduvpn.app.livedata.UnlessDisconnectedLiveData
 import nl.eduvpn.app.service.*
 import nl.eduvpn.app.utils.getCountryText
 import nl.eduvpn.app.utils.toSingleEvent
@@ -53,6 +57,9 @@ class ConnectionStatusViewModel @Inject constructor(
     val profileName = MutableLiveData<String>()
     val isInDisconnectMode = MutableLiveData(false)
     val serverProfiles = MutableLiveData<List<Profile>>()
+    val connectionTimeLiveData = ConnectionTimeLiveData.create(vpnService)
+    val byteCountLiveData = UnlessDisconnectedLiveData.create(ByteCountLiveData(), vpnService)
+    val ipLiveData = IPLiveData()
 
     private val _connectionParentAction = MutableLiveData<ParentAction>()
     val connectionParentAction = _connectionParentAction.toSingleEvent()

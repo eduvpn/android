@@ -32,10 +32,6 @@ import nl.eduvpn.app.R
 import nl.eduvpn.app.base.BaseFragment
 import nl.eduvpn.app.databinding.FragmentConnectionStatusBinding
 import nl.eduvpn.app.fragment.ServerSelectionFragment.Companion.newInstance
-import nl.eduvpn.app.livedata.ByteCountLiveData
-import nl.eduvpn.app.livedata.ConnectionTimeLiveData
-import nl.eduvpn.app.livedata.IPLiveData
-import nl.eduvpn.app.livedata.UnlessDisconnectedLiveData
 import nl.eduvpn.app.service.VPNService
 import nl.eduvpn.app.service.VPNService.VPNStatus
 import nl.eduvpn.app.utils.ErrorDialog
@@ -77,24 +73,25 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
         super.onViewCreated(view, savedInstanceState)
         EduVPNApplication.get(view.context).component().inject(this)
         binding.viewModel = viewModel
-        binding.secondsConnected =
-            ConnectionTimeLiveData.get(vpnService).map { secondsConnected ->
-                FormattingUtils.formatDurationSeconds(
-                    context,
-                    secondsConnected
-                )
-            }
-        val byteCountLiveData = UnlessDisconnectedLiveData.get(ByteCountLiveData, vpnService)
-        binding.bytesDownloaded =
-            byteCountLiveData.map { bc -> FormattingUtils.formatBytesTraffic(context, bc?.bytesIn) }
-        binding.bytesUploaded =
-            byteCountLiveData.map { bc ->
-                FormattingUtils.formatBytesTraffic(
-                    context,
-                    bc?.bytesOut
-                )
-            }
-        binding.ips = IPLiveData
+        binding.secondsConnected = viewModel.connectionTimeLiveData.map { secondsConnected ->
+            FormattingUtils.formatDurationSeconds(
+                context,
+                secondsConnected
+            )
+        }
+        binding.bytesDownloaded = viewModel.byteCountLiveData.map { bc ->
+            FormattingUtils.formatBytesTraffic(
+                context,
+                bc?.bytesIn
+            )
+        }
+        binding.bytesUploaded = viewModel.byteCountLiveData.map { bc ->
+            FormattingUtils.formatBytesTraffic(
+                context,
+                bc?.bytesOut
+            )
+        }
+        binding.ips = viewModel.ipLiveData
         binding.connectionSwitch.setOnCheckedChangeListener { _, isChecked ->
             if (isAutomaticCheckChange) {
                 return@setOnCheckedChangeListener

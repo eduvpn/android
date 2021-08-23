@@ -25,7 +25,7 @@ import nl.eduvpn.app.service.VPNService
  * Live data unless VPN disconnected.
  */
 object UnlessDisconnectedLiveData {
-    fun <T> get(
+    fun <T> create(
         liveData: LiveData<T>,
         vpnStatusLiveData: LiveData<VPNService.VPNStatus>
     ): LiveData<T?> {

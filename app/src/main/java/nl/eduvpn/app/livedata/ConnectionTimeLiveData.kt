@@ -17,7 +17,6 @@
 
 package nl.eduvpn.app.livedata
 
-import androidx.annotation.MainThread
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.liveData
@@ -29,9 +28,7 @@ import nl.eduvpn.app.service.VPNService
  */
 object ConnectionTimeLiveData {
 
-    private lateinit var instance: LiveData<Long?>
-
-    private fun create(vpnStatusLiveData: LiveData<VPNService.VPNStatus>): LiveData<Long?> {
+    fun create(vpnStatusLiveData: LiveData<VPNService.VPNStatus>): LiveData<Long?> {
         var connectionTime = 0L
 
         val timer = liveData {
@@ -66,11 +63,5 @@ object ConnectionTimeLiveData {
         }
 
         return connectionTimeLiveData
-    }
-
-    @MainThread
-    fun get(vpnStatusLiveData: LiveData<VPNService.VPNStatus>): LiveData<Long?> {
-        instance = if (::instance.isInitialized) instance else create(vpnStatusLiveData)
-        return instance
     }
 }

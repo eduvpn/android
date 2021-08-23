@@ -31,7 +31,7 @@ import java.net.SocketException
 import java.util.*
 import java.util.regex.Pattern
 
-object IPLiveData : LiveData<IPLiveData.IPs>() {
+class IPLiveData : LiveData<IPLiveData.IPs>() {
 
     data class IPs(val ipv4: String?, val ipv6: String?)
 

@@ -20,7 +20,7 @@ package nl.eduvpn.app.livedata
 import androidx.lifecycle.LiveData
 import de.blinkt.openvpn.core.VpnStatus
 
-object ByteCountLiveData : LiveData<ByteCountLiveData.ByteCount>() {
+class ByteCountLiveData : LiveData<ByteCountLiveData.ByteCount>() {
 
     data class ByteCount(val bytesIn: Long, val bytesOut: Long)
 
