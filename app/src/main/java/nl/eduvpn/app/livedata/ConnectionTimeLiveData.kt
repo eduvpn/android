@@ -19,24 +19,18 @@ package nl.eduvpn.app.livedata
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MediatorLiveData
-import androidx.lifecycle.liveData
-import kotlinx.coroutines.delay
 import nl.eduvpn.app.service.VPNService
 
 /**
  * Amount of seconds connected to the VPN.
  */
 object ConnectionTimeLiveData {
-
-    fun create(vpnStatusLiveData: LiveData<VPNService.VPNStatus>): LiveData<Long?> {
+    
+    fun create(
+        vpnStatusLiveData: LiveData<VPNService.VPNStatus>,
+        timer: LiveData<Unit>
+    ): LiveData<Long?> {
         var connectionTime = 0L
-
-        val timer = liveData {
-            while (true) {
-                emit(Unit)
-                delay(1000)
-            }
-        }
 
         val connectionTimeLiveData = MediatorLiveData<Long?>()
 

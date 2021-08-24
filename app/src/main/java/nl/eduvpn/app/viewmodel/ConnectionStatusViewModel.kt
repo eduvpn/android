@@ -22,7 +22,9 @@ import android.content.Context
 import android.text.Spanned
 import androidx.core.text.HtmlCompat
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.liveData
 import de.blinkt.openvpn.VpnProfile
+import kotlinx.coroutines.delay
 import nl.eduvpn.app.R
 import nl.eduvpn.app.entity.Profile
 import nl.eduvpn.app.livedata.ByteCountLiveData
@@ -57,7 +59,13 @@ class ConnectionStatusViewModel @Inject constructor(
     val profileName = MutableLiveData<String>()
     val isInDisconnectMode = MutableLiveData(false)
     val serverProfiles = MutableLiveData<List<Profile>>()
-    val connectionTimeLiveData = ConnectionTimeLiveData.create(vpnService)
+    val timer = liveData {
+        while (true) {
+            emit(Unit)
+            delay(1000)
+        }
+    }
+    val connectionTimeLiveData = ConnectionTimeLiveData.create(vpnService, timer)
     val byteCountLiveData = UnlessDisconnectedLiveData.create(ByteCountLiveData(), vpnService)
     val ipLiveData = IPLiveData()
 

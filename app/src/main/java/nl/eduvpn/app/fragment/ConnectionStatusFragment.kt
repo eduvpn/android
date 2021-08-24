@@ -22,10 +22,8 @@ import android.os.Looper
 import android.view.View
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.map
 import de.blinkt.openvpn.VpnProfile
-import kotlinx.coroutines.delay
 import nl.eduvpn.app.EduVPNApplication
 import nl.eduvpn.app.MainActivity
 import nl.eduvpn.app.R
@@ -59,15 +57,6 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
     override val layout = R.layout.fragment_connection_status
 
     private val viewModel by viewModels<ConnectionStatusViewModel> { viewModelFactory }
-
-    init {
-        //todo: replace with repeatOnLifecycle when androidx.lifecycle 2.4 is released
-        lifecycleScope.launchWhenResumed {
-            while (viewModel.updateCertExpiry()) {
-                delay(1000)
-            }
-        }
-    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -174,6 +163,9 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
         }
         viewModel.isInDisconnectMode.observe(viewLifecycleOwner) { isInDisconnectMode ->
             (activity as? MainActivity)?.setBackNavigationEnabled(isInDisconnectMode)
+        }
+        viewModel.timer.observe(viewLifecycleOwner) {
+            viewModel.updateCertExpiry()
         }
         val vpnStatusObserver = { vpnStatus: VPNStatus ->
             when (vpnStatus) {
