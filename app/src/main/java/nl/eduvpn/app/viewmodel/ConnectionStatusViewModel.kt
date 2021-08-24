@@ -19,13 +19,18 @@
 package nl.eduvpn.app.viewmodel
 
 import android.content.Context
-import android.os.Handler
 import android.text.Spanned
 import androidx.core.text.HtmlCompat
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.liveData
 import de.blinkt.openvpn.VpnProfile
+import kotlinx.coroutines.delay
 import nl.eduvpn.app.R
 import nl.eduvpn.app.entity.Profile
+import nl.eduvpn.app.livedata.ByteCountLiveData
+import nl.eduvpn.app.livedata.ConnectionTimeLiveData
+import nl.eduvpn.app.livedata.IPLiveData
+import nl.eduvpn.app.livedata.UnlessDisconnectedLiveData
 import nl.eduvpn.app.service.*
 import nl.eduvpn.app.utils.getCountryText
 import nl.eduvpn.app.utils.toSingleEvent
@@ -54,16 +59,18 @@ class ConnectionStatusViewModel @Inject constructor(
     val profileName = MutableLiveData<String>()
     val isInDisconnectMode = MutableLiveData(false)
     val serverProfiles = MutableLiveData<List<Profile>>()
+    val timer = liveData {
+        while (true) {
+            emit(Unit)
+            delay(1000)
+        }
+    }
+    val connectionTimeLiveData = ConnectionTimeLiveData.create(vpnService, timer)
+    val byteCountLiveData = UnlessDisconnectedLiveData.create(ByteCountLiveData(), vpnService)
+    val ipLiveData = IPLiveData()
 
     private val _connectionParentAction = MutableLiveData<ParentAction>()
     val connectionParentAction = _connectionParentAction.toSingleEvent()
-
-    private var updateCertHandler: Handler = Handler()
-    private var updateCertCallback: Runnable = Runnable {
-        if(updateCertExpiry()) {
-            runUpdateCertExpiryEverySecond()
-        }
-    }
 
     init {
         refreshProfile()
@@ -90,27 +97,10 @@ class ConnectionStatusViewModel @Inject constructor(
         certExpiryTime = historyService.getSavedKeyPairForInstance(connectionInstance).keyPair.expiryTimeMillis
     }
 
-    override fun onResume() {
-        super.onResume()
-        updateCertHandler.post(updateCertCallback)
-    }
-
-    fun onPause() {
-        stopUpdateCertExpiry()
-    }
-
-    private fun runUpdateCertExpiryEverySecond() {
-        updateCertHandler.postDelayed(updateCertCallback, 1 * 1000)
-    }
-
-    private fun stopUpdateCertExpiry() {
-        updateCertHandler.removeCallbacks(updateCertCallback)
-    }
-
     /**
      * @return If the cert expiry time should continue to be updated.
      */
-    private fun updateCertExpiry(): Boolean {
+    fun updateCertExpiry(): Boolean {
         val currentTime = System.currentTimeMillis()
         if (certExpiryTime == null) {
             // No cert or time, nothing to display
