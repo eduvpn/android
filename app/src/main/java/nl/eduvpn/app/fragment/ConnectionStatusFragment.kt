@@ -22,6 +22,7 @@ import android.os.Looper
 import android.view.View
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Observer
 import androidx.lifecycle.map
 import de.blinkt.openvpn.VpnProfile
 import nl.eduvpn.app.EduVPNApplication
@@ -164,9 +165,13 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
         viewModel.isInDisconnectMode.observe(viewLifecycleOwner) { isInDisconnectMode ->
             (activity as? MainActivity)?.setBackNavigationEnabled(isInDisconnectMode)
         }
-        viewModel.timer.observe(viewLifecycleOwner) {
-            viewModel.updateCertExpiry()
+        var updateCertExpiryObserver: Observer<Unit>? = null
+        updateCertExpiryObserver = Observer {
+            if (!viewModel.updateCertExpiry()) {
+                updateCertExpiryObserver?.let { obs -> viewModel.timer.removeObserver(obs) }
+            }
         }
+        viewModel.timer.observe(viewLifecycleOwner, updateCertExpiryObserver)
         val vpnStatusObserver = { vpnStatus: VPNStatus ->
             when (vpnStatus) {
                 VPNStatus.CONNECTED -> {
