@@ -67,9 +67,12 @@ abstract class BaseConnectionViewModel(
     val warning = MutableLiveData<String>()
 
     val parentAction = MutableLiveData<ParentAction>()
-
-
-    fun discoverApi(instance: Instance, parentInstance: Instance? = null) {
+    
+    fun discoverApi(
+        instance: Instance,
+        parentInstance: Instance? = null,
+        reauthorize: Boolean = false
+    ) {
         // If no discovered API, fetch it first, then initiate the connection for the login
         connectionState.value = ConnectionState.DiscoveringApi
         // Discover the API
@@ -80,7 +83,7 @@ abstract class BaseConnectionViewModel(
                 try {
                     val discoveredAPI = serializerService.deserializeDiscoveredAPI(result)
                     val savedToken = historyService.getSavedToken(parentInstance ?: instance)
-                    if (savedToken == null) {
+                    if (savedToken == null || reauthorize) {
                         authorize(parentInstance ?: instance, discoveredAPI)
                     } else {
                         if (savedToken.instance.sanitizedBaseURI != (parentInstance

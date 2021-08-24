@@ -40,7 +40,7 @@ class ConnectionStatusViewModel @Inject constructor(
         private val context: Context,
         private val preferencesService: PreferencesService,
         private val vpnService: VPNService,
-        historyService: HistoryService,
+        private val historyService: HistoryService,
         apiService: APIService,
         serializerService: SerializerService,
         connectionService: ConnectionService
@@ -51,7 +51,7 @@ class ConnectionStatusViewModel @Inject constructor(
         object SessionExpired : ParentAction()
     }
 
-    private val certExpiryTime: Long?
+    private var certExpiryTime: Long? = null
 
     val serverName = MutableLiveData<String>()
     val serverSupport = MutableLiveData<String>()
@@ -94,7 +94,15 @@ class ConnectionStatusViewModel @Inject constructor(
         } else {
             serverSupport.value = null
         }
-        certExpiryTime = historyService.getSavedKeyPairForInstance(connectionInstance).keyPair.expiryTimeMillis
+    }
+
+    fun renewSession() {
+        discoverApi(preferencesService.currentInstance, null, true)
+    }
+
+    fun reconnectToInstance() {
+        historyService.removeSavedKeyPairs(preferencesService.currentInstance)
+        discoverApi(preferencesService.currentInstance)
     }
 
     /**
@@ -102,6 +110,7 @@ class ConnectionStatusViewModel @Inject constructor(
      */
     fun updateCertExpiry(): Boolean {
         val currentTime = System.currentTimeMillis()
+        val certExpiryTime = this.certExpiryTime
         if (certExpiryTime == null) {
             // No cert or time, nothing to display
             certValidity.value = null
@@ -163,6 +172,7 @@ class ConnectionStatusViewModel @Inject constructor(
             serverName.value = context.getString(R.string.profile_name_not_found)
         }
         profileName.value = savedProfile?.displayName
+        certExpiryTime = historyService.getSavedKeyPairForInstance(connectionInstance).keyPair.expiryTimeMillis
         updateCertExpiry()
     }
 

@@ -23,15 +23,16 @@ import android.os.Bundle;
 import android.view.MenuItem;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.ActionBar;
+import androidx.fragment.app.Fragment;
+
 import net.openid.appauth.AuthorizationException;
 import net.openid.appauth.AuthorizationResponse;
 
 import javax.inject.Inject;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.ActionBar;
-import androidx.fragment.app.Fragment;
 import nl.eduvpn.app.base.BaseActivity;
 import nl.eduvpn.app.databinding.ActivityMainBinding;
 import nl.eduvpn.app.fragment.AddServerFragment;
@@ -149,8 +150,8 @@ public class MainActivity extends BaseActivity<ActivityMainBinding> {
             Fragment currentFragment = getSupportFragmentManager().findFragmentById(R.id.content_frame);
             ConnectionService.AuthorizationStateCallback callback = () -> {
                 if (currentFragment instanceof ServerSelectionFragment) {
-                    ((ServerSelectionFragment)currentFragment).connectToSelectedInstance();
-                } else {
+                    ((ServerSelectionFragment) currentFragment).connectToSelectedInstance();
+                } else if (currentFragment instanceof OrganizationSelectionFragment) {
                     Toast.makeText(this, R.string.provider_added_new_configs_available, Toast.LENGTH_LONG).show();
                 }
             };
@@ -159,7 +160,9 @@ public class MainActivity extends BaseActivity<ActivityMainBinding> {
             // Remove it so we don't parse it again.
             intent.setData(null);
 
-            if (!(currentFragment instanceof ConnectionStatusFragment) && !(currentFragment instanceof ServerSelectionFragment)) {
+            if (currentFragment instanceof ConnectionStatusFragment) {
+                ((ConnectionStatusFragment) currentFragment).reconnectToInstance();
+            } else if (!(currentFragment instanceof ServerSelectionFragment)) {
                 openFragment(ServerSelectionFragment.Companion.newInstance(true), false);
             }
 
