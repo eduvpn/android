@@ -38,6 +38,7 @@ import nl.eduvpn.app.utils.FormattingUtils
 import nl.eduvpn.app.utils.Log
 import nl.eduvpn.app.viewmodel.BaseConnectionViewModel
 import nl.eduvpn.app.viewmodel.ConnectionStatusViewModel
+import java.util.*
 import javax.inject.Inject
 
 /**
@@ -133,10 +134,18 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
                     .show()
             }
         }
+        binding.renewSession.setOnClickListener {
+            disconnect()
+            viewModel.renewSession()
+        }
         viewModel.connectionParentAction.observe(viewLifecycleOwner) { parentAction ->
             when (parentAction) {
                 ConnectionStatusViewModel.ParentAction.SessionExpired -> {
-                    val dialog = ErrorDialog.show(requireContext(), R.string.error_certificate_expired_title, R.string.error_certificate_expired_message)
+                    val dialog = ErrorDialog.show(
+                        requireContext(),
+                        R.string.error_certificate_expired_title,
+                        R.string.error_certificate_expired_message
+                    )
                     disconnect()
                     dialog?.setOnDismissListener {
                         returnToHome()
@@ -159,6 +168,21 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
                 }
                 is BaseConnectionViewModel.ParentAction.DisplayError -> {
                     ErrorDialog.show(requireContext(), parentAction.title, parentAction.message)
+                }
+                is BaseConnectionViewModel.ParentAction.OpenProfileSelector -> {
+                    val profile = viewModel.findCurrentProfile()
+                        ?.let { currentProfile ->
+                            parentAction.profiles.find { p -> p.profileId == currentProfile.profileId }
+                        }
+                    if (profile != null) {
+                        viewModel.selectProfileToConnectTo(profile)
+                    } else {
+                        (activity as? MainActivity)?.openFragment(
+                            ProfileSelectionFragment.newInstance(
+                                parentAction.profiles
+                            ), true
+                        )
+                    }
                 }
             }
         }
@@ -233,6 +257,10 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
             activity.setBackNavigationEnabled(false)
             activity.openFragment(newInstance(false), false)
         }
+    }
+
+    fun reconnectToInstance() {
+        viewModel.reconnectToInstance()
     }
 
     private fun connect(vpnProfile: VpnProfile) {

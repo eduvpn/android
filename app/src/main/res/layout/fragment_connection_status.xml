@@ -40,7 +40,7 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_marginBottom="96dp"
+            android:layout_marginBottom="64dp"
             android:baselineAligned="false"
             android:gravity="center"
             android:orientation="vertical">
@@ -111,6 +111,19 @@
                 android:textColor="@color/textColor"
                 android:textSize="14sp"
                 tools:text="Valid for 13 days and 22 hours" />
+
+            <TextView
+                android:id="@+id/renew_session"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="32dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginRight="32dp"
+                android:fontFamily="@font/open_sans_regular"
+                android:gravity="center"
+                android:text="@string/connection_info_renew_session"
+                android:textColor="@color/textColorLink"
+                android:textSize="14sp" />
 
             <androidx.appcompat.widget.SwitchCompat
                 android:id="@+id/connection_switch"
