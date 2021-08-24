@@ -165,8 +165,8 @@ public class MainActivity extends BaseActivity<ActivityMainBinding> {
             Fragment currentFragment = getSupportFragmentManager().findFragmentById(R.id.content_frame);
             ConnectionService.AuthorizationStateCallback callback = () -> {
                 if (currentFragment instanceof ServerSelectionFragment) {
-                    ((ServerSelectionFragment)currentFragment).connectToSelectedInstance();
-                } else {
+                    ((ServerSelectionFragment) currentFragment).connectToSelectedInstance();
+                } else if (currentFragment instanceof OrganizationSelectionFragment) {
                     Toast.makeText(this, R.string.provider_added_new_configs_available, Toast.LENGTH_LONG).show();
                 }
             };
@@ -175,7 +175,9 @@ public class MainActivity extends BaseActivity<ActivityMainBinding> {
             // Remove it so we don't parse it again.
             intent.setData(null);
 
-            if (!(currentFragment instanceof ConnectionStatusFragment) && !(currentFragment instanceof ServerSelectionFragment)) {
+            if (currentFragment instanceof ConnectionStatusFragment) {
+                ((ConnectionStatusFragment) currentFragment).reconnectToInstance();
+            } else if (!(currentFragment instanceof ServerSelectionFragment)) {
                 openFragment(ServerSelectionFragment.Companion.newInstance(true), false);
             }
 

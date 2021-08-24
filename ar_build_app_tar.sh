@@ -4,25 +4,24 @@
 # CONFIGURATION
 ###############################################################################
 
-SDK_DIR=${HOME}/android-sdk
+SDK_DIR=${HOME}/android-rebuilds-sdk
 KEY_STORE=${HOME}/android.jks
 
-GIT_REPO=https://github.com/eduvpn/android
-GIT_TAG=2.0.5
-#GIT_TAG=master
+V=2.0.5
+DOWNLOAD_URL=https://github.com/eduvpn/android/releases/download/${V}/eduvpn-android-${V}.tar.xz
 
 PROJECT_DIR=${HOME}/Projects
-APP_DIR=${PROJECT_DIR}/eduvpn-android-$(date +%Y%m%d%H%M%S)
+APP_DIR=${PROJECT_DIR}/eduvpn-android-${V}
 
 # eduVPN
 GRADLE_TASK=app:assembleBasicRelease
 UNSIGNED_APK=${APP_DIR}/app/build/outputs/apk/basic/release/app-basic-release-unsigned.apk 
-SIGNED_APK=${PROJECT_DIR}/eduVPN-${GIT_TAG}.apk
+SIGNED_APK=${PROJECT_DIR}/eduVPN-${V}.apk
 
 # Let's Connect!
 #GRADLE_TASK=app:assembleHomeRelease
 #UNSIGNED_APK=${APP_DIR}/app/build/outputs/apk/home/release/app-home-release-unsigned.apk 
-#SIGNED_APK=${PROJECT_DIR}/LetsConnect-${GIT_TAG}.apk
+#SIGNED_APK=${PROJECT_DIR}/LetsConnect-${V}.apk
 
 ###############################################################################
 # CLONE
@@ -32,8 +31,25 @@ SIGNED_APK=${PROJECT_DIR}/eduVPN-${GIT_TAG}.apk
     mkdir -p "${PROJECT_DIR}"
     cd "${PROJECT_DIR}" || exit
 
-    git clone --recursive -b ${GIT_TAG} ${GIT_REPO} "${APP_DIR}"
+    curl -L -o ${PROJECT_DIR}/eduvpn-android-${V}.tar.xz "${DOWNLOAD_URL}"
+    tar -xJf ${PROJECT_DIR}/eduvpn-android-${V}.tar.xz
+)
+
+###############################################################################
+# PATCH
+###############################################################################
+
+(
+    SCRIPT_DIR=${PWD}
     cd "${APP_DIR}" || exit
+    echo "Patching extracted sources"
+    # Checking beforehand if patch can be applied or not:
+    # If reversing the patch (-R) works that means the patch was already applied, do a dry run to not apply anything (--dry-run) and do not output anything extra for it (-s)
+    # This all means reversing the patch will fail succesfully™ (hence -s will not silence _all_ errors)
+    # If the patch was already applied the second command will not execute (OR operator)
+    # If reversing the patch does not work it will actually patch the to be changed files
+    patch -p1 -s < ${SCRIPT_DIR}/patches/android-rebuilds/ar.patch
+    echo "Patched extracted sources"
 )
 
 ###############################################################################

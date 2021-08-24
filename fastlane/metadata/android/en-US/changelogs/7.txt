@@ -1,0 +1,1 @@
+* Use different OAuth client information for Let's Connect! flavor

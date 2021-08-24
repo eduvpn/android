@@ -5,9 +5,27 @@
 
     <data>
 
+        <import type="androidx.lifecycle.LiveData" />
+
         <variable
             name="viewModel"
             type="nl.eduvpn.app.viewmodel.ConnectionStatusViewModel" />
+
+        <variable
+            name="secondsConnected"
+            type="LiveData&lt;String>" />
+
+        <variable
+            name="bytesDownloaded"
+            type="LiveData&lt;String>" />
+
+        <variable
+            name="bytesUploaded"
+            type="LiveData&lt;String>" />
+
+        <variable
+            name="ips"
+            type="nl.eduvpn.app.livedata.IPLiveData" />
 
         <import type="android.view.View" />
     </data>
@@ -22,7 +40,7 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_marginBottom="96dp"
+            android:layout_marginBottom="64dp"
             android:baselineAligned="false"
             android:gravity="center"
             android:orientation="vertical">
@@ -93,6 +111,19 @@
                 android:textColor="@color/textColor"
                 android:textSize="14sp"
                 tools:text="Valid for 13 days and 22 hours" />
+
+            <TextView
+                android:id="@+id/renew_session"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="32dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginRight="32dp"
+                android:fontFamily="@font/open_sans_regular"
+                android:gravity="center"
+                android:text="@string/connection_info_renew_session"
+                android:textColor="@color/textColorLink"
+                android:textSize="14sp" />
 
             <androidx.appcompat.widget.SwitchCompat
                 android:id="@+id/connection_switch"
@@ -219,6 +250,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginLeft="8dp"
+                    android:text="@{secondsConnected}"
                     app:layout_constraintLeft_toRightOf="@id/label_downloaded"
                     app:layout_constraintTop_toTopOf="parent"
                     tools:text="1h 23m 45s" />
@@ -239,6 +271,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginLeft="8dp"
+                    android:text="@{bytesDownloaded}"
                     app:layout_constraintLeft_toRightOf="@id/label_downloaded"
                     app:layout_constraintTop_toTopOf="@id/label_downloaded"
                     tools:text="231Mb" />
@@ -259,6 +292,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginLeft="8dp"
+                    android:text="@{bytesUploaded}"
                     app:layout_constraintLeft_toRightOf="@id/label_uploaded"
                     app:layout_constraintTop_toTopOf="@id/label_uploaded"
                     tools:text="7Mb" />
@@ -281,6 +315,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="2dp"
+                    android:text="@{ips.ipv4 ?? @string/not_available}"
                     app:layout_constraintLeft_toLeftOf="parent"
                     app:layout_constraintTop_toBottomOf="@id/label_ipv4"
                     tools:text="123.123.123" />
@@ -302,6 +337,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="2dp"
+                    android:text="@{ips.ipv6 ?? @string/not_available}"
                     app:layout_constraintLeft_toLeftOf="@id/guide_vertical_divide"
                     app:layout_constraintRight_toRightOf="parent"
                     app:layout_constraintTop_toBottomOf="@id/label_ipv6"

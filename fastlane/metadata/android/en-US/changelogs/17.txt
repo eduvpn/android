@@ -1,0 +1,2 @@
+* Add Spanish (Latin America) translation
+* Fix parallel installation issue with other ics-openvpn based apps

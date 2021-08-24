@@ -1,0 +1,4 @@
+* Update ics-openvpn
+* Reduce size of app (do not add all static libs)
+* Add additional public keys for eduVPN discovery
+* Add application tests

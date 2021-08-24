@@ -19,7 +19,9 @@ package nl.eduvpn.app.entity;
 
 import android.util.Base64;
 
-import javax.security.cert.X509Certificate;
+import java.io.ByteArrayInputStream;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
 
 import androidx.annotation.Nullable;
 import nl.eduvpn.app.utils.Log;
@@ -63,7 +65,8 @@ public class KeyPair {
                     .replace("-----BEGIN CERTIFICATE-----\n", "")
                     .replace("-----END CERTIFICATE-----", "");
             byte[] certificateData = Base64.decode(base64Encoded, Base64.DEFAULT);
-            return X509Certificate.getInstance(certificateData);
+            CertificateFactory cf = CertificateFactory.getInstance("X.509");
+            return (X509Certificate)cf.generateCertificate(new ByteArrayInputStream(certificateData));
         } catch (Exception ex) {
             Log.e(TAG, "Unable to parse certificate!", ex);
             return null;

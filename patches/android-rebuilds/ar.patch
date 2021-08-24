@@ -1,0 +1,33 @@
+--- a/app/build.gradle     2021-05-24 21:29:18.351474326 +0200
++++ b/app/build.gradle       2021-05-24 21:29:43.974623578 +0200
+@@ -14,7 +14,7 @@
+         targetSdkVersion 29
+         versionCode 17
+         versionName "2.0.4"
+-        ndkVersion "21.0.6113669"
++        ndkVersion "21.4.0"
+ 
+         vectorDrawables.useSupportLibrary = true
+ 
+--- a/ics-openvpn/main/build.gradle.kts    2021-05-24 21:29:18.357474354 +0200
++++ b/ics-openvpn/main/build.gradle.kts      2021-05-24 21:30:57.487003822 +0200
+@@ -22,9 +22,11 @@
+         targetSdkVersion(30)  //'Q'.toInt()
+         versionCode = 176
+         versionName = "0.7.22"
++        ndkVersion = "21.4.0"
+ 
+         externalNativeBuild {
+             cmake {
++                version = "3.10.3+"
+                 //arguments = listOf("-DANDROID_TOOLCHAIN=clang",
+                 //        "-DANDROID_STL=c++_static")
+             }
+@@ -36,6 +38,7 @@
+ 
+     externalNativeBuild {
+         cmake {
++            version = "3.10.3+"
+             path =File("${projectDir}/src/main/cpp/CMakeLists.txt")
+         }
+     }

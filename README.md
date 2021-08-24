@@ -9,13 +9,21 @@ You can clone this repository by executing the following command (provided you h
 Or if your git version is below 2.13:
 
     git clone --recursive https://github.com/eduvpn/android.git
-    
+
+# Download the app
+
+[<img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png"
+     alt="Get it on F-Droid"
+     height="80">](https://f-droid.org/packages/nl.eduvpn.app/)
+[<img src="https://play.google.com/intl/en_us/badges/images/generic/en-play-badge.png"
+     alt="Get it on Google Play"
+     height="80">](https://play.google.com/store/apps/details?id=nl.eduvpn.app)
+
 # Organizations
 
 A future version of the app will contain automatic organization discovery, where you can select your institute from a wide list.
 This way you don't have to manually enter discovery URLs. To build this version of the app, build the `organization` flavor instead of `basic`.
  
-
 # Running with Android Studio
 
 First install the `swig` package with your operating system package manager.
@@ -54,13 +62,16 @@ not tested, but 1GB definitely does not work.
         swig \
         java-1.8.0-openjdk \
         java-1.8.0-openjdk-devel \
-        ncurses-compat-libs
+        ncurses-compat-libs \
+        ninja-build \
+        cmake \
+	    pv
 
-We last tested this (successfully) on 2021-03-18 with Fedora 33.
+We last tested this (successfully) on 2021-05-11 with Fedora 34.
 
 ### Debian
 
-    $ sudo apt -y install openjdk-8-jdk git curl unzip swig ninja-build
+    $ sudo apt -y install openjdk-8-jdk git curl unzip swig ninja-build cmake pv
 
 ## Key Store
 
@@ -81,7 +92,13 @@ Additional documentation
 
 ## Setup
 
+### Google SDK
     $ ./builder_setup.sh
+
+### Android Rebuilds SDK
+    $ ./ar_builder_setup.sh
+
+[Android Rebuilds](https://android-rebuilds.beuc.net) is a reproducibly built version of the Android SDK. This is possible because the entire SDK is licensed under the Open Source APACHE license. This allows you to compile apps without having to accept Google's license agreement within sdkmanager.
 
 ## Build
 
@@ -93,6 +110,10 @@ development release.
 
     $ ./build_app_git.sh
 
+If you have set up the Android Rebuilds SDK you can use
+
+    $ ./ar_build_app_git.sh
+
 You'll find the signed output APK in ${HOME}/Projects.
 
 ### Tar
@@ -102,5 +123,9 @@ including all submodules, use the following after modifying the file if
 necessary. Use this if you want to use an official release.
 
     $ ./build_app_tar.sh
+
+If you have set up the Android Rebuilds SDK you can use
+
+    $ ./ar_build_app_tar.sh
 
 You'll find the signed output APK in ${HOME}/Projects.

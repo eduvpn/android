@@ -4,7 +4,7 @@
 # CONFIGURATION
 ###############################################################################
 
-SDK_DIR=${HOME}/android-sdk
+SDK_DIR=${HOME}/android-rebuilds-sdk
 KEY_STORE=${HOME}/android.jks
 
 GIT_REPO=https://github.com/eduvpn/android
@@ -30,11 +30,28 @@ SIGNED_APK=${PROJECT_DIR}/eduVPN-${GIT_TAG}.apk
 
 (
     mkdir -p "${PROJECT_DIR}"
-    cd "${PROJECT_DIR}" || exit
 
     git clone --recursive -b ${GIT_TAG} ${GIT_REPO} "${APP_DIR}"
-    cd "${APP_DIR}" || exit
 )
+
+###############################################################################
+# PATCH
+###############################################################################
+
+(
+    SCRIPT_DIR=${PWD}
+    cd "${APP_DIR}" || exit
+    echo "Patching cloned repo"
+    # Checking beforehand if patch can be applied or not:
+    # Patching current repo
+    # Checking beforehand if patch can be applied or not:
+    # If reversing the patch (-R) works that means the patch was already applied, do a dry run to not apply anything (--check)
+    # This all means reversing the patch will fail succesfully™
+    # If the patch was already applied the second command will not execute (OR operator)
+    # If reversing the patch does not work it will actually patch the to be changed files
+    git apply ${SCRIPT_DIR}/patches/android-rebuilds/ar.patch
+    echo "Patched cloned repo"
+ )
 
 ###############################################################################
 # BUILD

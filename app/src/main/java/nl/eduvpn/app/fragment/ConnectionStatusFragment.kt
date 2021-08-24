@@ -20,9 +20,12 @@ import android.app.NotificationManager
 import android.content.Context
 import android.os.Bundle
 import android.os.Handler
+import android.os.Looper
 import android.view.View
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Observer
+import androidx.lifecycle.map
 import de.blinkt.openvpn.VpnProfile
 import nl.eduvpn.app.Constants
 import nl.eduvpn.app.EduVPNApplication
@@ -32,7 +35,6 @@ import nl.eduvpn.app.base.BaseFragment
 import nl.eduvpn.app.databinding.FragmentConnectionStatusBinding
 import nl.eduvpn.app.fragment.ServerSelectionFragment.Companion.newInstance
 import nl.eduvpn.app.service.VPNService
-import nl.eduvpn.app.service.VPNService.ConnectionInfoCallback
 import nl.eduvpn.app.service.VPNService.VPNStatus
 import nl.eduvpn.app.utils.ErrorDialog
 import nl.eduvpn.app.utils.FormattingUtils
@@ -46,9 +48,9 @@ import javax.inject.Inject
  * The fragment which displays the status of the current connection.
  * Created by Daniel Zolnai on 2016-10-07.
  */
-class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>(), ConnectionInfoCallback {
-    private var vpnStatusObserver: Observer? = null
-    private val gracefulDisconnectHandler = Handler()
+class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>() {
+
+    private val gracefulDisconnectHandler = Handler(Looper.getMainLooper())
 
     private var isAutomaticCheckChange = false
     private var skipNextDisconnect = true
@@ -65,6 +67,25 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
         super.onViewCreated(view, savedInstanceState)
         EduVPNApplication.get(view.context).component().inject(this)
         binding.viewModel = viewModel
+        binding.secondsConnected = viewModel.connectionTimeLiveData.map { secondsConnected ->
+            FormattingUtils.formatDurationSeconds(
+                context,
+                secondsConnected
+            )
+        }
+        binding.bytesDownloaded = viewModel.byteCountLiveData.map { bc ->
+            FormattingUtils.formatBytesTraffic(
+                context,
+                bc?.bytesIn
+            )
+        }
+        binding.bytesUploaded = viewModel.byteCountLiveData.map { bc ->
+            FormattingUtils.formatBytesTraffic(
+                context,
+                bc?.bytesOut
+            )
+        }
+        binding.ips = viewModel.ipLiveData
         binding.connectionSwitch.setOnCheckedChangeListener { _, isChecked ->
             if (isAutomaticCheckChange) {
                 return@setOnCheckedChangeListener
@@ -98,29 +119,37 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
             if (viewModel.isInDisconnectMode.value == true) {
                 val profileItems = viewModel.serverProfiles.value ?: emptyList()
                 AlertDialog.Builder(requireContext(), R.style.AppTheme_AlertDialog)
-                        .setTitle(R.string.connection_select_profile)
-                        .setItems(profileItems.map { it.displayName }.toTypedArray()) { _, which ->
-                            val profileToConnectTo = profileItems[which]
-                            activity?.let {
-                                viewModel.isInDisconnectMode.value = false
-                                viewModel.selectProfileToConnectTo(profileToConnectTo)
-                            }
-                        }.show()
+                    .setTitle(R.string.connection_select_profile)
+                    .setItems(profileItems.map { it.displayName }.toTypedArray()) { _, which ->
+                        val profileToConnectTo = profileItems[which]
+                        activity?.let {
+                            viewModel.isInDisconnectMode.value = false
+                            viewModel.selectProfileToConnectTo(profileToConnectTo)
+                        }
+                    }.show()
             } else {
                 AlertDialog.Builder(requireContext(), R.style.AppTheme_AlertDialog)
-                        .setTitle(R.string.connection_warning_disconnect_first_title)
-                        .setMessage(R.string.connection_warning_disconnect_first_message)
-                        .setPositiveButton(R.string.connection_warning_disconnect_first_ok_button) { dialog, _ ->
-                            dialog.dismiss()
-                        }
-                        .show()
+                    .setTitle(R.string.connection_warning_disconnect_first_title)
+                    .setMessage(R.string.connection_warning_disconnect_first_message)
+                    .setPositiveButton(R.string.connection_warning_disconnect_first_ok_button) { dialog, _ ->
+                        dialog.dismiss()
+                    }
+                    .show()
             }
+        }
+        binding.renewSession.setOnClickListener {
+            disconnect()
+            viewModel.renewSession()
         }
         viewModel.connectionParentAction.observe(viewLifecycleOwner) { parentAction ->
             when (parentAction) {
                 ConnectionStatusViewModel.ParentAction.SessionExpired -> {
                     val context = requireContext()
-                    val dialog = ErrorDialog.show(context, R.string.error_certificate_expired_title, R.string.error_certificate_expired_message)
+                    val dialog = ErrorDialog.show(
+                        context,
+                        R.string.error_certificate_expired_title,
+                        R.string.error_certificate_expired_message
+                    )
                     disconnect()
                     dialog?.setOnDismissListener {
                         returnToHome()
@@ -147,17 +176,35 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
                 is BaseConnectionViewModel.ParentAction.DisplayError -> {
                     ErrorDialog.show(requireContext(), parentAction.title, parentAction.message)
                 }
+                is BaseConnectionViewModel.ParentAction.OpenProfileSelector -> {
+                    val profile = viewModel.findCurrentProfile()
+                        ?.let { currentProfile ->
+                            parentAction.profiles.find { p -> p.profileId == currentProfile.profileId }
+                        }
+                    if (profile != null) {
+                        viewModel.selectProfileToConnectTo(profile)
+                    } else {
+                        (activity as? MainActivity)?.openFragment(
+                            ProfileSelectionFragment.newInstance(
+                                parentAction.profiles
+                            ), true
+                        )
+                    }
+                }
             }
         }
         viewModel.isInDisconnectMode.observe(viewLifecycleOwner) { isInDisconnectMode ->
             (activity as? MainActivity)?.setBackNavigationEnabled(isInDisconnectMode)
         }
-    }
-
-    override fun onStart() {
-        super.onStart()
-        vpnStatusObserver = Observer { _: Observable?, arg: Any? ->
-            when (arg as VPNStatus?) {
+        var updateCertExpiryObserver: Observer<Unit>? = null
+        updateCertExpiryObserver = Observer {
+            if (!viewModel.updateCertExpiry()) {
+                updateCertExpiryObserver?.let { obs -> viewModel.timer.removeObserver(obs) }
+            }
+        }
+        viewModel.timer.observe(viewLifecycleOwner, updateCertExpiryObserver)
+        val vpnStatusObserver = { vpnStatus: VPNStatus ->
+            when (vpnStatus) {
                 VPNStatus.CONNECTED -> {
                     binding.connectionStatusIcon.setImageResource(R.drawable.ic_connection_status_connected)
                     binding.connectionStatus.setText(R.string.connection_info_state_connected)
@@ -203,13 +250,11 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
                     binding.connectionSwitch.isChecked = false
                     isAutomaticCheckChange = false
                 }
-                else -> throw RuntimeException("Unhandled VPN status!")
             }
         }
         // Update the icon immediately
-        vpnStatusObserver?.update(vpnService, vpnService.status)
-        vpnService.addObserver(vpnStatusObserver)
-        vpnService.attachConnectionInfoListener(this)
+        vpnStatusObserver(vpnService.status)
+        vpnService.observe(viewLifecycleOwner, vpnStatusObserver)
     }
 
     fun returnToHome() {
@@ -231,12 +276,8 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
         viewModel.onPause()
     }
 
-    override fun onStop() {
-        super.onStop()
-        if (vpnStatusObserver != null) {
-            vpnService.deleteObserver(vpnStatusObserver)
-        }
-        vpnService.detachConnectionInfoListener()
+    fun reconnectToInstance() {
+        viewModel.reconnectToInstance()
     }
 
     private fun connect(vpnProfile: VpnProfile) {
@@ -268,19 +309,6 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
             vpnService.disconnect()
             viewModel.isInDisconnectMode.value = true
         }
-    }
-
-    override fun updateStatus(secondsConnected: Long?, bytesIn: Long?, bytesOut: Long?) {
-        binding.valueDuration.text = FormattingUtils.formatDurationSeconds(context, secondsConnected)
-        binding.valueDowloaded.text = FormattingUtils.formatBytesTraffic(context, bytesIn)
-        binding.valueUploaded.text = FormattingUtils.formatBytesTraffic(context, bytesOut)
-    }
-
-    override fun metadataAvailable(localIpV4: String?, localIpV6: String?) {
-        val ipV4DisplayText = localIpV4 ?: getString(R.string.not_available)
-        binding.valueIpv4.text = ipV4DisplayText
-        val ipV6DisplayText = localIpV6 ?: getString(R.string.not_available)
-        binding.valueIpv6.text = ipV6DisplayText
     }
 
     companion object {

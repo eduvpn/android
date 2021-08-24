@@ -6,14 +6,14 @@ apply plugin: 'kotlin-kapt'
 apply plugin: 'kotlin-parcelize'
 
 android {
-    compileSdkVersion 29
+    compileSdkVersion 30
 
     defaultConfig {
         applicationId "nl.eduvpn.app"
         minSdkVersion 21
-        targetSdkVersion 29
-        versionCode 17
-        versionName "2.0.4"
+        targetSdkVersion 30
+        versionCode 18
+        versionName "2.0.5"
         ndkVersion "21.0.6113669"
 
         vectorDrawables.useSupportLibrary = true
@@ -22,8 +22,7 @@ android {
         buildConfigField "String", "SIGNATURE_URL_POSTFIX", "\".minisig\""
         buildConfigField "String[]", "MINISIGN_SIGNATURE_VALIDATION_PUBLIC_KEY", // If you want to add more, follow this guide (list version): https://stackoverflow.com/a/42130853/1395437
                 "{" +
-                        "\"RWRtBSX1alxyGX+Xn3LuZnWUT0w//B6EmTJvgaAxBMYzlQeI+jdrO6KF\"," + // fkooman@deic.dk
-                        "\"RWQ68Y5/b8DED0TJ41B1LE7yAvkmavZWjDwCBUuC+Z2pP9HaSawzpEDA\"," + // jornane@uninett.no
+                        "\"RWRtBSX1alxyGX+Xn3LuZnWUT0w//B6EmTJvgaAxBMYzlQeI+jdrO6KF\"," + // fkooman@deic.dk, kolla@uninett.no
                         "\"RWQKqtqvd0R7rUDp0rWzbtYPA3towPWcLDCl7eY9pBMMI/ohCmrS0WiM\"" + // RoSp
                         "}"
         buildConfigField "boolean", "API_DISCOVERY_ENABLED", "true" // If false, you can only enter server URLs manually.
@@ -155,9 +154,9 @@ dependencies {
     implementation "androidx.constraintlayout:constraintlayout:1.0.0"
 
 
-    implementation "androidx.lifecycle:lifecycle-viewmodel:$lifecycleVersion"
     implementation "androidx.lifecycle:lifecycle-extensions:$lifecycleVersion"
     implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycleVersion"
+    implementation "androidx.lifecycle:lifecycle-livedata-ktx:$lifecycleVersion"
 
     // Secure preferences (deprecated, only kept for backwards compatibility)
     implementation 'com.scottyab:secure-preferences-lib:0.1.4'

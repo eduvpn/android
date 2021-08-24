@@ -1,0 +1,4 @@
+* Fix Gradle build
+* Immediately show "add provider" page when starting the app and no providers were added before for Let's Connect! flavor
+* Show "Profiles" instead of "Institute Access" for Let's Connect! flavor
+* Use different "certificate name" through API for eduVPN / Let's Connect! flavor
