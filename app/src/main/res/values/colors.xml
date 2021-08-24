@@ -9,6 +9,7 @@
     <color name="textColor">#101010</color>
     <color name="settingsTextColor">#505050</color>
     <color name="textColorInverted">#FFFFFF</color>
+    <color name="textColorLink">#216aed</color>
     <color name="buttonTextColor">#FFFFFF</color>
     <color name="switcherButtonTextColor">#101010</color>
     <color name="disabledColor">#E0E0E0</color>

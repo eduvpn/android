@@ -17,21 +17,24 @@
 
 package nl.eduvpn.app;
 
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.MenuItem;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.ActionBar;
+import androidx.fragment.app.Fragment;
+
 import net.openid.appauth.AuthorizationException;
 import net.openid.appauth.AuthorizationResponse;
 
 import javax.inject.Inject;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.ActionBar;
-import androidx.fragment.app.Fragment;
 import nl.eduvpn.app.base.BaseActivity;
 import nl.eduvpn.app.databinding.ActivityMainBinding;
 import nl.eduvpn.app.fragment.AddServerFragment;
@@ -68,6 +71,17 @@ public class MainActivity extends BaseActivity<ActivityMainBinding> {
         return R.layout.activity_main;
     }
 
+    private void createCertExpiryNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            CharSequence name = getString(R.string.cert_expiry_channel_name);
+            int importance = NotificationManager.IMPORTANCE_DEFAULT;
+            String channelID = Constants.CERT_EXPIRY_NOTIFICATION_CHANNEL_ID;
+            NotificationChannel channel = new NotificationChannel(channelID, name, importance);
+            NotificationManager notificationManager = getSystemService(NotificationManager.class);
+            notificationManager.createNotificationChannel(channel);
+        }
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -97,6 +111,8 @@ public class MainActivity extends BaseActivity<ActivityMainBinding> {
         binding.toolbar.helpButton.setOnClickListener(v ->
 
                 startActivity(new Intent(Intent.ACTION_VIEW, Constants.HELP_URI)));
+
+        createCertExpiryNotificationChannel();
     }
 
     @Override
@@ -149,8 +165,8 @@ public class MainActivity extends BaseActivity<ActivityMainBinding> {
             Fragment currentFragment = getSupportFragmentManager().findFragmentById(R.id.content_frame);
             ConnectionService.AuthorizationStateCallback callback = () -> {
                 if (currentFragment instanceof ServerSelectionFragment) {
-                    ((ServerSelectionFragment)currentFragment).connectToSelectedInstance();
-                } else {
+                    ((ServerSelectionFragment) currentFragment).connectToSelectedInstance();
+                } else if (currentFragment instanceof OrganizationSelectionFragment) {
                     Toast.makeText(this, R.string.provider_added_new_configs_available, Toast.LENGTH_LONG).show();
                 }
             };
@@ -159,7 +175,9 @@ public class MainActivity extends BaseActivity<ActivityMainBinding> {
             // Remove it so we don't parse it again.
             intent.setData(null);
 
-            if (!(currentFragment instanceof ConnectionStatusFragment) && !(currentFragment instanceof ServerSelectionFragment)) {
+            if (currentFragment instanceof ConnectionStatusFragment) {
+                ((ConnectionStatusFragment) currentFragment).reconnectToInstance();
+            } else if (!(currentFragment instanceof ServerSelectionFragment)) {
                 openFragment(ServerSelectionFragment.Companion.newInstance(true), false);
             }
 

@@ -45,4 +45,7 @@ public class Constants {
     public static final Locale ENGLISH_LOCALE = Locale.ENGLISH;
 
     public static final long SERVER_LIST_VALID_FOR_MS = 3_600_000; // 1 hour
+
+    public static final String CERT_EXPIRY_NOTIFICATION_CHANNEL_ID = "cert_expiry";
+    public static final int CERT_EXPIRY_NOTIFICATION_ID = 1;
 }
