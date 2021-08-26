@@ -16,6 +16,8 @@
  */
 package nl.eduvpn.app.fragment
 
+import android.app.NotificationManager
+import android.content.Context
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -25,6 +27,7 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import androidx.lifecycle.map
 import de.blinkt.openvpn.VpnProfile
+import nl.eduvpn.app.Constants
 import nl.eduvpn.app.EduVPNApplication
 import nl.eduvpn.app.MainActivity
 import nl.eduvpn.app.R
@@ -38,6 +41,7 @@ import nl.eduvpn.app.utils.FormattingUtils
 import nl.eduvpn.app.utils.Log
 import nl.eduvpn.app.viewmodel.BaseConnectionViewModel
 import nl.eduvpn.app.viewmodel.ConnectionStatusViewModel
+import java.util.*
 import javax.inject.Inject
 
 /**
@@ -133,14 +137,26 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
                     .show()
             }
         }
+        binding.renewSession.setOnClickListener {
+            disconnect()
+            viewModel.renewSession()
+        }
         viewModel.connectionParentAction.observe(viewLifecycleOwner) { parentAction ->
             when (parentAction) {
                 ConnectionStatusViewModel.ParentAction.SessionExpired -> {
-                    val dialog = ErrorDialog.show(requireContext(), R.string.error_certificate_expired_title, R.string.error_certificate_expired_message)
+                    val context = requireContext()
+                    val dialog = ErrorDialog.show(
+                        context,
+                        R.string.error_certificate_expired_title,
+                        R.string.error_certificate_expired_message
+                    )
                     disconnect()
                     dialog?.setOnDismissListener {
                         returnToHome()
                     }
+                    val notificationManager =
+                        context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+                    notificationManager.cancel(Constants.CERT_EXPIRY_NOTIFICATION_ID)
                 }
             }
         }
@@ -159,6 +175,21 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
                 }
                 is BaseConnectionViewModel.ParentAction.DisplayError -> {
                     ErrorDialog.show(requireContext(), parentAction.title, parentAction.message)
+                }
+                is BaseConnectionViewModel.ParentAction.OpenProfileSelector -> {
+                    val profile = viewModel.findCurrentProfile()
+                        ?.let { currentProfile ->
+                            parentAction.profiles.find { p -> p.profileId == currentProfile.profileId }
+                        }
+                    if (profile != null) {
+                        viewModel.selectProfileToConnectTo(profile)
+                    } else {
+                        (activity as? MainActivity)?.openFragment(
+                            ProfileSelectionFragment.newInstance(
+                                parentAction.profiles
+                            ), true
+                        )
+                    }
                 }
             }
         }
@@ -233,6 +264,20 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
             activity.setBackNavigationEnabled(false)
             activity.openFragment(newInstance(false), false)
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        viewModel.onResume()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        viewModel.onPause()
+    }
+
+    fun reconnectToInstance() {
+        viewModel.reconnectToInstance()
     }
 
     private fun connect(vpnProfile: VpnProfile) {

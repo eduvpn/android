@@ -18,13 +18,17 @@
 
 package nl.eduvpn.app.viewmodel
 
+import android.app.AlarmManager
+import android.app.PendingIntent
 import android.content.Context
+import android.content.Intent
 import android.text.Spanned
 import androidx.core.text.HtmlCompat
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.liveData
 import de.blinkt.openvpn.VpnProfile
 import kotlinx.coroutines.delay
+import nl.eduvpn.app.CertExpiredBroadcastReceiver
 import nl.eduvpn.app.R
 import nl.eduvpn.app.entity.Profile
 import nl.eduvpn.app.livedata.ByteCountLiveData
@@ -40,7 +44,7 @@ class ConnectionStatusViewModel @Inject constructor(
         private val context: Context,
         private val preferencesService: PreferencesService,
         private val vpnService: VPNService,
-        historyService: HistoryService,
+        private val historyService: HistoryService,
         apiService: APIService,
         serializerService: SerializerService,
         connectionService: ConnectionService
@@ -51,7 +55,7 @@ class ConnectionStatusViewModel @Inject constructor(
         object SessionExpired : ParentAction()
     }
 
-    private val certExpiryTime: Long?
+    private var certExpiryTime: Long? = null
 
     val serverName = MutableLiveData<String>()
     val serverSupport = MutableLiveData<String>()
@@ -71,6 +75,12 @@ class ConnectionStatusViewModel @Inject constructor(
 
     private val _connectionParentAction = MutableLiveData<ParentAction>()
     val connectionParentAction = _connectionParentAction.toSingleEvent()
+
+    private val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+    private val intent = Intent(context, CertExpiredBroadcastReceiver::class.java)
+        .setAction(CertExpiredBroadcastReceiver.ACTION)
+    private val pendingIntent =
+        PendingIntent.getBroadcast(context, 0, intent, 0)
 
     init {
         refreshProfile()
@@ -94,7 +104,45 @@ class ConnectionStatusViewModel @Inject constructor(
         } else {
             serverSupport.value = null
         }
-        certExpiryTime = historyService.getSavedKeyPairForInstance(connectionInstance).keyPair.expiryTimeMillis
+    }
+
+    override fun onResume() {
+        super.onResume()
+        cancelAllExpiryNotifications()
+    }
+
+    fun onPause() {
+        planExpiryNotification()
+    }
+
+    private fun planExpiryNotification() {
+        val certExpiryTime = this.certExpiryTime
+        if (certExpiryTime != null && vpnService.status != VPNService.VPNStatus.DISCONNECTED) {
+            val maxMillisecondsBeforeNotification: Long = 30 * 60 * 1000
+            val now = System.currentTimeMillis()
+            val millisecondsUntilExpiry = now - certExpiryTime
+            val startMilliseconds = maxOf(certExpiryTime - maxMillisecondsBeforeNotification, now)
+            val notificationWindowLength = minOf(millisecondsUntilExpiry, 15 * 60 * 1000L)
+            alarmManager.setWindow(
+                AlarmManager.RTC,
+                startMilliseconds,
+                notificationWindowLength,
+                pendingIntent
+            )
+        }
+    }
+
+    private fun cancelAllExpiryNotifications() {
+        alarmManager.cancel(pendingIntent)
+    }
+
+    fun renewSession() {
+        discoverApi(preferencesService.currentInstance, null, true)
+    }
+
+    fun reconnectToInstance() {
+        historyService.removeSavedKeyPairs(preferencesService.currentInstance)
+        discoverApi(preferencesService.currentInstance)
     }
 
     /**
@@ -102,6 +150,7 @@ class ConnectionStatusViewModel @Inject constructor(
      */
     fun updateCertExpiry(): Boolean {
         val currentTime = System.currentTimeMillis()
+        val certExpiryTime = this.certExpiryTime
         if (certExpiryTime == null) {
             // No cert or time, nothing to display
             certValidity.value = null
@@ -163,6 +212,7 @@ class ConnectionStatusViewModel @Inject constructor(
             serverName.value = context.getString(R.string.profile_name_not_found)
         }
         profileName.value = savedProfile?.displayName
+        certExpiryTime = historyService.getSavedKeyPairForInstance(connectionInstance).keyPair.expiryTimeMillis
         updateCertExpiry()
     }
 
