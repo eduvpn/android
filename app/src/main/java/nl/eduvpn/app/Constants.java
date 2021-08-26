@@ -30,7 +30,7 @@ public class Constants {
 
     public static final Uri HELP_URI = Uri.parse("https://www.eduvpn.org/faq.html");
 
-    public static final String API_DISCOVERY_POSTFIX = "/info.json";
+    public static final String API_DISCOVERY_POSTFIX = "/.well-known/vpn-user-portal";
 
     public static final String API_SYSTEM_MESSAGES_PATH = "system_messages";
     public static final String API_USER_MESSAGES_PATH = "user_messages";
