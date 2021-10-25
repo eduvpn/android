@@ -19,6 +19,8 @@ package nl.eduvpn.app.service;
 
 import android.util.Pair;
 
+import androidx.annotation.NonNull;
+
 import net.openid.appauth.AuthState;
 
 import org.json.JSONArray;
@@ -37,7 +39,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
 
-import androidx.annotation.NonNull;
 import nl.eduvpn.app.Constants;
 import nl.eduvpn.app.entity.AuthorizationType;
 import nl.eduvpn.app.entity.DiscoveredAPI;
@@ -391,7 +392,6 @@ public class SerializerService {
     @NonNull
     public DiscoveredAPI deserializeDiscoveredAPI(JSONObject result) throws UnknownFormatException {
         try {
-            // we only support version 1 at the moment
             JSONObject apiObject = result.optJSONObject("api");
             if (apiObject == null) {
                 throw new UnknownFormatException("'api' is missing!");
