@@ -58,7 +58,6 @@ import nl.eduvpn.app.entity.TranslatableString;
 import nl.eduvpn.app.entity.message.Maintenance;
 import nl.eduvpn.app.entity.message.Message;
 import nl.eduvpn.app.entity.message.Notification;
-import nl.eduvpn.app.utils.TTLCache;
 
 import static org.junit.Assert.assertEquals;
 
@@ -157,30 +156,6 @@ public class SerializerServiceTest {
         assertEquals(_norm(((Maintenance)messageList.get(0)).getEnd()), _norm(((Maintenance)deserializedList.get(0)).getEnd()));
         assertEquals(_norm(messageList.get(1).getDate()), _norm(deserializedList.get(1).getDate()));
         assertEquals(((Notification)messageList.get(1)).getContent(), ((Notification)deserializedList.get(1)).getContent());
-    }
-
-    @Test
-    public void testTTLCacheSerialization() throws SerializerService.UnknownFormatException {
-        TTLCache<DiscoveredAPI> cache = new TTLCache<>(100);
-        DiscoveredAPI discoveredAPI1 = new DiscoveredAPI("baseuri1", "authendpoint1", "tokenendpoint1");
-        DiscoveredAPI discoveredAPI2 = new DiscoveredAPI("baseuri2", "authendpoint2", "tokenendpoint2");
-        cache.put("key1", discoveredAPI1);
-        cache.put("key2", discoveredAPI2);
-        JSONObject serializedCache = _serializerService.serializeDiscoveredAPITTLCache(cache);
-        TTLCache<DiscoveredAPI> deserializedCache = _serializerService.deserializeDiscoveredAPITTLCache(serializedCache);
-        assertEquals(cache.getPurgeAfterSeconds(), deserializedCache.getPurgeAfterSeconds());
-        assertEquals(cache.getEntries().size(), deserializedCache.getEntries().size());
-        Iterator<Map.Entry<String, Pair<Date, DiscoveredAPI>>> iterator = cache.getEntries().entrySet().iterator();
-        Iterator<Map.Entry<String, Pair<Date, DiscoveredAPI>>> deserializedIterator = deserializedCache.getEntries().entrySet().iterator();
-        while (iterator.hasNext()) {
-            Map.Entry<String, Pair<Date, DiscoveredAPI>> entry = iterator.next();
-            Map.Entry<String, Pair<Date, DiscoveredAPI>> deserializedEntry = deserializedIterator.next();
-            assertEquals(entry.getKey(), deserializedEntry.getKey());
-            assertEquals(entry.getValue().first, deserializedEntry.getValue().first);
-            assertEquals(entry.getValue().second.getApiBaseUri(), deserializedEntry.getValue().second.getApiBaseUri());
-            assertEquals(entry.getValue().second.getAuthorizationEndpoint(), deserializedEntry.getValue().second.getAuthorizationEndpoint());
-            assertEquals(entry.getValue().second.getTokenEndpoint(), deserializedEntry.getValue().second.getTokenEndpoint());
-        }
     }
 
     @SuppressWarnings("ConstantConditions")

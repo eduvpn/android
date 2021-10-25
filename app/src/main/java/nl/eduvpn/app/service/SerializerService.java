@@ -58,7 +58,6 @@ import nl.eduvpn.app.entity.message.Maintenance;
 import nl.eduvpn.app.entity.message.Message;
 import nl.eduvpn.app.entity.message.Notification;
 import nl.eduvpn.app.utils.Log;
-import nl.eduvpn.app.utils.TTLCache;
 
 /**
  * This service is responsible for (de)serializing objects used in the app.
@@ -606,59 +605,6 @@ public class SerializerService {
                 result.add(new SavedProfile(instance, profile, profileUUID));
             }
             return result;
-        } catch (JSONException ex) {
-            throw new UnknownFormatException(ex);
-        }
-    }
-
-    /**
-     * Serializes a TTL cache of discovered APIs.
-     *
-     * @param ttlCache The cache to serialize.
-     * @return The cache in a JSON format.
-     * @throws UnknownFormatException Thrown if there was an error while serializing.
-     */
-    public JSONObject serializeDiscoveredAPITTLCache(TTLCache<DiscoveredAPI> ttlCache) throws UnknownFormatException {
-        try {
-            JSONObject result = new JSONObject();
-            long purgeAfterSeconds = ttlCache.getPurgeAfterSeconds();
-            result.put("purge_after_seconds", purgeAfterSeconds);
-            Map<String, Pair<Date, DiscoveredAPI>> originalData = ttlCache.getEntries();
-            JSONArray array = new JSONArray();
-            result.put("data", array);
-            for (Map.Entry<String, Pair<Date, DiscoveredAPI>> entry : originalData.entrySet()) {
-                JSONObject entity = new JSONObject();
-                entity.put("entry_date", entry.getValue().first.getTime());
-                entity.put("key", entry.getKey());
-                entity.put("discovered_api", serializeDiscoveredAPI(entry.getValue().second));
-                array.put(entity);
-            }
-            return result;
-        } catch (JSONException ex) {
-            throw new UnknownFormatException(ex);
-        }
-    }
-
-    /**
-     * Deserializes a TTL cache of discovered APIs.
-     *
-     * @param jsonObject The JSON object to deserialize from.
-     * @return The cache object.
-     * @throws UnknownFormatException Thrown if there was an error while deserializing.
-     */
-    public TTLCache<DiscoveredAPI> deserializeDiscoveredAPITTLCache(JSONObject jsonObject) throws UnknownFormatException {
-        try {
-            Map<String, Pair<Date, DiscoveredAPI>> originalData = new HashMap<>();
-            long purgeAfterSeconds = jsonObject.getLong("purge_after_seconds");
-            JSONArray dataArray = jsonObject.getJSONArray("data");
-            for (int i = 0; i < dataArray.length(); ++i) {
-                JSONObject entity = dataArray.getJSONObject(i);
-                Date entryDate = new Date(entity.getLong("entry_date"));
-                String key = entity.getString("key");
-                DiscoveredAPI discoveredAPI = deserializeDiscoveredAPI(entity.getJSONObject("discovered_api"));
-                originalData.put(key, new Pair<>(entryDate, discoveredAPI));
-            }
-            return new TTLCache<>(originalData, purgeAfterSeconds);
         } catch (JSONException ex) {
             throw new UnknownFormatException(ex);
         }
