@@ -118,7 +118,7 @@ class ConnectionStatusViewModel @Inject constructor(
     private fun planExpiryNotification() {
         val certExpiryTime = this.certExpiryTime
         if (certExpiryTime != null && vpnService.status != VPNService.VPNStatus.DISCONNECTED) {
-            val maxMillisecondsBeforeNotification: Long = 30 * 60 * 1000
+            val maxMillisecondsBeforeNotification: Long = 30 * 60 * 1000L
             val now = System.currentTimeMillis()
             val millisecondsUntilExpiry = now - certExpiryTime
             val startMilliseconds = maxOf(certExpiryTime - maxMillisecondsBeforeNotification, now)

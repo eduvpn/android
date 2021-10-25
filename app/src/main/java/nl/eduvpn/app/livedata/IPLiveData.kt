@@ -100,8 +100,8 @@ class IPLiveData : LiveData<IPLiveData.IPs>() {
                         } else {
                             val delimiter = ip.indexOf('%')
                             ipV6 =
-                                if (delimiter < 0) ip.toLowerCase() else ip.substring(0, delimiter)
-                                    .toLowerCase()
+                                if (delimiter < 0) ip.lowercase() else ip.substring(0, delimiter)
+                                    .lowercase()
                         }
                     }
                     return if (ipV4 != null || ipV6 != null) {

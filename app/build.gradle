@@ -135,7 +135,7 @@ android {
     }
 }
 
-def daggerVersion = "2.29"
+def daggerVersion = "2.39.1"
 def okHttpVersion = "4.8.1"
 def lifecycleVersion = "2.2.0"
 
