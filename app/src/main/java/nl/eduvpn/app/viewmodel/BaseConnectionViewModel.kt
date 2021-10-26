@@ -67,7 +67,7 @@ abstract class BaseConnectionViewModel(
     val warning = MutableLiveData<String>()
 
     val parentAction = MutableLiveData<ParentAction>()
-    
+
     fun discoverApi(
         instance: Instance,
         parentInstance: Instance? = null,
@@ -78,24 +78,46 @@ abstract class BaseConnectionViewModel(
         // Discover the API
         viewModelScope.launch(Dispatchers.Main) {
             runCatchingCoroutine {
-                apiService.getJSON(instance.sanitizedBaseURI + Constants.API_DISCOVERY_POSTFIX, null)
+                apiService.getString(
+                    instance.sanitizedBaseURI + Constants.API_DISCOVERY_POSTFIX,
+                    null
+                )
             }.onSuccess { result ->
                 try {
-                    val discoveredAPI = serializerService.deserializeDiscoveredAPI(result)
-                    val savedToken = historyService.getSavedToken(parentInstance ?: instance)
-                    if (savedToken == null || reauthorize) {
-                        authorize(parentInstance ?: instance, discoveredAPI)
+                    val discoveredAPIJson = serializerService.deserializeDiscoveredAPIs(result)
+                    if (discoveredAPIJson.v2 == null) {
+                        val errorMessage = "Server does not provide API version 2"
+                        Log.e(TAG, errorMessage)
+                        connectionState.value = ConnectionState.Ready
+                        parentAction.value = ParentAction.DisplayError(
+                            R.string.error_dialog_title,
+                            context.getString(
+                                R.string.error_discover_api,
+                                instance.sanitizedBaseURI,
+                                errorMessage
+                            )
+                        )
                     } else {
-                        if (savedToken.instance.sanitizedBaseURI != (parentInstance
-                                        ?: instance).sanitizedBaseURI) {
-                            // This is a distributed token. We add it to the list.
-                            Log.i(TAG, "Distributed token found for different instance.")
-                            preferencesService.currentInstance = instance
-                            preferencesService.currentDiscoveredAPI = discoveredAPI
-                            preferencesService.currentAuthState = savedToken.authState
-                            historyService.cacheAuthorizationState(instance, savedToken.authState)
+                        val discoveredAPI = discoveredAPIJson.v2
+                        val savedToken = historyService.getSavedToken(parentInstance ?: instance)
+                        if (savedToken == null || reauthorize) {
+                            authorize(parentInstance ?: instance, discoveredAPI)
+                        } else {
+                            if (savedToken.instance.sanitizedBaseURI != (parentInstance
+                                    ?: instance).sanitizedBaseURI
+                            ) {
+                                // This is a distributed token. We add it to the list.
+                                Log.i(TAG, "Distributed token found for different instance.")
+                                preferencesService.currentInstance = instance
+                                preferencesService.currentDiscoveredAPI = discoveredAPI
+                                preferencesService.currentAuthState = savedToken.authState
+                                historyService.cacheAuthorizationState(
+                                    instance,
+                                    savedToken.authState
+                                )
+                            }
+                            fetchProfiles(instance, discoveredAPI, savedToken.authState)
                         }
-                        fetchProfiles(instance, discoveredAPI, savedToken.authState)
                     }
                 } catch (ex: SerializerService.UnknownFormatException) {
                     Log.e(TAG, "Error parsing discovered API!", ex)
@@ -125,7 +147,11 @@ abstract class BaseConnectionViewModel(
      * @param discoveredAPI The discovered API containing the URLs.
      * @param authState     The access and refresh token for the API.
      */
-    private fun fetchProfiles(instance: Instance, discoveredAPI: DiscoveredAPI, authState: AuthState) {
+    private fun fetchProfiles(
+        instance: Instance,
+        discoveredAPI: DiscoveredAPIV2,
+        authState: AuthState
+    ) {
         connectionState.value = ConnectionState.FetchingProfiles
         viewModelScope.launch(Dispatchers.Main) {
             runCatchingCoroutine {
@@ -174,11 +200,22 @@ abstract class BaseConnectionViewModel(
         // We surely have a discovered API and access token, since we just loaded the list with them
         val instance = preferencesService.currentInstance
         val authState = historyService.getCachedAuthState(instance!!)
-        val discoveredAPI = preferencesService.currentDiscoveredAPI
+        val discoveredAPI = when (val d = preferencesService.currentDiscoveredAPI) {
+            is DiscoveredAPIV2 -> d
+            is DiscoveredAPIV3 -> TODO()
+            null -> null
+        }
         if (authState == null || discoveredAPI == null) {
-            Log.e(TAG, "Unable to connect. Auth state OK: ${authState != null}, discovered API OK: ${discoveredAPI != null}")
+            Log.e(
+                TAG,
+                "Unable to connect. Auth state OK: ${authState != null}, discovered API OK: ${discoveredAPI != null}"
+            )
             connectionState.value = ConnectionState.Ready
-            ErrorDialog.show(context, R.string.error_dialog_title, R.string.cant_connect_application_state_missing)
+            ErrorDialog.show(
+                context,
+                R.string.error_dialog_title,
+                R.string.cant_connect_application_state_missing
+            )
             return
         }
         preferencesService.currentInstance = instance
@@ -197,11 +234,14 @@ abstract class BaseConnectionViewModel(
      * @param discoveredAPI The discovered API.
      * @param profile       The profile to download.
      */
-    private fun downloadKeyPairIfNeeded(instance: Instance, discoveredAPI: DiscoveredAPI,
-                                        profile: Profile, authState: AuthState) {
+    private fun downloadKeyPairIfNeeded(
+        instance: Instance, discoveredAPI: DiscoveredAPIV2,
+        profile: Profile, authState: AuthState
+    ) {
         // First we create a keypair, if there is no saved one yet.
         val savedKeyPair = historyService.getSavedKeyPairForInstance(instance)
-        connectionState.value = if (savedKeyPair != null) ConnectionState.ProfileCheckingCertificate else ConnectionState.ProfileDownloadingKeyPair
+        connectionState.value =
+            if (savedKeyPair != null) ConnectionState.ProfileCheckingCertificate else ConnectionState.ProfileDownloadingKeyPair
         if (savedKeyPair != null) {
             checkCertificateValidity(instance, discoveredAPI, savedKeyPair, profile, authState)
             return
@@ -209,7 +249,8 @@ abstract class BaseConnectionViewModel(
 
         var requestData = "display_name=eduVPN"
         try {
-            requestData = "display_name=" + URLEncoder.encode(BuildConfig.CERTIFICATE_DISPLAY_NAME, "UTF-8")
+            requestData =
+                "display_name=" + URLEncoder.encode(BuildConfig.CERTIFICATE_DISPLAY_NAME, "UTF-8")
         } catch (e: UnsupportedEncodingException) {
             // unable to encode the display name, use default
         }
@@ -249,9 +290,11 @@ abstract class BaseConnectionViewModel(
      * @param profile       The profile to create.
      * @param authState     Authorization state which helps us connect tot the API.
      */
-    private fun downloadProfileWithKeyPair(instance: Instance, discoveredAPI: DiscoveredAPI,
-                                           savedKeyPair: SavedKeyPair, profile: Profile,
-                                           authState: AuthState) {
+    private fun downloadProfileWithKeyPair(
+        instance: Instance, discoveredAPI: DiscoveredAPIV2,
+        savedKeyPair: SavedKeyPair, profile: Profile,
+        authState: AuthState
+    ) {
         val requestData = "?profile_id=" + profile.profileId
         viewModelScope.launch(Dispatchers.Main) {
             runCatchingCoroutine {
@@ -268,17 +311,29 @@ abstract class BaseConnectionViewModel(
                     parentAction.value = ParentAction.ConnectWithProfile(vpnProfile)
                 } else {
                     connectionState.value = ConnectionState.Ready
-                    parentAction.value = ParentAction.DisplayError(R.string.error_dialog_title, context.getString(R.string.error_importing_profile))
+                    parentAction.value = ParentAction.DisplayError(
+                        R.string.error_dialog_title,
+                        context.getString(R.string.error_importing_profile)
+                    )
                 }
             }.onFailure { throwable ->
                 Log.e(TAG, "Error fetching profile.", throwable)
                 connectionState.value = ConnectionState.Ready
-                parentAction.value = ParentAction.DisplayError(R.string.error_dialog_title, context.getString(R.string.error_fetching_profile, throwable.toString()))
+                parentAction.value = ParentAction.DisplayError(
+                    R.string.error_dialog_title,
+                    context.getString(R.string.error_fetching_profile, throwable.toString())
+                )
             }
         }
     }
 
-    private fun checkCertificateValidity(instance: Instance, discoveredAPI: DiscoveredAPI, savedKeyPair: SavedKeyPair, profile: Profile, authState: AuthState) {
+    private fun checkCertificateValidity(
+        instance: Instance,
+        discoveredAPI: DiscoveredAPIV2,
+        savedKeyPair: SavedKeyPair,
+        profile: Profile,
+        authState: AuthState
+    ) {
         val commonName = savedKeyPair.keyPair.certificateCommonName
         if (commonName == null) {
             // Unable to check, better download it again.

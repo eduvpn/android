@@ -17,17 +17,53 @@
 package nl.eduvpn.app.entity
 
 import android.net.Uri
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import nl.eduvpn.app.Constants
 
 /**
  * A discovered API entity, containing all the URLs.
  * Created by Daniel Zolnai on 2016-10-18.
  */
-class DiscoveredAPI(
+
+sealed class DiscoveredAPI {
+    abstract val authorizationEndpoint: String
+    abstract val tokenEndpoint: String
+
+    fun toDiscoveredAPIs(): DiscoveredAPIs {
+        return when (this) {
+            is DiscoveredAPIV2 -> DiscoveredAPIs(this, null)
+            is DiscoveredAPIV3 -> DiscoveredAPIs(null, this)
+        }
+    }
+}
+
+@Serializable
+class DiscoveredAPIV3(
+
+    @SerialName("api_endpoint")
+    val apiEndpoint: String,
+
+    @SerialName("authorization_endpoint")
+    override val authorizationEndpoint: String,
+
+    @SerialName("token_endpoint")
+    override val tokenEndpoint: String
+) : DiscoveredAPI() {
+
+}
+
+@Serializable
+class DiscoveredAPIV2(
+    @SerialName("api_base_uri")
     val apiBaseUri: String,
-    val authorizationEndpoint: String,
-    val tokenEndpoint: String
-) {
+
+    @SerialName("authorization_endpoint")
+    override val authorizationEndpoint: String,
+
+    @SerialName("token_endpoint")
+    override val tokenEndpoint: String
+) : DiscoveredAPI() {
 
     val systemMessagesEndpoint: String by lazy {
         Uri.parse(apiBaseUri).buildUpon().appendPath(Constants.API_SYSTEM_MESSAGES_PATH).build()

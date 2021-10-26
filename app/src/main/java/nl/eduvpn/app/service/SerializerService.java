@@ -17,8 +17,6 @@
 
 package nl.eduvpn.app.service;
 
-import android.util.Pair;
-
 import androidx.annotation.NonNull;
 
 import net.openid.appauth.AuthState;
@@ -39,9 +37,11 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
 
+import kotlinx.serialization.SerializationException;
+import kotlinx.serialization.json.Json;
 import nl.eduvpn.app.Constants;
 import nl.eduvpn.app.entity.AuthorizationType;
-import nl.eduvpn.app.entity.DiscoveredAPI;
+import nl.eduvpn.app.entity.DiscoveredAPIs;
 import nl.eduvpn.app.entity.Instance;
 import nl.eduvpn.app.entity.InstanceList;
 import nl.eduvpn.app.entity.KeyPair;
@@ -54,9 +54,11 @@ import nl.eduvpn.app.entity.SavedProfile;
 import nl.eduvpn.app.entity.ServerList;
 import nl.eduvpn.app.entity.Settings;
 import nl.eduvpn.app.entity.TranslatableString;
+import nl.eduvpn.app.entity.WellKnown;
 import nl.eduvpn.app.entity.message.Maintenance;
 import nl.eduvpn.app.entity.message.Message;
 import nl.eduvpn.app.entity.message.Notification;
+import nl.eduvpn.app.utils.GeneralExtensionsKt;
 import nl.eduvpn.app.utils.Log;
 
 /**
@@ -77,6 +79,8 @@ public class SerializerService {
 
     private static final String TAG = SerializerService.class.getName();
     private static final DateFormat API_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US);
+
+    private static final Json json = GeneralExtensionsKt.getJsonInstance();
 
     static {
         API_DATE_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
@@ -382,60 +386,32 @@ public class SerializerService {
     }
 
     /**
-     * Deserializes a JSON object containing the discovered API endpoints.
+     * Deserializes a JSON object containing the discovered APIs endpoints.
      *
      * @param result The JSON object to deserialize
-     * @return The discovered API object.
+     * @return The discovered APIs object.
      * @throws UnknownFormatException Thrown if the JSON had an unknown format.
      */
     @NonNull
-    public DiscoveredAPI deserializeDiscoveredAPI(JSONObject result) throws UnknownFormatException {
+    public DiscoveredAPIs deserializeDiscoveredAPIs(String result) throws UnknownFormatException {
         try {
-            JSONObject apiObject = result.optJSONObject("api");
-            if (apiObject == null) {
-                throw new UnknownFormatException("'api' is missing!");
-            }
-            JSONObject apiVersionedObject = apiObject.optJSONObject("http://eduvpn.org/api#2");
-            if (apiVersionedObject == null) {
-                throw new UnknownFormatException("'http://eduvpn.org/api#2' is missing!");
-            }
-            String apiBaseUri = apiVersionedObject.getString("api_base_uri");
-            if (apiBaseUri == null) {
-                throw new UnknownFormatException("'api_base_uri' is missing!");
-            }
-            String authorizationEndpoint = apiVersionedObject.getString("authorization_endpoint");
-            if (authorizationEndpoint == null) {
-                throw new UnknownFormatException("'authorization_endpoint' is missing!");
-            }
-            String tokenEndpoint = apiVersionedObject.getString("token_endpoint");
-            if (tokenEndpoint == null) {
-                throw new UnknownFormatException("'token_endpoint' is missing!");
-            }
-            return new DiscoveredAPI(apiBaseUri, authorizationEndpoint, tokenEndpoint);
-        } catch (JSONException ex) {
+            return json.decodeFromString(WellKnown.Companion.serializer(), result).getApi();
+        } catch (SerializationException ex) {
             throw new UnknownFormatException(ex);
         }
     }
 
     /**
-     * Serializes a discovered API object.
+     * Serializes a discovered APIs object.
      *
      * @param discoveredAPI The object to serialize to JSON.
-     * @return The object as a JSON.
+     * @return The object as a JSON string.
      * @throws UnknownFormatException Thrown if there was an error while parsing.
      */
-    public JSONObject serializeDiscoveredAPI(DiscoveredAPI discoveredAPI) throws UnknownFormatException {
-        JSONObject result = new JSONObject();
+    public String serializeDiscoveredAPIs(DiscoveredAPIs discoveredAPI) throws UnknownFormatException {
         try {
-            JSONObject apiVersionedObject = new JSONObject();
-            apiVersionedObject.put("api_base_uri", discoveredAPI.getApiBaseUri());
-            apiVersionedObject.put("authorization_endpoint", discoveredAPI.getAuthorizationEndpoint());
-            apiVersionedObject.put("token_endpoint", discoveredAPI.getTokenEndpoint());
-            JSONObject apiObject = new JSONObject();
-            apiObject.put("http://eduvpn.org/api#2", apiVersionedObject);
-            result.put("api", apiObject);
-            return result;
-        } catch (JSONException ex) {
+            return json.encodeToString(WellKnown.Companion.serializer(), new WellKnown(discoveredAPI));
+        } catch (SerializationException ex) {
             throw new UnknownFormatException(ex);
         }
     }

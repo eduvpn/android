@@ -21,6 +21,10 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.VisibleForTesting;
+
 import net.openid.appauth.AuthState;
 
 import org.json.JSONException;
@@ -28,9 +32,6 @@ import org.json.JSONObject;
 
 import java.util.List;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.annotation.VisibleForTesting;
 import nl.eduvpn.app.Constants;
 import nl.eduvpn.app.entity.DiscoveredAPI;
 import nl.eduvpn.app.entity.Instance;
@@ -393,7 +394,7 @@ public class PreferencesService {
             if (discoveredAPI == null) {
                 editor.remove(KEY_DISCOVERED_API);
             } else {
-                editor.putString(KEY_DISCOVERED_API, _serializerService.serializeDiscoveredAPI(discoveredAPI).toString());
+                editor.putString(KEY_DISCOVERED_API, _serializerService.serializeDiscoveredAPIs(discoveredAPI.toDiscoveredAPIs()));
             }
             editor.apply();
         } catch (SerializerService.UnknownFormatException ex) {
@@ -413,8 +414,8 @@ public class PreferencesService {
             return null;
         }
         try {
-            return _serializerService.deserializeDiscoveredAPI(new JSONObject(serializedDiscoveredAPI));
-        } catch (SerializerService.UnknownFormatException | JSONException ex) {
+            return _serializerService.deserializeDiscoveredAPIs(serializedDiscoveredAPI).getPreferredAPI();
+        } catch (SerializerService.UnknownFormatException ex) {
             Log.e(TAG, "Unable to deserialize saved discovered API", ex);
             return null;
         }

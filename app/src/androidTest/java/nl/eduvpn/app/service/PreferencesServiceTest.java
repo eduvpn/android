@@ -17,8 +17,15 @@
 
 package nl.eduvpn.app.service;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
 import android.content.Context;
 import android.content.SharedPreferences;
+
+import androidx.test.core.app.ApplicationProvider;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
+import androidx.test.filters.LargeTest;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -26,15 +33,11 @@ import org.junit.runner.RunWith;
 
 import java.util.ArrayList;
 
-import androidx.test.core.app.ApplicationProvider;
-import androidx.test.ext.junit.runners.AndroidJUnit4;
-import androidx.test.filters.LargeTest;
 import nl.eduvpn.app.entity.AuthorizationType;
 import nl.eduvpn.app.entity.DiscoveredAPI;
+import nl.eduvpn.app.entity.DiscoveredAPIV2;
+import nl.eduvpn.app.entity.DiscoveredAPIs;
 import nl.eduvpn.app.entity.Instance;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 
 /**
  * Tests for the preferences service.
@@ -71,13 +74,13 @@ public class PreferencesServiceTest {
 
     @Test
     public void testDiscoveredAPISave() {
-        DiscoveredAPI discoveredAPI = new DiscoveredAPI("http://example.com/", "http://example.com/auth_endpoint", "http://example.com/token_endpoint");
-        _preferencesService.setCurrentDiscoveredAPI(discoveredAPI);
+        DiscoveredAPIV2 discoveredAPIV2 = new DiscoveredAPIV2("http://example.com/", "http://example.com/auth_endpoint", "http://example.com/token_endpoint");
+        _preferencesService.setCurrentDiscoveredAPI(discoveredAPIV2);
         DiscoveredAPI retrievedDiscoveredAPI = _preferencesService.getCurrentDiscoveredAPI();
         //noinspection ConstantConditions
-        assertEquals(discoveredAPI.getAuthorizationEndpoint(), retrievedDiscoveredAPI.getAuthorizationEndpoint());
-        assertEquals(discoveredAPI.getApiBaseUri(), retrievedDiscoveredAPI.getApiBaseUri());
-        assertEquals(discoveredAPI.getTokenEndpoint(), retrievedDiscoveredAPI.getTokenEndpoint());
+        assertEquals(discoveredAPIV2.getAuthorizationEndpoint(), retrievedDiscoveredAPI.getAuthorizationEndpoint());
+        assertEquals(discoveredAPIV2.getApiBaseUri(), retrievedDiscoveredAPI.toDiscoveredAPIs().getV2().getApiBaseUri());
+        assertEquals(discoveredAPIV2.getTokenEndpoint(), retrievedDiscoveredAPI.getTokenEndpoint());
     }
 
     @Test
@@ -99,14 +102,15 @@ public class PreferencesServiceTest {
     @Test
     public void testMigration() throws SerializerService.UnknownFormatException {
         // We only test a few properties
-        DiscoveredAPI discoveredAPI = new DiscoveredAPI("http://example.com/", "http://example.com/auth_endpoint", "http://example.com/token_endpoint");
+        DiscoveredAPIV2 discoveredAPI = new DiscoveredAPIV2("http://example.com/", "http://example.com/auth_endpoint", "http://example.com/token_endpoint");
+        DiscoveredAPIs discoveredAPIs = new DiscoveredAPIs(discoveredAPI, null);
         Instance instance = new Instance("base_uri", "display_name", "logo_uri", AuthorizationType.Distributed, "NL", false, "https://example.com/template", new ArrayList<>());
         SharedPreferences.Editor editor = _oldPreferences.edit();
 
         SerializerService serializerService = new SerializerService();
 
         editor.putString(PreferencesService.KEY_INSTANCE, serializerService.serializeInstance(instance).toString());
-        editor.putString(PreferencesService.KEY_DISCOVERED_API, serializerService.serializeDiscoveredAPI(discoveredAPI).toString());
+        editor.putString(PreferencesService.KEY_DISCOVERED_API, serializerService.serializeDiscoveredAPIs(discoveredAPIs));
         editor.commit();
 
         _preferencesService._getSharedPreferences().edit().clear().commit();
@@ -117,7 +121,7 @@ public class PreferencesServiceTest {
 
         //noinspection ConstantConditions
         assertEquals(discoveredAPI.getAuthorizationEndpoint(), retrievedDiscoveredAPI.getAuthorizationEndpoint());
-        assertEquals(discoveredAPI.getApiBaseUri(), retrievedDiscoveredAPI.getApiBaseUri());
+        assertEquals(discoveredAPI.getApiBaseUri(), retrievedDiscoveredAPI.toDiscoveredAPIs().getV2().getApiBaseUri());
         assertEquals(discoveredAPI.getTokenEndpoint(), retrievedDiscoveredAPI.getTokenEndpoint());
 
         assertEquals(instanceResult.getBaseURI(), instanceResult.getBaseURI());

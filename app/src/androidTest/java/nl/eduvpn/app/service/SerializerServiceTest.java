@@ -17,8 +17,12 @@
 
 package nl.eduvpn.app.service;
 
+import static org.junit.Assert.assertEquals;
+
 import android.net.Uri;
-import android.util.Pair;
+
+import androidx.test.ext.junit.runners.AndroidJUnit4;
+import androidx.test.filters.LargeTest;
 
 import net.openid.appauth.AuthState;
 import net.openid.appauth.AuthorizationServiceConfiguration;
@@ -35,15 +39,14 @@ import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
 
-import androidx.test.ext.junit.runners.AndroidJUnit4;
-import androidx.test.filters.LargeTest;
 import nl.eduvpn.app.entity.AuthorizationType;
 import nl.eduvpn.app.entity.DiscoveredAPI;
+import nl.eduvpn.app.entity.DiscoveredAPIV2;
+import nl.eduvpn.app.entity.DiscoveredAPIs;
 import nl.eduvpn.app.entity.Instance;
 import nl.eduvpn.app.entity.InstanceList;
 import nl.eduvpn.app.entity.KeyPair;
@@ -58,8 +61,6 @@ import nl.eduvpn.app.entity.TranslatableString;
 import nl.eduvpn.app.entity.message.Maintenance;
 import nl.eduvpn.app.entity.message.Message;
 import nl.eduvpn.app.entity.message.Notification;
-
-import static org.junit.Assert.assertEquals;
 
 /**
  * Unit tests for the serializer service.
@@ -115,12 +116,13 @@ public class SerializerServiceTest {
 
     @Test
     public void testDiscoveredAPISerialization() throws SerializerService.UnknownFormatException {
-        DiscoveredAPI discoveredAPI = new DiscoveredAPI("base_uri", "auth_endpoint", "token_endpoint");
-        JSONObject serializedDiscoveredAPI = _serializerService.serializeDiscoveredAPI(discoveredAPI);
-        DiscoveredAPI deserializedDiscoveredAPI = _serializerService.deserializeDiscoveredAPI(serializedDiscoveredAPI);
-        assertEquals(discoveredAPI.getAuthorizationEndpoint(), deserializedDiscoveredAPI.getAuthorizationEndpoint());
-        assertEquals(discoveredAPI.getApiBaseUri(), deserializedDiscoveredAPI.getApiBaseUri());
-        assertEquals(discoveredAPI.getTokenEndpoint(), deserializedDiscoveredAPI.getTokenEndpoint());
+        DiscoveredAPIV2 discoveredAPIV2 = new DiscoveredAPIV2("base_uri", "auth_endpoint", "token_endpoint");
+        DiscoveredAPIs discoveredAPIs = new DiscoveredAPIs(discoveredAPIV2, null);
+        String serializedDiscoveredAPIs = _serializerService.serializeDiscoveredAPIs(discoveredAPIs);
+        DiscoveredAPI deserializedDiscoveredAPI = _serializerService.deserializeDiscoveredAPIs(serializedDiscoveredAPIs).getV2();
+        assertEquals(discoveredAPIV2.getAuthorizationEndpoint(), deserializedDiscoveredAPI.getAuthorizationEndpoint());
+        assertEquals(discoveredAPIV2.getApiBaseUri(), deserializedDiscoveredAPI.toDiscoveredAPIs().getV2().getApiBaseUri());
+        assertEquals(discoveredAPIV2.getTokenEndpoint(), deserializedDiscoveredAPI.getTokenEndpoint());
     }
 
     @Test
