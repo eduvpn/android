@@ -27,7 +27,6 @@ import androidx.test.filters.LargeTest;
 import net.openid.appauth.AuthState;
 import net.openid.appauth.AuthorizationServiceConfiguration;
 
-import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
@@ -283,26 +282,6 @@ public class SerializerServiceTest {
             assertEquals(organizations.get(i).getOrgId(), deserializedOrganizationList.getOrganizationList().get(i).getOrgId());
             assertEquals(organizations.get(i).getSecureInternetHome(), deserializedOrganizationList.getOrganizationList().get(i).getSecureInternetHome());
             assertEquals(organizationList.getVersion(), deserializedOrganizationList.getVersion());
-        }
-    }
-
-    @Test
-    public void testInstancesSerialization() throws SerializerService.UnknownFormatException {
-        Instance instance1 = new Instance("http://base.uri/", "Display name 1", null, AuthorizationType.Local, "NL", false, "https://example.com/template", new ArrayList<>());
-        Instance instance2 = new Instance("http://base.uri/instance2", "Display name 2", null, AuthorizationType.Local, "US", true, "https://eduvpn.org/template?", Arrays.asList("mailto:user@example.com", "tel:+01234567890123"));
-        Instance instance3 = new Instance("https://base.uri/3/", "Display name 3", "https://logo.uri/", AuthorizationType.Organization, "SK", false, null, new ArrayList<>());
-        List<Instance> instances = Arrays.asList(instance1, instance2, instance3);
-        JSONArray serializedInstances = _serializerService.serializeInstances(instances);
-        List<Instance> deserializedInstances = _serializerService.deserializeInstances(serializedInstances);
-        for (int i = 0; i < deserializedInstances.size(); ++i) {
-            assertEquals(instances.get(i).getBaseURI(), deserializedInstances.get(i).getBaseURI());
-            assertEquals(instances.get(i).getDisplayName(), deserializedInstances.get(i).getDisplayName());
-            assertEquals(instances.get(i).getLogoUri(), deserializedInstances.get(i).getLogoUri());
-            assertEquals(instances.get(i).isCustom(), deserializedInstances.get(i).isCustom());
-            assertEquals(instances.get(i).getAuthorizationType(), deserializedInstances.get(i).getAuthorizationType());
-            assertEquals(instances.get(i).getCountryCode(), deserializedInstances.get(i).getCountryCode());
-            assertEquals(instances.get(i).getSupportContact(), deserializedInstances.get(i).getSupportContact());
-            assertEquals(instances.get(i).getAuthenticationUrlTemplate(), deserializedInstances.get(i).getAuthenticationUrlTemplate());
         }
     }
 

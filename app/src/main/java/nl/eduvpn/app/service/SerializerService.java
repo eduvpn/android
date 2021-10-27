@@ -172,26 +172,6 @@ public class SerializerService {
     }
 
     /**
-     * Deserializes a JSON to an InstanceList instance.
-     *
-     * @param instanceArray The JSON array to deserialize.
-     * @return The JSON as a list of instances.
-     * @throws UnknownFormatException Thrown if there was a problem while parsing the JSON.
-     */
-    public List<Instance> deserializeInstances(JSONArray instanceArray) throws UnknownFormatException {
-        try {
-            List<Instance> instances = new ArrayList<>();
-            for (int i = 0; i < instanceArray.length(); ++i) {
-                JSONObject instanceObject = instanceArray.getJSONObject(i);
-                instances.add(deserializeInstance(instanceObject));
-            }
-            return instances;
-        } catch (JSONException ex) {
-            throw new UnknownFormatException(ex);
-        }
-    }
-
-    /**
      * Serializes an instance to a JSON format.
      *
      * @param instance The instance to serialize.
@@ -316,22 +296,6 @@ public class SerializerService {
             throw new UnknownFormatException(ex);
         }
 
-    }
-
-    /**
-     * Serializes a list of instances.
-     *
-     * @param instanceList The object to serialize.
-     * @return The result in a JSON representation.
-     * @throws UnknownFormatException Thrown if there was a problem when serializing.
-     */
-    public JSONArray serializeInstances(List<Instance> instanceList) throws UnknownFormatException {
-        JSONArray serializedInstances = new JSONArray();
-        for (Instance instance : instanceList) {
-            JSONObject serializedInstance = serializeInstance(instance);
-            serializedInstances.put(serializedInstance);
-        }
-        return serializedInstances;
     }
 
     /**
