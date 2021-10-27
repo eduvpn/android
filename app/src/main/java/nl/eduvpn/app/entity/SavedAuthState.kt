@@ -14,39 +14,15 @@
  *     You should have received a copy of the GNU General Public License
  *     along with eduVPN.  If not, see <http://www.gnu.org/licenses/>.
  */
+package nl.eduvpn.app.entity
 
-package nl.eduvpn.app.entity;
-
-import net.openid.appauth.AuthState;
+import net.openid.appauth.AuthState
 
 /**
  * Stores the mapping between the base URI and the authorization state containing the current and refresh tokens.
  * Created by Daniel Zolnai on 2016-10-20.
+ *
+ * @param instance  The VPN provider the token is valid for.
+ * @param authState The authorization state with the tokens.
  */
-public class SavedAuthState {
-    private Instance _instance;
-    private AuthState _authState;
-
-    /**
-     * Constructor.
-     *
-     * @param instance  The VPN provider the token is valid for.
-     * @param authState The authorization state with the tokens..
-     */
-    public SavedAuthState(Instance instance, AuthState authState) {
-        _instance = instance;
-        _authState = authState;
-    }
-
-    public Instance getInstance() {
-        return _instance;
-    }
-
-    public AuthState getAuthState() {
-        return _authState;
-    }
-
-    public void setAuthState(AuthState authState) {
-        _authState = authState;
-    }
-}
+data class SavedAuthState(val instance: Instance, var authState: AuthState)
