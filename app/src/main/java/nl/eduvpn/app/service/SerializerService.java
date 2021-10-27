@@ -43,7 +43,6 @@ import nl.eduvpn.app.Constants;
 import nl.eduvpn.app.entity.AuthorizationType;
 import nl.eduvpn.app.entity.DiscoveredAPIs;
 import nl.eduvpn.app.entity.Instance;
-import nl.eduvpn.app.entity.InstanceList;
 import nl.eduvpn.app.entity.KeyPair;
 import nl.eduvpn.app.entity.Organization;
 import nl.eduvpn.app.entity.OrganizationList;
@@ -167,33 +166,6 @@ public class SerializerService {
             String displayName = jsonObject.getString("display_name");
             String profileId = jsonObject.getString("profile_id");
             return new Profile(displayName, profileId);
-        } catch (JSONException ex) {
-            throw new UnknownFormatException(ex);
-        }
-    }
-
-    /**
-     * Deserializes a JSON to an InstanceList instance.
-     *
-     * @param json The JSON to deserialize.
-     * @return The JSON in the InstanceList POJO format.
-     * @throws UnknownFormatException Thrown if there was a problem while parsing the JSON.
-     */
-    public InstanceList deserializeInstanceList(JSONObject json) throws UnknownFormatException {
-        try {
-            int sequenceNumber;
-            if (json.has("seq")) {
-                sequenceNumber = json.getInt("seq");
-            } else {
-                sequenceNumber = -1; // This will make sure that the new one will surely have a greater number.
-            }
-            JSONArray instanceArray = json.getJSONArray("instances");
-            List<Instance> instances = new ArrayList<>();
-            for (int i = 0; i < instanceArray.length(); ++i) {
-                JSONObject instanceObject = instanceArray.getJSONObject(i);
-                instances.add(deserializeInstance(instanceObject));
-            }
-            return new InstanceList(instances, sequenceNumber);
         } catch (JSONException ex) {
             throw new UnknownFormatException(ex);
         }
@@ -344,29 +316,6 @@ public class SerializerService {
             throw new UnknownFormatException(ex);
         }
 
-    }
-
-    /**
-     * Serializes an InstanceList object.
-     *
-     * @param instanceList The object to serialize.
-     * @return The result in a JSON representation.
-     * @throws UnknownFormatException Thrown if there was a problem when serializing.
-     */
-    public JSONObject serializeInstanceList(InstanceList instanceList) throws UnknownFormatException {
-        try {
-            JSONObject serialized = new JSONObject();
-            serialized.put("seq", instanceList.getSequenceNumber());
-            JSONArray serializedInstances = new JSONArray();
-            for (Instance instance : instanceList.getInstanceList()) {
-                JSONObject serializedInstance = serializeInstance(instance);
-                serializedInstances.put(serializedInstance);
-            }
-            serialized.put("instances", serializedInstances);
-            return serialized;
-        } catch (JSONException ex) {
-            throw new UnknownFormatException(ex);
-        }
     }
 
     /**

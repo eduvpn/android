@@ -48,7 +48,6 @@ import nl.eduvpn.app.entity.DiscoveredAPI;
 import nl.eduvpn.app.entity.DiscoveredAPIV2;
 import nl.eduvpn.app.entity.DiscoveredAPIs;
 import nl.eduvpn.app.entity.Instance;
-import nl.eduvpn.app.entity.InstanceList;
 import nl.eduvpn.app.entity.KeyPair;
 import nl.eduvpn.app.entity.Organization;
 import nl.eduvpn.app.entity.OrganizationList;
@@ -123,25 +122,6 @@ public class SerializerServiceTest {
         assertEquals(discoveredAPIV2.getAuthorizationEndpoint(), deserializedDiscoveredAPI.getAuthorizationEndpoint());
         assertEquals(discoveredAPIV2.getApiBaseUri(), deserializedDiscoveredAPI.toDiscoveredAPIs().getV2().getApiBaseUri());
         assertEquals(discoveredAPIV2.getTokenEndpoint(), deserializedDiscoveredAPI.getTokenEndpoint());
-    }
-
-    @Test
-    public void testInstanceListSerialization() throws SerializerService.UnknownFormatException {
-        Instance instance1 = new Instance("baseUri", "displayName", "logoUri", AuthorizationType.Distributed, "SK", true, "https://example.com/template", new ArrayList<>());
-        Instance instance2 = new Instance("baseUri2", "displayName2", "logoUri2", AuthorizationType.Local, "BG", true, null, Arrays.asList("mailto:support@example.com", "www.example.com/support"));
-        InstanceList instanceList = new InstanceList(Arrays.asList(instance1, instance2), 231);
-        JSONObject serializedInstanceList = _serializerService.serializeInstanceList(instanceList);
-        InstanceList deserializedInstanceList = _serializerService.deserializeInstanceList(serializedInstanceList);
-        assertEquals(instanceList.getSequenceNumber(), deserializedInstanceList.getSequenceNumber());
-        assertEquals(instanceList.getInstanceList().size(), deserializedInstanceList.getInstanceList().size());
-        assertEquals(instanceList.getInstanceList().get(0).getDisplayName(), deserializedInstanceList.getInstanceList().get(0).getDisplayName());
-        assertEquals(instanceList.getInstanceList().get(0).getBaseURI(), deserializedInstanceList.getInstanceList().get(0).getBaseURI());
-        assertEquals(instanceList.getInstanceList().get(0).getLogoUri(), deserializedInstanceList.getInstanceList().get(0).getLogoUri());
-        assertEquals(instanceList.getInstanceList().get(0).getAuthenticationUrlTemplate(), deserializedInstanceList.getInstanceList().get(0).getAuthenticationUrlTemplate());
-        assertEquals(instanceList.getInstanceList().get(1).getDisplayName(), deserializedInstanceList.getInstanceList().get(1).getDisplayName());
-        assertEquals(instanceList.getInstanceList().get(1).getBaseURI(), deserializedInstanceList.getInstanceList().get(1).getBaseURI());
-        assertEquals(instanceList.getInstanceList().get(1).getLogoUri(), deserializedInstanceList.getInstanceList().get(1).getLogoUri());
-        assertEquals(instanceList.getInstanceList().get(1).getAuthenticationUrlTemplate(), deserializedInstanceList.getInstanceList().get(1).getAuthenticationUrlTemplate());
     }
 
     @Test
