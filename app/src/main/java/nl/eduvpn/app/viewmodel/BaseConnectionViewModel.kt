@@ -32,14 +32,14 @@ import nl.eduvpn.app.BuildConfig
 import nl.eduvpn.app.Constants
 import nl.eduvpn.app.R
 import nl.eduvpn.app.entity.*
+import nl.eduvpn.app.entity.v3.VPNConfig
 import nl.eduvpn.app.service.*
-import nl.eduvpn.app.utils.ErrorDialog
-import nl.eduvpn.app.utils.FormattingUtils
-import nl.eduvpn.app.utils.Log
-import nl.eduvpn.app.utils.runCatchingCoroutine
-import org.json.JSONObject
+import nl.eduvpn.app.utils.*
 import java.io.UnsupportedEncodingException
 import java.net.URLEncoder
+import java.text.ParseException
+import java.text.SimpleDateFormat
+import java.util.*
 
 /**
  * This viewmodel takes care of the entire flow, from connecting to the servers to fetching profiles.
@@ -84,9 +84,10 @@ abstract class BaseConnectionViewModel(
                 )
             }.onSuccess { result ->
                 try {
-                    val discoveredAPIJson = serializerService.deserializeDiscoveredAPIs(result)
-                    if (discoveredAPIJson.v2 == null) {
-                        val errorMessage = "Server does not provide API version 2"
+                    val discoveredAPI =
+                        serializerService.deserializeDiscoveredAPIs(result).getPreferredAPI()
+                    if (discoveredAPI == null) {
+                        val errorMessage = "Server does not provide API version 2 or 3"
                         Log.e(TAG, errorMessage)
                         connectionState.value = ConnectionState.Ready
                         parentAction.value = ParentAction.DisplayError(
@@ -98,8 +99,8 @@ abstract class BaseConnectionViewModel(
                             )
                         )
                     } else {
-                        val discoveredAPI = discoveredAPIJson.v2
-                        val savedToken = historyService.getSavedToken(parentInstance ?: instance)
+                        val savedToken =
+                            historyService.getSavedToken(parentInstance ?: instance)
                         if (savedToken == null || reauthorize) {
                             authorize(parentInstance ?: instance, discoveredAPI)
                         } else {
@@ -116,21 +117,111 @@ abstract class BaseConnectionViewModel(
                                     savedToken.authState
                                 )
                             }
-                            fetchProfiles(instance, discoveredAPI, savedToken.authState)
+                            preferencesService.currentInstance = instance
+                            preferencesService.currentDiscoveredAPI = discoveredAPI
+                            preferencesService.currentAuthState = savedToken.authState
+                            when (discoveredAPI) {
+                                is DiscoveredAPIV2 -> {
+                                    fetchProfiles(instance, discoveredAPI, savedToken.authState)
+                                }
+                                is DiscoveredAPIV3 -> {
+                                    connectV3(instance, discoveredAPI, savedToken.authState)
+                                }
+                            }
                         }
                     }
                 } catch (ex: SerializerService.UnknownFormatException) {
                     Log.e(TAG, "Error parsing discovered API!", ex)
                     connectionState.value = ConnectionState.Ready
-                    parentAction.value = ParentAction.DisplayError(R.string.error_dialog_title,
-                            context.getString(R.string.error_discover_api, instance.sanitizedBaseURI, ex.toString()))
+                    parentAction.value = ParentAction.DisplayError(
+                        R.string.error_dialog_title,
+                        context.getString(
+                            R.string.error_discover_api,
+                            instance.sanitizedBaseURI,
+                            ex.toString()
+                        )
+                    )
                 }
             }.onFailure { throwable ->
                 Log.e(TAG, "Error while fetching discovered API.", throwable)
                 connectionState.value = ConnectionState.Ready
-                parentAction.value = ParentAction.DisplayError(R.string.error_dialog_title,
-                        context.getString(R.string.error_discover_api, instance.sanitizedBaseURI, throwable.toString()))
+                parentAction.value = ParentAction.DisplayError(
+                    R.string.error_dialog_title,
+                    context.getString(
+                        R.string.error_discover_api,
+                        instance.sanitizedBaseURI,
+                        throwable.toString()
+                    )
+                )
             }
+        }
+    }
+
+    private suspend fun connectV3(
+        instance: Instance,
+        discoveredAPI: DiscoveredAPIV3,
+        authState: AuthState
+    ) {
+        val profiles = fetchProfilesV3(instance, discoveredAPI, authState)
+            .getOrElse { return }
+            .filter { p -> p.vpnProtocol == "openvpn" }
+        selectProfile(profiles)
+    }
+
+    private suspend fun connectToProfileV3(
+        instance: Instance, discoveredAPI: DiscoveredAPIV3,
+        profile: ProfileV3, authState: AuthState
+    ) {
+        val vpnConfig = fetchProfileConfigurationOpenVPN(
+            discoveredAPI,
+            authState,
+            profile,
+            preferencesService.appSettings.forceTcp()
+        ).getOrElse { return }
+        val uProfile = profile.copy(expiry = vpnConfig.expireDate?.time)
+        preferencesService.currentProfile = uProfile
+        val configName = FormattingUtils.formatProfileName(
+            context,
+            instance,
+            uProfile
+        )
+        val vpnProfile = vpnService.importConfig(
+            vpnConfig.config,
+            configName,
+            null,
+        )
+        if (vpnProfile != null) {
+            // Cache the profile
+            val savedProfile = SavedProfile(
+                instance,
+                uProfile,
+                vpnProfile.uuidString
+            )
+            historyService.cacheSavedProfile(savedProfile)
+            // Connect with the profile
+            parentAction.value =
+                ParentAction.ConnectWithProfile(vpnProfile)
+        } else {
+            connectionState.value = ConnectionState.Ready
+            parentAction.value = ParentAction.DisplayError(
+                R.string.error_dialog_title,
+                context.getString(R.string.error_importing_profile)
+            )
+        }
+    }
+
+    private fun selectProfile(profiles: List<Profile>) {
+        preferencesService.currentProfileList = profiles
+        connectionState.value = ConnectionState.Ready
+        if (profiles.size > 1) {
+            parentAction.value = ParentAction.OpenProfileSelector(profiles)
+        } else if (profiles.size == 1) {
+            selectProfileToConnectTo(profiles[0])
+        } else {
+            parentAction.value = ParentAction.DisplayError(
+                R.string.error_no_profiles_from_server,
+                context.getString(R.string.error_no_profiles_from_server_message)
+            )
         }
     }
 
@@ -138,6 +229,17 @@ abstract class BaseConnectionViewModel(
         if (connectionState.value == ConnectionState.Authorizing) {
             connectionState.value = ConnectionState.Ready
         }
+    }
+
+    private fun <T> showError(thr: Throwable?, resourceId: Int): Result<T> {
+        val message = context.getString(resourceId, thr)
+        Log.e(TAG, message, thr)
+        connectionState.value = ConnectionState.Ready
+        parentAction.value = ParentAction.DisplayError(
+            R.string.error_dialog_title,
+            message
+        )
+        return Result.failure(thr ?: RuntimeException(message))
     }
 
     /**
@@ -155,26 +257,13 @@ abstract class BaseConnectionViewModel(
         connectionState.value = ConnectionState.FetchingProfiles
         viewModelScope.launch(Dispatchers.Main) {
             runCatchingCoroutine {
-                apiService.getJSON(discoveredAPI.profileListEndpoint, authState)
+                apiService.getString(discoveredAPI.profileListEndpoint, authState)
             }.onSuccess { result ->
                 try {
-                    val profiles = serializerService.deserializeProfileList(result)
-                    preferencesService.currentInstance = instance
-                    preferencesService.currentDiscoveredAPI = discoveredAPI
-                    preferencesService.currentAuthState = authState
-                    preferencesService.currentProfileList = profiles
-                    connectionState.value = ConnectionState.Ready
-                    if (profiles.size > 1) {
-                        parentAction.value = ParentAction.OpenProfileSelector(profiles)
-                    } else if (profiles.size == 1) {
-                        selectProfileToConnectTo(profiles[0])
-                    } else {
-                        parentAction.value = ParentAction.DisplayError(R.string.error_no_profiles_from_server, context.getString(R.string.error_no_profiles_from_server_message))
-                    }
+                    val profiles: List<Profile> = serializerService.deserializeProfileV2List(result)
+                    selectProfile(profiles)
                 } catch (ex: SerializerService.UnknownFormatException) {
-                    Log.e(TAG, "Error parsing profile list.", ex)
-                    connectionState.value = ConnectionState.Ready
-                    parentAction.value = ParentAction.DisplayError(R.string.error_dialog_title, context.getString(R.string.error_parsing_profiles))
+                    showError<Unit>(ex, R.string.error_parsing_profiles)
                 }
             }.onFailure { throwable ->
                 Log.e(TAG, "Error fetching profile list.", throwable)
@@ -184,10 +273,76 @@ abstract class BaseConnectionViewModel(
         }
     }
 
+    /**
+     * Downloads the list of profiles for a single VPN provider.
+     *
+     * @param instance      The VPN provider instance.
+     * @param discoveredAPI The discovered API containing the URLs.
+     * @param authState     The access and refresh token for the API.
+     */
+    private suspend fun fetchProfilesV3(
+        instance: Instance,
+        discoveredAPI: DiscoveredAPIV3,
+        authState: AuthState
+    ): Result<List<ProfileV3>> {
+        connectionState.value = ConnectionState.FetchingProfiles
+        return runCatchingCoroutine {
+            apiService.getString(discoveredAPI.infoEndpoint, authState)
+        }.onFailure { throwable ->
+            Log.e(TAG, "Error fetching profile list.", throwable)
+            // It is highly probable that the auth state is not valid anymore.
+            authorize(instance, discoveredAPI)
+        }.flatMap { result ->
+            try {
+                Result.success(serializerService.deserializeInfo(result).info.profileList)
+            } catch (ex: SerializerService.UnknownFormatException) {
+                showError(ex, R.string.error_parsing_profiles)
+            }
+        }
+    }
+
+    //todo: store and get from storage
+    private suspend fun fetchProfileConfigurationOpenVPN(
+        discoveredAPI: DiscoveredAPIV3,
+        authState: AuthState,
+        profile: ProfileV3,
+        tcpOnly: Boolean,
+    ): Result<VPNConfig> {
+        connectionState.value = ConnectionState.ProfileDownloadingKeyPair
+        return runCatchingCoroutine {
+            val tcpOnlyString = if (tcpOnly) {
+                "on"
+            } else {
+                "off"
+            }
+            val (config, headers) = apiService.postResource(
+                discoveredAPI.connectEndpoint,
+                "profile_id=${profile.profileId}&tcp_only=${tcpOnlyString}",
+                authState
+            )
+            val expired = headers.get("Expires")
+                ?.let { hl: List<String> -> hl.firstOrNull() }
+                ?.let { expiredValue ->
+                    try {
+                        SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.US).parse(
+                            expiredValue
+                        )
+                    } catch (ex: ParseException) {
+                        Log.e(TAG, "Unable to parse expired header", ex)
+                        null
+                    }
+                }
+            VPNConfig(config, expired)
+        }.onFailure { throwable ->
+            showError<Unit>(throwable, R.string.error_creating_keypair)
+        }
+    }
+
     private fun authorize(instance: Instance, discoveredAPI: DiscoveredAPI) {
         connectionState.value = ConnectionState.Authorizing
         parentAction.value = ParentAction.InitiateConnection(instance, discoveredAPI)
-        parentAction.value = null // Immediately reset it, so it is not triggered twice, when coming back to the activity.
+        parentAction.value =
+            null // Immediately reset it, so it is not triggered twice, when coming back to the activity.
     }
 
     fun initiateConnection(activity: Activity, instance: Instance, discoveredAPI: DiscoveredAPI) {
@@ -200,11 +355,7 @@ abstract class BaseConnectionViewModel(
         // We surely have a discovered API and access token, since we just loaded the list with them
         val instance = preferencesService.currentInstance
         val authState = historyService.getCachedAuthState(instance!!)
-        val discoveredAPI = when (val d = preferencesService.currentDiscoveredAPI) {
-            is DiscoveredAPIV2 -> d
-            is DiscoveredAPIV3 -> TODO()
-            null -> null
-        }
+        val discoveredAPI = preferencesService.currentDiscoveredAPI
         if (authState == null || discoveredAPI == null) {
             Log.e(
                 TAG,
@@ -218,12 +369,33 @@ abstract class BaseConnectionViewModel(
             )
             return
         }
-        preferencesService.currentInstance = instance
         preferencesService.currentProfile = profile
         preferencesService.currentAuthState = authState
         // Always download a new profile.
         // Just to be sure,
-        downloadKeyPairIfNeeded(instance, discoveredAPI, profile, authState)
+        when (profile) {
+            is ProfileV2 -> when (discoveredAPI) {
+                is DiscoveredAPIV2 -> downloadKeyPairIfNeeded(
+                    instance,
+                    discoveredAPI,
+                    profile,
+                    authState
+                )
+                is DiscoveredAPIV3 -> throw IllegalStateException("Profile V2 with API V3")
+            }
+            is ProfileV3 -> when (discoveredAPI) {
+                is DiscoveredAPIV2 -> throw IllegalStateException("Profile V3 with API V2")
+                is DiscoveredAPIV3 ->
+                    viewModelScope.launch(Dispatchers.Main) {
+                        connectToProfileV3(
+                            instance,
+                            discoveredAPI,
+                            profile,
+                            authState
+                        )
+                    }
+            }
+        }
     }
 
 
@@ -236,7 +408,7 @@ abstract class BaseConnectionViewModel(
      */
     private fun downloadKeyPairIfNeeded(
         instance: Instance, discoveredAPI: DiscoveredAPIV2,
-        profile: Profile, authState: AuthState
+        profile: ProfileV2, authState: AuthState
     ) {
         // First we create a keypair, if there is no saved one yet.
         val savedKeyPair = historyService.getSavedKeyPairForInstance(instance)
@@ -259,24 +431,35 @@ abstract class BaseConnectionViewModel(
         viewModelScope.launch(Dispatchers.Main) {
             runCatchingCoroutine {
                 apiService.postResource(createKeyPairEndpoint, requestData, authState)
-            }.onSuccess { keyPairJson ->
+            }.onSuccess { (keyPairJson, _) ->
                 try {
-                    val keyPair = serializerService.deserializeKeyPair(JSONObject(keyPairJson))
+                    val keyPair = serializerService.deserializeKeyPair(keyPairJson)
                     Log.i(TAG, "Created key pair, is it successful: " + keyPair.isOK)
                     // Save it for later
                     val newKeyPair = SavedKeyPair(instance, keyPair)
                     historyService.storeSavedKeyPair(newKeyPair)
-                    downloadProfileWithKeyPair(instance, discoveredAPI, newKeyPair, profile, authState)
+                    downloadProfileWithKeyPair(
+                        instance,
+                        discoveredAPI,
+                        newKeyPair,
+                        profile,
+                        authState
+                    )
                 } catch (ex: Exception) {
                     Log.e(TAG, "Unable to parse keypair data", ex)
                     connectionState.value = ConnectionState.Ready
-                    parentAction.value = ParentAction.DisplayError(R.string.error_dialog_title, context.getString(R.string.error_parsing_keypair, ex.message))
+                    parentAction.value = ParentAction.DisplayError(
+                        R.string.error_dialog_title,
+                        context.getString(R.string.error_parsing_keypair, ex.message)
+                    )
                 }
-
             }.onFailure { throwable ->
                 Log.e(TAG, "Error creating keypair.", throwable)
                 connectionState.value = ConnectionState.Ready
-                parentAction.value = ParentAction.DisplayError(R.string.error_dialog_title, context.getString(R.string.error_creating_keypair, throwable.toString()))
+                parentAction.value = ParentAction.DisplayError(
+                    R.string.error_dialog_title,
+                    context.getString(R.string.error_creating_keypair, throwable.toString())
+                )
             }
         }
     }
@@ -292,7 +475,7 @@ abstract class BaseConnectionViewModel(
      */
     private fun downloadProfileWithKeyPair(
         instance: Instance, discoveredAPI: DiscoveredAPIV2,
-        savedKeyPair: SavedKeyPair, profile: Profile,
+        savedKeyPair: SavedKeyPair, profile: ProfileV2,
         authState: AuthState
     ) {
         val requestData = "?profile_id=" + profile.profileId
@@ -331,7 +514,7 @@ abstract class BaseConnectionViewModel(
         instance: Instance,
         discoveredAPI: DiscoveredAPIV2,
         savedKeyPair: SavedKeyPair,
-        profile: Profile,
+        profile: ProfileV2,
         authState: AuthState
     ) {
         val commonName = savedKeyPair.keyPair.certificateCommonName

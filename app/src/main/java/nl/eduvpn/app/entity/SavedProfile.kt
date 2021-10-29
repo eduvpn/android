@@ -16,8 +16,22 @@
  */
 package nl.eduvpn.app.entity
 
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+
 /**
  * Stores the data of a saved profile.
  * Created by Daniel Zolnai on 2016-10-20.
  */
-data class SavedProfile(val instance: Instance, val profile: Profile, val profileUUID: String)
+@Serializable
+data class SavedProfile(
+
+    @SerialName("provider")
+    val instance: Instance,
+
+    @SerialName("profile")
+    val profile: Profile,
+
+    @SerialName("profile_uuid")
+    val profileUUID: String
+)

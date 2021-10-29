@@ -51,6 +51,15 @@ class DiscoveredAPIV3(
     override val tokenEndpoint: String
 ) : DiscoveredAPI() {
 
+    val infoEndpoint: String by lazy {
+        Uri.parse(apiEndpoint).buildUpon().appendPath(Constants.API_V3_INFO_PATH).build()
+            .toString()
+    }
+
+    val connectEndpoint: String by lazy {
+        Uri.parse(apiEndpoint).buildUpon().appendPath(Constants.API_V3_CONNECT_PATH).build()
+            .toString()
+    }
 }
 
 @Serializable

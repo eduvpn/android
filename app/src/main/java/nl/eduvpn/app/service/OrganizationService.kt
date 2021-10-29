@@ -76,8 +76,7 @@ class OrganizationService(private val serializerService: SerializerService,
 
             try {
                 if (withContext(Dispatchers.Default) { securityService.verifyMinisign(serverList, signature) }) {
-                    val organizationListJson = JSONObject(serverList)
-                    serializerService.deserializeServerList(organizationListJson)
+                    serializerService.deserializeServerList(serverList)
                 } else {
                     throw InvalidSignatureException("Signature validation failed for server list!")
                 }

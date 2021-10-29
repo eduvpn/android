@@ -17,10 +17,18 @@
 
 package nl.eduvpn.app.service;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.net.Uri;
+
+import androidx.test.core.app.ApplicationProvider;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
+import androidx.test.filters.LargeTest;
 
 import net.openid.appauth.AuthState;
 import net.openid.appauth.AuthorizationServiceConfiguration;
@@ -34,19 +42,14 @@ import org.junit.runner.RunWith;
 import java.util.ArrayList;
 import java.util.Random;
 
-import androidx.test.core.app.ApplicationProvider;
-import androidx.test.ext.junit.runners.AndroidJUnit4;
-import androidx.test.filters.LargeTest;
 import nl.eduvpn.app.entity.AuthorizationType;
 import nl.eduvpn.app.entity.Instance;
 import nl.eduvpn.app.entity.KeyPair;
 import nl.eduvpn.app.entity.Profile;
+import nl.eduvpn.app.entity.ProfileV2;
 import nl.eduvpn.app.entity.SavedKeyPair;
 import nl.eduvpn.app.entity.SavedProfile;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import nl.eduvpn.app.entity.TranslatableString;
 
 /**
  * Tests for the history service.
@@ -100,8 +103,8 @@ public class HistoryServiceTest {
         for (int i = 0; i < 10; ++i) {
             String profileId = "vpn_profile";
             String profileUUID = "ABCD-1234-DEFG-5678";
-            Instance instance = new Instance(baseURI + i, "displayName", null, AuthorizationType.Distributed, "NL", true, "https://example.com/template", new ArrayList<>());
-            Profile profile = new Profile("displayName", profileId);
+            Instance instance = new Instance(baseURI + i, new TranslatableString("displayName"), null, AuthorizationType.Distributed, "NL", true, "https://example.com/template", new ArrayList<>());
+            Profile profile = new ProfileV2("displayName", profileId);
             SavedProfile savedProfile = new SavedProfile(instance, profile, profileUUID);
             _historyService.cacheSavedProfile(savedProfile);
             _historyService.cacheAuthorizationState(instance, new AuthState());
@@ -109,7 +112,7 @@ public class HistoryServiceTest {
         _reloadHistoryService(false);
         assertEquals(10, _historyService.getSavedProfileList().size());
         for (int i = 0; i < 10; ++i) {
-            assertNotNull(_historyService.getCachedAuthState(new Instance(baseURI + i, "displayName", null, AuthorizationType.Distributed, "NL", true, null, new ArrayList<>())));
+            assertNotNull(_historyService.getCachedAuthState(new Instance(baseURI + i, new TranslatableString("displayName"), null, AuthorizationType.Distributed, "NL", true, null, new ArrayList<>())));
         }
 
     }
@@ -117,14 +120,17 @@ public class HistoryServiceTest {
     @Test
     public void testCacheAccessToken() {
         String baseURI = "http://example.com";
-        AuthState exampleAuthState = new AuthState(new AuthorizationServiceConfiguration(Uri.parse("http://example.com/auth"), Uri.parse("http://example.com/token"), null));
-        Instance instance = new Instance(baseURI, "displayName", null, AuthorizationType.Distributed, "HU", true, "https://eduvpn.org/template", new ArrayList<>());
+        AuthState exampleAuthState = new AuthState(new AuthorizationServiceConfiguration(Uri.parse("http://example.com/auth"), Uri
+                .parse("http://example.com/token"), null));
+        Instance instance = new Instance(baseURI, new TranslatableString("displayName"), null, AuthorizationType.Distributed, "HU", true, "https://eduvpn.org/template", new ArrayList<>());
         _historyService.cacheAuthorizationState(instance, exampleAuthState);
         _reloadHistoryService(false);
         AuthState restoredAuthState = _historyService.getCachedAuthState(instance);
         //noinspection ConstantConditions
-        assertEquals(exampleAuthState.getAuthorizationServiceConfiguration().authorizationEndpoint, restoredAuthState.getAuthorizationServiceConfiguration().authorizationEndpoint);
-        assertEquals(exampleAuthState.getAuthorizationServiceConfiguration().tokenEndpoint, restoredAuthState.getAuthorizationServiceConfiguration().tokenEndpoint);
+        assertEquals(exampleAuthState.getAuthorizationServiceConfiguration().authorizationEndpoint, restoredAuthState
+                .getAuthorizationServiceConfiguration().authorizationEndpoint);
+        assertEquals(exampleAuthState.getAuthorizationServiceConfiguration().tokenEndpoint, restoredAuthState
+                .getAuthorizationServiceConfiguration().tokenEndpoint);
     }
 
     @Test
@@ -132,8 +138,8 @@ public class HistoryServiceTest {
         String baseURI = "http://example.com/baseURI";
         String profileId = "vpn_profile";
         String profileUUID = "ABCD-1234-DEFG-5678";
-        Instance instance = new Instance(baseURI, "displayName", null, AuthorizationType.Distributed, "HU", true, null, new ArrayList<>());
-        Profile profile = new Profile("displayName", profileId);
+        Instance instance = new Instance(baseURI, new TranslatableString("displayName"), null, AuthorizationType.Distributed, "HU", true, null, new ArrayList<>());
+        Profile profile = new ProfileV2("displayName", profileId);
         SavedProfile savedProfile = new SavedProfile(instance, profile, profileUUID);
         _historyService.cacheSavedProfile(savedProfile);
         _reloadHistoryService(false);
@@ -154,9 +160,9 @@ public class HistoryServiceTest {
     @Test
     public void testStoreSavedKeyPair() {
         KeyPair keyPair1 = new KeyPair(false, "cert1", "pk1");
-        Instance instance1 = new Instance("http://example.com/", "example.com", null, AuthorizationType.Distributed, "DK", false, "https://eduvpn.org/template", new ArrayList<>());
+        Instance instance1 = new Instance("http://example.com/", new TranslatableString("example.com"), null, AuthorizationType.Distributed, "DK", false, "https://eduvpn.org/template", new ArrayList<>());
         SavedKeyPair savedKeyPair1 = new SavedKeyPair(instance1, keyPair1);
-        Instance instance2 = new Instance("http://something.else/", "something.else", null, AuthorizationType.Distributed, "DK", false, null, new ArrayList<>());
+        Instance instance2 = new Instance("http://something.else/", new TranslatableString("something.else"), null, AuthorizationType.Distributed, "DK", false, null, new ArrayList<>());
         KeyPair keyPair2 = new KeyPair(true, "example certificate", "example private key");
         SavedKeyPair savedKeyPair2 = new SavedKeyPair(instance2, keyPair2);
         _historyService.storeSavedKeyPair(savedKeyPair1);

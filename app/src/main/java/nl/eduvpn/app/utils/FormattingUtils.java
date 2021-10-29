@@ -128,7 +128,7 @@ public class FormattingUtils {
             URI uri = URI.create(instance.getSanitizedBaseURI());
             return uri.getHost();
         } else {
-            return instance.getDisplayName();
+            return instance.getDisplayName().getBestTranslation();
         }
 
     }
@@ -141,7 +141,7 @@ public class FormattingUtils {
      * @return The string to display.
      */
     public static String formatAccessWarning(Context context, Instance instance) {
-        String instanceName = instance.getDisplayName();
+        String instanceName = instance.getDisplayName().getBestTranslation();
         if (instance.isCustom()) {
             URI uri = URI.create(instance.getSanitizedBaseURI());
             instanceName = uri.getHost();

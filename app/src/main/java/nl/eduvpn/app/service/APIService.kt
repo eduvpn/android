@@ -77,15 +77,19 @@ class APIService(private val connectionService: ConnectionService, private val o
      * @param url      The URL as a string.
      * @param authState If an auth token should be sent, include an auth state.
      * @param data     The request data.
+     * @return Response with headers.
      * @throws UserNotAuthorizedException
      * @throws IOException
      */
-    suspend fun postResource(url: String, data: String?, authState: AuthState?): String {
+    suspend fun postResource(
+        url: String,
+        data: String?,
+        authState: AuthState?
+    ): Pair<String, Map<String, List<String>>> {
         return createNetworkCall(authState) { accessToken ->
             fetchByteResource(url, data, accessToken)
         }
     }
-
 
     /**
      * Downloads a byte resource from a URL.
@@ -93,14 +97,21 @@ class APIService(private val connectionService: ConnectionService, private val o
      * @param url         The URL as a string.
      * @param requestData The request data, if any.
      * @param accessToken The access token to fetch the resource with. Can be null.
-     * @return The result as a byte array.
+     * @return Response with headers.
      * @throws UserNotAuthorizedException
      * @throws IOException Thrown if there was a problem creating the connection.
      */
-    private suspend fun fetchByteResource(url: String, requestData: String?, accessToken: String?): String {
+    private suspend fun fetchByteResource(
+        url: String,
+        requestData: String?,
+        accessToken: String?
+    ): Pair<String, Map<String, List<String>>> {
         val requestBuilder = createRequestBuilder(url, accessToken)
         if (requestData != null) {
-            requestBuilder.method("POST", requestData.toRequestBody("application/x-www-form-urlencoded".toMediaTypeOrNull()))
+            requestBuilder.method(
+                "POST",
+                requestData.toRequestBody("application/x-www-form-urlencoded".toMediaTypeOrNull())
+            )
         } else {
             requestBuilder.method("POST", null)
         }
@@ -119,7 +130,10 @@ class APIService(private val connectionService: ConnectionService, private val o
             responseBody.close()
             Log.d(TAG, "POST $url data: '$requestData': $result")
             if (statusCode in 200..299) {
-                return result
+                return Pair(
+                    result,
+                    response.headers.toMultimap()
+                )
             } else {
                 throw IOException("Unsuccessful response: $result")
             }

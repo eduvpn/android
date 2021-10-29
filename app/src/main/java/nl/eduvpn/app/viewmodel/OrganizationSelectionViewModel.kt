@@ -123,8 +123,11 @@ class OrganizationSelectionViewModel @Inject constructor(
                     return@map resultList
                 }
                 val instituteAccessServers = servers.filter {
-                    it.authorizationType == AuthorizationType.Local && (searchText.isNullOrBlank() || it.displayName?.contains(searchText, ignoreCase = true) == true)
-                }.sortedBy { it.displayName }
+                    it.authorizationType == AuthorizationType.Local && (searchText.isNullOrBlank() || it.displayName.bestTranslation?.contains(
+                        searchText,
+                        ignoreCase = true
+                    ) == true)
+                }.sortedBy { it.displayName.bestTranslation }
                         .map { OrganizationAdapter.OrganizationAdapterItem.InstituteAccess(it) }
                 val secureInternetServers = organizations.filter {
                     if (searchText.isNullOrBlank()) {

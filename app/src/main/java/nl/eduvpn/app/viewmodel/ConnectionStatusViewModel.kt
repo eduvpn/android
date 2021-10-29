@@ -31,6 +31,8 @@ import kotlinx.coroutines.delay
 import nl.eduvpn.app.CertExpiredBroadcastReceiver
 import nl.eduvpn.app.R
 import nl.eduvpn.app.entity.Profile
+import nl.eduvpn.app.entity.ProfileV2
+import nl.eduvpn.app.entity.ProfileV3
 import nl.eduvpn.app.livedata.ByteCountLiveData
 import nl.eduvpn.app.livedata.ConnectionTimeLiveData
 import nl.eduvpn.app.livedata.IPLiveData
@@ -212,7 +214,11 @@ class ConnectionStatusViewModel @Inject constructor(
             serverName.value = context.getString(R.string.profile_name_not_found)
         }
         profileName.value = savedProfile?.displayName
-        certExpiryTime = historyService.getSavedKeyPairForInstance(connectionInstance).keyPair.expiryTimeMillis
+        certExpiryTime = when (savedProfile) {
+            is ProfileV2 -> historyService.getSavedKeyPairForInstance(connectionInstance).keyPair.expiryTimeMillis
+            is ProfileV3 -> savedProfile.expiry
+            null -> null
+        }
         updateCertExpiry()
     }
 

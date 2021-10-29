@@ -17,9 +17,9 @@
 
 package nl.eduvpn.app.service;
 
-import androidx.annotation.NonNull;
+import static kotlinx.serialization.builtins.BuiltinSerializersKt.ListSerializer;
 
-import net.openid.appauth.AuthState;
+import androidx.annotation.NonNull;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -39,16 +39,18 @@ import java.util.TimeZone;
 
 import kotlinx.serialization.SerializationException;
 import kotlinx.serialization.json.Json;
-import nl.eduvpn.app.Constants;
-import nl.eduvpn.app.entity.AuthorizationType;
 import nl.eduvpn.app.entity.DiscoveredAPIs;
 import nl.eduvpn.app.entity.Instance;
+import nl.eduvpn.app.entity.JsonListWrapper;
 import nl.eduvpn.app.entity.KeyPair;
 import nl.eduvpn.app.entity.Organization;
 import nl.eduvpn.app.entity.OrganizationList;
 import nl.eduvpn.app.entity.Profile;
+import nl.eduvpn.app.entity.ProfileV2;
+import nl.eduvpn.app.entity.ProfileV2List;
 import nl.eduvpn.app.entity.SavedAuthState;
 import nl.eduvpn.app.entity.SavedKeyPair;
+import nl.eduvpn.app.entity.SavedKeyPairList;
 import nl.eduvpn.app.entity.SavedProfile;
 import nl.eduvpn.app.entity.ServerList;
 import nl.eduvpn.app.entity.Settings;
@@ -57,8 +59,10 @@ import nl.eduvpn.app.entity.WellKnown;
 import nl.eduvpn.app.entity.message.Maintenance;
 import nl.eduvpn.app.entity.message.Message;
 import nl.eduvpn.app.entity.message.Notification;
+import nl.eduvpn.app.entity.v3.InfoV3;
 import nl.eduvpn.app.utils.GeneralExtensionsKt;
 import nl.eduvpn.app.utils.Log;
+import nl.eduvpn.app.utils.Serializer.KeyPairSerializer;
 
 /**
  * This service is responsible for (de)serializing objects used in the app.
@@ -79,37 +83,34 @@ public class SerializerService {
     private static final String TAG = SerializerService.class.getName();
     private static final DateFormat API_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US);
 
-    private static final Json json = GeneralExtensionsKt.getJsonInstance();
+    private static final Json jsonSerializer = GeneralExtensionsKt.getJsonInstance();
 
     static {
         API_DATE_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
     }
 
-
     /**
-     * Serialized a list of profiles to JSON formater
+     * Serialized a list of profiles to JSON Stirng
      *
      * @param profileList The list of profiles to serialize.
      * @return The list of profiles in a JSON array.
      * @throws UnknownFormatException Thrown if there was a problem while creating the JSON.
      */
-    public JSONObject serializeProfileList(@NonNull List<Profile> profileList) throws UnknownFormatException {
-        JSONObject result = new JSONObject();
-        JSONObject data = new JSONObject();
-        JSONArray array = new JSONArray();
-        for (Profile profile : profileList) {
-            JSONObject profileObject = serializeProfile(profile);
-            array.put(profileObject);
-        }
+    public String serializeProfileList(@NonNull List<Profile> profileList) throws UnknownFormatException {
         try {
-            result.put("profile_list", data);
-            data.put("data", array);
-        } catch (JSONException ex) {
-            throw new UnknownFormatException("Unable to create nested object for serialized profile list!");
+            return jsonSerializer.encodeToString(ListSerializer(Profile.Companion.serializer()), profileList);
+        } catch (SerializationException ex) {
+            throw new UnknownFormatException(ex);
         }
-        return result;
     }
 
+    public List<Profile> deserializeProfileList(String json) throws UnknownFormatException {
+        try {
+            return jsonSerializer.decodeFromString(ListSerializer(Profile.Companion.serializer()), json);
+        } catch (SerializationException ex) {
+            throw new UnknownFormatException(ex);
+        }
+    }
 
     /**
      * Deserializes a JSON to a list of Profile object.
@@ -118,21 +119,12 @@ public class SerializerService {
      * @return The JSON parsed to a list of Profile instances.
      * @throws UnknownFormatException Thrown if there was a problem while parsing the JSON.
      */
-    public List<Profile> deserializeProfileList(JSONObject json) throws UnknownFormatException {
+    public List<ProfileV2> deserializeProfileV2List(String json) throws UnknownFormatException {
         try {
-            if (json.has("profile_list")) {
-                JSONObject dataObject = json.getJSONObject("profile_list");
-                JSONArray profileList = dataObject.getJSONArray("data");
-                List<Profile> result = new ArrayList<>(profileList.length());
-                for (int i = 0; i < profileList.length(); ++i) {
-                    JSONObject profileObject = profileList.getJSONObject(i);
-                    result.add(deserializeProfile(profileObject));
-                }
-                return result;
-            } else {
-                throw new UnknownFormatException("'profile_list' key missing!");
-            }
-        } catch (JSONException ex) {
+            return jsonSerializer.decodeFromString(ProfileV2List.Companion.serializer(), json)
+                    .getProfileList()
+                    .getData();
+        } catch (SerializationException ex) {
             throw new UnknownFormatException(ex);
         }
     }
@@ -143,13 +135,10 @@ public class SerializerService {
      * @param profile The profile to serialize.
      * @return The profile in a JSON format.
      */
-    public JSONObject serializeProfile(Profile profile) throws UnknownFormatException {
-        JSONObject result = new JSONObject();
+    public String serializeProfile(Profile profile) throws UnknownFormatException {
         try {
-            result.put("display_name", profile.getDisplayName());
-            result.put("profile_id", profile.getProfileId());
-            return result;
-        } catch (JSONException ex) {
+            return jsonSerializer.encodeToString(Profile.Companion.serializer(), profile);
+        } catch (SerializationException ex) {
             throw new UnknownFormatException(ex);
         }
     }
@@ -157,16 +146,14 @@ public class SerializerService {
     /**
      * Deserializes a profile JSON to an object instance.
      *
-     * @param jsonObject The JSON to deserialize.
+     * @param json The JSON to deserialize.
      * @return The profile as a POJO
      * @throws UnknownFormatException Thrown if the format was unknown.
      */
-    public Profile deserializeProfile(JSONObject jsonObject) throws UnknownFormatException {
+    public Profile deserializeProfile(String json) throws UnknownFormatException {
         try {
-            String displayName = jsonObject.getString("display_name");
-            String profileId = jsonObject.getString("profile_id");
-            return new Profile(displayName, profileId);
-        } catch (JSONException ex) {
+            return jsonSerializer.decodeFromString(Profile.Companion.serializer(), json);
+        } catch (SerializationException ex) {
             throw new UnknownFormatException(ex);
         }
     }
@@ -178,124 +165,35 @@ public class SerializerService {
      * @return The JSON object if the serialization was successful.
      * @throws UnknownFormatException Thrown if there was an error.
      */
-    public JSONObject serializeInstance(Instance instance) throws UnknownFormatException {
-        JSONObject result = new JSONObject();
+    public String serializeInstance(Instance instance) throws UnknownFormatException {
         try {
-            result.put("base_url", instance.getBaseURI());
-            if (instance.getDisplayName() != null) {
-                result.put("display_name", instance.getDisplayName());
-            }
-            result.put("logo", instance.getLogoUri());
-            result.put("is_custom", instance.isCustom());
-            String authType;
-            if (instance.getAuthorizationType() == AuthorizationType.Local) {
-                authType = "institute_access";
-            } else if (instance.getAuthorizationType() == AuthorizationType.Distributed) {
-                authType = "secure_internet";
-            } else {
-                authType = "organization";
-            }
-            result.put("server_type", authType);
-            JSONArray supportContact = new JSONArray();
-            for (String contact : instance.getSupportContact()) {
-                supportContact.put(contact);
-            }
-            if (instance.getCountryCode() != null) {
-                result.put("country_code", instance.getCountryCode());
-            }
-            if (instance.getAuthenticationUrlTemplate() != null) {
-                result.put("authentication_url_template", instance.getAuthenticationUrlTemplate());
-            }
-            result.put("support_contact", supportContact);
-        } catch (JSONException ex) {
+            return jsonSerializer.encodeToString(Instance.Companion.serializer(), instance);
+        } catch (SerializationException ex) {
             throw new UnknownFormatException(ex);
         }
-        return result;
     }
 
     /**
      * Deserializes an instance object from a JSON.
      *
-     * @param jsonObject The JSON object to parse.
+     * @param json The JSON object to parse.
      * @return The instance as a POJO.
      * @throws UnknownFormatException Thrown when the format was not as expected.
      */
-    public Instance deserializeInstance(JSONObject jsonObject) throws UnknownFormatException {
+    public Instance deserializeInstance(String json) throws UnknownFormatException {
         try {
-            // New version: base_url, old one: base_uri
-            String baseUri;
-            if (jsonObject.has("base_url")) {
-                baseUri = jsonObject.getString("base_url");
-            } else {
-                baseUri = jsonObject.getString("base_uri");
-            }
-            String displayName = null;
-            if (jsonObject.has("display_name")) {
-                if (jsonObject.get("display_name") instanceof String) {
-                    displayName = jsonObject.getString("display_name");
-                } else {
-                    JSONObject translatedNames = jsonObject.getJSONObject("display_name");
-                    String userLanguage = _getUserLanguage();
-                    if (translatedNames.has(userLanguage)) {
-                        displayName = translatedNames.getString(userLanguage);
-                    } else if (translatedNames.has("en-US")) {
-                        displayName = translatedNames.getString("en-US");
-                    } else {
-                        String firstKey = translatedNames.keys().next();
-                        displayName = translatedNames.getString(firstKey);
-                    }
-                }
-            }
-            String logoUri = null;
-            if (jsonObject.has("logo")) {
-                logoUri = jsonObject.getString("logo");
-            }
-            boolean isCustom = false;
-            if (jsonObject.has("is_custom")) {
-                isCustom = jsonObject.getBoolean("is_custom");
-            }
-            AuthorizationType authorizationType = AuthorizationType.Local;
-
-            if (jsonObject.has("server_type")) {
-                // New version
-                String authorizationTypeString = jsonObject.getString("server_type");
-                if ("secure_internet".equals(authorizationTypeString)) {
-                    authorizationType = AuthorizationType.Distributed;
-                } else if ("institute_access".equals(authorizationTypeString)) {
-                    //noinspection ConstantConditions
-                    authorizationType = AuthorizationType.Local;
-                } else if ("organization".equals(authorizationTypeString)) {
-                    authorizationType = AuthorizationType.Organization;
-                }
-            } else if (jsonObject.has("authorization_type")) {
-                // Old version
-                int authorizationTypeInt = jsonObject.getInt("authorization_type");
-                if (authorizationTypeInt == 1) {
-                    authorizationType = AuthorizationType.Distributed;
-                } else if (authorizationTypeInt == 2) {
-                    authorizationType = AuthorizationType.Organization;
-                }
-            }
-            List<String> supportContact = new ArrayList<>();
-            if (jsonObject.has("support_contact")) {
-                JSONArray supportArray = jsonObject.getJSONArray("support_contact");
-                for (int supportIndex = 0; supportIndex < supportArray.length(); ++supportIndex) {
-                    supportContact.add(supportArray.getString(supportIndex));
-                }
-            }
-            String countryCode = null;
-            if (jsonObject.has("country_code")) {
-                countryCode = jsonObject.getString("country_code");
-            }
-            String authenticationUrlTemplate = null;
-            if (jsonObject.has("authentication_url_template")) {
-                authenticationUrlTemplate = jsonObject.getString("authentication_url_template");
-            }
-            return new Instance(baseUri, displayName, logoUri, authorizationType, countryCode, isCustom, authenticationUrlTemplate, supportContact);
-        } catch (JSONException ex) {
+            return jsonSerializer.decodeFromString(Instance.Companion.serializer(), json);
+        } catch (SerializationException ex) {
             throw new UnknownFormatException(ex);
         }
+    }
 
+    public InfoV3 deserializeInfo(String json) throws UnknownFormatException {
+        try {
+            return jsonSerializer.decodeFromString(InfoV3.Companion.serializer(), json);
+        } catch (SerializationException ex) {
+            throw new UnknownFormatException(ex);
+        }
     }
 
     /**
@@ -308,7 +206,8 @@ public class SerializerService {
     @NonNull
     public DiscoveredAPIs deserializeDiscoveredAPIs(String result) throws UnknownFormatException {
         try {
-            return json.decodeFromString(WellKnown.Companion.serializer(), result).getApi();
+            return jsonSerializer.decodeFromString(WellKnown.Companion.serializer(), result)
+                    .getApi();
         } catch (SerializationException ex) {
             throw new UnknownFormatException(ex);
         }
@@ -323,7 +222,7 @@ public class SerializerService {
      */
     public String serializeDiscoveredAPIs(DiscoveredAPIs discoveredAPI) throws UnknownFormatException {
         try {
-            return json.encodeToString(WellKnown.Companion.serializer(), new WellKnown(discoveredAPI));
+            return jsonSerializer.encodeToString(WellKnown.Companion.serializer(), new WellKnown(discoveredAPI));
         } catch (SerializationException ex) {
             throw new UnknownFormatException(ex);
         }
@@ -409,19 +308,11 @@ public class SerializerService {
      * @return The parsed list in a JSON format.
      * @throws UnknownFormatException Thrown if there was an unexpected error.
      */
-    public JSONObject serializeSavedAuthStateList(List<SavedAuthState> savedAuthStateList) throws UnknownFormatException {
+    public String serializeSavedAuthStateList(List<SavedAuthState> savedAuthStateList) throws UnknownFormatException {
         try {
-            JSONObject result = new JSONObject();
-            JSONArray array = new JSONArray();
-            for (SavedAuthState savedAuthState : savedAuthStateList) {
-                JSONObject authStateJson = new JSONObject();
-                authStateJson.put("instance", serializeInstance(savedAuthState.getInstance()));
-                authStateJson.put("auth_state", savedAuthState.getAuthState().jsonSerializeString());
-                array.put(authStateJson);
-            }
-            result.put("data", array);
-            return result;
-        } catch (JSONException ex) {
+            return jsonSerializer.encodeToString(JsonListWrapper.Companion.serializer(SavedAuthState.Companion
+                    .serializer()), new JsonListWrapper<SavedAuthState>(savedAuthStateList));
+        } catch (SerializationException ex) {
             throw new UnknownFormatException(ex);
         }
     }
@@ -429,23 +320,15 @@ public class SerializerService {
     /**
      * Deserializes a JSON containing the list of the saved access tokens.
      *
-     * @param jsonObject The JSON containing the information.
+     * @param json The JSON containing the information.
      * @return The list as a POJO.
      * @throws UnknownFormatException Thrown if there was an error while deserializing.
      */
-    public List<SavedAuthState> deserializeSavedAuthStateList(JSONObject jsonObject) throws UnknownFormatException {
+    public List<SavedAuthState> deserializeSavedAuthStateList(String json) throws UnknownFormatException {
         try {
-            List<SavedAuthState> result = new ArrayList<>();
-            JSONArray dataArray = jsonObject.getJSONArray("data");
-            for (int i = 0; i < dataArray.length(); ++i) {
-                JSONObject tokenObject = dataArray.getJSONObject(i);
-                Instance instance = deserializeInstance(tokenObject.getJSONObject("instance"));
-                String authStateString = tokenObject.getString("auth_state");
-                AuthState authState = AuthState.jsonDeserialize(authStateString);
-                result.add(new SavedAuthState(instance, authState));
-            }
-            return result;
-        } catch (JSONException ex) {
+            return jsonSerializer.decodeFromString(JsonListWrapper.Companion.serializer(SavedAuthState.Companion
+                    .serializer()), json).getData();
+        } catch (SerializationException ex) {
             throw new UnknownFormatException(ex);
         }
     }
@@ -457,20 +340,11 @@ public class SerializerService {
      * @return The list as a JSON.
      * @throws UnknownFormatException Thrown if there was an error while serializing.
      */
-    public JSONObject serializeSavedProfileList(List<SavedProfile> savedProfileList) throws UnknownFormatException {
+    public String serializeSavedProfileList(List<SavedProfile> savedProfileList) throws UnknownFormatException {
         try {
-            JSONObject result = new JSONObject();
-            JSONArray array = new JSONArray();
-            for (SavedProfile savedProfile : savedProfileList) {
-                JSONObject profileJson = new JSONObject();
-                profileJson.put("provider", serializeInstance(savedProfile.getInstance()));
-                profileJson.put("profile", serializeProfile(savedProfile.getProfile()));
-                profileJson.put("profile_uuid", savedProfile.getProfileUUID());
-                array.put(profileJson);
-            }
-            result.put("data", array);
-            return result;
-        } catch (JSONException ex) {
+            return jsonSerializer.encodeToString(JsonListWrapper.Companion.serializer(SavedProfile.Companion
+                    .serializer()), new JsonListWrapper<SavedProfile>(savedProfileList));
+        } catch (SerializationException ex) {
             throw new UnknownFormatException(ex);
         }
     }
@@ -478,23 +352,15 @@ public class SerializerService {
     /**
      * Deserializes a list of saved profiles.
      *
-     * @param jsonObject The JSON to deserialize from.
+     * @param json The JSON to deserialize from.
      * @return The list of saved profiles as a POJO.
      * @throws UnknownFormatException Thrown if there was an error while deserializing.
      */
-    public List<SavedProfile> deserializeSavedProfileList(JSONObject jsonObject) throws UnknownFormatException {
+    public List<SavedProfile> deserializeSavedProfileList(String json) throws UnknownFormatException {
         try {
-            List<SavedProfile> result = new ArrayList<>();
-            JSONArray dataArray = jsonObject.getJSONArray("data");
-            for (int i = 0; i < dataArray.length(); ++i) {
-                JSONObject profileObject = dataArray.getJSONObject(i);
-                Instance instance = deserializeInstance(profileObject.getJSONObject("provider"));
-                Profile profile = deserializeProfile(profileObject.getJSONObject("profile"));
-                String profileUUID = profileObject.getString("profile_uuid");
-                result.add(new SavedProfile(instance, profile, profileUUID));
-            }
-            return result;
-        } catch (JSONException ex) {
+            return jsonSerializer.decodeFromString(JsonListWrapper.Companion.serializer(SavedProfile.Companion
+                    .serializer()), json).getData();
+        } catch (SerializationException ex) {
             throw new UnknownFormatException(ex);
         }
     }
@@ -543,19 +409,14 @@ public class SerializerService {
     /**
      * Deserializes a key pair object from a JSON.
      *
-     * @param jsonObject The json representation of the key pair.
+     * @param json The json representation of the key pair.
      * @return The keypair instance if succeeded.
      * @throws UnknownFormatException Thrown when the format of the JSON does not match the app format.
      */
-    public KeyPair deserializeKeyPair(JSONObject jsonObject) throws UnknownFormatException {
+    public KeyPair deserializeKeyPair(String json) throws UnknownFormatException {
         try {
-            JSONObject innerObject = jsonObject.getJSONObject("create_keypair");
-            JSONObject dataObject = innerObject.getJSONObject("data");
-            String certificate = dataObject.getString("certificate");
-            String privateKey = dataObject.getString("private_key");
-            boolean isOK = innerObject.getBoolean("ok");
-            return new KeyPair(isOK, certificate, privateKey);
-        } catch (JSONException ex) {
+            return jsonSerializer.decodeFromString(KeyPairSerializer.INSTANCE, json);
+        } catch (SerializationException ex) {
             throw new UnknownFormatException(ex);
         }
     }
@@ -567,53 +428,10 @@ public class SerializerService {
      * @return The JSON representation of the key pair.
      * @throws UnknownFormatException Thrown if there was an error while deserializing.
      */
-    public JSONObject serializeKeyPair(KeyPair keyPair) throws UnknownFormatException {
-        JSONObject result = new JSONObject();
-        JSONObject innerObject = new JSONObject();
-        JSONObject dataObject = new JSONObject();
+    public String serializeKeyPair(KeyPair keyPair) throws UnknownFormatException {
         try {
-            dataObject.put("certificate", keyPair.getCertificate());
-            dataObject.put("private_key", keyPair.getPrivateKey());
-            innerObject.put("ok", keyPair.isOK());
-            innerObject.put("data", dataObject);
-            result.put("create_keypair", innerObject);
-            return result;
-        } catch (JSONException ex) {
-            throw new UnknownFormatException(ex);
-        }
-    }
-
-    /**
-     * Serializes a saved key pair.
-     *
-     * @param savedKeyPair The saved key pair to serialize.
-     * @return The JSON representation of the saved key pair.
-     * @throws UnknownFormatException Thrown if an error happens during serialization.
-     */
-    public JSONObject serializeSavedKeyPair(SavedKeyPair savedKeyPair) throws UnknownFormatException {
-        JSONObject result = new JSONObject();
-        try {
-            result.put("instance", serializeInstance(savedKeyPair.getInstance()));
-            result.put("key_pair", serializeKeyPair(savedKeyPair.getKeyPair()));
-            return result;
-        } catch (JSONException ex) {
-            throw new UnknownFormatException(ex);
-        }
-    }
-
-    /**
-     * Deserializes a key pair from JSON.
-     *
-     * @param jsonObject The JSON object to deserialize.
-     * @return The saved key pair instance.
-     * @throws UnknownFormatException Thrown if the JSON has an unknown format.
-     */
-    public SavedKeyPair deserializeSavedKeyPair(JSONObject jsonObject) throws UnknownFormatException {
-        try {
-            Instance instance = deserializeInstance(jsonObject.getJSONObject("instance"));
-            KeyPair keyPair = deserializeKeyPair(jsonObject.getJSONObject("key_pair"));
-            return new SavedKeyPair(instance, keyPair);
-        } catch (JSONException ex) {
+            return jsonSerializer.encodeToString(KeyPairSerializer.INSTANCE, keyPair);
+        } catch (SerializationException ex) {
             throw new UnknownFormatException(ex);
         }
     }
@@ -625,17 +443,10 @@ public class SerializerService {
      * @return The key pair list serialized to JSON format.
      * @throws UnknownFormatException Thrown if there was an error while serializing.
      */
-    public JSONObject serializeSavedKeyPairList(List<SavedKeyPair> savedKeyPairList) throws UnknownFormatException {
+    public String serializeSavedKeyPairList(List<SavedKeyPair> savedKeyPairList) throws UnknownFormatException {
         try {
-            JSONArray serialized = new JSONArray();
-            for (SavedKeyPair savedKeyPair : savedKeyPairList) {
-                JSONObject serializedKeyPair = serializeSavedKeyPair(savedKeyPair);
-                serialized.put(serializedKeyPair);
-            }
-            JSONObject result = new JSONObject();
-            result.put("items", serialized);
-            return result;
-        } catch (JSONException ex) {
+            return jsonSerializer.encodeToString(SavedKeyPairList.Companion.serializer(), new SavedKeyPairList(savedKeyPairList));
+        } catch (SerializationException ex) {
             throw new UnknownFormatException(ex);
         }
     }
@@ -643,21 +454,15 @@ public class SerializerService {
     /**
      * Deserializes a list of saved key pairs.
      *
-     * @param jsonObject The json to deserialize from.
+     * @param json The json to deserialize from.
      * @return The list of saved key pairs created from the JSON.
      * @throws UnknownFormatException Thrown if there was an error while deserializing.
      */
-    public List<SavedKeyPair> deserializeSavedKeyPairList(JSONObject jsonObject) throws UnknownFormatException {
+    public List<SavedKeyPair> deserializeSavedKeyPairList(String json) throws UnknownFormatException {
         try {
-            List<SavedKeyPair> result = new ArrayList<>();
-            JSONArray itemsList = jsonObject.getJSONArray("items");
-            for (int i = 0; i < itemsList.length(); ++i) {
-                JSONObject serializedItem = itemsList.getJSONObject(i);
-                SavedKeyPair savedKeyPair = deserializeSavedKeyPair(serializedItem);
-                result.add(savedKeyPair);
-            }
-            return result;
-        } catch (JSONException ex) {
+            return jsonSerializer.decodeFromString(SavedKeyPairList.Companion.serializer(), json)
+                    .getItems();
+        } catch (SerializationException ex) {
             throw new UnknownFormatException(ex);
         }
     }
@@ -790,18 +595,10 @@ public class SerializerService {
      * @return The list of organizations servers created from the JSON.
      * @throws UnknownFormatException Thrown if there was an error while deserializing.
      */
-    public ServerList deserializeServerList(JSONObject jsonObject) throws UnknownFormatException {
+    public ServerList deserializeServerList(String json) throws UnknownFormatException {
         try {
-            List<Instance> result = new ArrayList<>();
-            JSONArray itemsList = jsonObject.getJSONArray("server_list");
-            long version = jsonObject.getLong("v");
-            for (int i = 0; i < itemsList.length(); ++i) {
-                JSONObject serializedItem = itemsList.getJSONObject(i);
-                Instance instance = deserializeInstance(serializedItem);
-                result.add(instance);
-            }
-            return new ServerList(version, result);
-        } catch (JSONException ex) {
+            return jsonSerializer.decodeFromString(ServerList.Companion.serializer(), json);
+        } catch (SerializationException ex) {
             throw new UnknownFormatException(ex);
         }
     }
@@ -813,31 +610,12 @@ public class SerializerService {
      * @return The server list as a JSON object.
      * @throws UnknownFormatException Thrown if there was an error while deserializing.
      */
-    public JSONObject serializeServerList(ServerList serverList) throws UnknownFormatException {
+    public String serializeServerList(ServerList serverList) throws UnknownFormatException {
         try {
-            JSONObject output = new JSONObject();
-            JSONArray itemsList = new JSONArray();
-
-            output.put("server_list", itemsList);
-            output.put("v", serverList.getVersion());
-            for (int i = 0; i < serverList.getServerList().size(); ++i) {
-                JSONObject serializedItem = serializeInstance(serverList.getServerList().get(i));
-                itemsList.put(serializedItem);
-            }
-            return output;
-        } catch (JSONException ex) {
+            return jsonSerializer.encodeToString(ServerList.Companion.serializer(), serverList);
+        } catch (SerializationException ex) {
             throw new UnknownFormatException(ex);
         }
-    }
-
-    /**
-     * Returns the language of the user in a specific "country-language" format.
-     *
-     * @return The current language of the user.
-     */
-    private String _getUserLanguage() {
-        // Converts 'en_US' to 'en-US'
-        return Constants.LOCALE.toString().replace('_', '-');
     }
 
     /**

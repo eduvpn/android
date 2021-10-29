@@ -17,6 +17,8 @@
 
 package nl.eduvpn.app.service;
 
+import static nl.eduvpn.app.utils.GeneralExtensionsKt.getJsonInstance;
+
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -32,6 +34,10 @@ import org.json.JSONObject;
 
 import java.util.List;
 
+import kotlinx.serialization.SerializationException;
+import kotlinx.serialization.json.JsonArray;
+import kotlinx.serialization.json.JsonElementKt;
+import kotlinx.serialization.json.JsonObject;
 import nl.eduvpn.app.Constants;
 import nl.eduvpn.app.entity.DiscoveredAPI;
 import nl.eduvpn.app.entity.Instance;
@@ -53,7 +59,7 @@ import nl.eduvpn.app.utils.Log;
 public class PreferencesService {
     private static final String TAG = PreferencesService.class.getName();
 
-    private static final int STORAGE_VERSION = 3;
+    private static final int STORAGE_VERSION = 4;
 
     private static final String KEY_PREFERENCES_NAME = "app_preferences";
 
@@ -119,8 +125,6 @@ public class PreferencesService {
             editor.putString(KEY_SAVED_AUTH_STATES, oldPreferences.getString(KEY_SAVED_AUTH_STATES, null));
             editor.putString(KEY_SAVED_KEY_PAIRS, oldPreferences.getString(KEY_SAVED_KEY_PAIRS, null));
 
-            editor.putInt(KEY_STORAGE_VERSION, STORAGE_VERSION);
-
             editor.commit();
             oldPreferences.edit().clear().commit();
             if (Constants.DEBUG) {
@@ -134,6 +138,34 @@ public class PreferencesService {
             editor.commit();
             if (Constants.DEBUG) {
                 Log.d(TAG, "Migrated over to storage version v3.");
+            }
+        }
+        if (version < 4) {
+            SharedPreferences.Editor editor = newPreferences.edit();
+
+            String oldSavedProfileListString = _getSharedPreferences().getString(KEY_SAVED_PROFILES, null);
+
+            if (oldSavedProfileListString != null) {
+                try {
+                    JsonObject savedProfiles = getJsonInstance().decodeFromString(JsonObject.Companion
+                            .serializer(), oldSavedProfileListString);
+                    JsonArray list = (JsonArray) savedProfiles.get("data");
+                    list.stream().forEach(sp -> {
+                        JsonObject profile = (JsonObject) ((JsonObject) sp).get("profile");
+                        profile.put("type", JsonElementKt.JsonPrimitive("ProfileV2"));
+                    });
+                    editor.putString(KEY_SAVED_PROFILES, getJsonInstance().encodeToString(JsonObject.Companion
+                            .serializer(), savedProfiles));
+                } catch (ClassCastException | SerializationException | NullPointerException ex) {
+                    Log.e(TAG, "Unable to migrate saved profiles", ex);
+                    editor.remove(KEY_PROFILE_LIST);
+                }
+            }
+
+            editor.putInt(KEY_STORAGE_VERSION, STORAGE_VERSION);
+            editor.commit();
+            if (Constants.DEBUG) {
+                Log.d(TAG, "Migrated over to storage version v4.");
             }
         }
     }
@@ -196,7 +228,6 @@ public class PreferencesService {
         }
     }
 
-
     /**
      * Saves the instance the app will connect to.
      *
@@ -227,8 +258,8 @@ public class PreferencesService {
             return null;
         }
         try {
-            return _serializerService.deserializeInstance(new JSONObject(serializedInstance));
-        } catch (SerializerService.UnknownFormatException | JSONException ex) {
+            return _serializerService.deserializeInstance(serializedInstance);
+        } catch (SerializerService.UnknownFormatException ex) {
             Log.e(TAG, "Unable to deserialize instance!", ex);
             return null;
         }
@@ -245,7 +276,7 @@ public class PreferencesService {
                 _getSharedPreferences().edit().remove(KEY_PROFILE).apply();
             } else {
                 _getSharedPreferences().edit()
-                        .putString(KEY_PROFILE, _serializerService.serializeProfile(profile).toString())
+                        .putString(KEY_PROFILE, _serializerService.serializeProfile(profile))
                         .apply();
             }
         } catch (SerializerService.UnknownFormatException ex) {
@@ -265,8 +296,8 @@ public class PreferencesService {
             return null;
         }
         try {
-            return _serializerService.deserializeProfile(new JSONObject(serializedProfile));
-        } catch (SerializerService.UnknownFormatException | JSONException ex) {
+            return _serializerService.deserializeProfile(serializedProfile);
+        } catch (SerializerService.UnknownFormatException ex) {
             Log.e(TAG, "Unable to deserialize saved profile!", ex);
             return null;
         }
@@ -283,8 +314,8 @@ public class PreferencesService {
             if (currentProfileList == null) {
                 _getSharedPreferences().edit().remove(KEY_PROFILE_LIST).apply();
             } else {
-                JSONObject serializedList = _serializerService.serializeProfileList(currentProfileList);
-                _getSharedPreferences().edit().putString(KEY_PROFILE_LIST, serializedList.toString()).apply();
+                String serializedList = _serializerService.serializeProfileList(currentProfileList);
+                _getSharedPreferences().edit().putString(KEY_PROFILE_LIST, serializedList).apply();
             }
         } catch (SerializerService.UnknownFormatException ex) {
             Log.w(TAG, "Unable to serialize profile list!", ex);
@@ -303,8 +334,8 @@ public class PreferencesService {
             return null;
         }
         try {
-            return _serializerService.deserializeProfileList(new JSONObject(serializedProfileList));
-        } catch (SerializerService.UnknownFormatException | JSONException ex) {
+            return _serializerService.deserializeProfileList(serializedProfileList);
+        } catch (SerializerService.UnknownFormatException ex) {
             Log.e(TAG, "Unable to deserialize profile list!", ex);
             return null;
         }
@@ -433,8 +464,8 @@ public class PreferencesService {
             return null;
         }
         try {
-            return _serializerService.deserializeSavedProfileList(new JSONObject(serializedSavedProfileList));
-        } catch (SerializerService.UnknownFormatException | JSONException ex) {
+            return _serializerService.deserializeSavedProfileList(serializedSavedProfileList);
+        } catch (SerializerService.UnknownFormatException ex) {
             Log.e(TAG, "Unable to deserialize saved profile list", ex);
             return null;
         }
@@ -467,8 +498,8 @@ public class PreferencesService {
             return null;
         }
         try {
-            return _serializerService.deserializeSavedAuthStateList(new JSONObject(serializedSavedAuthStateList));
-        } catch (SerializerService.UnknownFormatException | JSONException ex) {
+            return _serializerService.deserializeSavedAuthStateList(serializedSavedAuthStateList);
+        } catch (SerializerService.UnknownFormatException ex) {
             Log.e(TAG, "Unable to deserialize saved auth state list", ex);
             return null;
         }
@@ -481,7 +512,7 @@ public class PreferencesService {
      */
     public void storeSavedAuthStateList(@NonNull List<SavedAuthState> savedAuthStateList) {
         try {
-            String serializedSavedAuthStateList = _serializerService.serializeSavedAuthStateList(savedAuthStateList).toString();
+            String serializedSavedAuthStateList = _serializerService.serializeSavedAuthStateList(savedAuthStateList);
             _getSharedPreferences().edit().putString(KEY_SAVED_AUTH_STATES, serializedSavedAuthStateList).apply();
         } catch (SerializerService.UnknownFormatException ex) {
             Log.e(TAG, "Can not save saved token list.", ex);
@@ -496,8 +527,8 @@ public class PreferencesService {
             if (serializedKeyPairList == null) {
                 return null;
             }
-            return _serializerService.deserializeSavedKeyPairList(new JSONObject(serializedKeyPairList));
-        } catch (SerializerService.UnknownFormatException | JSONException ex) {
+            return _serializerService.deserializeSavedKeyPairList(serializedKeyPairList);
+        } catch (SerializerService.UnknownFormatException ex) {
             Log.e(TAG, "Cannot retrieve saved key pair list.", ex);
             return null;
         }
@@ -645,7 +676,7 @@ public class PreferencesService {
                 return null;
             }
             try {
-                return _serializerService.deserializeServerList(new JSONObject(serializedServerList));
+                return _serializerService.deserializeServerList(serializedServerList);
             } catch (Exception ex) {
                 Log.w(TAG, "Unable to parse server list!", ex);
                 return null;
@@ -671,7 +702,7 @@ public class PreferencesService {
                     .apply();
         } else {
             try {
-                String serializedServerList = _serializerService.serializeServerList(serverList).toString();
+                String serializedServerList = _serializerService.serializeServerList(serverList);
                 _getSharedPreferences().edit()
                         .putString(KEY_SERVER_LIST_DATA, serializedServerList)
                         .putLong(KEY_SERVER_LIST_TIMESTAMP, System.currentTimeMillis())

@@ -38,6 +38,7 @@ import nl.eduvpn.app.entity.DiscoveredAPI;
 import nl.eduvpn.app.entity.DiscoveredAPIV2;
 import nl.eduvpn.app.entity.DiscoveredAPIs;
 import nl.eduvpn.app.entity.Instance;
+import nl.eduvpn.app.entity.TranslatableString;
 
 /**
  * Tests for the preferences service.
@@ -59,7 +60,7 @@ public class PreferencesServiceTest {
 
     @Test
     public void testInstanceSave() {
-        Instance instance = new Instance("http://example.com", "Example", "http://example.com/image.jpg", AuthorizationType.Distributed, "HU", true, "https://example.com/template", new ArrayList<>());
+        Instance instance = new Instance("http://example.com", new TranslatableString("Example"), "http://example.com/image.jpg", AuthorizationType.Distributed, "HU", true, "https://example.com/template", new ArrayList<>());
         _preferencesService.setCurrentInstance(instance);
         Instance retrievedInstance = _preferencesService.getCurrentInstance();
         assertNotNull(retrievedInstance);
@@ -104,7 +105,7 @@ public class PreferencesServiceTest {
         // We only test a few properties
         DiscoveredAPIV2 discoveredAPI = new DiscoveredAPIV2("http://example.com/", "http://example.com/auth_endpoint", "http://example.com/token_endpoint");
         DiscoveredAPIs discoveredAPIs = new DiscoveredAPIs(discoveredAPI, null);
-        Instance instance = new Instance("base_uri", "display_name", "logo_uri", AuthorizationType.Distributed, "NL", false, "https://example.com/template", new ArrayList<>());
+        Instance instance = new Instance("base_uri", new TranslatableString("display_name"), "logo_uri", AuthorizationType.Distributed, "NL", false, "https://example.com/template", new ArrayList<>());
         SharedPreferences.Editor editor = _oldPreferences.edit();
 
         SerializerService serializerService = new SerializerService();

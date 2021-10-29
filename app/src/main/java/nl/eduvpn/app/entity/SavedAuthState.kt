@@ -16,7 +16,10 @@
  */
 package nl.eduvpn.app.entity
 
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import net.openid.appauth.AuthState
+import nl.eduvpn.app.utils.Serializer.AuthStateSerializer
 
 /**
  * Stores the mapping between the base URI and the authorization state containing the current and refresh tokens.
@@ -25,4 +28,13 @@ import net.openid.appauth.AuthState
  * @param instance  The VPN provider the token is valid for.
  * @param authState The authorization state with the tokens.
  */
-data class SavedAuthState(val instance: Instance, var authState: AuthState)
+@Serializable
+data class SavedAuthState(
+
+    @SerialName("instance")
+    val instance: Instance,
+
+    @SerialName("auth_state")
+    @Serializable(with = AuthStateSerializer::class)
+    var authState: AuthState
+)

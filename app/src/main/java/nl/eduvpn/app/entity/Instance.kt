@@ -16,19 +16,42 @@
  */
 package nl.eduvpn.app.entity
 
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+import nl.eduvpn.app.utils.Serializer.TranslatableStringDeserializer
+
 /**
  * A configuration for an instance.
  * Created by Daniel Zolnai on 2016-10-07.
  */
+@Serializable
 data class Instance(
-        val baseURI: String,
-        val displayName: String?,
-        val logoUri: String?,
-        val authorizationType: AuthorizationType?,
-        val countryCode: String?,
-        val isCustom: Boolean,
-        val authenticationUrlTemplate: String?,
-        val supportContact: List<String>) {
+
+    @SerialName("base_url")
+    val baseURI: String,
+
+    @SerialName("display_name")
+    @Serializable(with = TranslatableStringDeserializer::class)
+    val displayName: TranslatableString = TranslatableString(),
+
+    @SerialName("logo")
+    val logoUri: String? = null,
+
+    @SerialName("server_type")
+    val authorizationType: AuthorizationType = AuthorizationType.Local, //todo: do not crash if unknown authorization type but use default one
+
+    @SerialName("country_code")
+    val countryCode: String? = null,
+
+    @SerialName("is_custom")
+    val isCustom: Boolean = false,
+
+    @SerialName("authentication_url_template")
+    val authenticationUrlTemplate: String? = null,
+
+    @SerialName("support_contact")
+    val supportContact: List<String> = emptyList()
+) {
 
     val sanitizedBaseURI: String
         get() = if (baseURI.endsWith("/")) {

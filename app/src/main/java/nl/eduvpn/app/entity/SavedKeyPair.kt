@@ -16,8 +16,21 @@
  */
 package nl.eduvpn.app.entity
 
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+import nl.eduvpn.app.utils.Serializer.KeyPairSerializer
+
 /**
  * Extends the keypair with a base URI which we add.
  * Created by Daniel Zolnai on 2017-08-01.
  */
-data class SavedKeyPair(val instance: Instance, val keyPair: KeyPair)
+@Serializable
+data class SavedKeyPair(
+
+    @SerialName("instance")
+    val instance: Instance,
+
+    @SerialName("key_pair")
+    @Serializable(with = KeyPairSerializer::class)
+    val keyPair: KeyPair
+)

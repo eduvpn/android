@@ -114,7 +114,7 @@ class ServerSelectionViewModel @Inject constructor(
         val distributedInstance = savedInstances.firstOrNull { it.authorizationType == AuthorizationType.Distributed }
         val customServers = savedInstances.filter { it.authorizationType == AuthorizationType.Local && it.isCustom }.sortedBy { it.sanitizedBaseURI }
         val instituteAccessItems = savedInstances.filter { it.authorizationType == AuthorizationType.Local && !it.isCustom }.sortedBy {
-            it.displayName ?: it.countryCode
+            it.displayName.bestTranslation ?: it.countryCode
         }
         val result = mutableListOf<OrganizationAdapter.OrganizationAdapterItem>()
         if (instituteAccessItems.isNotEmpty()) {

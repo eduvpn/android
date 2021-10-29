@@ -129,3 +129,11 @@ val jsonInstance: Json by lazy {
         ignoreUnknownKeys = true
     }
 }
+
+inline fun <R, T> Result<T>.flatMap(transform: (T) -> Result<R>): Result<R> {
+    return if (this.isSuccess) {
+        transform(this.getOrThrow())
+    } else {
+        Result.failure(this.exceptionOrNull()!!)
+    }
+}
