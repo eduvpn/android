@@ -47,7 +47,7 @@ class ProviderSelectionViewModel @Inject constructor(
     val isLoadingInstances = MutableLiveData<Boolean>(true)
 
     init {
-        setCurrentOrganization(preferencesService.currentOrganization)
+        setCurrentOrganization(preferencesService.getCurrentOrganization())
     }
 
     fun setCurrentOrganization(organization: Organization?) {

@@ -86,8 +86,8 @@ class ConnectionStatusViewModel @Inject constructor(
 
     init {
         refreshProfile()
-        val connectionInstance = preferencesService.currentInstance
-        serverProfiles.value = preferencesService.currentProfileList
+        val connectionInstance = preferencesService.getCurrentInstance()
+        serverProfiles.value = preferencesService.getCurrentProfileList()
         if (connectionInstance != null && connectionInstance.supportContact.isNotEmpty()) {
             val supportContacts = StringBuilder()
             for (contact in connectionInstance.supportContact) {
@@ -139,12 +139,12 @@ class ConnectionStatusViewModel @Inject constructor(
     }
 
     fun renewSession() {
-        discoverApi(preferencesService.currentInstance, null, true)
+        discoverApi(preferencesService.getCurrentInstance()!!, null, true)
     }
 
     fun reconnectToInstance() {
-        historyService.removeSavedKeyPairs(preferencesService.currentInstance)
-        discoverApi(preferencesService.currentInstance)
+        historyService.removeSavedKeyPairs(preferencesService.getCurrentInstance())
+        discoverApi(preferencesService.getCurrentInstance()!!)
     }
 
     /**
@@ -193,19 +193,20 @@ class ConnectionStatusViewModel @Inject constructor(
     }
 
     fun findCurrentConfig(): VpnProfile? {
-        val currentProfile = preferencesService.currentProfile ?: return null
-        val matchingSavedProfile = preferencesService.savedProfileList?.firstOrNull { it.profile.profileId == currentProfile.profileId }
-                ?: return null
+        val currentProfile = preferencesService.getCurrentProfile() ?: return null
+        val matchingSavedProfile = preferencesService.getSavedProfileList()
+            ?.firstOrNull { it.profile.profileId == currentProfile.profileId }
+            ?: return null
         return vpnService.findMatchingVpnProfile(matchingSavedProfile)
     }
 
     fun findCurrentProfile(): Profile? {
-        return preferencesService.currentProfile
+        return preferencesService.getCurrentProfile()
     }
 
     fun refreshProfile() {
-        val savedProfile = preferencesService.currentProfile
-        val connectionInstance = preferencesService.currentInstance
+        val savedProfile = preferencesService.getCurrentProfile()
+        val connectionInstance = preferencesService.getCurrentInstance()
         if (connectionInstance?.countryCode != null) {
             serverName.value = connectionInstance.getCountryText()
         } else if (savedProfile != null) {

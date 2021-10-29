@@ -109,17 +109,17 @@ abstract class BaseConnectionViewModel(
                             ) {
                                 // This is a distributed token. We add it to the list.
                                 Log.i(TAG, "Distributed token found for different instance.")
-                                preferencesService.currentInstance = instance
-                                preferencesService.currentDiscoveredAPI = discoveredAPI
-                                preferencesService.currentAuthState = savedToken.authState
+                                preferencesService.setCurrentInstance(instance)
+                                preferencesService.setCurrentDiscoveredAPI(discoveredAPI)
+                                preferencesService.setCurrentAuthState(savedToken.authState)
                                 historyService.cacheAuthorizationState(
                                     instance,
                                     savedToken.authState
                                 )
                             }
-                            preferencesService.currentInstance = instance
-                            preferencesService.currentDiscoveredAPI = discoveredAPI
-                            preferencesService.currentAuthState = savedToken.authState
+                            preferencesService.setCurrentInstance(instance)
+                            preferencesService.setCurrentDiscoveredAPI(discoveredAPI)
+                            preferencesService.setCurrentAuthState(savedToken.authState)
                             when (discoveredAPI) {
                                 is DiscoveredAPIV2 -> {
                                     fetchProfiles(instance, discoveredAPI, savedToken.authState)
@@ -176,10 +176,10 @@ abstract class BaseConnectionViewModel(
             discoveredAPI,
             authState,
             profile,
-            preferencesService.appSettings.forceTcp()
+            preferencesService.getAppSettings().forceTcp()
         ).getOrElse { return }
         val uProfile = profile.copy(expiry = vpnConfig.expireDate?.time)
-        preferencesService.currentProfile = uProfile
+        preferencesService.setCurrentProfile(uProfile)
         val configName = FormattingUtils.formatProfileName(
             context,
             instance,
@@ -211,7 +211,7 @@ abstract class BaseConnectionViewModel(
     }
 
     private fun selectProfile(profiles: List<Profile>) {
-        preferencesService.currentProfileList = profiles
+        preferencesService.setCurrentProfileList(profiles)
         connectionState.value = ConnectionState.Ready
         if (profiles.size > 1) {
             parentAction.value = ParentAction.OpenProfileSelector(profiles)
@@ -353,9 +353,9 @@ abstract class BaseConnectionViewModel(
 
     fun selectProfileToConnectTo(profile: Profile) {
         // We surely have a discovered API and access token, since we just loaded the list with them
-        val instance = preferencesService.currentInstance
+        val instance = preferencesService.getCurrentInstance()
         val authState = historyService.getCachedAuthState(instance!!)
-        val discoveredAPI = preferencesService.currentDiscoveredAPI
+        val discoveredAPI = preferencesService.getCurrentDiscoveredAPI()
         if (authState == null || discoveredAPI == null) {
             Log.e(
                 TAG,
@@ -369,8 +369,8 @@ abstract class BaseConnectionViewModel(
             )
             return
         }
-        preferencesService.currentProfile = profile
-        preferencesService.currentAuthState = authState
+        preferencesService.setCurrentProfile(profile)
+        preferencesService.setCurrentAuthState(authState)
         // Always download a new profile.
         // Just to be sure,
         when (profile) {
@@ -578,7 +578,7 @@ abstract class BaseConnectionViewModel(
 
 
     fun getProfileInstance(): Instance {
-        return preferencesService.currentInstance
+        return preferencesService.getCurrentInstance()!!
     }
 
     fun openVpnConnectionToProfile(activity: Activity, vpnProfile: VpnProfile) {
