@@ -172,6 +172,19 @@ abstract class BaseConnectionViewModel(
         instance: Instance, discoveredAPI: DiscoveredAPIV3,
         profile: ProfileV3, authState: AuthState
     ) {
+        val cachedSavedProfile =
+            historyService.getCachedSavedProfile(instance.sanitizedBaseURI, profile.profileId)
+        val now = System.currentTimeMillis() / 10000
+        val expiry = (cachedSavedProfile?.profile as? ProfileV3)?.expiry
+        if (expiry != null && expiry > now) {
+            val storedVpnProfile = vpnService.findMatchingVpnProfile(cachedSavedProfile)
+            if (storedVpnProfile != null) {
+                preferencesService.setCurrentProfile(cachedSavedProfile.profile)
+                parentAction.value =
+                    ParentAction.ConnectWithProfile(storedVpnProfile)
+                return
+            }
+        }
         val vpnConfig = fetchProfileConfigurationOpenVPN(
             discoveredAPI,
             authState,
