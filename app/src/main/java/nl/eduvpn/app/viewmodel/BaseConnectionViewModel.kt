@@ -26,6 +26,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import de.blinkt.openvpn.VpnProfile
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import net.openid.appauth.AuthState
 import nl.eduvpn.app.BuildConfig
@@ -575,12 +576,68 @@ abstract class BaseConnectionViewModel(
                 connectionState.value = ConnectionState.Ready
                 if (throwable is APIService.UserNotAuthorizedException || throwable.toString().contains("invalid_grant")) {
                     Log.w(TAG, "Access rejected with error.", throwable)
-                    parentAction.value = ParentAction.DisplayError(R.string.error_dialog_title, FormattingUtils.formatAccessWarning(context, instance))
+                    parentAction.value = ParentAction.DisplayError(
+                        R.string.error_dialog_title,
+                        FormattingUtils.formatAccessWarning(context, instance)
+                    )
                 } else {
-                    parentAction.value = ParentAction.DisplayError(R.string.error_dialog_title, context.getString(R.string.error_checking_certificate))
+                    parentAction.value = ParentAction.DisplayError(
+                        R.string.error_dialog_title,
+                        context.getString(R.string.error_checking_certificate)
+                    )
                     Log.e(TAG, "Error checking certificate.", throwable)
                 }
 
+            }
+        }
+    }
+
+    fun disconnectCallAndDisconnect() {
+        disconnectCall()
+        vpnService.disconnect()
+    }
+
+    private fun disconnectCall() {
+        val discoveredAPI = preferencesService.getCurrentDiscoveredAPI()
+        if (discoveredAPI == null) {
+            Log.e(TAG, "No discovered API available when trying to disconnect.")
+            return
+        }
+        if (discoveredAPI !is DiscoveredAPIV3) {
+            return
+        }
+        val profile = preferencesService.getCurrentProfile() ?: return
+        if (profile !is ProfileV3) {
+            throw java.lang.IllegalStateException("Discovered API V3 with incompatible Profile")
+        }
+        val instance = preferencesService.getCurrentInstance()
+        if (instance == null) {
+            Log.e(TAG, "No instance available when trying to disconnect.")
+            return
+        }
+        val authState = historyService.getCachedAuthState(instance)
+        val savedProfile =
+            historyService.getCachedSavedProfile(instance.sanitizedBaseURI, profile.profileId)
+        if (savedProfile != null) {
+            // We do not have to remove the VpnConfig from the ProfileManager in VpnService because
+            // only 1 VpnConfig is stored at a time and it will thus be automatically overwritten.
+            // Storing more VpnConfigs is useless as it becomes invalid after a /disconnect call.
+            historyService.removeSavedProfile(savedProfile)
+        }
+
+        // We do not wait for the disconnect request to finish when disconnecting,
+        // but when connecting again, a call to the API will wait for the disconnect to finish.
+        GlobalScope.launch {
+            runCatchingCoroutine {
+                apiService.postResource(
+                    discoveredAPI.disconnectEndpoint,
+                    "profile_id=${profile.profileId}",
+                    authState
+                )
+            }.onSuccess {
+                Log.d(TAG, "Successfully send disconnect to server.")
+            }.onFailure { thr ->
+                Log.d(TAG, "Failed sending disconnect to server: $thr")
             }
         }
     }

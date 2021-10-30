@@ -301,12 +301,12 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
                 if (retryCount < 3) {
                     disconnect(retryCount + 1)
                 } else {
-                    vpnService.disconnect()
+                    viewModel.disconnectCallAndDisconnect()
                     viewModel.isInDisconnectMode.value = true
                 }
             }, WAIT_FOR_DISCONNECT_UNTIL_MS.toLong())
         } else {
-            vpnService.disconnect()
+            viewModel.disconnectCallAndDisconnect()
             viewModel.isInDisconnectMode.value = true
         }
     }

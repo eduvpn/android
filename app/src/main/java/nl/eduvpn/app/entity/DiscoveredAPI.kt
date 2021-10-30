@@ -60,6 +60,11 @@ class DiscoveredAPIV3(
         Uri.parse(apiEndpoint).buildUpon().appendPath(Constants.API_V3_CONNECT_PATH).build()
             .toString()
     }
+
+    val disconnectEndpoint: String by lazy {
+        Uri.parse(apiEndpoint).buildUpon().appendPath(Constants.API_V3_DICONNECT_PATH).build()
+            .toString()
+    }
 }
 
 @Serializable

@@ -43,6 +43,7 @@ object Constants {
     // V3 API
     const val API_V3_INFO_PATH = "info"
     const val API_V3_CONNECT_PATH = "connect"
+    const val API_V3_DICONNECT_PATH = "disconnect"
 
     val GONE_HTTP_CODES = intArrayOf(404, 410)
 
