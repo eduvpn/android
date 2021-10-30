@@ -59,7 +59,7 @@ import nl.eduvpn.app.entity.WellKnown;
 import nl.eduvpn.app.entity.message.Maintenance;
 import nl.eduvpn.app.entity.message.Message;
 import nl.eduvpn.app.entity.message.Notification;
-import nl.eduvpn.app.entity.v3.InfoV3;
+import nl.eduvpn.app.entity.v3.Info;
 import nl.eduvpn.app.utils.GeneralExtensionsKt;
 import nl.eduvpn.app.utils.Log;
 import nl.eduvpn.app.utils.Serializer.KeyPairSerializer;
@@ -188,9 +188,9 @@ public class SerializerService {
         }
     }
 
-    public InfoV3 deserializeInfo(String json) throws UnknownFormatException {
+    public Info deserializeInfo(String json) throws UnknownFormatException {
         try {
-            return jsonSerializer.decodeFromString(InfoV3.Companion.serializer(), json);
+            return jsonSerializer.decodeFromString(Info.Companion.serializer(), json);
         } catch (SerializationException ex) {
             throw new UnknownFormatException(ex);
         }

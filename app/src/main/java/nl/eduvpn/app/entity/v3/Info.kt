@@ -5,7 +5,7 @@ import kotlinx.serialization.Serializable
 import nl.eduvpn.app.entity.ProfileV3List
 
 @Serializable
-data class InfoV3(
+data class Info(
     @SerialName("info")
     val info: ProfileV3List
 )
