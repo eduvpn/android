@@ -67,7 +67,6 @@ class APIService(private val connectionService: ConnectionService, private val o
     suspend fun getString(url: String, authState: AuthState?): String {
         return createNetworkCall(authState) { accessToken ->
             fetchString(url, accessToken)
-
         }
     }
 
@@ -135,7 +134,7 @@ class APIService(private val connectionService: ConnectionService, private val o
                     response.headers.toMultimap()
                 )
             } else {
-                throw IOException("Unsuccessful response: $result")
+                throw IOException("Unsuccessful response with status code $statusCode: $result")
             }
         }
     }
@@ -178,6 +177,9 @@ class APIService(private val connectionService: ConnectionService, private val o
             val responseString = withContext(Dispatchers.IO) { responseBody.string() }
             responseBody.close()
             Log.d(TAG, "GET $url: $responseString")
+            if (statusCode !in 200..299) {
+                throw IOException("Unsuccessful response with status code $statusCode: $responseString")
+            }
             return responseString
         }
     }
