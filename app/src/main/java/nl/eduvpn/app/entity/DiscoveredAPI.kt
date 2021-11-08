@@ -36,6 +36,13 @@ sealed class DiscoveredAPI {
             is DiscoveredAPIV3 -> DiscoveredAPIs(null, this)
         }
     }
+
+    internal fun getURL(baseURI: String, path: String): String =
+        Uri.parse(baseURI)
+            .buildUpon()
+            .appendPath(path)
+            .build()
+            .toString()
 }
 
 @Serializable
@@ -52,18 +59,15 @@ class DiscoveredAPIV3(
 ) : DiscoveredAPI() {
 
     val infoEndpoint: String by lazy {
-        Uri.parse(apiEndpoint).buildUpon().appendPath(Constants.API_V3_INFO_PATH).build()
-            .toString()
+        getURL(apiEndpoint, Constants.API_V3_INFO_PATH)
     }
 
     val connectEndpoint: String by lazy {
-        Uri.parse(apiEndpoint).buildUpon().appendPath(Constants.API_V3_CONNECT_PATH).build()
-            .toString()
+        getURL(apiEndpoint, Constants.API_V3_CONNECT_PATH)
     }
 
     val disconnectEndpoint: String by lazy {
-        Uri.parse(apiEndpoint).buildUpon().appendPath(Constants.API_V3_DICONNECT_PATH).build()
-            .toString()
+        getURL(apiEndpoint, Constants.API_V3_DICONNECT_PATH)
     }
 }
 
@@ -80,28 +84,23 @@ class DiscoveredAPIV2(
 ) : DiscoveredAPI() {
 
     val systemMessagesEndpoint: String by lazy {
-        Uri.parse(apiBaseUri).buildUpon().appendPath(Constants.API_SYSTEM_MESSAGES_PATH).build()
-            .toString()
+        getURL(apiBaseUri, Constants.API_SYSTEM_MESSAGES_PATH)
     }
 
     val userMessagesEndpoint: String by lazy {
-        Uri.parse(apiBaseUri).buildUpon().appendPath(Constants.API_USER_MESSAGES_PATH).build()
-            .toString()
+        getURL(apiBaseUri, Constants.API_USER_MESSAGES_PATH)
     }
 
     val profileListEndpoint: String by lazy {
-        Uri.parse(apiBaseUri).buildUpon().appendPath(Constants.API_PROFILE_LIST_PATH).build()
-            .toString()
+        getURL(apiBaseUri, Constants.API_PROFILE_LIST_PATH)
     }
 
     val createKeyPairEndpoint: String by lazy {
-        Uri.parse(apiBaseUri).buildUpon().appendPath(Constants.API_CREATE_KEYPAIR).build()
-            .toString()
+        getURL(apiBaseUri, Constants.API_CREATE_KEYPAIR)
     }
 
     val profileConfigEndpoint: String by lazy {
-        Uri.parse(apiBaseUri).buildUpon().appendPath(Constants.API_PROFILE_CONFIG).build()
-            .toString()
+        getURL(apiBaseUri, Constants.API_PROFILE_CONFIG)
     }
 
     fun getCheckCertificateEndpoint(certCommonName: String?): String {
