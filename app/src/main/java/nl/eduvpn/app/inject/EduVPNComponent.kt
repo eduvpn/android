@@ -19,12 +19,7 @@ package nl.eduvpn.app.inject
 import dagger.Component
 import nl.eduvpn.app.EduVPNApplication
 import nl.eduvpn.app.MainActivity
-import nl.eduvpn.app.fragment.AddServerFragment
-import nl.eduvpn.app.fragment.ConnectionStatusFragment
-import nl.eduvpn.app.fragment.OrganizationSelectionFragment
-import nl.eduvpn.app.fragment.ProfileSelectionFragment
-import nl.eduvpn.app.fragment.ServerSelectionFragment
-import nl.eduvpn.app.fragment.SettingsFragment
+import nl.eduvpn.app.fragment.*
 import javax.inject.Singleton
 
 /**
@@ -37,7 +32,8 @@ interface EduVPNComponent {
     object Initializer {
         @JvmStatic
         fun init(application: EduVPNApplication?): EduVPNComponent { // Don't worry if you see an error here, DaggerEduVPNComponent is generated while building.
-            return DaggerEduVPNComponent.builder().applicationModule(ApplicationModule(application)).build()
+            return DaggerEduVPNComponent.builder()
+                .applicationModule(ApplicationModule(application!!)).build()
         }
     }
 
