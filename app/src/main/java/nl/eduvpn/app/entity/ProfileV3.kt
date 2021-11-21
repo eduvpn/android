@@ -24,7 +24,8 @@ data class ProfileV3(
     @SerialName("vpn_proto_preferred")
     val vpnProtocolPreferred: String,
 
-    // Expiry is not retrieved from the API via json.
-    @SerialName("expiry")
+    // Expiry is not retrieved from the API via json, but we specify the SerialName so it can be
+    // serialized and stored.
+    @SerialName("android_expiry")
     val expiry: Long? = null,
 ) : Profile()
