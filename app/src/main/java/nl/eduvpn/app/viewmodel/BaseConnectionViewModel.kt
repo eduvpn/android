@@ -165,7 +165,7 @@ abstract class BaseConnectionViewModel(
     ) {
         val profiles = fetchProfilesV3(instance, discoveredAPI, authState)
             .getOrElse { return }
-            .filter { p -> p.vpnProtocol == "openvpn" }
+            .filter { p -> p.vpnProtocolList.contains("openvpn") }
         selectProfile(profiles)
     }
 
@@ -331,7 +331,7 @@ abstract class BaseConnectionViewModel(
             }
             val (config, headers) = apiService.postResource(
                 discoveredAPI.connectEndpoint,
-                "profile_id=${profile.profileId}&tcp_only=${tcpOnlyString}",
+                "profile_id=${profile.profileId}&vpn_proto=openvpn&tcp_only=${tcpOnlyString}",
                 authState
             )
             val expired = headers.get("Expires")

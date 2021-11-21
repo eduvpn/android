@@ -18,8 +18,11 @@ data class ProfileV3(
     @SerialName("default_gateway")
     val defaultGateway: Boolean,
 
-    @SerialName("vpn_proto")
-    val vpnProtocol: String,
+    @SerialName("vpn_proto_list")
+    val vpnProtocolList: List<String>,
+
+    @SerialName("vpn_proto_preferred")
+    val vpnProtocolPreferred: String,
 
     // Expiry is not retrieved from the API via json.
     @SerialName("expiry")
