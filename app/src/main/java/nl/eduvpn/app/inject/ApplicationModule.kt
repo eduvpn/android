@@ -18,6 +18,7 @@ package nl.eduvpn.app.inject
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.os.Build
 import dagger.Module
 import dagger.Provides
 import nl.eduvpn.app.BuildConfig
@@ -28,6 +29,7 @@ import okhttp3.Cache
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
+import java.io.IOException
 import java.net.ConnectException
 import java.net.SocketTimeoutException
 import java.net.UnknownHostException
@@ -127,6 +129,21 @@ class ApplicationModule(private val application: EduVPNApplication) {
             .connectTimeout(10, TimeUnit.SECONDS)
             .writeTimeout(30, TimeUnit.SECONDS)
             .readTimeout(30, TimeUnit.SECONDS)
+            .let { builder ->
+                // Unencrypted traffic is disallowed on Android >= 6, so disallowing redirects from
+                // HTTPS to HTTP only applies to Android 5.
+                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M)
+                    builder.addInterceptor { chain: Interceptor.Chain ->
+                        val request = chain.request()
+                        val response = chain.proceed(request)
+                        if (request.isHttps && response.isRedirect && !response.request.isHttps) {
+                            throw IOException("Got redirected from HTTPS to non HTTPS url. Redirected from ${request.url} to ${response.request.url}")
+                        }
+                        response
+                    } else {
+                    builder
+                }
+            }
             .addInterceptor { chain: Interceptor.Chain ->
                 try {
                     return@addInterceptor chain.proceed(chain.request())
