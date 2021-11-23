@@ -11,7 +11,7 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import nl.eduvpn.app.entity.TranslatableString
 
-object TranslatableStringDeserializer : KSerializer<TranslatableString> {
+object TranslatableStringSerializer : KSerializer<TranslatableString> {
 
     @OptIn(ExperimentalSerializationApi::class)
     override val descriptor: SerialDescriptor =

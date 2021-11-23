@@ -18,7 +18,7 @@ package nl.eduvpn.app.entity
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import nl.eduvpn.app.utils.Serializer.TranslatableStringDeserializer
+import nl.eduvpn.app.utils.Serializer.TranslatableStringSerializer
 
 /**
  * A configuration for an instance.
@@ -31,7 +31,7 @@ data class Instance(
     val baseURI: String,
 
     @SerialName("display_name")
-    @Serializable(with = TranslatableStringDeserializer::class)
+    @Serializable(with = TranslatableStringSerializer::class)
     val displayName: TranslatableString = TranslatableString(),
 
     @SerialName("logo")
