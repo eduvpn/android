@@ -36,10 +36,12 @@ import nl.eduvpn.app.fragment.ServerSelectionFragment
 import nl.eduvpn.app.fragment.ServerSelectionFragment.Companion.newInstance
 import nl.eduvpn.app.service.ConnectionService
 import nl.eduvpn.app.service.ConnectionService.AuthorizationStateCallback
+import nl.eduvpn.app.service.EduVPNOpenVPNService
 import nl.eduvpn.app.service.HistoryService
 import nl.eduvpn.app.service.VPNService
 import nl.eduvpn.app.utils.ErrorDialog.show
 import nl.eduvpn.app.utils.Log
+import java.util.*
 import javax.inject.Inject
 
 class MainActivity : BaseActivity<ActivityMainBinding>() {
@@ -54,7 +56,10 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     protected lateinit var historyService: HistoryService
 
     @Inject
-    protected lateinit var vpnService: VPNService
+    protected lateinit var vpnService: Optional<VPNService>
+
+    @Inject
+    protected lateinit var eduVPNOpenVPNService: EduVPNOpenVPNService
 
     @Inject
     protected lateinit var connectionService: ConnectionService
@@ -81,10 +86,12 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         super.onCreate(savedInstanceState)
         EduVPNApplication.get(this).component().inject(this)
         setSupportActionBar(binding.toolbar.toolbar)
-        vpnService.onCreate(this)
+        eduVPNOpenVPNService.onCreate(this)
         if (savedInstanceState == null) {
             // If there's an ongoing VPN connection, open the status screen.
-            if (vpnService.status != VPNService.VPNStatus.DISCONNECTED) {
+            if (vpnService.isPresent
+                && vpnService.get().getStatus() != VPNService.VPNStatus.DISCONNECTED
+            ) {
                 openFragment(ConnectionStatusFragment(), false)
             } else if (historyService.savedAuthStateList.isNotEmpty()) {
                 openFragment(newInstance(false), false)
@@ -183,7 +190,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
 
     override fun onDestroy() {
         super.onDestroy()
-        vpnService.onDestroy(this)
+        eduVPNOpenVPNService.onDestroy(this)
     }
 
     fun openFragment(fragment: Fragment?, openOnTop: Boolean) {
@@ -244,8 +251,10 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         if (requestCode == REQUEST_CODE_SETTINGS) {
             if (resultCode == SettingsActivity.RESULT_APP_DATA_CLEARED) {
-                if (vpnService.status != VPNService.VPNStatus.DISCONNECTED) {
-                    vpnService.disconnect()
+                if (vpnService.isPresent
+                    && vpnService.get().getStatus() != VPNService.VPNStatus.DISCONNECTED
+                ) {
+                    vpnService.get().disconnect()
                 }
                 openFragment(OrganizationSelectionFragment(), false)
             }

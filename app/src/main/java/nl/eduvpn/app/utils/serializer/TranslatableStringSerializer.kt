@@ -1,4 +1,4 @@
-package nl.eduvpn.app.utils.Serializer
+package nl.eduvpn.app.utils.serializer
 
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KSerializer

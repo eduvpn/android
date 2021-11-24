@@ -23,6 +23,7 @@ import androidx.lifecycle.LiveData
 import de.blinkt.openvpn.core.ConnectionStatus
 import de.blinkt.openvpn.core.VpnStatus
 import de.blinkt.openvpn.core.VpnStatus.StateListener
+import nl.eduvpn.app.service.EduVPNOpenVPNService
 import nl.eduvpn.app.service.VPNService
 import nl.eduvpn.app.utils.Log
 import java.net.InetAddress
@@ -36,7 +37,7 @@ class IPLiveData : LiveData<IPLiveData.IPs>() {
     data class IPs(val ipv4: String?, val ipv6: String?)
 
     private val VPN_INTERFACE_NAME = "tun0"
-    private val TAG = VPNService::class.java.name
+    private val TAG = IPLiveData::class.java.name
 
     private val stateListener: StateListener = object : StateListener {
         override fun updateState(
@@ -46,7 +47,7 @@ class IPLiveData : LiveData<IPLiveData.IPs>() {
             level: ConnectionStatus,
             intent: Intent?
         ) {
-            if(VPNService.connectionStatusToVPNStatus(level) == VPNService.VPNStatus.DISCONNECTED) {
+            if (EduVPNOpenVPNService.connectionStatusToVPNStatus(level) == VPNService.VPNStatus.DISCONNECTED) {
                 postValue(IPs(null, null))
                 return
             }

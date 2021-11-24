@@ -32,17 +32,29 @@ import nl.eduvpn.app.entity.*
 import nl.eduvpn.app.service.*
 import nl.eduvpn.app.utils.Log
 import nl.eduvpn.app.utils.runCatchingCoroutine
+import nl.eduvpn.app.wireguard.WireGuardService
 import javax.inject.Inject
 
 class OrganizationSelectionViewModel @Inject constructor(
-        organizationService: OrganizationService,
-        private val preferencesService: PreferencesService,
-        context: Context,
-        apiService: APIService,
-        serializerService: SerializerService,
-        historyService: HistoryService,
-        connectionService: ConnectionService,
-        vpnService: VPNService) : BaseConnectionViewModel(context, apiService, serializerService, historyService, preferencesService, connectionService, vpnService) {
+    organizationService: OrganizationService,
+    private val preferencesService: PreferencesService,
+    context: Context,
+    apiService: APIService,
+    serializerService: SerializerService,
+    historyService: HistoryService,
+    connectionService: ConnectionService,
+    eduVpnOpenVpnService: EduVPNOpenVPNService,
+    wireGuardService: WireGuardService
+) : BaseConnectionViewModel(
+    context,
+    apiService,
+    serializerService,
+    historyService,
+    preferencesService,
+    connectionService,
+    eduVpnOpenVpnService,
+    wireGuardService
+) {
 
     val state = MutableLiveData<ConnectionState>().also { it.value = ConnectionState.Ready }
 

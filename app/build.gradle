@@ -112,7 +112,7 @@ android {
     }
 
     compileOptions {
-        // Support Java 8+ on sdk < 24
+        // Support Java 8+ on sdk < 24, also necessary for WireGuard
         coreLibraryDesugaringEnabled true
 
         sourceCompatibility 1.8
@@ -147,6 +147,8 @@ def lifecycleVersion = "2.2.0"
 dependencies {
     // The VPN library
     implementation project(path: ':ics-openvpn-main')
+    // WireGuard VPN library
+    implementation 'com.wireguard.android:tunnel:1.0.20211029'
     // OAuth2 client
     implementation project(path: ':appauth')
     // Please try to stay in sync with the versions used in the ics-openvpn module
@@ -190,6 +192,7 @@ dependencies {
     androidTestImplementation 'androidx.test.uiautomator:uiautomator:2.2.0'
     androidTestUtil 'androidx.test:orchestrator:1.3.0'
 
+    // Support Java 8+ on sdk < 24, also necessary for WireGuard
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:1.1.5'
 }
 

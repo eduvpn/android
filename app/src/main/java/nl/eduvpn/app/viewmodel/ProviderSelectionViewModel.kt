@@ -23,24 +23,29 @@ import androidx.lifecycle.MutableLiveData
 import nl.eduvpn.app.entity.Instance
 import nl.eduvpn.app.entity.Organization
 import nl.eduvpn.app.service.*
+import nl.eduvpn.app.wireguard.WireGuardService
 import javax.inject.Inject
 
 class ProviderSelectionViewModel @Inject constructor(
-        context: Context,
-        apiService: APIService,
-        serializerService: SerializerService,
-        historyService: HistoryService,
-        private val preferencesService: PreferencesService,
-        connectionService: ConnectionService,
-        vpnService: VPNService,
-        private val organizationService: OrganizationService) : BaseConnectionViewModel(
-        context,
-        apiService,
-        serializerService,
-        historyService,
-        preferencesService,
-        connectionService,
-        vpnService) {
+    context: Context,
+    apiService: APIService,
+    serializerService: SerializerService,
+    historyService: HistoryService,
+    private val preferencesService: PreferencesService,
+    connectionService: ConnectionService,
+    eduVpnOpenVpnService: EduVPNOpenVPNService,
+    wireGuardService: WireGuardService,
+    private val organizationService: OrganizationService
+) : BaseConnectionViewModel(
+    context,
+    apiService,
+    serializerService,
+    historyService,
+    preferencesService,
+    connectionService,
+    eduVpnOpenVpnService,
+    wireGuardService
+) {
 
     val currentOrganization = MutableLiveData<Organization>()
     val currentOrganizationInstances = MutableLiveData<List<Instance>>()

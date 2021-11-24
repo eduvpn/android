@@ -26,13 +26,13 @@ import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import androidx.lifecycle.map
-import de.blinkt.openvpn.VpnProfile
 import nl.eduvpn.app.Constants
 import nl.eduvpn.app.EduVPNApplication
 import nl.eduvpn.app.MainActivity
 import nl.eduvpn.app.R
 import nl.eduvpn.app.base.BaseFragment
 import nl.eduvpn.app.databinding.FragmentConnectionStatusBinding
+import nl.eduvpn.app.entity.VPNConfig
 import nl.eduvpn.app.fragment.ServerSelectionFragment.Companion.newInstance
 import nl.eduvpn.app.service.VPNService
 import nl.eduvpn.app.service.VPNService.VPNStatus
@@ -54,7 +54,6 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
 
     private var isAutomaticCheckChange = false
     private var skipNextDisconnect = true
-
 
     @Inject
     protected lateinit var vpnService: VPNService
@@ -171,7 +170,7 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
                 }
                 is BaseConnectionViewModel.ParentAction.ConnectWithProfile -> {
                     viewModel.refreshProfile()
-                    viewModel.openVpnConnectionToProfile(requireActivity(), parentAction.vpnProfile)
+                    viewModel.connectionToConfig(requireActivity(), parentAction.vpnConfig)
                 }
                 is BaseConnectionViewModel.ParentAction.DisplayError -> {
                     ErrorDialog.show(requireContext(), parentAction.title, parentAction.message)
@@ -242,8 +241,13 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
                 }
                 VPNStatus.FAILED -> {
                     skipNextDisconnect = false
-                    val message = getString(R.string.error_while_connecting, vpnService.errorString)
-                    ErrorDialog.show(requireContext(), R.string.error_dialog_title_unable_to_connect, message)
+                    val message =
+                        getString(R.string.error_while_connecting, vpnService.getErrorString())
+                    ErrorDialog.show(
+                        requireContext(),
+                        R.string.error_dialog_title_unable_to_connect,
+                        message
+                    )
                     binding.connectionStatusIcon.setImageResource(R.drawable.ic_connection_status_disconnected)
                     binding.connectionStatus.setText(R.string.connection_info_state_disconnected)
                     isAutomaticCheckChange = true
@@ -253,7 +257,7 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
             }
         }
         // Update the icon immediately
-        vpnStatusObserver(vpnService.status)
+        vpnStatusObserver(vpnService.getStatus())
         vpnService.observe(viewLifecycleOwner, vpnStatusObserver)
     }
 
@@ -280,14 +284,14 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
         viewModel.reconnectToInstance()
     }
 
-    private fun connect(vpnProfile: VpnProfile) {
+    private fun connect(vpnConfig: VPNConfig) {
         skipNextDisconnect = true
-        vpnService.connect(requireActivity(), vpnProfile)
+        viewModel.connectionToConfig(requireActivity(), vpnConfig)
         viewModel.isInDisconnectMode.value = false
     }
 
     private fun disconnect(retryCount: Int = 0) {
-        val isConnecting = vpnService.status == VPNStatus.CONNECTING
+        val isConnecting = vpnService.getStatus() == VPNStatus.CONNECTING
         if (isConnecting) {
             // In this case, if we call disconnect, the process can be killed.
             // That means we won't get any notification from the disconnect event.
@@ -301,12 +305,12 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
                 if (retryCount < 3) {
                     disconnect(retryCount + 1)
                 } else {
-                    viewModel.disconnectCallAndDisconnect()
+                    viewModel.disconnectCallAndDisconnect(vpnService)
                     viewModel.isInDisconnectMode.value = true
                 }
             }, WAIT_FOR_DISCONNECT_UNTIL_MS.toLong())
         } else {
-            viewModel.disconnectCallAndDisconnect()
+            viewModel.disconnectCallAndDisconnect(vpnService)
             viewModel.isInDisconnectMode.value = true
         }
     }

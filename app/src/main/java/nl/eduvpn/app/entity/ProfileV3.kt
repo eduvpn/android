@@ -1,13 +1,41 @@
 package nl.eduvpn.app.entity
 
+import com.wireguard.config.Config
 import kotlinx.parcelize.Parcelize
+import kotlinx.parcelize.RawValue
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import nl.eduvpn.app.utils.serializer.WireGuardConfigSerializer
+
+sealed class ProfileV3 : Profile() {
+    abstract val defaultGateway: Boolean
+    abstract val expiry: Long?
+    abstract fun updateExpiry(expiry: Long?): ProfileV3
+}
 
 @Parcelize
 @Serializable
-@SerialName("ProfileV3")
-data class ProfileV3(
+@SerialName("OpenVpnProfileV3")
+data class OpenVPNProfileV3(
+    @SerialName("profile_id")
+    override val profileId: String,
+
+    @SerialName("display_name")
+    override val displayName: String, //todo: should support multiple languages
+
+    @SerialName("default_gateway")
+    override val defaultGateway: Boolean,
+
+    @SerialName("expiry")
+    override val expiry: Long?,
+) : ProfileV3() {
+    override fun updateExpiry(expiry: Long?): ProfileV3 = copy(expiry = expiry)
+}
+
+@Parcelize
+@Serializable
+@SerialName("WireGuardProfileV3")
+data class WireGuardProfileV3(
 
     @SerialName("profile_id")
     override val profileId: String,
@@ -16,16 +44,14 @@ data class ProfileV3(
     override val displayName: String, //todo: should support multiple languages
 
     @SerialName("default_gateway")
-    val defaultGateway: Boolean,
+    override val defaultGateway: Boolean,
 
-    @SerialName("vpn_proto_list")
-    val vpnProtocolList: List<String>,
+    @SerialName("config")
+    @Serializable(with = WireGuardConfigSerializer::class)
+    val config: @RawValue Config?, //todo: do not use @RawValue
 
-    @SerialName("vpn_proto_preferred")
-    val vpnProtocolPreferred: String,
-
-    // Expiry is not retrieved from the API via json, but we specify the SerialName so it can be
-    // serialized and stored.
-    @SerialName("android_expiry")
-    val expiry: Long? = null,
-) : Profile()
+    @SerialName("expiry")
+    override val expiry: Long?,
+) : ProfileV3() {
+    override fun updateExpiry(expiry: Long?): ProfileV3 = copy(expiry = expiry)
+}

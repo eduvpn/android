@@ -23,8 +23,12 @@ import dagger.Module
 import dagger.Provides
 import nl.eduvpn.app.BuildConfig
 import nl.eduvpn.app.EduVPNApplication
+import nl.eduvpn.app.entity.OpenVPNProfileV3
+import nl.eduvpn.app.entity.ProfileV2
+import nl.eduvpn.app.entity.WireGuardProfileV3
 import nl.eduvpn.app.service.*
 import nl.eduvpn.app.utils.Log
+import nl.eduvpn.app.wireguard.WireGuardService
 import okhttp3.Cache
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
@@ -33,8 +37,11 @@ import java.io.IOException
 import java.net.ConnectException
 import java.net.SocketTimeoutException
 import java.net.UnknownHostException
+import java.util.*
 import java.util.concurrent.TimeUnit
+import javax.inject.Provider
 import javax.inject.Singleton
+
 
 /**
  * Application module providing the different dependencies
@@ -100,8 +107,38 @@ class ApplicationModule(private val application: EduVPNApplication) {
 
     @Provides
     @Singleton
-    fun provideVPNService(context: Context?, preferencesService: PreferencesService?): VPNService {
-        return VPNService(context, preferencesService)
+    fun provideEduOpenVPNService(
+        context: Context,
+        preferencesService: PreferencesService?
+    ): EduVPNOpenVPNService {
+        return EduVPNOpenVPNService(context, preferencesService)
+    }
+
+    @Provides
+    @Singleton
+    fun provideWireGuardService(context: Context): WireGuardService {
+        return WireGuardService(context)
+    }
+
+    @Provides
+    fun provideOptionalVPNService(
+        preferencesService: PreferencesService,
+        eduOpenVPNServiceProvider: Provider<EduVPNOpenVPNService>,
+        wireGuardServiceProvider: Provider<WireGuardService>
+    ): Optional<VPNService> {
+        return when (preferencesService.getCurrentProfile()) {
+            is ProfileV2 -> Optional.of(eduOpenVPNServiceProvider.get())
+            is OpenVPNProfileV3 -> Optional.of(eduOpenVPNServiceProvider.get())
+            is WireGuardProfileV3 -> Optional.of(wireGuardServiceProvider.get())
+            null -> Optional.empty()
+        }
+    }
+
+    @Provides
+    fun provideVPNService(optionalVPNService: Optional<VPNService>): VPNService {
+        return optionalVPNService.orElseGet {
+            throw IllegalStateException("Could not determine what VPNService to use")
+        }
     }
 
     @Provides

@@ -62,7 +62,7 @@ import nl.eduvpn.app.entity.message.Notification;
 import nl.eduvpn.app.entity.v3.Info;
 import nl.eduvpn.app.utils.GeneralExtensionsKt;
 import nl.eduvpn.app.utils.Log;
-import nl.eduvpn.app.utils.Serializer.KeyPairSerializer;
+import nl.eduvpn.app.utils.serializer.KeyPairSerializer;
 
 /**
  * This service is responsible for (de)serializing objects used in the app.

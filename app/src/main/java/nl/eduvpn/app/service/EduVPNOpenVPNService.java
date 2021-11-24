@@ -28,7 +28,8 @@ import android.os.RemoteException;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.lifecycle.LiveData;
+
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.io.StringReader;
@@ -50,18 +51,12 @@ import nl.eduvpn.app.entity.SavedProfile;
 import nl.eduvpn.app.utils.Log;
 
 /**
- * Service responsible for managing the VPN profiles and the connection.
+ * Service responsible for managing the OpenVPN profiles and the connection.
  * Created by Daniel Zolnai on 2016-10-13.
  */
-public class VPNService extends LiveData<VPNService.VPNStatus> implements VpnStatus.StateListener {
+public class EduVPNOpenVPNService extends VPNService implements VpnStatus.StateListener {
 
-    public enum VPNStatus {
-        DISCONNECTED, CONNECTING, CONNECTED, PAUSED, FAILED
-    }
-
-    private static final Long CONNECTION_INFO_UPDATE_INTERVAL_MS = 1000L;
-
-    private static final String TAG = VPNService.class.getName();
+    private static final String TAG = EduVPNOpenVPNService.class.getName();
 
     private Context _context;
 
@@ -93,7 +88,7 @@ public class VPNService extends LiveData<VPNService.VPNStatus> implements VpnSta
      *
      * @param context The application or activity context.
      */
-    public VPNService(Context context, PreferencesService preferencesService) {
+    public EduVPNOpenVPNService(Context context, PreferencesService preferencesService) {
         _context = context;
         _preferencesService = preferencesService;
     }
@@ -264,6 +259,7 @@ public class VPNService extends LiveData<VPNService.VPNStatus> implements VpnSta
      *
      * @return The current status of the VPN.
      */
+    @NonNull
     public VPNStatus getStatus() {
         return connectionStatusToVPNStatus(_connectionStatus);
     }
@@ -321,5 +317,10 @@ public class VPNService extends LiveData<VPNService.VPNStatus> implements VpnSta
             }
         }
         return null;
+    }
+
+    @NotNull
+    public String getProtocolName() {
+        return "OpenVPN";
     }
 }

@@ -26,13 +26,10 @@ import android.text.Spanned
 import androidx.core.text.HtmlCompat
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.liveData
-import de.blinkt.openvpn.VpnProfile
 import kotlinx.coroutines.delay
 import nl.eduvpn.app.CertExpiredBroadcastReceiver
 import nl.eduvpn.app.R
-import nl.eduvpn.app.entity.Profile
-import nl.eduvpn.app.entity.ProfileV2
-import nl.eduvpn.app.entity.ProfileV3
+import nl.eduvpn.app.entity.*
 import nl.eduvpn.app.livedata.ByteCountLiveData
 import nl.eduvpn.app.livedata.ConnectionTimeLiveData
 import nl.eduvpn.app.livedata.IPLiveData
@@ -40,18 +37,23 @@ import nl.eduvpn.app.livedata.UnlessDisconnectedLiveData
 import nl.eduvpn.app.service.*
 import nl.eduvpn.app.utils.getCountryText
 import nl.eduvpn.app.utils.toSingleEvent
+import nl.eduvpn.app.wireguard.WireGuardService
 import javax.inject.Inject
 
 class ConnectionStatusViewModel @Inject constructor(
-        private val context: Context,
-        private val preferencesService: PreferencesService,
-        private val vpnService: VPNService,
-        private val historyService: HistoryService,
-        apiService: APIService,
-        serializerService: SerializerService,
-        connectionService: ConnectionService
-) : BaseConnectionViewModel(context, apiService, serializerService, historyService,
-        preferencesService, connectionService, vpnService) {
+    private val context: Context,
+    private val preferencesService: PreferencesService,
+    private val eduVPNOpenVPNService: EduVPNOpenVPNService,
+    private val vpnService: VPNService,
+    private val historyService: HistoryService,
+    wireGuardService: WireGuardService,
+    apiService: APIService,
+    serializerService: SerializerService,
+    connectionService: ConnectionService,
+) : BaseConnectionViewModel(
+    context, apiService, serializerService, historyService,
+    preferencesService, connectionService, eduVPNOpenVPNService, wireGuardService
+) {
 
     sealed class ParentAction {
         object SessionExpired : ParentAction()
@@ -119,7 +121,7 @@ class ConnectionStatusViewModel @Inject constructor(
 
     private fun planExpiryNotification() {
         val certExpiryTime = this.certExpiryTime
-        if (certExpiryTime != null && vpnService.status != VPNService.VPNStatus.DISCONNECTED) {
+        if (certExpiryTime != null && vpnService.getStatus() != VPNService.VPNStatus.DISCONNECTED) {
             val maxMillisecondsBeforeNotification: Long = 30 * 60 * 1000L
             val now = System.currentTimeMillis()
             val millisecondsUntilExpiry = now - certExpiryTime
@@ -192,12 +194,18 @@ class ConnectionStatusViewModel @Inject constructor(
         return true
     }
 
-    fun findCurrentConfig(): VpnProfile? {
+    fun findCurrentConfig(): VPNConfig? {
         val currentProfile = preferencesService.getCurrentProfile() ?: return null
-        val matchingSavedProfile = preferencesService.getSavedProfileList()
-            ?.firstOrNull { it.profile.profileId == currentProfile.profileId }
-            ?: return null
-        return vpnService.findMatchingVpnProfile(matchingSavedProfile)
+        return when (currentProfile) {
+            is WireGuardProfileV3 -> currentProfile.config?.let { c -> VPNConfig.WireGuard(c) }
+            else -> {
+                val matchingSavedProfile = preferencesService.getSavedProfileList()
+                    ?.firstOrNull { it.profile.profileId == currentProfile.profileId }
+                    ?: return null
+                val vpnProfile = eduVPNOpenVPNService.findMatchingVpnProfile(matchingSavedProfile)
+                vpnProfile?.let { p -> VPNConfig.OpenVPN(p) }
+            }
+        }
     }
 
     fun findCurrentProfile(): Profile? {

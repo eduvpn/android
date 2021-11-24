@@ -18,7 +18,7 @@ package nl.eduvpn.app.entity
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import nl.eduvpn.app.utils.Serializer.KeyPairSerializer
+import nl.eduvpn.app.utils.serializer.KeyPairSerializer
 
 /**
  * Extends the keypair with a base URI which we add.
