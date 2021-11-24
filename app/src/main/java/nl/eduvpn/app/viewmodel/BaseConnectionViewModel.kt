@@ -70,7 +70,7 @@ abstract class BaseConnectionViewModel(
         data class InitiateConnection(val instance: Instance, val discoveredAPI: DiscoveredAPI) :
             ParentAction()
 
-        data class ConnectWithProfile(val vpnConfig: VPNConfig) :
+        data class ConnectWithConfig(val vpnConfig: VPNConfig) :
             ParentAction() //todo: rename connectWithProfile?
     }
 
@@ -238,7 +238,7 @@ abstract class BaseConnectionViewModel(
             if (storedVPNConfig != null) {
                 preferencesService.setCurrentProfile(cachedSavedProfile.profile)
                 parentAction.value =
-                    ParentAction.ConnectWithProfile(storedVPNConfig)
+                    ParentAction.ConnectWithConfig(storedVPNConfig)
                 return
             }
         }
@@ -326,7 +326,7 @@ abstract class BaseConnectionViewModel(
         historyService.cacheSavedProfile(savedProfile)
         // Connect with the profile
         parentAction.value =
-            ParentAction.ConnectWithProfile(vpnConfig)
+            ParentAction.ConnectWithConfig(vpnConfig)
     }
 
     private fun selectProfile(profiles: List<Profile>) {
@@ -624,7 +624,7 @@ abstract class BaseConnectionViewModel(
                     historyService.cacheSavedProfile(savedProfile)
                     // Connect with the profile
                     parentAction.value =
-                        ParentAction.ConnectWithProfile(VPNConfig.OpenVPN(vpnProfile))
+                        ParentAction.ConnectWithConfig(VPNConfig.OpenVPN(vpnProfile))
                 } else {
                     connectionState.value = ConnectionState.Ready
                     parentAction.value = ParentAction.DisplayError(

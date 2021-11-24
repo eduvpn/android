@@ -122,11 +122,15 @@ class OrganizationSelectionFragment : BaseFragment<FragmentOrganizationSelection
                 is BaseConnectionViewModel.ParentAction.InitiateConnection -> {
                     activity?.let { activity ->
                         if (!activity.isFinishing) {
-                            viewModel.initiateConnection(activity, parentAction.instance, parentAction.discoveredAPI)
+                            viewModel.initiateConnection(
+                                activity,
+                                parentAction.instance,
+                                parentAction.discoveredAPI
+                            )
                         }
                     }
                 }
-                is BaseConnectionViewModel.ParentAction.ConnectWithProfile -> {
+                is BaseConnectionViewModel.ParentAction.ConnectWithConfig -> {
                     viewModel.connectionToConfig(requireActivity(), parentAction.vpnConfig)
                     (activity as? MainActivity)?.openFragment(ConnectionStatusFragment(), false)
                 }

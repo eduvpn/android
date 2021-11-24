@@ -79,9 +79,13 @@ class ServerSelectionFragment : BaseFragment<FragmentServerSelectionBinding>() {
                     }
                 }
                 is BaseConnectionViewModel.ParentAction.OpenProfileSelector -> {
-                    (activity as? MainActivity)?.openFragment(ProfileSelectionFragment.newInstance(parentAction.profiles), true)
+                    (activity as? MainActivity)?.openFragment(
+                        ProfileSelectionFragment.newInstance(
+                            parentAction.profiles
+                        ), true
+                    )
                 }
-                is BaseConnectionViewModel.ParentAction.ConnectWithProfile -> {
+                is BaseConnectionViewModel.ParentAction.ConnectWithConfig -> {
                     viewModel.connectionToConfig(requireActivity(), parentAction.vpnConfig)
                     (activity as? MainActivity)?.openFragment(ConnectionStatusFragment(), false)
                 }
