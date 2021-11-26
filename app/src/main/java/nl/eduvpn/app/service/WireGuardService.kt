@@ -2,12 +2,15 @@ package nl.eduvpn.app.wireguard
 
 import android.app.Activity
 import android.content.Context
+import androidx.lifecycle.MutableLiveData
 import com.wireguard.android.backend.BackendException
 import com.wireguard.android.backend.GoBackend
 import com.wireguard.android.backend.Tunnel
 import com.wireguard.config.Config
+import com.wireguard.config.Interface
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import nl.eduvpn.app.livedata.IPs
 import nl.eduvpn.app.service.VPNService
 import nl.eduvpn.app.utils.Log
 import nl.eduvpn.app.utils.WireGuardTunnel
@@ -50,6 +53,8 @@ class WireGuardService(private val context: Context) : VPNService() {
         }
     }
 
+    override val ipLiveData: MutableLiveData<IPs> = MutableLiveData()
+
     /**
      * Connects to the VPN using the config supplied as a parameter.
      *
@@ -59,7 +64,8 @@ class WireGuardService(private val context: Context) : VPNService() {
     suspend fun connect(activity: Activity, config: Config) {
         setConnectionStatus(VPNStatus.CONNECTING)
 
-        //todo: update ips
+        ipLiveData.postValue(getIPs(config.`interface`))
+
         withContext(Dispatchers.Main) {
             authorizeVPN(activity)
         }
@@ -108,5 +114,22 @@ class WireGuardService(private val context: Context) : VPNService() {
 
     override fun getProtocolName(): String {
         return "WireGuard"
+    }
+
+    companion object {
+        private fun getIPs(wgInterface: Interface): IPs {
+            val ipv4Addresses = wgInterface.addresses
+                .filter { network -> network.address is java.net.Inet4Address }
+                .map { ip -> ip.address.hostAddress }
+
+            val ipv6Addresses = wgInterface.addresses
+                .filter { network -> network.address is java.net.Inet6Address }
+                .map { ip -> ip.address.hostAddress }
+
+            fun ipListToString(ipList: List<String>): String? {
+                return ipList.reduceOrNull { s1, s2 -> "$s1, $s2" }
+            }
+            return IPs(ipListToString(ipv4Addresses), ipListToString(ipv6Addresses))
+        }
     }
 }

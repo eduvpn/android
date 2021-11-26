@@ -6,6 +6,7 @@
     <data>
 
         <import type="androidx.lifecycle.LiveData" />
+        <import type="nl.eduvpn.app.livedata.IPs" />
 
         <variable
             name="viewModel"
@@ -25,7 +26,7 @@
 
         <variable
             name="ips"
-            type="nl.eduvpn.app.livedata.IPLiveData" />
+            type="LiveData&lt;IPs>" />
 
         <import type="android.view.View" />
     </data>

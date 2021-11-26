@@ -30,10 +30,9 @@ import kotlinx.coroutines.delay
 import nl.eduvpn.app.CertExpiredBroadcastReceiver
 import nl.eduvpn.app.R
 import nl.eduvpn.app.entity.*
-import nl.eduvpn.app.livedata.ByteCountLiveData
 import nl.eduvpn.app.livedata.ConnectionTimeLiveData
-import nl.eduvpn.app.livedata.IPLiveData
 import nl.eduvpn.app.livedata.UnlessDisconnectedLiveData
+import nl.eduvpn.app.livedata.openvpn.ByteCountLiveData
 import nl.eduvpn.app.service.*
 import nl.eduvpn.app.utils.getCountryText
 import nl.eduvpn.app.utils.toSingleEvent
@@ -75,7 +74,7 @@ class ConnectionStatusViewModel @Inject constructor(
     }
     val connectionTimeLiveData = ConnectionTimeLiveData.create(vpnService, timer)
     val byteCountLiveData = UnlessDisconnectedLiveData.create(ByteCountLiveData(), vpnService)
-    val ipLiveData = IPLiveData()
+    val ipLiveData = vpnService.ipLiveData
 
     private val _connectionParentAction = MutableLiveData<ParentAction>()
     val connectionParentAction = _connectionParentAction.toSingleEvent()

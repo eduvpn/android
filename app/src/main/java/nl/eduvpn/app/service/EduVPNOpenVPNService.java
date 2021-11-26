@@ -28,6 +28,7 @@ import android.os.RemoteException;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.lifecycle.LiveData;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -48,6 +49,8 @@ import de.blinkt.openvpn.core.VpnStatus;
 import nl.eduvpn.app.R;
 import nl.eduvpn.app.entity.SavedKeyPair;
 import nl.eduvpn.app.entity.SavedProfile;
+import nl.eduvpn.app.livedata.IPs;
+import nl.eduvpn.app.livedata.openvpn.IPLiveData;
 import nl.eduvpn.app.utils.Log;
 
 /**
@@ -126,6 +129,12 @@ public class EduVPNOpenVPNService extends VPNService implements VpnStatus.StateL
      */
     public void onDestroy(@NonNull Activity activity) {
         activity.unbindService(_serviceConnection);
+    }
+
+    @NonNull
+    @Override
+    public LiveData<IPs> getIpLiveData() {
+        return new IPLiveData();
     }
 
     /**
