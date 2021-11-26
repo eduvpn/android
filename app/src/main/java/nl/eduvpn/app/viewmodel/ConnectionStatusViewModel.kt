@@ -32,7 +32,6 @@ import nl.eduvpn.app.entity.*
 import nl.eduvpn.app.service.*
 import nl.eduvpn.app.utils.getCountryText
 import nl.eduvpn.app.utils.toSingleEvent
-import nl.eduvpn.app.wireguard.WireGuardService
 import javax.inject.Inject
 import javax.inject.Named
 

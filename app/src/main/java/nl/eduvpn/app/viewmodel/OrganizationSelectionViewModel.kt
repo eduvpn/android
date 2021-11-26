@@ -32,7 +32,6 @@ import nl.eduvpn.app.entity.*
 import nl.eduvpn.app.service.*
 import nl.eduvpn.app.utils.Log
 import nl.eduvpn.app.utils.runCatchingCoroutine
-import nl.eduvpn.app.wireguard.WireGuardService
 import javax.inject.Inject
 
 class OrganizationSelectionViewModel @Inject constructor(

@@ -20,18 +20,17 @@ package nl.eduvpn.app.viewmodel
 
 import android.content.Context
 import nl.eduvpn.app.service.*
-import nl.eduvpn.app.wireguard.WireGuardService
 import javax.inject.Inject
 
 class ProfileSelectionViewModel @Inject constructor(
-        context: Context,
-        apiService: APIService,
-        serializerService: SerializerService,
-        historyService: HistoryService,
-        preferencesService: PreferencesService,
-        connectionService: ConnectionService,
-        eduVpnOpenVpnService: EduVPNOpenVPNService,
-        wireGuardService: WireGuardService,
+    context: Context,
+    apiService: APIService,
+    serializerService: SerializerService,
+    historyService: HistoryService,
+    preferencesService: PreferencesService,
+    connectionService: ConnectionService,
+    eduVpnOpenVpnService: EduVPNOpenVPNService,
+    wireGuardService: WireGuardService,
 ) : BaseConnectionViewModel(
         context,
         apiService,

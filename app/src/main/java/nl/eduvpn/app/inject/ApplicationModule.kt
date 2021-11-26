@@ -33,7 +33,6 @@ import nl.eduvpn.app.livedata.ConnectionTimeLiveData
 import nl.eduvpn.app.livedata.openvpn.IPLiveData
 import nl.eduvpn.app.service.*
 import nl.eduvpn.app.utils.Log
-import nl.eduvpn.app.wireguard.WireGuardService
 import okhttp3.Cache
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient

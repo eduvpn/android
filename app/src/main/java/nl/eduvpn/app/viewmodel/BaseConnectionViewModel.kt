@@ -39,7 +39,6 @@ import nl.eduvpn.app.R
 import nl.eduvpn.app.entity.*
 import nl.eduvpn.app.service.*
 import nl.eduvpn.app.utils.*
-import nl.eduvpn.app.wireguard.WireGuardService
 import java.io.BufferedReader
 import java.io.StringReader
 import java.io.UnsupportedEncodingException

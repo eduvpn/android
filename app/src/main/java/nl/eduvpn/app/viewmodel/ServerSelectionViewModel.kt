@@ -31,7 +31,6 @@ import nl.eduvpn.app.service.*
 import nl.eduvpn.app.utils.Log
 import nl.eduvpn.app.utils.getCountryText
 import nl.eduvpn.app.utils.runCatchingCoroutine
-import nl.eduvpn.app.wireguard.WireGuardService
 import java.util.*
 import javax.inject.Inject
 

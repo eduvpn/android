@@ -22,7 +22,6 @@ import android.content.Context
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Transformations
 import nl.eduvpn.app.service.*
-import nl.eduvpn.app.wireguard.WireGuardService
 import javax.inject.Inject
 
 class AddServerViewModel @Inject constructor(

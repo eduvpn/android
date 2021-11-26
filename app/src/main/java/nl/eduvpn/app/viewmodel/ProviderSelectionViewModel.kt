@@ -23,7 +23,6 @@ import androidx.lifecycle.MutableLiveData
 import nl.eduvpn.app.entity.Instance
 import nl.eduvpn.app.entity.Organization
 import nl.eduvpn.app.service.*
-import nl.eduvpn.app.wireguard.WireGuardService
 import javax.inject.Inject
 
 class ProviderSelectionViewModel @Inject constructor(

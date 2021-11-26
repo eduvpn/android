@@ -1,4 +1,4 @@
-package nl.eduvpn.app.wireguard
+package nl.eduvpn.app.service
 
 import android.app.Activity
 import android.content.Context
@@ -14,7 +14,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import nl.eduvpn.app.livedata.ByteCount
 import nl.eduvpn.app.livedata.IPs
-import nl.eduvpn.app.service.VPNService
 import nl.eduvpn.app.utils.Log
 import nl.eduvpn.app.utils.WireGuardTunnel
 
