@@ -19,13 +19,18 @@ package nl.eduvpn.app.inject
 import android.content.Context
 import android.content.SharedPreferences
 import android.os.Build
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.liveData
 import dagger.Module
 import dagger.Provides
+import kotlinx.coroutines.delay
 import nl.eduvpn.app.BuildConfig
 import nl.eduvpn.app.EduVPNApplication
 import nl.eduvpn.app.entity.OpenVPNProfileV3
 import nl.eduvpn.app.entity.ProfileV2
 import nl.eduvpn.app.entity.WireGuardProfileV3
+import nl.eduvpn.app.livedata.ConnectionTimeLiveData
+import nl.eduvpn.app.livedata.openvpn.IPLiveData
 import nl.eduvpn.app.service.*
 import nl.eduvpn.app.utils.Log
 import nl.eduvpn.app.wireguard.WireGuardService
@@ -39,6 +44,7 @@ import java.net.SocketTimeoutException
 import java.net.UnknownHostException
 import java.util.*
 import java.util.concurrent.TimeUnit
+import javax.inject.Named
 import javax.inject.Provider
 import javax.inject.Singleton
 
@@ -107,11 +113,40 @@ class ApplicationModule(private val application: EduVPNApplication) {
 
     @Provides
     @Singleton
+    @Named("timer")
+    fun provide1SecondTimer(): LiveData<Unit> {
+        return liveData {
+            while (true) {
+                emit(Unit)
+                delay(1000)
+            }
+        }
+    }
+
+    @Provides
+    @Singleton
+    @Named("connectionTimeLiveData")
+    fun provideConnectionTimeLiveData(
+        vpnService: VPNService,
+        @Named("timer") timer: LiveData<Unit>
+    ): LiveData<Long?> {
+        return ConnectionTimeLiveData.create(vpnService, timer)
+    }
+
+    @Provides
+    @Singleton
+    fun provideOpenVPNIPLiveData(): IPLiveData {
+        return IPLiveData()
+    }
+
+    @Provides
+    @Singleton
     fun provideEduOpenVPNService(
         context: Context,
-        preferencesService: PreferencesService?
+        preferencesService: PreferencesService?,
+        ipLiveData: IPLiveData,
     ): EduVPNOpenVPNService {
-        return EduVPNOpenVPNService(context, preferencesService)
+        return EduVPNOpenVPNService(context, preferencesService, ipLiveData)
     }
 
     @Provides

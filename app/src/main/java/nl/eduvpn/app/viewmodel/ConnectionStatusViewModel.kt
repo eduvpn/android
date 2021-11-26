@@ -24,13 +24,11 @@ import android.content.Context
 import android.content.Intent
 import android.text.Spanned
 import androidx.core.text.HtmlCompat
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.liveData
-import kotlinx.coroutines.delay
 import nl.eduvpn.app.CertExpiredBroadcastReceiver
 import nl.eduvpn.app.R
 import nl.eduvpn.app.entity.*
-import nl.eduvpn.app.livedata.ConnectionTimeLiveData
 import nl.eduvpn.app.livedata.UnlessDisconnectedLiveData
 import nl.eduvpn.app.livedata.openvpn.ByteCountLiveData
 import nl.eduvpn.app.service.*
@@ -38,6 +36,7 @@ import nl.eduvpn.app.utils.getCountryText
 import nl.eduvpn.app.utils.toSingleEvent
 import nl.eduvpn.app.wireguard.WireGuardService
 import javax.inject.Inject
+import javax.inject.Named
 
 class ConnectionStatusViewModel @Inject constructor(
     private val context: Context,
@@ -45,6 +44,10 @@ class ConnectionStatusViewModel @Inject constructor(
     private val eduVPNOpenVPNService: EduVPNOpenVPNService,
     private val vpnService: VPNService,
     private val historyService: HistoryService,
+    @Named("timer")
+    val timer: LiveData<Unit>,
+    @Named("connectionTimeLiveData")
+    val connectionTimeLiveData: LiveData<Long?>,
     wireGuardService: WireGuardService,
     apiService: APIService,
     serializerService: SerializerService,
@@ -66,13 +69,6 @@ class ConnectionStatusViewModel @Inject constructor(
     val profileName = MutableLiveData<String>()
     val isInDisconnectMode = MutableLiveData(false)
     val serverProfiles = MutableLiveData<List<Profile>>()
-    val timer = liveData {
-        while (true) {
-            emit(Unit)
-            delay(1000)
-        }
-    }
-    val connectionTimeLiveData = ConnectionTimeLiveData.create(vpnService, timer)
     val byteCountLiveData = UnlessDisconnectedLiveData.create(ByteCountLiveData(), vpnService)
     val ipLiveData = vpnService.ipLiveData
 

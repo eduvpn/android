@@ -86,16 +86,18 @@ public class EduVPNOpenVPNService extends VPNService implements VpnStatus.StateL
         }
     };
 
+    private IPLiveData _ipLiveData;
+
     /**
      * Constructor.
      *
      * @param context The application or activity context.
      */
-    public EduVPNOpenVPNService(Context context, PreferencesService preferencesService) {
+    public EduVPNOpenVPNService(Context context, PreferencesService preferencesService, IPLiveData ipLiveData) {
         _context = context;
         _preferencesService = preferencesService;
+        _ipLiveData = ipLiveData;
     }
-
 
     /**
      * Call this when your activity is starting up.
@@ -134,7 +136,7 @@ public class EduVPNOpenVPNService extends VPNService implements VpnStatus.StateL
     @NonNull
     @Override
     public LiveData<IPs> getIpLiveData() {
-        return new IPLiveData();
+        return _ipLiveData;
     }
 
     /**
