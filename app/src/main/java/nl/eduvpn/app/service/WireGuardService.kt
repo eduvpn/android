@@ -2,7 +2,9 @@ package nl.eduvpn.app.wireguard
 
 import android.app.Activity
 import android.content.Context
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.map
 import com.wireguard.android.backend.BackendException
 import com.wireguard.android.backend.GoBackend
 import com.wireguard.android.backend.Tunnel
@@ -10,6 +12,7 @@ import com.wireguard.config.Config
 import com.wireguard.config.Interface
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import nl.eduvpn.app.livedata.ByteCount
 import nl.eduvpn.app.livedata.IPs
 import nl.eduvpn.app.service.VPNService
 import nl.eduvpn.app.utils.Log
@@ -18,7 +21,8 @@ import nl.eduvpn.app.utils.WireGuardTunnel
 /**
  * Service responsible for managing the WireGuard profiles and the connection.
  */
-class WireGuardService(private val context: Context) : VPNService() {
+class WireGuardService(private val context: Context, timer: LiveData<Unit>) :
+    VPNService() {
 
     private val backend = GoBackend(context)
 
@@ -53,7 +57,16 @@ class WireGuardService(private val context: Context) : VPNService() {
         }
     }
 
+    override val byteCountLiveData: LiveData<ByteCount?> = timer.map { getByteCount() }
+
     override val ipLiveData: MutableLiveData<IPs> = MutableLiveData()
+
+    private fun getByteCount(): ByteCount {
+        val statistics = backend.getStatistics(tunnel)
+        val bytesIn = statistics.totalRx()
+        val bytesOut = statistics.totalTx()
+        return ByteCount(bytesIn, bytesOut)
+    }
 
     /**
      * Connects to the VPN using the config supplied as a parameter.

@@ -29,8 +29,6 @@ import androidx.lifecycle.MutableLiveData
 import nl.eduvpn.app.CertExpiredBroadcastReceiver
 import nl.eduvpn.app.R
 import nl.eduvpn.app.entity.*
-import nl.eduvpn.app.livedata.UnlessDisconnectedLiveData
-import nl.eduvpn.app.livedata.openvpn.ByteCountLiveData
 import nl.eduvpn.app.service.*
 import nl.eduvpn.app.utils.getCountryText
 import nl.eduvpn.app.utils.toSingleEvent
@@ -69,7 +67,7 @@ class ConnectionStatusViewModel @Inject constructor(
     val profileName = MutableLiveData<String>()
     val isInDisconnectMode = MutableLiveData(false)
     val serverProfiles = MutableLiveData<List<Profile>>()
-    val byteCountLiveData = UnlessDisconnectedLiveData.create(ByteCountLiveData(), vpnService)
+    val byteCountLiveData = vpnService.byteCountLiveData
     val ipLiveData = vpnService.ipLiveData
 
     private val _connectionParentAction = MutableLiveData<ParentAction>()

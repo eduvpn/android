@@ -49,7 +49,10 @@ import de.blinkt.openvpn.core.VpnStatus;
 import nl.eduvpn.app.R;
 import nl.eduvpn.app.entity.SavedKeyPair;
 import nl.eduvpn.app.entity.SavedProfile;
+import nl.eduvpn.app.livedata.ByteCount;
 import nl.eduvpn.app.livedata.IPs;
+import nl.eduvpn.app.livedata.UnlessDisconnectedLiveData;
+import nl.eduvpn.app.livedata.openvpn.ByteCountLiveData;
 import nl.eduvpn.app.livedata.openvpn.IPLiveData;
 import nl.eduvpn.app.utils.Log;
 
@@ -87,6 +90,7 @@ public class EduVPNOpenVPNService extends VPNService implements VpnStatus.StateL
     };
 
     private IPLiveData _ipLiveData;
+    private LiveData<ByteCount> _byteCountLiveData;
 
     /**
      * Constructor.
@@ -97,6 +101,7 @@ public class EduVPNOpenVPNService extends VPNService implements VpnStatus.StateL
         _context = context;
         _preferencesService = preferencesService;
         _ipLiveData = ipLiveData;
+        _byteCountLiveData = UnlessDisconnectedLiveData.INSTANCE.create(new ByteCountLiveData(), this);
     }
 
     /**
@@ -131,6 +136,12 @@ public class EduVPNOpenVPNService extends VPNService implements VpnStatus.StateL
      */
     public void onDestroy(@NonNull Activity activity) {
         activity.unbindService(_serviceConnection);
+    }
+
+    @NonNull
+    @Override
+    public LiveData<ByteCount> getByteCountLiveData() {
+        return _byteCountLiveData;
     }
 
     @NonNull

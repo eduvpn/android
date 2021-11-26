@@ -124,7 +124,6 @@ class ApplicationModule(private val application: EduVPNApplication) {
     }
 
     @Provides
-    @Singleton
     @Named("connectionTimeLiveData")
     fun provideConnectionTimeLiveData(
         vpnService: VPNService,
@@ -151,8 +150,10 @@ class ApplicationModule(private val application: EduVPNApplication) {
 
     @Provides
     @Singleton
-    fun provideWireGuardService(context: Context): WireGuardService {
-        return WireGuardService(context)
+    fun provideWireGuardService(
+        context: Context, @Named("timer") timer: LiveData<Unit>
+    ): WireGuardService {
+        return WireGuardService(context, timer)
     }
 
     @Provides
