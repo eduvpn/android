@@ -710,9 +710,9 @@ abstract class BaseConnectionViewModel(
         }
     }
 
-    fun disconnectCallAndDisconnect(vpnService: VPNService) {
-        disconnectCall()
+    fun disconnectWithCall(vpnService: VPNService) {
         vpnService.disconnect()
+        disconnectCall()
     }
 
     private fun disconnectCall() {
