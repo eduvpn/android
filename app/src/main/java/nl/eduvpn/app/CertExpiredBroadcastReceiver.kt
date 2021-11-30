@@ -6,15 +6,20 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import androidx.core.app.NotificationCompat
-import de.blinkt.openvpn.core.VpnStatus
+import nl.eduvpn.app.service.VPNService
+import javax.inject.Inject
 
 class CertExpiredBroadcastReceiver : BroadcastReceiver() {
 
+    @Inject
+    lateinit var vpnService: VPNService
+
     override fun onReceive(context: Context, intent: Intent) {
+        EduVPNApplication.get(context).component().inject(this)
         if (intent.action != ACTION) {
             return
         }
-        if (!VpnStatus.isVPNActive()) {
+        if (vpnService.getStatus() == VPNService.VPNStatus.DISCONNECTED) {
             return
         }
         val channelID = Constants.CERT_EXPIRY_NOTIFICATION_CHANNEL_ID

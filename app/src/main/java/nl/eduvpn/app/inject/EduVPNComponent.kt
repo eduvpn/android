@@ -17,6 +17,7 @@
 package nl.eduvpn.app.inject
 
 import dagger.Component
+import nl.eduvpn.app.CertExpiredBroadcastReceiver
 import nl.eduvpn.app.EduVPNApplication
 import nl.eduvpn.app.MainActivity
 import nl.eduvpn.app.fragment.*
@@ -44,4 +45,5 @@ interface EduVPNComponent {
     fun inject(settingsFragment: SettingsFragment)
     fun inject(serverSelectionFragment: ServerSelectionFragment)
     fun inject(addServerFragment: AddServerFragment)
+    fun inject(certExpiredBroadcastReceiver: CertExpiredBroadcastReceiver)
 }
