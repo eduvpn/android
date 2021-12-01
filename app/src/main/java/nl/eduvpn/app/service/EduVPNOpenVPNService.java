@@ -307,20 +307,21 @@ public class EduVPNOpenVPNService extends VPNService implements VpnStatus.StateL
 
     @Override
     public void updateState(String state, String logmessage, int localizedResId, ConnectionStatus level, Intent Intent) {
-        ConnectionStatus oldStatus = _connectionStatus;
+        VPNService.VPNStatus oldStatus = connectionStatusToVPNStatus(_connectionStatus);
         _connectionStatus = level;
-        if (_connectionStatus == oldStatus) {
+        VPNService.VPNStatus status = connectionStatusToVPNStatus(level);
+        if (status == oldStatus) {
             // Nothing changed.
             return;
         }
-        if (getStatus() == VPNStatus.FAILED) {
+        if (status == VPNStatus.FAILED) {
             _errorResource = localizedResId;
-        } else if (getStatus() == VPNStatus.DISCONNECTED) {
+        } else if (status == VPNStatus.DISCONNECTED) {
             _onDisconnect();
         }
         // Notify the observers.
         _updatesHandler.post(() -> {
-            setValue(getStatus());
+            setValue(status);
         });
     }
 
@@ -339,6 +340,14 @@ public class EduVPNOpenVPNService extends VPNService implements VpnStatus.StateL
             }
         }
         return null;
+    }
+
+    @Override
+    public boolean getShowsNotification() {
+        // It is not possible to disable all notifications from the OpenVPN library and also not
+        // possible to call a function when the user presses the Disconnect button in the
+        // notification.
+        return true;
     }
 
     @NotNull

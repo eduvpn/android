@@ -11,8 +11,13 @@ abstract class VPNService : LiveData<VPNService.VPNStatus>() {
     }
 
     abstract val byteCountLiveData: LiveData<ByteCount?>
-    
+
     abstract val ipLiveData: LiveData<IPs>
+
+    /**
+     * If the vpn provides it's own notification.
+     */
+    abstract val showsNotification: Boolean
 
     /**
      * Disconnects the current VPN connection.

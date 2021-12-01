@@ -49,9 +49,11 @@ class ConnectionStatusViewModel @Inject constructor(
     apiService: APIService,
     serializerService: SerializerService,
     connectionService: ConnectionService,
+    vpnConnectionService: VPNConnectionService,
 ) : BaseConnectionViewModel(
     context, apiService, serializerService, historyService,
-    preferencesService, connectionService, eduVPNOpenVPNService, wireGuardService
+    preferencesService, connectionService, eduVPNOpenVPNService, wireGuardService,
+    vpnConnectionService,
 ) {
 
     sealed class ParentAction {
@@ -64,6 +66,8 @@ class ConnectionStatusViewModel @Inject constructor(
     val serverSupport = MutableLiveData<String>()
     val certValidity = MutableLiveData<Spanned>()
     val profileName = MutableLiveData<String>()
+
+    //todo: does not work when disconnecting outside the app
     val isInDisconnectMode = MutableLiveData(false)
     val serverProfiles = MutableLiveData<List<Profile>>()
     val byteCountLiveData = vpnService.byteCountLiveData

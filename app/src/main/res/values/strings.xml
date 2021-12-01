@@ -196,4 +196,5 @@
     <string name="cert_expiry_channel_name">VPN certificate expired warning</string>
     <string name="cert_expiry_notification_title">VPN certificate about to expire</string>
     <string name="cert_expiry_notification_text">The VPN certificate is about to expire</string>
+    <string name="vpn_connection_channel_name">VPN connection status</string>
 </resources>

@@ -34,6 +34,7 @@ import nl.eduvpn.app.base.BaseFragment
 import nl.eduvpn.app.databinding.FragmentConnectionStatusBinding
 import nl.eduvpn.app.entity.VPNConfig
 import nl.eduvpn.app.fragment.ServerSelectionFragment.Companion.newInstance
+import nl.eduvpn.app.service.VPNConnectionService
 import nl.eduvpn.app.service.VPNService
 import nl.eduvpn.app.service.VPNService.VPNStatus
 import nl.eduvpn.app.utils.ErrorDialog
@@ -207,10 +208,10 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
         }
         viewModel.timer.observe(viewLifecycleOwner, updateCertExpiryObserver)
         val vpnStatusObserver = { vpnStatus: VPNStatus ->
+            binding.connectionStatus.setText(VPNConnectionService.vpnStatusToStringID(vpnStatus))
             when (vpnStatus) {
                 VPNStatus.CONNECTED -> {
                     binding.connectionStatusIcon.setImageResource(R.drawable.ic_connection_status_connected)
-                    binding.connectionStatus.setText(R.string.connection_info_state_connected)
                     skipNextDisconnect = false
                     isAutomaticCheckChange = true
                     binding.connectionSwitch.isChecked = true
@@ -218,7 +219,6 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
                 }
                 VPNStatus.CONNECTING -> {
                     binding.connectionStatusIcon.setImageResource(R.drawable.ic_connection_status_connecting)
-                    binding.connectionStatus.setText(R.string.connection_info_state_connecting)
                     skipNextDisconnect = false
                     isAutomaticCheckChange = true
                     binding.connectionSwitch.isChecked = true
@@ -226,7 +226,6 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
                 }
                 VPNStatus.PAUSED -> {
                     binding.connectionStatusIcon.setImageResource(R.drawable.ic_connection_status_connecting)
-                    binding.connectionStatus.setText(R.string.connection_info_state_paused)
                     skipNextDisconnect = false
                     isAutomaticCheckChange = true
                     binding.connectionSwitch.isChecked = true
@@ -234,7 +233,6 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
                 }
                 VPNStatus.DISCONNECTED -> {
                     binding.connectionStatusIcon.setImageResource(R.drawable.ic_connection_status_disconnected)
-                    binding.connectionStatus.setText(R.string.connection_info_state_disconnected)
                     if (!skipNextDisconnect) {
                         // The first disconnect can mess a bit with the UI so we skip this part in special cases
                         isAutomaticCheckChange = true
@@ -253,7 +251,6 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
                         message
                     )
                     binding.connectionStatusIcon.setImageResource(R.drawable.ic_connection_status_disconnected)
-                    binding.connectionStatus.setText(R.string.connection_info_state_disconnected)
                     isAutomaticCheckChange = true
                     binding.connectionSwitch.isChecked = false
                     isAutomaticCheckChange = false

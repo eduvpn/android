@@ -29,7 +29,6 @@ import androidx.lifecycle.viewModelScope
 import com.wireguard.config.BadConfigException
 import com.wireguard.config.Config
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import net.openid.appauth.AuthState
@@ -61,6 +60,7 @@ abstract class BaseConnectionViewModel(
     private val connectionService: ConnectionService,
     private val eduVpnOpenVpnService: EduVPNOpenVPNService,
     private val wireGuardService: WireGuardService,
+    private val vpnConnectionService: VPNConnectionService,
 ) : ViewModel() {
 
     sealed class ParentAction {
@@ -711,62 +711,12 @@ abstract class BaseConnectionViewModel(
     }
 
     fun disconnectWithCall(vpnService: VPNService) {
-        vpnService.disconnect()
-        disconnectCall()
-    }
-
-    private fun disconnectCall() {
-        val discoveredAPI = preferencesService.getCurrentDiscoveredAPI()
-        if (discoveredAPI == null) {
-            Log.e(TAG, "No discovered API available when trying to disconnect.")
-            return
-        }
-        if (discoveredAPI !is DiscoveredAPIV3) {
-            return
-        }
-        val profile = preferencesService.getCurrentProfile() ?: return
-        if (profile !is ProfileV3) {
-            throw java.lang.IllegalStateException("Discovered API V3 with incompatible Profile")
-        }
-        if (profile is WireGuardProfileV3) {
-            preferencesService.setCurrentProfile(profile.copy(config = null, expiry = null))
-        }
-        val instance = preferencesService.getCurrentInstance()
-        if (instance == null) {
-            Log.e(TAG, "No instance available when trying to disconnect.")
-            return
-        }
-        val authState = historyService.getCachedAuthState(instance)
-        val savedProfile =
-            historyService.getCachedSavedProfile(instance.sanitizedBaseURI, profile.profileId)
-        if (savedProfile != null) {
-            // We do not have to remove the VpnConfig from the ProfileManager in EduVPNOpenVPNService
-            // because only 1 VpnConfig is stored at a time and it will thus be automatically overwritten.
-            // Storing more VpnConfigs is useless as it becomes invalid after a /disconnect call.
-            historyService.removeSavedProfile(savedProfile)
-        }
-
-        // We do not wait for the disconnect request to finish when disconnecting,
-        // but when connecting again, a call to the API will wait for the disconnect to finish.
-        GlobalScope.launch {
-            runCatchingCoroutine {
-                apiService.postResource(
-                    discoveredAPI.disconnectEndpoint,
-                    "profile_id=${profile.profileId}",
-                    authState
-                )
-            }.onSuccess {
-                Log.d(TAG, "Successfully send disconnect to server.")
-            }.onFailure { thr ->
-                Log.d(TAG, "Failed sending disconnect to server: $thr")
-            }
-        }
+        vpnConnectionService.disconnect(context, vpnService)
     }
 
     fun deleteAllDataForInstance(instance: Instance) {
         historyService.removeAllDataForInstance(instance)
     }
-
 
     fun getProfileInstance(): Instance {
         return preferencesService.getCurrentInstance()!!
@@ -774,16 +724,7 @@ abstract class BaseConnectionViewModel(
 
     fun connectionToConfig(activity: Activity, vpnConfig: VPNConfig) {
         connectionState.value = ConnectionState.Ready
-        when (vpnConfig) {
-            is VPNConfig.OpenVPN -> {
-                eduVpnOpenVpnService.connect(activity, vpnConfig.profile)
-            }
-            is VPNConfig.WireGuard -> {
-                viewModelScope.launch {
-                    wireGuardService.connect(activity, vpnConfig.config)
-                }
-            }
-        }
+        vpnConnectionService.connectionToConfig(viewModelScope, activity, vpnConfig)
     }
 
     companion object {

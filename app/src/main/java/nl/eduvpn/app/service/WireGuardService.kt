@@ -35,6 +35,8 @@ class WireGuardService(private val context: Context, timer: LiveData<Unit>) :
     private val tunnel = WireGuardTunnel("eduVPN WireGuard tunnel") { newTunnelState ->
         setConnectionStatus(tunnelStateToStatus(newTunnelState))
     }
+    
+    override val showsNotification = false
 
     override fun getStatus(): VPNStatus {
         return connectionStatus

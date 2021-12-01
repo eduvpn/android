@@ -34,7 +34,8 @@ class ProviderSelectionViewModel @Inject constructor(
     connectionService: ConnectionService,
     eduVpnOpenVpnService: EduVPNOpenVPNService,
     wireGuardService: WireGuardService,
-    private val organizationService: OrganizationService
+    private val organizationService: OrganizationService,
+    vpnConnectionService: VPNConnectionService,
 ) : BaseConnectionViewModel(
     context,
     apiService,
@@ -43,7 +44,8 @@ class ProviderSelectionViewModel @Inject constructor(
     preferencesService,
     connectionService,
     eduVpnOpenVpnService,
-    wireGuardService
+    wireGuardService,
+    vpnConnectionService,
 ) {
 
     val currentOrganization = MutableLiveData<Organization>()

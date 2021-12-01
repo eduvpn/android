@@ -75,9 +75,18 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             val importance = NotificationManager.IMPORTANCE_DEFAULT
             val channelID = Constants.CERT_EXPIRY_NOTIFICATION_CHANNEL_ID
             val channel = NotificationChannel(channelID, name, importance)
-            val notificationManager = getSystemService(
-                NotificationManager::class.java
-            )
+            val notificationManager = getSystemService(NotificationManager::class.java)
+            notificationManager.createNotificationChannel(channel)
+        }
+    }
+
+    private fun createVPNConnectionNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val name: CharSequence = getString(R.string.vpn_connection_channel_name)
+            val importance = NotificationManager.IMPORTANCE_LOW
+            val channelID = Constants.VPN_CONNECTION_NOTIFICATION_CHANNEL_ID
+            val channel = NotificationChannel(channelID, name, importance)
+            val notificationManager = getSystemService(NotificationManager::class.java)
             notificationManager.createNotificationChannel(channel)
         }
     }
@@ -114,6 +123,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             )
         }
         createCertExpiryNotificationChannel()
+        createVPNConnectionNotificationChannel()
     }
 
     override fun onStart() {

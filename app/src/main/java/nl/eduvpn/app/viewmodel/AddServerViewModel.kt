@@ -32,7 +32,8 @@ class AddServerViewModel @Inject constructor(
     historyService: HistoryService,
     connectionService: ConnectionService,
     eduVpnOpenVpnService: EduVPNOpenVPNService,
-    wireGuardService: WireGuardService
+    wireGuardService: WireGuardService,
+    vpnConnectionService: VPNConnectionService,
 ) : BaseConnectionViewModel(
     context,
     apiService,
@@ -41,7 +42,8 @@ class AddServerViewModel @Inject constructor(
     preferencesService,
     connectionService,
     eduVpnOpenVpnService,
-    wireGuardService
+    wireGuardService,
+    vpnConnectionService,
 ) {
 
     val serverUrl = MutableLiveData("")

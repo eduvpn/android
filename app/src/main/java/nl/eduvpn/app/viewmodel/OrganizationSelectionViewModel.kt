@@ -43,7 +43,8 @@ class OrganizationSelectionViewModel @Inject constructor(
     historyService: HistoryService,
     connectionService: ConnectionService,
     eduVpnOpenVpnService: EduVPNOpenVPNService,
-    wireGuardService: WireGuardService
+    wireGuardService: WireGuardService,
+    vpnConnectionService: VPNConnectionService,
 ) : BaseConnectionViewModel(
     context,
     apiService,
@@ -52,7 +53,8 @@ class OrganizationSelectionViewModel @Inject constructor(
     preferencesService,
     connectionService,
     eduVpnOpenVpnService,
-    wireGuardService
+    wireGuardService,
+    vpnConnectionService,
 ) {
 
     val state = MutableLiveData<ConnectionState>().also { it.value = ConnectionState.Ready }

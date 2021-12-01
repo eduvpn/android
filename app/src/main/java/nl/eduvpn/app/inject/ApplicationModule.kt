@@ -190,6 +190,26 @@ class ApplicationModule(private val application: EduVPNApplication) {
 
     @Provides
     @Singleton
+    fun provideVPNConnectionService(
+        preferencesService: PreferencesService,
+        historyService: HistoryService,
+        apiService: APIService,
+        eduVPNOpenVPNService: EduVPNOpenVPNService,
+        wireGuardService: WireGuardService,
+        applicationContext: Context,
+    ): VPNConnectionService {
+        return VPNConnectionService(
+            preferencesService,
+            historyService,
+            apiService,
+            eduVPNOpenVPNService,
+            wireGuardService,
+            applicationContext,
+        )
+    }
+
+    @Provides
+    @Singleton
     fun provideHttpClient(context: Context): OkHttpClient {
         val cacheDirectory = context.cacheDir
         val CACHE_SIZE = (16 * 1024 * 1024).toLong() // 16 Mb

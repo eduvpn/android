@@ -31,13 +31,15 @@ class ProfileSelectionViewModel @Inject constructor(
     connectionService: ConnectionService,
     eduVpnOpenVpnService: EduVPNOpenVPNService,
     wireGuardService: WireGuardService,
+    vpnConnectionService: VPNConnectionService,
 ) : BaseConnectionViewModel(
-        context,
-        apiService,
-        serializerService,
-        historyService,
-        preferencesService,
-        connectionService,
-        eduVpnOpenVpnService,
-        wireGuardService
+    context,
+    apiService,
+    serializerService,
+    historyService,
+    preferencesService,
+    connectionService,
+    eduVpnOpenVpnService,
+    wireGuardService,
+    vpnConnectionService,
 )

@@ -55,4 +55,7 @@ object Constants {
 
     const val CERT_EXPIRY_NOTIFICATION_CHANNEL_ID = "cert_expiry"
     const val CERT_EXPIRY_NOTIFICATION_ID = 1
+
+    const val VPN_CONNECTION_NOTIFICATION_CHANNEL_ID = "vpn_connection"
+    const val VPN_CONNECTION_NOTIFICATION_ID = 2
 }

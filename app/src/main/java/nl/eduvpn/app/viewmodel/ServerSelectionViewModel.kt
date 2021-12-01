@@ -43,7 +43,8 @@ class ServerSelectionViewModel @Inject constructor(
     connectionService: ConnectionService,
     eduVpnOpenVpnService: EduVPNOpenVPNService,
     wireGuardService: WireGuardService,
-    private val organizationService: OrganizationService
+    private val organizationService: OrganizationService,
+    vpnConnectionService: VPNConnectionService,
 ) : BaseConnectionViewModel(
     context, apiService,
     serializerService,
@@ -51,7 +52,8 @@ class ServerSelectionViewModel @Inject constructor(
     preferencesService,
     connectionService,
     eduVpnOpenVpnService,
-    wireGuardService
+    wireGuardService,
+    vpnConnectionService,
 ), Observer {
 
     val adapterItems = MutableLiveData<List<OrganizationAdapter.OrganizationAdapterItem>>()

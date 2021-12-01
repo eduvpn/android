@@ -40,6 +40,7 @@
             tools:ignore="LockedOrientationActivity" />
 
         <receiver android:name=".CertExpiredBroadcastReceiver" />
+        <receiver android:name=".DisconnectVPNBroadcastReceiver" />
 
         <!-- Activities and services inherited from the OpenVPN library. -->
         <service
