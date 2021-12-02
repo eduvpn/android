@@ -69,8 +69,7 @@ abstract class BaseConnectionViewModel(
         data class InitiateConnection(val instance: Instance, val discoveredAPI: DiscoveredAPI) :
             ParentAction()
 
-        data class ConnectWithConfig(val vpnConfig: VPNConfig) :
-            ParentAction() //todo: rename connectWithProfile?
+        data class ConnectWithConfig(val vpnConfig: VPNConfig) : ParentAction()
     }
 
     val connectionState =
@@ -722,9 +721,9 @@ abstract class BaseConnectionViewModel(
         return preferencesService.getCurrentInstance()!!
     }
 
-    fun connectionToConfig(activity: Activity, vpnConfig: VPNConfig) {
+    fun connectionToConfig(activity: Activity, vpnConfig: VPNConfig): VPNService {
         connectionState.value = ConnectionState.Ready
-        vpnConnectionService.connectionToConfig(viewModelScope, activity, vpnConfig)
+        return vpnConnectionService.connectionToConfig(viewModelScope, activity, vpnConfig)
     }
 
     companion object {

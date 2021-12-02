@@ -93,7 +93,7 @@ class VPNConnectionService(
         }
     }
 
-    fun connectionToConfig(scope: CoroutineScope, activity: Activity, vpnConfig: VPNConfig) {
+    fun connectionToConfig(scope: CoroutineScope, activity: Activity, vpnConfig: VPNConfig): VPNService {
         val vpnService = when (vpnConfig) {
             is VPNConfig.OpenVPN -> {
                 eduVPNOpenVPNService.connect(activity, vpnConfig.profile)
@@ -113,6 +113,7 @@ class VPNConnectionService(
             }
         } catch (ex: IllegalArgumentException) {
         }
+        return vpnService
     }
 
 
