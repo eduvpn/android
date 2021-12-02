@@ -56,7 +56,6 @@ class WireGuardService(private val context: Context, timer: LiveData<Unit>) :
     private fun authorizeVPN(activity: Activity) {
         val intent = GoBackend.VpnService.prepare(context)
         if (intent != null) {
-            //todo: do not ignore result
             activity.startActivityForResult(intent, 0)
         }
     }
@@ -83,15 +82,14 @@ class WireGuardService(private val context: Context, timer: LiveData<Unit>) :
 
         ipLiveData.postValue(getIPs(config.`interface`))
 
-        withContext(Dispatchers.Main) {
-            authorizeVPN(activity)
-        }
-
         withContext(Dispatchers.IO) {
             try {
                 backend.setState(tunnel, Tunnel.State.UP, config)
             } catch (ex: BackendException) {
-                if (ex.reason == BackendException.Reason.VPN_NOT_AUTHORIZED) { //todo
+                if (ex.reason == BackendException.Reason.VPN_NOT_AUTHORIZED) {
+                    withContext(Dispatchers.Main) {
+                        authorizeVPN(activity)
+                    }
                     setConnectionStatus(VPNStatus.DISCONNECTED)
                 } else {
                     fail(ex.toString())
