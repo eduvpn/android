@@ -1,6 +1,7 @@
 package nl.eduvpn.app.service
 
 import android.app.Activity
+import android.app.Notification
 import android.content.Context
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -35,11 +36,13 @@ class WireGuardService(private val context: Context, timer: LiveData<Unit>) :
     private val tunnel = WireGuardTunnel("eduVPN WireGuard tunnel") { newTunnelState ->
         setConnectionStatus(tunnelStateToStatus(newTunnelState))
     }
-    
-    override val showsNotification = false
 
     override fun getStatus(): VPNStatus {
         return connectionStatus
+    }
+
+    override fun startForeground(id: Int, notification: Notification) {
+        // Not necessary for WireGuard
     }
 
     private fun setConnectionStatus(status: VPNStatus) {

@@ -1,5 +1,6 @@
 package nl.eduvpn.app.service
 
+import android.app.Notification
 import androidx.lifecycle.LiveData
 import nl.eduvpn.app.livedata.ByteCount
 import nl.eduvpn.app.livedata.IPs
@@ -15,9 +16,14 @@ abstract class VPNService : LiveData<VPNService.VPNStatus>() {
     abstract val ipLiveData: LiveData<IPs>
 
     /**
-     * If the vpn provides it's own notification.
+     *  User should call this after showing a notification.
+     *
+     *  @param id The identifier for this notification as per
+     * {@link NotificationManager#notify(int, Notification)
+     * NotificationManager.notify(int, Notification)};
+     * @param notification The Notification to be displayed.
      */
-    abstract val showsNotification: Boolean
+    abstract fun startForeground(id: Int, notification: Notification)
 
     /**
      * Disconnects the current VPN connection.

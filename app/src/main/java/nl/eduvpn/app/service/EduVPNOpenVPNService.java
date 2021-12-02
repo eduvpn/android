@@ -18,6 +18,7 @@
 package nl.eduvpn.app.service;
 
 import android.app.Activity;
+import android.app.Notification;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -112,7 +113,7 @@ public class EduVPNOpenVPNService extends VPNService implements VpnStatus.StateL
     public void onCreate(@NonNull Activity activity) {
         OpenVPNService.setNotificationActivityClass(activity.getClass());
         Intent intent = new Intent(activity, OpenVPNService.class);
-        intent.putExtra(OpenVPNService.ALWAYS_SHOW_NOTIFICATION, true);
+        intent.putExtra(OpenVPNService.ALWAYS_SHOW_NOTIFICATION, false);
         intent.setAction(OpenVPNService.START_SERVICE);
         activity.bindService(intent, _serviceConnection, Context.BIND_AUTO_CREATE);
     }
@@ -231,6 +232,21 @@ public class EduVPNOpenVPNService extends VPNService implements VpnStatus.StateL
         activity.startActivity(intent);
     }
 
+    @Override
+    public void startForeground(int id, @NonNull Notification notification) {
+        // We do not use the notification provided by the OpenVPN library because it is not possible
+        // to execute an action when the user presses disconnect in the notification. When the user
+        // presses disconnect, we need to send a /disconnect call to the API. We could have added
+        // this functionality to the OpenVPN library, but we have to use our own notification for
+        // WireGuard anyway because the WireGuard library does not provide a notification, so we
+        // might as well use the same notification for all VPN implementations.
+        try {
+            _openVPNService.startForeground(id, notification);
+        } catch (RemoteException ex) {
+            Log.e(TAG, "Exception when trying to start foreground service.", ex);
+        }
+    }
+
     /**
      * Disconnects the current VPN connection.
      */
@@ -340,14 +356,6 @@ public class EduVPNOpenVPNService extends VPNService implements VpnStatus.StateL
             }
         }
         return null;
-    }
-
-    @Override
-    public boolean getShowsNotification() {
-        // It is not possible to disable all notifications from the OpenVPN library and also not
-        // possible to call a function when the user presses the Disconnect button in the
-        // notification.
-        return true;
     }
 
     @NotNull

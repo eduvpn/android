@@ -33,15 +33,13 @@ class VPNConnectionService(
 
     private val TAG = this::class.qualifiedName
 
-    private val statusObserver: Observer<VPNService.VPNStatus> = Observer { vpnStatus ->
-        showVPNNotification(applicationContext, vpnStatus)
-    }
+    private val notificationID = Constants.VPN_CONNECTION_NOTIFICATION_ID
+
+    private var statusObserver: Observer<VPNService.VPNStatus>? = null
 
     fun disconnect(context: Context, vpnService: VPNService) {
         vpnService.disconnect()
-        if (!vpnService.showsNotification) {
-            removeVPNNotification(context, vpnService)
-        }
+        removeVPNNotification(context, vpnService)
         disconnectCall()
     }
 
@@ -93,7 +91,11 @@ class VPNConnectionService(
         }
     }
 
-    fun connectionToConfig(scope: CoroutineScope, activity: Activity, vpnConfig: VPNConfig): VPNService {
+    fun connectionToConfig(
+        scope: CoroutineScope,
+        activity: Activity,
+        vpnConfig: VPNConfig
+    ): VPNService {
         val vpnService = when (vpnConfig) {
             is VPNConfig.OpenVPN -> {
                 eduVPNOpenVPNService.connect(activity, vpnConfig.profile)
@@ -106,18 +108,21 @@ class VPNConnectionService(
                 wireGuardService
             }
         }
-        try {
-            if (!vpnService.showsNotification) {
-                vpnService.observeForever(statusObserver)
-                statusObserver.onChanged(vpnService.getStatus())
-            }
-        } catch (ex: IllegalArgumentException) {
+        val observer: Observer<VPNService.VPNStatus> = Observer { vpnStatus ->
+            showVPNNotification(applicationContext, vpnService, vpnStatus)
         }
+        vpnService.observeForever(observer)
+        observer.onChanged(vpnService.getStatus())
+        statusObserver = observer
         return vpnService
     }
 
 
-    private fun showVPNNotification(context: Context, vpnStatus: VPNService.VPNStatus) {
+    private fun showVPNNotification(
+        context: Context,
+        vpnService: VPNService,
+        vpnStatus: VPNService.VPNStatus
+    ) {
         val configName = FormattingUtils.formatProfileName(
             context,
             preferencesService.getCurrentInstance()!!,
@@ -155,14 +160,16 @@ class VPNConnectionService(
         val notificationManager =
             context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
-        notificationManager.notify(Constants.VPN_CONNECTION_NOTIFICATION_ID, notification)
+        notificationManager.notify(notificationID, notification)
+
+        vpnService.startForeground(notificationID, notification)
     }
 
     private fun removeVPNNotification(context: Context, vpnService: VPNService) {
-        vpnService.removeObserver(statusObserver)
+        statusObserver?.let { observer -> vpnService.removeObserver(observer) }
         val notificationManager =
             context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        notificationManager.cancel(Constants.VPN_CONNECTION_NOTIFICATION_ID)
+        notificationManager.cancel(notificationID)
     }
 
     companion object {
