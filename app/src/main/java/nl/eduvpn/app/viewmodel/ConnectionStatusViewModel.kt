@@ -63,8 +63,8 @@ class ConnectionStatusViewModel @Inject constructor(
     private var certExpiryTime: Long? = null
 
     val serverName = MutableLiveData<String>()
-    val serverSupport = MutableLiveData<String>()
-    val certValidity = MutableLiveData<Spanned>()
+    val serverSupport = MutableLiveData<String?>()
+    val certValidity = MutableLiveData<Spanned?>()
     val profileName = MutableLiveData<String>()
 
     //todo: does not work when disconnecting outside the app

@@ -48,7 +48,7 @@ class ProviderSelectionViewModel @Inject constructor(
     vpnConnectionService,
 ) {
 
-    val currentOrganization = MutableLiveData<Organization>()
+    val currentOrganization = MutableLiveData<Organization?>()
     val currentOrganizationInstances = MutableLiveData<List<Instance>>()
     val isLoadingInstances = MutableLiveData<Boolean>(true)
 
