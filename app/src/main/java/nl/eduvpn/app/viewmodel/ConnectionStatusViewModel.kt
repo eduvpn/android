@@ -54,8 +54,8 @@ class ConnectionStatusViewModel @Inject constructor(
     private val certExpiryTime: Long?
 
     val serverName = MutableLiveData<String>()
-    val serverSupport = MutableLiveData<String>()
-    val certValidity = MutableLiveData<Spanned>()
+    val serverSupport = MutableLiveData<String?>()
+    val certValidity = MutableLiveData<Spanned?>()
     val profileName = MutableLiveData<String>()
     val isInDisconnectMode = MutableLiveData(false)
     val serverProfiles = MutableLiveData<List<Profile>>()

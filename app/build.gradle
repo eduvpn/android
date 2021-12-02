@@ -151,7 +151,7 @@ dependencies {
     implementation "androidx.recyclerview:recyclerview:1.0.0"
     implementation 'com.google.android.material:material:1.0.0'
     implementation "androidx.browser:browser:1.0.0" // Custom tabs
-    implementation "androidx.constraintlayout:constraintlayout:1.0.0"
+    implementation "com.android.support.constraint:constraint-layout:1.0.2"
 
 
     implementation "androidx.lifecycle:lifecycle-extensions:$lifecycleVersion"
