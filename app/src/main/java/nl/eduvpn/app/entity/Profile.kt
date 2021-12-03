@@ -26,7 +26,7 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 sealed class Profile : Parcelable {
-        abstract val displayName: String
+        abstract val displayName: TranslatableString
         abstract val profileId: String
 }
 

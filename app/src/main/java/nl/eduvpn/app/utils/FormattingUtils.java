@@ -114,7 +114,8 @@ public class FormattingUtils {
      */
     public static String formatProfileName(Context context, Instance instance, Profile profile) {
         String instanceName = formatDisplayName(instance);
-        return context.getString(R.string.saved_profile_display_name, instanceName, profile.getDisplayName());
+        return context.getString(R.string.saved_profile_display_name, instanceName, profile.getDisplayName()
+                .getBestTranslation());
     }
 
     /**

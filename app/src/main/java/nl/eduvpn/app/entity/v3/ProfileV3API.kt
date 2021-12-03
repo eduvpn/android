@@ -1,5 +1,7 @@
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import nl.eduvpn.app.entity.TranslatableString
+import nl.eduvpn.app.utils.serializer.TranslatableStringSerializer
 
 // V3 Profile as retrieved from the API
 @Serializable
@@ -9,7 +11,8 @@ data class ProfileV3API(
     val profileId: String,
 
     @SerialName("display_name")
-    val displayName: String, //todo: should support multiple languages
+    @Serializable(with = TranslatableStringSerializer::class)
+    val displayName: TranslatableString,
 
     @SerialName("default_gateway")
     val defaultGateway: Boolean,

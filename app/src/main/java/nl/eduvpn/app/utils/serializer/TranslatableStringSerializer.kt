@@ -27,8 +27,8 @@ object TranslatableStringSerializer : KSerializer<TranslatableString> {
 
     override fun deserialize(decoder: Decoder): TranslatableString {
         return when (val jsonElement = decoder.decodeSerializableValue(JsonElement.serializer())) {
-            // Plain string was previously used to store displayName in Instance. If this is removed
-            // from the deserializer, a migration is necessary.
+            // Plain string was previously used to store displayName in Instance and in Profile. If
+            // this is removed from the deserializer, a migration is necessary.
             is JsonPrimitive -> if (jsonElement.isString) TranslatableString(jsonElement.content) else null
             is JsonObject -> TranslatableString(jsonElement.filterValues { v -> v is JsonPrimitive && v.isString }
                 .mapValues { m ->

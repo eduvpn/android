@@ -92,7 +92,7 @@ public class SerializerServiceTest {
 
     @Test
     public void testProfileSerialization() throws SerializerService.UnknownFormatException {
-        Profile profile = new ProfileV2("displayName", "profileId");
+        Profile profile = new ProfileV2(new TranslatableString("displayName"), "profileId");
         String serializedProfile = _serializerService.serializeProfile(profile);
         Profile deserializedProfile = _serializerService.deserializeProfile(serializedProfile);
         assertEquals(profile.getDisplayName(), deserializedProfile.getDisplayName());
@@ -171,8 +171,8 @@ public class SerializerServiceTest {
         Instance instance1 = new Instance("baseUri1", new TranslatableString("displayName1"), "logoUri1", AuthorizationType.Distributed, "SV", true, "https://example.com/template", Collections
                 .singletonList("mailto:support@example.com"));
         Instance instance2 = new Instance("baseUri2", new TranslatableString("displayName2"), "logoUri2", AuthorizationType.Local, "CH", true, null, new ArrayList<>());
-        Profile profile1 = new ProfileV2("displayName1", "profileId1");
-        Profile profile2 = new ProfileV2("displayName2", "profileId2");
+        Profile profile1 = new ProfileV2(new TranslatableString("displayName1"), "profileId1");
+        Profile profile2 = new ProfileV2(new TranslatableString("displayName2"), "profileId2");
         SavedProfile savedProfile1 = new SavedProfile(instance1, profile1, "profileUUID1");
         SavedProfile savedProfile2 = new SavedProfile(instance2, profile2, "profileUUID2");
         List<SavedProfile> list = Arrays.asList(savedProfile1, savedProfile2);
@@ -267,9 +267,9 @@ public class SerializerServiceTest {
 
     @Test
     public void testProfileListSerialization() throws SerializerService.UnknownFormatException {
-        Profile profile1 = new ProfileV2("display-name1", "profile-id1");
-        Profile profile2 = new ProfileV2("display-name2", "profile-id2");
-        Profile profile3 = new ProfileV2("display-name3", "profile-id3");
+        Profile profile1 = new ProfileV2(new TranslatableString("display-name1"), "profile-id1");
+        Profile profile2 = new ProfileV2(new TranslatableString("display-name2"), "profile-id2");
+        Profile profile3 = new ProfileV2(new TranslatableString("display-name3"), "profile-id3");
         List<Profile> profiles = Arrays.asList(profile1, profile2, profile3);
         String serializedProfiles = _serializerService.serializeProfileList(profiles);
         List<Profile> deserializedProfiles = _serializerService.deserializeProfileList(serializedProfiles);

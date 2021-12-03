@@ -5,6 +5,7 @@ import kotlinx.parcelize.Parcelize
 import kotlinx.parcelize.RawValue
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import nl.eduvpn.app.utils.serializer.TranslatableStringSerializer
 import nl.eduvpn.app.utils.serializer.WireGuardConfigSerializer
 
 sealed class ProfileV3 : Profile() {
@@ -21,7 +22,8 @@ data class OpenVPNProfileV3(
     override val profileId: String,
 
     @SerialName("display_name")
-    override val displayName: String, //todo: should support multiple languages
+    @Serializable(with = TranslatableStringSerializer::class)
+    override val displayName: TranslatableString,
 
     @SerialName("default_gateway")
     override val defaultGateway: Boolean,
@@ -41,7 +43,8 @@ data class WireGuardProfileV3(
     override val profileId: String,
 
     @SerialName("display_name")
-    override val displayName: String, //todo: should support multiple languages
+    @Serializable(with = TranslatableStringSerializer::class)
+    override val displayName: TranslatableString,
 
     @SerialName("default_gateway")
     override val defaultGateway: Boolean,

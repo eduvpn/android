@@ -214,11 +214,11 @@ class ConnectionStatusViewModel @Inject constructor(
         if (connectionInstance?.countryCode != null) {
             serverName.value = connectionInstance.getCountryText()
         } else if (savedProfile != null) {
-            serverName.value = savedProfile.displayName
+            serverName.value = savedProfile.displayName.bestTranslation
         } else {
             serverName.value = context.getString(R.string.profile_name_not_found)
         }
-        profileName.value = savedProfile?.displayName
+        profileName.value = savedProfile?.displayName?.bestTranslation
         certExpiryTime = when (savedProfile) {
             is ProfileV2 -> historyService.getSavedKeyPairForInstance(connectionInstance).keyPair.expiryTimeMillis
             is ProfileV3 -> savedProfile.expiry

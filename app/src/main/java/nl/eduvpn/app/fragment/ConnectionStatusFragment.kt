@@ -120,7 +120,8 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
                 val profileItems = viewModel.serverProfiles.value ?: emptyList()
                 AlertDialog.Builder(requireContext(), R.style.AppTheme_AlertDialog)
                     .setTitle(R.string.connection_select_profile)
-                    .setItems(profileItems.map { it.displayName }.toTypedArray()) { _, which ->
+                    .setItems(profileItems.map { it.displayName.bestTranslation }
+                        .toTypedArray()) { _, which ->
                         val profileToConnectTo = profileItems[which]
                         activity?.let {
                             viewModel.isInDisconnectMode.value = false
