@@ -17,6 +17,7 @@
 package nl.eduvpn.app.entity
 
 import net.openid.appauth.AuthState
+import java.util.*
 
 /**
  * Stores the mapping between the base URI and the authorization state containing the current and refresh tokens.
@@ -24,5 +25,10 @@ import net.openid.appauth.AuthState
  *
  * @param instance  The VPN provider the token is valid for.
  * @param authState The authorization state with the tokens.
+ * @param authenticationDate Date when application received authentication state.
  */
-data class SavedAuthState(val instance: Instance, var authState: AuthState)
+data class SavedAuthState(
+    val instance: Instance,
+    var authState: AuthState,
+    val authenticationDate: Date?,
+)

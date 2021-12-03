@@ -91,7 +91,11 @@ abstract class BaseConnectionViewModel(
                             preferencesService.currentInstance = instance
                             preferencesService.currentDiscoveredAPI = discoveredAPI
                             preferencesService.currentAuthState = savedToken.authState
-                            historyService.cacheAuthorizationState(instance, savedToken.authState)
+                            historyService.cacheAuthorizationState(
+                                instance,
+                                savedToken.authState,
+                                null
+                            )
                         }
                         fetchProfiles(instance, discoveredAPI, savedToken.authState)
                     }
@@ -171,7 +175,7 @@ abstract class BaseConnectionViewModel(
     fun selectProfileToConnectTo(profile: Profile) {
         // We surely have a discovered API and access token, since we just loaded the list with them
         val instance = preferencesService.currentInstance
-        val authState = historyService.getCachedAuthState(instance!!)
+        val authState = historyService.getCachedAuthState(instance!!)?.first
         val discoveredAPI = preferencesService.currentDiscoveredAPI
         if (authState == null || discoveredAPI == null) {
             Log.e(TAG, "Unable to connect. Auth state OK: ${authState != null}, discovered API OK: ${discoveredAPI != null}")

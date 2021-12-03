@@ -31,6 +31,8 @@ import androidx.fragment.app.Fragment;
 import net.openid.appauth.AuthorizationException;
 import net.openid.appauth.AuthorizationResponse;
 
+import java.util.Date;
+
 import javax.inject.Inject;
 
 import nl.eduvpn.app.base.BaseActivity;
@@ -147,6 +149,7 @@ public class MainActivity extends BaseActivity<ActivityMainBinding> {
                     authorizationException.code,
                     authorizationException.getMessage()));
         } else {
+            Date authenticationDate = new Date();
             Fragment currentFragment = getSupportFragmentManager().findFragmentById(R.id.content_frame);
             ConnectionService.AuthorizationStateCallback callback = () -> {
                 if (currentFragment instanceof ServerSelectionFragment) {
@@ -155,7 +158,7 @@ public class MainActivity extends BaseActivity<ActivityMainBinding> {
                     Toast.makeText(this, R.string.provider_added_new_configs_available, Toast.LENGTH_LONG).show();
                 }
             };
-            _connectionService.parseAuthorizationResponse(authorizationResponse, this, callback);
+            _connectionService.parseAuthorizationResponse(authorizationResponse, this, callback, authenticationDate);
 
             // Remove it so we don't parse it again.
             intent.setData(null);

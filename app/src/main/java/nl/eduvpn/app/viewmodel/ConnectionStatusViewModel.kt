@@ -21,6 +21,7 @@ package nl.eduvpn.app.viewmodel
 import android.content.Context
 import android.text.Spanned
 import androidx.core.text.HtmlCompat
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.liveData
 import de.blinkt.openvpn.VpnProfile
@@ -34,6 +35,7 @@ import nl.eduvpn.app.livedata.UnlessDisconnectedLiveData
 import nl.eduvpn.app.service.*
 import nl.eduvpn.app.utils.getCountryText
 import nl.eduvpn.app.utils.toSingleEvent
+import java.util.*
 import javax.inject.Inject
 
 class ConnectionStatusViewModel @Inject constructor(
@@ -68,6 +70,7 @@ class ConnectionStatusViewModel @Inject constructor(
     val connectionTimeLiveData = ConnectionTimeLiveData.create(vpnService, timer)
     val byteCountLiveData = UnlessDisconnectedLiveData.create(ByteCountLiveData(), vpnService)
     val ipLiveData = IPLiveData()
+    val canRenew: LiveData<Boolean>
 
     private val _connectionParentAction = MutableLiveData<ParentAction>()
     val connectionParentAction = _connectionParentAction.toSingleEvent()
@@ -90,9 +93,30 @@ class ConnectionStatusViewModel @Inject constructor(
             }
             // Remove the last separator
             supportContacts.delete(supportContacts.length - 2, supportContacts.length)
-            serverSupport.value = context.getString(R.string.connection_info_support, supportContacts)
+            serverSupport.value =
+                context.getString(R.string.connection_info_support, supportContacts)
         } else {
             serverSupport.value = null
+        }
+
+        val authenticationDate =
+            historyService.getCachedAuthState(preferencesService.currentInstance)?.second
+        canRenew = if (authenticationDate == null) {
+            MutableLiveData(true)
+        } else {
+            val now = Date().time
+            val millisecondAmountOf30Minutes = 30 * 60 * 1000
+            val canRenewAt = authenticationDate.time + millisecondAmountOf30Minutes
+            val remaining = canRenewAt - now
+            if (remaining > 0) {
+                liveData {
+                    emit(false)
+                    delay(remaining)
+                    emit(true)
+                }
+            } else {
+                MutableLiveData(true)
+            }
         }
     }
 

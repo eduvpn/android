@@ -19,6 +19,8 @@ package nl.eduvpn.app.service;
 
 import android.util.Pair;
 
+import androidx.annotation.NonNull;
+
 import net.openid.appauth.AuthState;
 
 import org.json.JSONArray;
@@ -37,7 +39,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
 
-import androidx.annotation.NonNull;
 import nl.eduvpn.app.Constants;
 import nl.eduvpn.app.entity.AuthorizationType;
 import nl.eduvpn.app.entity.DiscoveredAPI;
@@ -528,7 +529,12 @@ public class SerializerService {
             for (SavedAuthState savedAuthState : savedAuthStateList) {
                 JSONObject authStateJson = new JSONObject();
                 authStateJson.put("instance", serializeInstance(savedAuthState.getInstance()));
-                authStateJson.put("auth_state", savedAuthState.getAuthState().jsonSerializeString());
+                authStateJson.put("auth_state", savedAuthState.getAuthState()
+                        .jsonSerializeString());
+                Date authenticationDate = savedAuthState.getAuthenticationDate();
+                if (authenticationDate != null) {
+                    authStateJson.put("authentication_date", authenticationDate.getTime());
+                }
                 array.put(authStateJson);
             }
             result.put("data", array);
@@ -554,7 +560,12 @@ public class SerializerService {
                 Instance instance = deserializeInstance(tokenObject.getJSONObject("instance"));
                 String authStateString = tokenObject.getString("auth_state");
                 AuthState authState = AuthState.jsonDeserialize(authStateString);
-                result.add(new SavedAuthState(instance, authState));
+                Date authenticationDate = null;
+                if (tokenObject.has("authentication_date")) {
+                    long authenticationTimestamp = tokenObject.getLong("authentication_date");
+                    authenticationDate = new Date(authenticationTimestamp);
+                }
+                result.add(new SavedAuthState(instance, authState, authenticationDate));
             }
             return result;
         } catch (JSONException ex) {
