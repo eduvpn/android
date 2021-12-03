@@ -94,7 +94,7 @@ abstract class BaseConnectionViewModel(
                             historyService.cacheAuthorizationState(
                                 instance,
                                 savedToken.authState,
-                                null
+                                savedToken.authenticationDate
                             )
                         }
                         fetchProfiles(instance, discoveredAPI, savedToken.authState)
