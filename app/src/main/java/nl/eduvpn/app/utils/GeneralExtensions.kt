@@ -127,8 +127,6 @@ inline fun <R> runCatchingCoroutine(block: () -> R): Result<R> {
     return result
 }
 
-// todo: inject using dependency injection?
-// Can be inlined after SerializerService is converted to Kotlin
 val jsonInstance: Json by lazy {
     Json {
         ignoreUnknownKeys = true
