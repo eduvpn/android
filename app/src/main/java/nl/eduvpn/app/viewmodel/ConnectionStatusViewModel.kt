@@ -97,7 +97,7 @@ class ConnectionStatusViewModel @Inject constructor(
     }
 
     fun renewSession() {
-        discoverApi(preferencesService.currentInstance, null, true)
+        discoverApi(preferencesService.currentInstance, true)
     }
 
     fun reconnectToInstance() {

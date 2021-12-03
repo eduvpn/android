@@ -68,26 +68,24 @@ abstract class BaseConnectionViewModel(
 
     val parentAction = MutableLiveData<ParentAction>()
     
-    fun discoverApi(
-        instance: Instance,
-        parentInstance: Instance? = null,
-        reauthorize: Boolean = false
-    ) {
+    fun discoverApi(instance: Instance, reauthorize: Boolean = false) {
         // If no discovered API, fetch it first, then initiate the connection for the login
         connectionState.value = ConnectionState.DiscoveringApi
         // Discover the API
         viewModelScope.launch(Dispatchers.Main) {
             runCatchingCoroutine {
-                apiService.getJSON(instance.sanitizedBaseURI + Constants.API_DISCOVERY_POSTFIX, null)
+                apiService.getJSON(
+                    instance.sanitizedBaseURI + Constants.API_DISCOVERY_POSTFIX,
+                    null
+                )
             }.onSuccess { result ->
                 try {
                     val discoveredAPI = serializerService.deserializeDiscoveredAPI(result)
-                    val savedToken = historyService.getSavedToken(parentInstance ?: instance)
+                    val savedToken = historyService.getSavedToken(instance)
                     if (savedToken == null || reauthorize) {
-                        authorize(parentInstance ?: instance, discoveredAPI)
+                        authorize(instance, discoveredAPI)
                     } else {
-                        if (savedToken.instance.sanitizedBaseURI != (parentInstance
-                                        ?: instance).sanitizedBaseURI) {
+                        if (savedToken.instance.sanitizedBaseURI != instance.sanitizedBaseURI) {
                             // This is a distributed token. We add it to the list.
                             Log.i(TAG, "Distributed token found for different instance.")
                             preferencesService.currentInstance = instance
