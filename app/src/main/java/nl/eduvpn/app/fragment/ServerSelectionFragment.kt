@@ -128,17 +128,26 @@ class ServerSelectionFragment : BaseFragment<FragmentServerSelectionBinding>() {
 
     private fun displayDeleteDialog(instance: Instance) {
         AlertDialog.Builder(requireContext())
-                .setTitle(R.string.delete_server)
-                .setMessage(getString(R.string.delete_server_message, instance.displayName, instance.sanitizedBaseURI))
-                .setPositiveButton(R.string.button_remove) { dialog, _ ->
-                    viewModel.deleteAllDataForInstance(instance)
-                    if (viewModel.hasNoMoreServers()) {
-                        (activity as? MainActivity)?.openFragment(OrganizationSelectionFragment(), false)
-                    }
-                    dialog.dismiss()
+            .setTitle(R.string.delete_server)
+            .setMessage(
+                getString(
+                    R.string.delete_server_message,
+                    instance.displayName.bestTranslation,
+                    instance.sanitizedBaseURI
+                )
+            )
+            .setPositiveButton(R.string.button_remove) { dialog, _ ->
+                viewModel.deleteAllDataForInstance(instance)
+                if (viewModel.hasNoMoreServers()) {
+                    (activity as? MainActivity)?.openFragment(
+                        OrganizationSelectionFragment(),
+                        false
+                    )
                 }
-                .setNegativeButton(R.string.delete_server_cancel) { dialog, _ -> dialog.dismiss() }
-                .show()
+                dialog.dismiss()
+            }
+            .setNegativeButton(R.string.delete_server_cancel) { dialog, _ -> dialog.dismiss() }
+            .show()
     }
 
     override fun onResume() {
