@@ -77,7 +77,7 @@ abstract class BaseConnectionViewModel(
 
     val warning = MutableLiveData<String>()
 
-    val parentAction = MutableLiveData<ParentAction>()
+    val parentAction = MutableLiveData<ParentAction?>()
     
     fun discoverApi(instance: Instance, reauthorize: Boolean = false) {
         // If no discovered API, fetch it first, then initiate the connection for the login
