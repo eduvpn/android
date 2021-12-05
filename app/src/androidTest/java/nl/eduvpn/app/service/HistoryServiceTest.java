@@ -17,10 +17,18 @@
 
 package nl.eduvpn.app.service;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.net.Uri;
+
+import androidx.test.core.app.ApplicationProvider;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
+import androidx.test.filters.LargeTest;
 
 import net.openid.appauth.AuthState;
 import net.openid.appauth.AuthorizationServiceConfiguration;
@@ -32,21 +40,16 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Random;
 
-import androidx.test.core.app.ApplicationProvider;
-import androidx.test.ext.junit.runners.AndroidJUnit4;
-import androidx.test.filters.LargeTest;
+import kotlin.Pair;
 import nl.eduvpn.app.entity.AuthorizationType;
 import nl.eduvpn.app.entity.Instance;
 import nl.eduvpn.app.entity.KeyPair;
 import nl.eduvpn.app.entity.Profile;
 import nl.eduvpn.app.entity.SavedKeyPair;
 import nl.eduvpn.app.entity.SavedProfile;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 
 /**
  * Tests for the history service.
@@ -104,7 +107,7 @@ public class HistoryServiceTest {
             Profile profile = new Profile("displayName", profileId);
             SavedProfile savedProfile = new SavedProfile(instance, profile, profileUUID);
             _historyService.cacheSavedProfile(savedProfile);
-            _historyService.cacheAuthorizationState(instance, new AuthState());
+            _historyService.cacheAuthorizationState(instance, new AuthState(), new Date());
         }
         _reloadHistoryService(false);
         assertEquals(10, _historyService.getSavedProfileList().size());
@@ -117,14 +120,19 @@ public class HistoryServiceTest {
     @Test
     public void testCacheAccessToken() {
         String baseURI = "http://example.com";
-        AuthState exampleAuthState = new AuthState(new AuthorizationServiceConfiguration(Uri.parse("http://example.com/auth"), Uri.parse("http://example.com/token"), null));
+        AuthState exampleAuthState = new AuthState(new AuthorizationServiceConfiguration(Uri.parse("http://example.com/auth"), Uri
+                .parse("http://example.com/token"), null));
         Instance instance = new Instance(baseURI, "displayName", null, AuthorizationType.Distributed, "HU", true, "https://eduvpn.org/template", new ArrayList<>());
-        _historyService.cacheAuthorizationState(instance, exampleAuthState);
+        Date now = new Date();
+        _historyService.cacheAuthorizationState(instance, exampleAuthState, now);
         _reloadHistoryService(false);
-        AuthState restoredAuthState = _historyService.getCachedAuthState(instance);
+        Pair<AuthState, Date> restoredAuthStateWithDate = _historyService.getCachedAuthState(instance);
+        AuthState restoredAuthState = restoredAuthStateWithDate.getFirst();
         //noinspection ConstantConditions
-        assertEquals(exampleAuthState.getAuthorizationServiceConfiguration().authorizationEndpoint, restoredAuthState.getAuthorizationServiceConfiguration().authorizationEndpoint);
-        assertEquals(exampleAuthState.getAuthorizationServiceConfiguration().tokenEndpoint, restoredAuthState.getAuthorizationServiceConfiguration().tokenEndpoint);
+        assertEquals(exampleAuthState.getAuthorizationServiceConfiguration().authorizationEndpoint, restoredAuthState
+                .getAuthorizationServiceConfiguration().authorizationEndpoint);
+        assertEquals(exampleAuthState.getAuthorizationServiceConfiguration().tokenEndpoint, restoredAuthState
+                .getAuthorizationServiceConfiguration().tokenEndpoint);
     }
 
     @Test

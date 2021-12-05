@@ -17,18 +17,21 @@
 
 package nl.eduvpn.app.service;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 import net.openid.appauth.AuthState;
 import net.openid.appauth.AuthorizationServiceConfiguration;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Observable;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
+import kotlin.Pair;
 import nl.eduvpn.app.entity.AuthorizationType;
 import nl.eduvpn.app.entity.Instance;
 import nl.eduvpn.app.entity.Organization;
@@ -105,12 +108,16 @@ public class HistoryService extends Observable {
      * @return The authorization state if found. Null if not found.
      */
     @Nullable
-    public AuthState getCachedAuthState(@NonNull Instance instance) {
+    public Pair<AuthState, Date> getCachedAuthState(@NonNull Instance instance) {
         for (SavedAuthState savedAuthState : _savedAuthStateList) {
-            if (savedAuthState.getInstance().getSanitizedBaseURI().equals(instance.getSanitizedBaseURI())) {
-                return savedAuthState.getAuthState();
-            } else if (instance.getAuthorizationType() == AuthorizationType.Distributed && savedAuthState.getInstance().getAuthorizationType() == AuthorizationType.Distributed) {
-                return savedAuthState.getAuthState();
+            if (savedAuthState.getInstance()
+                    .getSanitizedBaseURI()
+                    .equals(instance.getSanitizedBaseURI())) {
+                return new Pair(savedAuthState.getAuthState(), savedAuthState.getAuthenticationDate());
+            } else if (instance.getAuthorizationType() == AuthorizationType.Distributed && savedAuthState
+                    .getInstance()
+                    .getAuthorizationType() == AuthorizationType.Distributed) {
+                return new Pair(savedAuthState.getAuthState(), savedAuthState.getAuthenticationDate());
             }
         }
         return null;
@@ -122,21 +129,23 @@ public class HistoryService extends Observable {
      * @param instance  The VPN provider the token is stored for.
      * @param authState The authorization state which contains the access and refresh tokens.
      */
-    public void cacheAuthorizationState(@NonNull Instance instance, @NonNull AuthState authState) {
-        // Remove all previous entries
+    public void cacheAuthorizationState(@NonNull Instance instance, @NonNull AuthState authState, @Nullable Date authenticationDate) {
         List<Instance> existingInstances = new ArrayList<>();
         if (instance.getAuthorizationType() == AuthorizationType.Distributed) {
             for (SavedAuthState savedAuthState : _savedAuthStateList) {
-                if (savedAuthState.getInstance().getAuthorizationType() == AuthorizationType.Distributed &&
-                        !savedAuthState.getInstance().getSanitizedBaseURI().equals(instance.getSanitizedBaseURI())) {
+                if (savedAuthState.getInstance()
+                        .getAuthorizationType() == AuthorizationType.Distributed && !savedAuthState.getInstance()
+                        .getSanitizedBaseURI()
+                        .equals(instance.getSanitizedBaseURI())) {
                     existingInstances.add(savedAuthState.getInstance());
                 }
             }
         }
+        // Remove all previous entries
         _removeAuthorizations(instance);
-        _savedAuthStateList.add(new SavedAuthState(instance, authState));
+        _savedAuthStateList.add(new SavedAuthState(instance, authState, authenticationDate));
         for (Instance existingSharedInstance : existingInstances) {
-            _savedAuthStateList.add(new SavedAuthState(existingSharedInstance, authState));
+            _savedAuthStateList.add(new SavedAuthState(existingSharedInstance, authState, authenticationDate));
         }
         _save();
         setChanged();

@@ -17,8 +17,13 @@
 
 package nl.eduvpn.app.service;
 
+import static org.junit.Assert.assertEquals;
+
 import android.net.Uri;
 import android.util.Pair;
+
+import androidx.test.ext.junit.runners.AndroidJUnit4;
+import androidx.test.filters.LargeTest;
 
 import net.openid.appauth.AuthState;
 import net.openid.appauth.AuthorizationServiceConfiguration;
@@ -40,8 +45,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
 
-import androidx.test.ext.junit.runners.AndroidJUnit4;
-import androidx.test.filters.LargeTest;
 import nl.eduvpn.app.entity.AuthorizationType;
 import nl.eduvpn.app.entity.DiscoveredAPI;
 import nl.eduvpn.app.entity.Instance;
@@ -59,8 +62,6 @@ import nl.eduvpn.app.entity.message.Maintenance;
 import nl.eduvpn.app.entity.message.Message;
 import nl.eduvpn.app.entity.message.Notification;
 import nl.eduvpn.app.utils.TTLCache;
-
-import static org.junit.Assert.assertEquals;
 
 /**
  * Unit tests for the serializer service.
@@ -190,8 +191,8 @@ public class SerializerServiceTest {
         Instance instance2 = new Instance("baseUri2", "displayName2", null, AuthorizationType.Local, "FR", true, null, new ArrayList<>());
         AuthState state1 = new AuthState(new AuthorizationServiceConfiguration(Uri.parse("http://eduvpn.org/auth"), Uri.parse("http://eduvpn.org/token"), null));
         AuthState state2 = new AuthState(new AuthorizationServiceConfiguration(Uri.parse("http://example.com/auth"), Uri.parse("http://example.com/token"), null));
-        SavedAuthState token1 = new SavedAuthState(instance1, state1);
-        SavedAuthState token2 = new SavedAuthState(instance2, state2);
+        SavedAuthState token1 = new SavedAuthState(instance1, state1, new Date());
+        SavedAuthState token2 = new SavedAuthState(instance2, state2, new Date());
         List<SavedAuthState> list = Arrays.asList(token1, token2);
         JSONObject serializedList = _serializerService.serializeSavedAuthStateList(list);
         List<SavedAuthState> deserializedList = _serializerService.deserializeSavedAuthStateList(serializedList);
