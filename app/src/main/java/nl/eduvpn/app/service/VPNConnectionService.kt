@@ -160,13 +160,17 @@ class VPNConnectionService(
         val notificationManager =
             context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
-        notificationManager.notify(notificationID, notification)
+        // Prevent recreating the notification in case we just removed it
+        if(statusObserver != null) {
+            notificationManager.notify(notificationID, notification)
 
-        vpnService.startForeground(notificationID, notification)
+            vpnService.startForeground(notificationID, notification)
+        }
     }
 
     private fun removeVPNNotification(context: Context, vpnService: VPNService) {
         statusObserver?.let { observer -> vpnService.removeObserver(observer) }
+        statusObserver = null
         val notificationManager =
             context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         notificationManager.cancel(notificationID)
