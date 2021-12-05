@@ -20,6 +20,8 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import net.openid.appauth.AuthState
 import nl.eduvpn.app.utils.serializer.AuthStateSerializer
+import nl.eduvpn.app.utils.serializer.DateSerializer
+import java.util.*
 
 /**
  * Stores the mapping between the base URI and the authorization state containing the current and refresh tokens.
@@ -36,5 +38,9 @@ data class SavedAuthState(
 
     @SerialName("auth_state")
     @Serializable(with = AuthStateSerializer::class)
-    var authState: AuthState
+    var authState: AuthState,
+
+    @Serializable(with = DateSerializer::class)
+    @SerialName("authentication_date")
+    val authenticationDate: Date? = null,
 )

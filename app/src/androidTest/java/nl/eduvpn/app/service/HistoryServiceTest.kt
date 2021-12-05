@@ -104,7 +104,7 @@ class HistoryServiceTest {
             val profile: Profile = ProfileV2(TranslatableString("displayName"), profileId)
             val savedProfile = SavedProfile(instance, profile, profileUUID)
             _historyService!!.cacheSavedProfile(savedProfile)
-            _historyService!!.cacheAuthorizationState(instance, AuthState())
+            _historyService!!.cacheAuthorizationState(instance, AuthState(), Date())
         }
         reloadHistoryService(false)
         Assert.assertEquals(10, _historyService!!.savedProfileList.size.toLong())
@@ -145,9 +145,10 @@ class HistoryServiceTest {
             "https://eduvpn.org/template",
             ArrayList()
         )
-        _historyService!!.cacheAuthorizationState(instance, exampleAuthState)
+        val now = Date()
+        _historyService!!.cacheAuthorizationState(instance, exampleAuthState, now)
         reloadHistoryService(false)
-        val restoredAuthState = _historyService!!.getCachedAuthState(instance)!!
+        val (restoredAuthState, _) = _historyService!!.getCachedAuthState(instance)!!
         Assert.assertEquals(
             exampleAuthState.authorizationServiceConfiguration!!.authorizationEndpoint,
             restoredAuthState

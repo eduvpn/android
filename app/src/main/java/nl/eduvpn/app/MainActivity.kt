@@ -172,6 +172,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                 )
             )
         } else {
+            val authenticationDate = Date()
             val currentFragment = supportFragmentManager.findFragmentById(R.id.content_frame)
             val callback: AuthorizationStateCallback = object : AuthorizationStateCallback {
                 override fun onAuthorizationStateUpdated() {
@@ -186,7 +187,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                     }
                 }
             }
-            connectionService.parseAuthorizationResponse(authorizationResponse!!, this, callback)
+            connectionService.parseAuthorizationResponse(authorizationResponse!!, this, callback, authenticationDate)
 
             // Remove it so we don't parse it again.
             intent.data = null

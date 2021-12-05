@@ -124,7 +124,8 @@
                 android:gravity="center"
                 android:text="@string/connection_info_renew_session"
                 android:textColor="@color/textColorLink"
-                android:textSize="14sp" />
+                android:textSize="14sp"
+                android:visibility="@{viewModel.canRenew ? View.VISIBLE : View.GONE}" />
 
             <androidx.appcompat.widget.SwitchCompat
                 android:id="@+id/connection_switch"

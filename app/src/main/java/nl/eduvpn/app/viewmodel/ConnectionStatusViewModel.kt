@@ -26,12 +26,15 @@ import android.text.Spanned
 import androidx.core.text.HtmlCompat
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.liveData
+import kotlinx.coroutines.delay
 import nl.eduvpn.app.CertExpiredBroadcastReceiver
 import nl.eduvpn.app.R
 import nl.eduvpn.app.entity.*
 import nl.eduvpn.app.service.*
 import nl.eduvpn.app.utils.getCountryText
 import nl.eduvpn.app.utils.toSingleEvent
+import java.util.*
 import javax.inject.Inject
 import javax.inject.Named
 
@@ -72,6 +75,7 @@ class ConnectionStatusViewModel @Inject constructor(
     val serverProfiles = MutableLiveData<List<Profile>>()
     val byteCountLiveData = vpnService.byteCountLiveData
     val ipLiveData = vpnService.ipLiveData
+    val canRenew: LiveData<Boolean>
 
     private val _connectionParentAction = MutableLiveData<ParentAction>()
     val connectionParentAction = _connectionParentAction.toSingleEvent()
@@ -100,9 +104,30 @@ class ConnectionStatusViewModel @Inject constructor(
             }
             // Remove the last separator
             supportContacts.delete(supportContacts.length - 2, supportContacts.length)
-            serverSupport.value = context.getString(R.string.connection_info_support, supportContacts)
+            serverSupport.value =
+                context.getString(R.string.connection_info_support, supportContacts)
         } else {
             serverSupport.value = null
+        }
+
+        val authenticationDate =
+            historyService.getCachedAuthState(preferencesService.getCurrentInstance()!!)?.second
+        canRenew = if (authenticationDate == null) {
+            MutableLiveData(true)
+        } else {
+            val now = Date().time
+            val millisecondAmountOf30Minutes = 30 * 60 * 1000
+            val canRenewAt = authenticationDate.time + millisecondAmountOf30Minutes
+            val remaining = canRenewAt - now
+            if (remaining > 0) {
+                liveData {
+                    emit(false)
+                    delay(remaining)
+                    emit(true)
+                }
+            } else {
+                MutableLiveData(true)
+            }
         }
     }
 
@@ -137,7 +162,7 @@ class ConnectionStatusViewModel @Inject constructor(
     }
 
     fun renewSession() {
-        discoverApi(preferencesService.getCurrentInstance()!!, null, true)
+        discoverApi(preferencesService.getCurrentInstance()!!, true)
     }
 
     fun reconnectToInstance() {

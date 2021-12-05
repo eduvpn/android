@@ -34,6 +34,7 @@ import nl.eduvpn.app.entity.Instance
 import nl.eduvpn.app.utils.ErrorDialog.show
 import nl.eduvpn.app.utils.Log
 import nl.eduvpn.app.utils.runCatchingCoroutine
+import java.util.*
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
@@ -146,14 +147,24 @@ class ConnectionService(private val preferencesService: PreferencesService,
      * @param activity              The current activity.
      * @param callback              Callback which is called when the states are updated.
      */
-    fun parseAuthorizationResponse(authorizationResponse: AuthorizationResponse, activity: Activity, callback: AuthorizationStateCallback?) {
+    fun parseAuthorizationResponse(
+        authorizationResponse: AuthorizationResponse,
+        activity: Activity,
+        callback: AuthorizationStateCallback?,
+        authenticationDate: Date
+    ) {
         Log.i(TAG, "Got auth response: " + authorizationResponse.jsonSerializeString())
         authorizationService!!.performTokenRequest(
-                authorizationResponse.createTokenExchangeRequest()
+            authorizationResponse.createTokenExchangeRequest()
         ) { tokenResponse: TokenResponse?, ex: AuthorizationException? ->
             if (tokenResponse != null) {
                 // exchange succeeded
-                processTokenExchangeResponse(authorizationResponse, tokenResponse, activity)
+                processTokenExchangeResponse(
+                    authorizationResponse,
+                    tokenResponse,
+                    activity,
+                    authenticationDate
+                )
                 callback?.onAuthorizationStateUpdated()
             } else {
                 // authorization failed, check ex for more details
@@ -171,7 +182,12 @@ class ConnectionService(private val preferencesService: PreferencesService,
      * @param tokenResponse         The response from the token exchange updated into the authorization state
      * @param activity              The current activity.
      */
-    private fun processTokenExchangeResponse(authorizationResponse: AuthorizationResponse, tokenResponse: TokenResponse, activity: Activity) {
+    private fun processTokenExchangeResponse(
+        authorizationResponse: AuthorizationResponse,
+        tokenResponse: TokenResponse,
+        activity: Activity,
+        authenticationDate: Date,
+    ) {
         val authState = AuthState(authorizationResponse, tokenResponse, null)
         val accessToken = authState.accessToken
         if (accessToken == null || accessToken.isEmpty()) {
@@ -181,7 +197,11 @@ class ConnectionService(private val preferencesService: PreferencesService,
         // Save the authorization state.
         preferencesService.setCurrentAuthState(authState)
         // Save the access token for later use.
-        historyService.cacheAuthorizationState(preferencesService.getCurrentInstance()!!, authState)
+        historyService.cacheAuthorizationState(
+            preferencesService.getCurrentInstance()!!,
+            authState,
+            authenticationDate
+        )
         val organization = preferencesService.getCurrentOrganization()
         if (organization != null) {
             historyService.storeSavedOrganization(organization)

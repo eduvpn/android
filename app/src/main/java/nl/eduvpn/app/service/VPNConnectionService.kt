@@ -64,7 +64,7 @@ class VPNConnectionService(
             Log.e(TAG, "No instance available when trying to disconnect.")
             return
         }
-        val authState = historyService.getCachedAuthState(instance)
+        val authState = historyService.getCachedAuthState(instance)?.first
         val savedProfile =
             historyService.getCachedSavedProfile(instance.sanitizedBaseURI, profile.profileId)
         if (savedProfile != null) {

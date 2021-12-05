@@ -151,8 +151,8 @@ public class SerializerServiceTest {
                 .parse("http://eduvpn.org/token"), null));
         AuthState state2 = new AuthState(new AuthorizationServiceConfiguration(Uri.parse("http://example.com/auth"), Uri
                 .parse("http://example.com/token"), null));
-        SavedAuthState token1 = new SavedAuthState(instance1, state1);
-        SavedAuthState token2 = new SavedAuthState(instance2, state2);
+        SavedAuthState token1 = new SavedAuthState(instance1, state1, new Date());
+        SavedAuthState token2 = new SavedAuthState(instance2, state2, new Date());
         List<SavedAuthState> list = Arrays.asList(token1, token2);
         String serializedList = _serializerService.serializeSavedAuthStateList(list);
         List<SavedAuthState> deserializedList = _serializerService.deserializeSavedAuthStateList(serializedList);
@@ -161,8 +161,16 @@ public class SerializerServiceTest {
             assertEquals(list.get(i).getInstance().getSanitizedBaseURI(), deserializedList.get(i)
                     .getInstance()
                     .getSanitizedBaseURI());
-            assertEquals(list.get(i).getAuthState().getAuthorizationServiceConfiguration().authorizationEndpoint, deserializedList.get(i).getAuthState().getAuthorizationServiceConfiguration().authorizationEndpoint);
-            assertEquals(list.get(i).getAuthState().getAuthorizationServiceConfiguration().tokenEndpoint, deserializedList.get(i).getAuthState().getAuthorizationServiceConfiguration().tokenEndpoint);
+            assertEquals(list.get(i)
+                    .getAuthState()
+                    .getAuthorizationServiceConfiguration().authorizationEndpoint, deserializedList.get(i)
+                    .getAuthState()
+                    .getAuthorizationServiceConfiguration().authorizationEndpoint);
+            assertEquals(list.get(i)
+                    .getAuthState()
+                    .getAuthorizationServiceConfiguration().tokenEndpoint, deserializedList.get(i)
+                    .getAuthState()
+                    .getAuthorizationServiceConfiguration().tokenEndpoint);
         }
     }
 
