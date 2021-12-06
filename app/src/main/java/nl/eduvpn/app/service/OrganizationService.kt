@@ -75,7 +75,7 @@ class OrganizationService(private val serializerService: SerializerService,
             val signature = signatureDeferred.await()
 
             try {
-                if (withContext(Dispatchers.Default) { securityService.verifyMinisign(serverList, signature) }) {
+                if (securityService.verifyMinisign(serverList, signature)) {
                     val organizationListJson = JSONObject(serverList)
                     serializerService.deserializeServerList(organizationListJson)
                 } else {
@@ -122,7 +122,7 @@ class OrganizationService(private val serializerService: SerializerService,
             val signature = signatureDeferred.await()
 
             try {
-                if (withContext(Dispatchers.Default) { securityService.verifyMinisign(organizationList, signature) }) {
+                if (securityService.verifyMinisign(organizationList, signature)) {
                     val organizationListJson = JSONObject(organizationList)
                     serializerService.deserializeOrganizationList(organizationListJson)
                 } else {

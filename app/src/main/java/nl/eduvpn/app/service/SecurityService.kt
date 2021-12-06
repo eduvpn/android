@@ -21,11 +21,12 @@ import android.util.Base64
 import androidx.annotation.CheckResult
 import androidx.annotation.VisibleForTesting
 import com.securepreferences.SecurePreferences
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import nl.eduvpn.app.BuildConfig
 import nl.eduvpn.app.utils.Log
 import org.libsodium.jni.NaCl
 import org.libsodium.jni.Sodium
-import java.io.IOException
 import java.nio.charset.StandardCharsets
 import java.security.SecureRandom
 
@@ -99,7 +100,7 @@ class SecurityService(private val context: Context) {
     }
 
     @CheckResult
-    @Throws(IOException::class, IllegalArgumentException::class)
+    @Throws(IllegalArgumentException::class)
     fun verifyMinisign(message: String, signatureBase64: String): Boolean {
         val signatureData = getSecondLine(signatureBase64)
         val signatureBytesWithMetadata = Base64.decode(signatureData, Base64.DEFAULT)
@@ -145,10 +146,12 @@ class SecurityService(private val context: Context) {
      *
      * @return A string containing Base64 encoded random bytes.
      */
-    fun generateSecureRandomString(maxLength: Int?): String {
+    suspend fun generateSecureRandomString(maxLength: Int?): String {
         val random = SecureRandom()
         val randomBytes = ByteArray(128)
-        random.nextBytes(randomBytes)
+        withContext(Dispatchers.IO) {
+            random.nextBytes(randomBytes)
+        }
         // We use Base64 to convert random bytes into a string representation, NOT for encryption
         var base64 = Base64.encodeToString(randomBytes, Base64.DEFAULT)
         // Strip all newlines and spaces (note: the first param is Regexp)
@@ -160,9 +163,8 @@ class SecurityService(private val context: Context) {
     }
 
     @VisibleForTesting
-    @Throws(IOException::class)
     fun getSecondLine(input: String): String {
         val splitLines = input.split(System.lineSeparator())
-        return splitLines.getOrElse(1) { throw IOException("Input has less than 2 lines!") }
+        return splitLines.getOrElse(1) { throw IllegalArgumentException("Input has less than 2 lines!") }
     }
 }

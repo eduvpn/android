@@ -26,7 +26,6 @@ import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import java.io.IOException
 
 @RunWith(AndroidJUnit4::class)
 @LargeTest
@@ -57,7 +56,7 @@ class SecurityServiceTest {
         Assert.assertEquals("5678", output)
     }
 
-    @Test(expected = IOException::class)
+    @Test(expected = IllegalArgumentException::class)
     fun testMinisignGetSecondLineError() {
         val input = "12345678"
         securityService.getSecondLine(input)
@@ -76,7 +75,7 @@ class SecurityServiceTest {
         Assert.assertTrue(securityService.verifyMinisign(toVerify, signature))
     }
 
-    @Test(expected = IOException::class)
+    @Test(expected = IllegalArgumentException::class)
     fun testMinisignVerifyOneLineFail() {
         val toVerify = "test text signed by eduvpn dev"
         val signature = "this is of course the wrong signature"
