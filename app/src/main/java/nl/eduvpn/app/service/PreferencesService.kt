@@ -21,6 +21,7 @@ package nl.eduvpn.app.service
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.SharedPreferences
+import androidx.annotation.VisibleForTesting
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
@@ -95,10 +96,8 @@ class PreferencesService(
         migrateIfNeeded(_sharedPreferences, securePreferences)
     }
 
-    /**
-     * Only to be used for unit testing.
-     */
     @SuppressLint("ApplySharedPref")
+    @VisibleForTesting
     fun migrateIfNeeded(
         newPreferences: SharedPreferences,
         oldPreferences: SharedPreferences
@@ -189,19 +188,20 @@ class PreferencesService(
 
     /**
      * Returns the shared preferences to be used throughout this service.
-     * Only to be used for unit testing.
      *
      * @return The preferences to be used.
      */
+    @VisibleForTesting
     fun getSharedPreferences(): SharedPreferences {
         return _sharedPreferences
     }
 
     /**
      * Clears the shared preferences, but makes sure that the storage version key remains.
-     * Only use this method to clear all data. Only to be used for unit testing.
+     * Only use this method to clear all data.
      */
     @SuppressLint("ApplySharedPref")
+    @VisibleForTesting
     fun clearPreferences() {
         _sharedPreferences.edit().clear().putInt(KEY_STORAGE_VERSION, 2).commit()
     }
