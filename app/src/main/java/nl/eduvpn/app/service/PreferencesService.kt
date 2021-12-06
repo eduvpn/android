@@ -175,7 +175,7 @@ class PreferencesService(
                     )
                 } catch (ex: ClassCastException) {
                     Log.e(TAG, "Unable to migrate saved profiles", ex)
-                    editor.remove(KEY_PROFILE_LIST)
+                    editor.remove(KEY_SAVED_PROFILES)
                 }
             }
 
