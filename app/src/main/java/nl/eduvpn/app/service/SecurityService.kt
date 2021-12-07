@@ -137,7 +137,6 @@ class SecurityService(private val context: Context) {
 
         val algorithm =
             signatureString.substring(0, MINISIGN_ALGO_DESCRIPTION_LEGACY.length)
-        //todo: an attacker can decide what algorithm is used, because we do not verify the global signature
         val signedBytes = when (algorithm) {
             MINISIGN_ALGO_DESCRIPTION_LEGACY -> message
             MINISIGN_ALGO_DESCRIPTION_HASHED -> hashMessage(message)
