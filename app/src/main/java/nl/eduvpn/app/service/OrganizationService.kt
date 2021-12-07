@@ -27,11 +27,13 @@ import nl.eduvpn.app.entity.ServerList
 import nl.eduvpn.app.entity.exception.InvalidSignatureException
 import nl.eduvpn.app.utils.Log
 import nl.eduvpn.app.utils.await
+import nl.eduvpn.app.utils.charset
 import nl.eduvpn.app.utils.runCatchingCoroutine
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.json.JSONObject
 import java.io.IOException
+import java.nio.charset.Charset
 
 /**
  * Service which provides the configurations for organization related data model.
@@ -61,30 +63,30 @@ class OrganizationService(private val serializerService: SerializerService,
             val serverListDeferred = async {
                 runCatchingCoroutine {
                     createGetJsonSingle(serverListUrl)
-                }.mapCatching { serverList ->
-                    if (serverList.isBlank()) {
-                        throw IllegalArgumentException("Server list is empty!")
-                    }
-                    serverList
                 }.onFailure { it ->
                     Log.w(TAG, "Unable to fetch signature of server list!", it)
                 }.getOrThrow()
             }
 
-            val serverList = serverListDeferred.await()
+            val (serverListBytes, serverListCharset) = serverListDeferred.await()
             val signature = signatureDeferred.await()
 
             try {
-                if (securityService.verifyMinisign(serverList, signature)) {
-                    val organizationListJson = JSONObject(serverList)
-                    serializerService.deserializeServerList(organizationListJson)
-                } else {
+                if (!securityService.verifyMinisign(serverListBytes, signature)) {
                     throw InvalidSignatureException("Signature validation failed for server list!")
                 }
             } catch (ex: Exception) {
                 Log.w(TAG, "Unable to verify signature", ex)
                 throw InvalidSignatureException("Signature validation failed for server list!")
             }
+
+            val serverListString = serverListBytes.toString(serverListCharset)
+            if (serverListString.isBlank()) {
+                Log.w(TAG, "Server list is empty")
+                throw IllegalArgumentException("Server list is empty!")
+            }
+            val organizationListJson = JSONObject(serverListString)
+            serializerService.deserializeServerList(organizationListJson)
         }
     }
 
@@ -95,11 +97,6 @@ class OrganizationService(private val serializerService: SerializerService,
             val organizationListDeferred = async {
                 runCatchingCoroutine {
                     createGetJsonSingle(listUrl)
-                }.mapCatching { organizationList ->
-                    if (organizationList.isBlank()) {
-                        throw throw IllegalArgumentException("Organization list is empty!")
-                    }
-                    organizationList
                 }.onFailure {
                     Log.w(TAG, "Unable to fetch organization list!", it)
                 }.getOrThrow()
@@ -118,20 +115,25 @@ class OrganizationService(private val serializerService: SerializerService,
                 }.getOrThrow()
             }
 
-            val organizationList = organizationListDeferred.await()
+            val (organizationListBytes, charset) = organizationListDeferred.await()
             val signature = signatureDeferred.await()
 
             try {
-                if (securityService.verifyMinisign(organizationList, signature)) {
-                    val organizationListJson = JSONObject(organizationList)
-                    serializerService.deserializeOrganizationList(organizationListJson)
-                } else {
+                if (!securityService.verifyMinisign(organizationListBytes, signature)) {
                     throw InvalidSignatureException("Signature validation failed for organization list!")
                 }
             } catch (ex: Exception) {
                 Log.w(TAG, "Unable to verify signature", ex)
                 throw InvalidSignatureException("Signature validation failed for organization list!")
             }
+
+            val organizationListString = organizationListBytes.toString(charset)
+            if (organizationListString.isBlank()) {
+                Log.w(TAG, "Organization list is empty!")
+                throw IllegalArgumentException("Organization list is empty!")
+            }
+            val organizationListJson = JSONObject(organizationListString)
+            serializerService.deserializeOrganizationList(organizationListJson)
         }
     }
 
@@ -149,7 +151,7 @@ class OrganizationService(private val serializerService: SerializerService,
         }
     }
 
-    private suspend fun createGetJsonSingle(url: String): String {
+    private suspend fun createGetJsonSingle(url: String): Pair<ByteArray, Charset> {
         val request = Request.Builder().url(url).build()
         val response = okHttpClient.newCall(request).await()
         val responseBody = response.body
@@ -163,9 +165,10 @@ class OrganizationService(private val serializerService: SerializerService,
         if (isGone) {
             throw OrganizationDeletedException()
         } else if (responseBody != null) {
-            val result = withContext(Dispatchers.IO) { responseBody.string() }
+            val charset = responseBody.charset()
+            val result = withContext(Dispatchers.IO) { responseBody.bytes() }
             responseBody.close()
-            return result
+            return Pair(result, charset)
         } else {
             throw IOException("Response body is empty!")
         }

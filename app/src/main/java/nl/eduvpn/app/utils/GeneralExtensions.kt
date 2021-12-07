@@ -31,7 +31,10 @@ import nl.eduvpn.app.entity.Instance
 import okhttp3.Call
 import okhttp3.Callback
 import okhttp3.Response
+import okhttp3.ResponseBody
+import okhttp3.internal.readBomAsCharset
 import java.io.IOException
+import java.nio.charset.Charset
 import java.util.*
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
@@ -105,6 +108,19 @@ suspend fun Call.await(): Response {
                 }
             })
         }
+    }
+}
+
+/**
+ * Extension method for OkHttp ResponseBody to get the charset of the response
+ * in the same way as [ResponseBody.string].
+ */
+suspend fun ResponseBody.charset(): Charset {
+    val defaultCharset =
+        this.contentType()?.charset(Charsets.UTF_8) ?: Charsets.UTF_8
+    val responseBody = this
+    return withContext(Dispatchers.IO) {
+        responseBody.source().readBomAsCharset(defaultCharset)
     }
 }
 

@@ -66,7 +66,7 @@ class SecurityServiceTest {
     @Test
     fun testMinisignVerifyLegacySuccess() {
         // Generated these on my local machine
-        val toVerify = "test text signed by eduvpn dev\n"
+        val toVerify = "test text signed by eduvpn dev\n".toByteArray()
         val signature = """
             untrusted comment: signature from minisign secret key
             RWTVSfCL4u2OJn0JIYGrDRabCed8+IhHIJYZkqJajfOBOmGpMKYr1fKX+cr9QBo3eufM4SEQfZu6jS19KKBLzmXIp9V4fNPlXwo=
@@ -78,14 +78,14 @@ class SecurityServiceTest {
 
     @Test(expected = IllegalArgumentException::class)
     fun testMinisignVerifyOneLineFail() {
-        val toVerify = "test text signed by eduvpn dev"
+        val toVerify = "test text signed by eduvpn dev".toByteArray()
         val signature = "this is of course the wrong signature"
         Assert.assertFalse(securityService.verifyMinisign(toVerify, signature))
     }
 
     @Test(expected = IllegalArgumentException::class)
     fun testMinisignVerifySignatureFormatException() {
-        val toVerify = "test text signed by eduvpn dev"
+        val toVerify = "test text signed by eduvpn dev".toByteArray()
         val signature =
             "this is of course the wrong signature\naW4gMiBsaW5lcyBzbyB0aGF0IGl0IHdpbGwgZW50ZXIgdGhlIHZlcmlmaWNhdGlvbiBwaGFzZQ=="
         Assert.assertFalse(securityService.verifyMinisign(toVerify, signature))
@@ -94,7 +94,7 @@ class SecurityServiceTest {
     @Test
     fun testMinisignVerifySignatureLegacyFail() {
         val toVerify =
-            "a completely different text which has the same signature as the success text"
+            "a completely different text which has the same signature as the success text".toByteArray()
         val signature = """
             untrusted comment: signature from minisign secret key
             RWTVSfCL4u2OJn0JIYGrDRabCed8+IhHIJYZkqJajfOBOmGpMKYr1fKX+cr9QBo3eufM4SEQfZu6jS19KKBLzmXIp9V4fNPlXwo=
@@ -106,7 +106,7 @@ class SecurityServiceTest {
 
     @Test
     fun testMinisignVerifyHashedSuccess() {
-        val toVerify = "test text signed by eduvpn dev\n"
+        val toVerify = "test text signed by eduvpn dev\n".toByteArray()
         val signature = """
             untrusted comment: signature from minisign secret key
             RUTVSfCL4u2OJsrz7ZONagn+2Z/KzzvDXSCOAV2qoKm8hC5xs6j8xymFVDmkG0kGgrAITLOBVFAA5lYjN+sCwIo8tAk2belgjQk=
@@ -118,7 +118,7 @@ class SecurityServiceTest {
 
     fun testMinisignVerifyHashedFail() {
         val toVerify =
-            "a completely different text which has the same signature as the success text"
+            "a completely different text which has the same signature as the success text".toByteArray()
         val signature = """
             untrusted comment: signature from minisign secret key
             RUTVSfCL4u2OJsrz7ZONagn+2Z/KzzvDXSCOAV2qoKm8hC5xs6j8xymFVDmkG0kGgrAITLOBVFAA5lYjN+sCwIo8tAk2belgjQk=

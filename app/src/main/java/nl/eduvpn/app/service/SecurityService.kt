@@ -113,7 +113,7 @@ class SecurityService(private val context: Context) {
 
     @CheckResult
     @Throws(IllegalArgumentException::class)
-    fun verifyMinisign(message: String, signatureBase64: String): Boolean {
+    fun verifyMinisign(message: ByteArray, signatureBase64: String): Boolean {
         val signatureData = getSecondLine(signatureBase64)
         val signatureBytesWithMetadata = Base64.decode(signatureData, Base64.DEFAULT)
         val signatureString = String(signatureBytesWithMetadata, BYTE_DECODE_CHARSET)
@@ -139,8 +139,8 @@ class SecurityService(private val context: Context) {
             signatureString.substring(0, MINISIGN_ALGO_DESCRIPTION_LEGACY.length)
         //todo: an attacker can decide what algorithm is used, because we do not verify the global signature
         val signedBytes = when (algorithm) {
-            MINISIGN_ALGO_DESCRIPTION_LEGACY -> message.toByteArray(BYTE_DECODE_CHARSET)
-            MINISIGN_ALGO_DESCRIPTION_HASHED -> hashMessage(message.toByteArray())
+            MINISIGN_ALGO_DESCRIPTION_LEGACY -> message
+            MINISIGN_ALGO_DESCRIPTION_HASHED -> hashMessage(message)
             else -> throw IllegalArgumentException(
                 "Unsupported algorithm, we only support '$MINISIGN_ALGO_DESCRIPTION_LEGACY'" +
                         " and '$MINISIGN_ALGO_DESCRIPTION_HASHED'!"
