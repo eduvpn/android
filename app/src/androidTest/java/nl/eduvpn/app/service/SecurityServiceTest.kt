@@ -64,7 +64,7 @@ class SecurityServiceTest {
     }
 
     @Test
-    fun testMinisignVerifySuccess() {
+    fun testMinisignVerifyLegacySuccess() {
         // Generated these on my local machine
         val toVerify = "test text signed by eduvpn dev\n"
         val signature = """
@@ -92,7 +92,7 @@ class SecurityServiceTest {
     }
 
     @Test
-    fun testMinisignVerifySignatureFail() {
+    fun testMinisignVerifySignatureLegacyFail() {
         val toVerify =
             "a completely different text which has the same signature as the success text"
         val signature = """
@@ -102,5 +102,29 @@ class SecurityServiceTest {
             JN8QmOVtAFjkGB3bK9T6fYhaXshmEeZ0mQRNDfSPX4uD4GyUm6DIwzQb9DpyX0/ApAY1+w66FIQXd/+IpEBVAA==
             """.trimIndent()
         Assert.assertFalse(securityService.verifyMinisign(toVerify, signature))
+    }
+
+    @Test
+    fun testMinisignVerifyHashedSuccess() {
+        val toVerify = "test text signed by eduvpn dev\n"
+        val signature = """
+            untrusted comment: signature from minisign secret key
+            RUTVSfCL4u2OJsrz7ZONagn+2Z/KzzvDXSCOAV2qoKm8hC5xs6j8xymFVDmkG0kGgrAITLOBVFAA5lYjN+sCwIo8tAk2belgjQk=
+            trusted comment: timestamp:1638884585	file:test.txt	hashed
+            9+i1fAMvR6KcA5arwb6d8QyZbL260WgzT6dq/iD+VUxbWixNFmZuDVd0/LjvyEb8l9kI1+fM+e7Ci3YWnz3eAA==
+            """.trimIndent()
+        Assert.assertTrue(securityService.verifyMinisign(toVerify, signature))
+    }
+
+    fun testMinisignVerifyHashedFail() {
+        val toVerify =
+            "a completely different text which has the same signature as the success text"
+        val signature = """
+            untrusted comment: signature from minisign secret key
+            RUTVSfCL4u2OJsrz7ZONagn+2Z/KzzvDXSCOAV2qoKm8hC5xs6j8xymFVDmkG0kGgrAITLOBVFAA5lYjN+sCwIo8tAk2belgjQk=
+            trusted comment: timestamp:1638884585	file:test.txt	hashed
+            9+i1fAMvR6KcA5arwb6d8QyZbL260WgzT6dq/iD+VUxbWixNFmZuDVd0/LjvyEb8l9kI1+fM+e7Ci3YWnz3eAA==
+            """.trimIndent()
+        Assert.assertTrue(securityService.verifyMinisign(toVerify, signature))
     }
 }

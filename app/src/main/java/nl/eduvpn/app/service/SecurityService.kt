@@ -43,7 +43,8 @@ class SecurityService(private val context: Context) {
         // Public key ID is used as map keys, public key bytes are used as map values.
         private lateinit var MINISIGN_PUBLIC_KEYS: Map<String, ByteArray> //todo: val
 
-        private const val MINISIGN_ALGO_DESCRIPTION = "Ed"
+        private const val MINISIGN_ALGO_DESCRIPTION_LEGACY = "Ed"
+        private const val MINISIGN_ALGO_DESCRIPTION_HASHED = "ED"
         private const val MINISIGN_RANDOM_BYTES_LENGTH = 8
         private const val MINISIGN_ED_SIGNATURE_LENGTH = 64
         private const val MINISIGN_ED_PUBLIC_KEY_LENGTH = 32
@@ -59,22 +60,26 @@ class SecurityService(private val context: Context) {
                 val publicKeyRawBytes = Base64.decode(publicKey, Base64.DEFAULT)
                 val publicKeyRawString = String(publicKeyRawBytes, BYTE_DECODE_CHARSET)
                 require(
-                    MINISIGN_ALGO_DESCRIPTION.length + MINISIGN_RANDOM_BYTES_LENGTH
+                    MINISIGN_ALGO_DESCRIPTION_LEGACY.length + MINISIGN_RANDOM_BYTES_LENGTH
                             + MINISIGN_ED_PUBLIC_KEY_LENGTH == publicKeyRawBytes.size
                 ) { "Invalid public key: not long enough!" }
+                val algorithm =
+                    publicKeyRawString.substring(0, MINISIGN_ALGO_DESCRIPTION_LEGACY.length)
                 require(
-                    MINISIGN_ALGO_DESCRIPTION ==
-                            publicKeyRawString.substring(0, MINISIGN_ALGO_DESCRIPTION.length)
-                ) { "Unsupported algorithm, we only support '$MINISIGN_ALGO_DESCRIPTION'!" }
+                    algorithm == MINISIGN_ALGO_DESCRIPTION_LEGACY || algorithm == MINISIGN_ALGO_DESCRIPTION_HASHED
+                ) {
+                    "Unsupported algorithm, we only support '$MINISIGN_ALGO_DESCRIPTION_LEGACY'" +
+                            " and '$MINISIGN_ALGO_DESCRIPTION_HASHED'!"
+                }
                 publicKeyRawString
             }
             MINISIGN_PUBLIC_KEYS = publicKeyRawStringList.map { publicKeyRawString ->
                 val publicKeyId = publicKeyRawString.substring(
-                    MINISIGN_ALGO_DESCRIPTION.length,
-                    MINISIGN_ALGO_DESCRIPTION.length + MINISIGN_RANDOM_BYTES_LENGTH
+                    MINISIGN_ALGO_DESCRIPTION_LEGACY.length,
+                    MINISIGN_ALGO_DESCRIPTION_LEGACY.length + MINISIGN_RANDOM_BYTES_LENGTH
                 )
                 val publicKeyBytes = publicKeyRawString
-                    .substring(MINISIGN_ALGO_DESCRIPTION.length + MINISIGN_RANDOM_BYTES_LENGTH)
+                    .substring(MINISIGN_ALGO_DESCRIPTION_LEGACY.length + MINISIGN_RANDOM_BYTES_LENGTH)
                     .toByteArray(BYTE_DECODE_CHARSET)
                 Pair(publicKeyId, publicKeyBytes)
             }.toMap()
@@ -99,39 +104,52 @@ class SecurityService(private val context: Context) {
         return SecurePreferences(context)
     }
 
+    private fun hashMessage(messageBytes: ByteArray): ByteArray {
+        val hash = ByteArray(Sodium.crypto_generichash_bytes_max())
+        val key = ByteArray(0)
+        Sodium.crypto_generichash(hash, hash.size, messageBytes, messageBytes.size, key, key.size)
+        return hash
+    }
+
     @CheckResult
     @Throws(IllegalArgumentException::class)
     fun verifyMinisign(message: String, signatureBase64: String): Boolean {
         val signatureData = getSecondLine(signatureBase64)
         val signatureBytesWithMetadata = Base64.decode(signatureData, Base64.DEFAULT)
-        val messageBytes = message.toByteArray(BYTE_DECODE_CHARSET)
-
         val signatureString = String(signatureBytesWithMetadata, BYTE_DECODE_CHARSET)
 
         require(
-            MINISIGN_ALGO_DESCRIPTION.length + MINISIGN_RANDOM_BYTES_LENGTH
+            MINISIGN_ALGO_DESCRIPTION_LEGACY.length + MINISIGN_RANDOM_BYTES_LENGTH
                     + MINISIGN_ED_SIGNATURE_LENGTH == signatureBytesWithMetadata.size
         ) { "Invalid signature: not long enough!" }
-        require(
-            MINISIGN_ALGO_DESCRIPTION
-                    == signatureString.substring(0, MINISIGN_ALGO_DESCRIPTION.length)
-        ) { "Unsupported algorithm, we only support '$MINISIGN_ALGO_DESCRIPTION'!" }
 
         val publicKeyID = signatureString.substring(
-            MINISIGN_ALGO_DESCRIPTION.length,
-            MINISIGN_ALGO_DESCRIPTION.length + MINISIGN_RANDOM_BYTES_LENGTH
+            MINISIGN_ALGO_DESCRIPTION_LEGACY.length,
+            MINISIGN_ALGO_DESCRIPTION_LEGACY.length + MINISIGN_RANDOM_BYTES_LENGTH
         )
         val publicKeyBytes = MINISIGN_PUBLIC_KEYS.getOrElse(publicKeyID) {
             throw IllegalArgumentException("Untrusted public key!")
         }
 
         val signatureBytes = signatureString
-            .substring(MINISIGN_ALGO_DESCRIPTION.length + MINISIGN_RANDOM_BYTES_LENGTH)
+            .substring(MINISIGN_ALGO_DESCRIPTION_LEGACY.length + MINISIGN_RANDOM_BYTES_LENGTH)
             .toByteArray(BYTE_DECODE_CHARSET)
+
+        val algorithm =
+            signatureString.substring(0, MINISIGN_ALGO_DESCRIPTION_LEGACY.length)
+        //todo: an attacker can decide what algorithm is used, because we do not verify the global signature
+        val signedBytes = when (algorithm) {
+            MINISIGN_ALGO_DESCRIPTION_LEGACY -> message.toByteArray(BYTE_DECODE_CHARSET)
+            MINISIGN_ALGO_DESCRIPTION_HASHED -> hashMessage(message.toByteArray())
+            else -> throw IllegalArgumentException(
+                "Unsupported algorithm, we only support '$MINISIGN_ALGO_DESCRIPTION_LEGACY'" +
+                        " and '$MINISIGN_ALGO_DESCRIPTION_HASHED'!"
+            )
+        }
         val result = Sodium.crypto_sign_verify_detached(
             signatureBytes,
-            messageBytes,
-            messageBytes.size,
+            signedBytes,
+            signedBytes.size,
             publicKeyBytes
         )
         if (result == 0) {
