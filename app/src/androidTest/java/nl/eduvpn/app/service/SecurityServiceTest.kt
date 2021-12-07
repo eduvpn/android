@@ -33,11 +33,12 @@ class SecurityServiceTest {
 
     companion object {
         // If you wish to create more unit tests, these are the parameters:
+        // The private key is encrypted with an empty password.
         private const val UNIT_TEST_PRIVATE_KEY =
             "untrusted comment: minisign encrypted secret key\n" +
-                    "RWRTY0Iyq5pf3lO+R4dtzZDgzvhE6jFtvUd9A1XIz2FN9ZfhhjkAAAACAAAAAAAAAEAAAAAADmmEh0zDiH5308dE01SbOhbIJ6sxxX+1qecOjIBvJuQ0W4uxMk37j3qNCyHD8HhOHsQqa1Jty6ztnnrKT1itKQR2uWPW4kNcnGzQYoLkz/rzESMI2jZE98W7LvV8LQrGv9AMTgOwOPY="
+                    "RWRTY0IydHTrGGkyMdmKU2W/oGeSw1wMbEHJ7K66rGPtKdhxQPcAAAACAAAAAAAAAEAAAAAAr4HIfdsfVl+h+2tt6Wfh4tvkHn6q+Z0yuG32JtIJexV2CI5CCJN8V+QkUPPE9RstlyaVXiGhwJnp7bP9WoBosND5dfyHPFudALlO7cDpTEaBrBUouyaqu5Y0KtwbWQQkJDvhwzxR2zQ="
         private val UNIT_TEST_PUBLIC_KEYS =
-            arrayOf("RWQBThy5Bd7KteZuDmjwUq/6E8IIoOETi85bBcIHz0dj1VokayIb/FYb")
+            arrayOf("RWTVSfCL4u2OJhA5unM7ZFY5l+HOkyzOSGBL95mcPHUeqNpYWI3TzQcn")
     }
 
     private lateinit var securityService: SecurityService
@@ -65,12 +66,12 @@ class SecurityServiceTest {
     @Test
     fun testMinisignVerifySuccess() {
         // Generated these on my local machine
-        val toVerify = "test text signed by eduvpn dev"
+        val toVerify = "test text signed by eduvpn dev\n"
         val signature = """
             untrusted comment: signature from minisign secret key
-            RWQBThy5Bd7KtZdpjhBiwppvZdTt9nc23OVuBQCcNJ6LT5MgIcA4wLxjgGIOMGEbaZVLxqrHNRMWQ3JSGRWn2CxE6UVF+QplMA4=
-            trusted comment: timestamp:1584026575	file:test.txt
-            tOgVBGUEo6HVEEz49P7thyDMZsSrtEHBrz60n/TYaOk4PBNdgXl46z9rG/k3Xul9ewzNeOWY/hv1E2EMEVldDg==
+            RWTVSfCL4u2OJn0JIYGrDRabCed8+IhHIJYZkqJajfOBOmGpMKYr1fKX+cr9QBo3eufM4SEQfZu6jS19KKBLzmXIp9V4fNPlXwo=
+            trusted comment: timestamp:1638884293	file:test.txt
+            JN8QmOVtAFjkGB3bK9T6fYhaXshmEeZ0mQRNDfSPX4uD4GyUm6DIwzQb9DpyX0/ApAY1+w66FIQXd/+IpEBVAA==
             """.trimIndent()
         Assert.assertTrue(securityService.verifyMinisign(toVerify, signature))
     }
@@ -96,9 +97,9 @@ class SecurityServiceTest {
             "a completely different text which has the same signature as the success text"
         val signature = """
             untrusted comment: signature from minisign secret key
-            RWQBThy5Bd7KtZdpjhBiwppvZdTt9nc23OVuBQCcNJ6LT5MgIcA4wLxjgGIOMGEbaZVLxqrHNRMWQ3JSGRWn2CxE6UVF+QplMA4=
-            trusted comment: timestamp:1584026575	file:test.txt
-            tOgVBGUEo6HVEEz49P7thyDMZsSrtEHBrz60n/TYaOk4PBNdgXl46z9rG/k3Xul9ewzNeOWY/hv1E2EMEVldDg==
+            RWTVSfCL4u2OJn0JIYGrDRabCed8+IhHIJYZkqJajfOBOmGpMKYr1fKX+cr9QBo3eufM4SEQfZu6jS19KKBLzmXIp9V4fNPlXwo=
+            trusted comment: timestamp:1638884293	file:test.txt
+            JN8QmOVtAFjkGB3bK9T6fYhaXshmEeZ0mQRNDfSPX4uD4GyUm6DIwzQb9DpyX0/ApAY1+w66FIQXd/+IpEBVAA==
             """.trimIndent()
         Assert.assertFalse(securityService.verifyMinisign(toVerify, signature))
     }
