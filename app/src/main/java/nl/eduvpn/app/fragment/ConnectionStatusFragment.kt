@@ -98,6 +98,7 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
                 if (config != null) {
                     connect(config)
                 } else if (currentProfile != null) {
+                    viewModel.isInDisconnectMode.value = false
                     viewModel.selectProfileToConnectTo(currentProfile)
                 } else {
                     // Should not happen
