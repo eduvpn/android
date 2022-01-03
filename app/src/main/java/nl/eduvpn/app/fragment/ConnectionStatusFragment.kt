@@ -32,6 +32,7 @@ import nl.eduvpn.app.MainActivity
 import nl.eduvpn.app.R
 import nl.eduvpn.app.base.BaseFragment
 import nl.eduvpn.app.databinding.FragmentConnectionStatusBinding
+import nl.eduvpn.app.entity.Profile
 import nl.eduvpn.app.entity.VPNConfig
 import nl.eduvpn.app.fragment.ServerSelectionFragment.Companion.newInstance
 import nl.eduvpn.app.service.VPNConnectionService
@@ -98,8 +99,7 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
                 if (config != null) {
                     connect(config)
                 } else if (currentProfile != null) {
-                    viewModel.isInDisconnectMode.value = false
-                    viewModel.selectProfileToConnectTo(currentProfile)
+                    connectToProfile(currentProfile)
                 } else {
                     // Should not happen
                     returnToHome()
@@ -294,6 +294,12 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
         skipNextDisconnect = true
         viewModel.connectionToConfig(requireActivity(), vpnConfig)
         viewModel.isInDisconnectMode.value = false
+    }
+
+    private fun connectToProfile(currentProfile: Profile) {
+        skipNextDisconnect = true
+        viewModel.isInDisconnectMode.value = false
+        viewModel.selectProfileToConnectTo(currentProfile)
     }
 
     private fun disconnect(retryCount: Int = 0) {
