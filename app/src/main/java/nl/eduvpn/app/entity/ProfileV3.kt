@@ -17,6 +17,13 @@ sealed class ProfileV3 : Profile() {
     abstract fun updateExpiry(expiry: Long?): ProfileV3
 }
 
+// The preferred protocol is stored in the type, instead of having a property 'preferredProtocol'.
+// An OpenVPNProfileV3 can support WireGuard and a WireGuardProfileV3 can support OpenVPN. If
+// OpenVPN is preferred then OpenVPNProfileV3 is used, if WireGuard is preferred then
+// WireGuardProfileV3 is used. This way we can easily use when(..) on the protocol and create
+// functions that only work with a specific protocol. The preferred protocol can change however,
+// forcing us to change the type of the profile.
+
 @Parcelize
 @Serializable
 @SerialName("OpenVPNProfileV3")
