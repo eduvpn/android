@@ -70,7 +70,6 @@ class ConnectionStatusViewModel @Inject constructor(
     val certValidity = MutableLiveData<Spanned?>()
     val profileName = MutableLiveData<String>()
 
-    //todo: does not work when disconnecting outside the app
     val isInDisconnectMode = MutableLiveData(false)
     val serverProfiles = MutableLiveData<List<Profile>>()
     val byteCountLiveData = vpnService.byteCountLiveData

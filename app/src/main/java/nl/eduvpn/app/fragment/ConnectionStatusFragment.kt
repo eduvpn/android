@@ -219,6 +219,7 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
                     isAutomaticCheckChange = true
                     binding.connectionSwitch.isChecked = true
                     isAutomaticCheckChange = false
+                    viewModel.isInDisconnectMode.value = false
                 }
                 VPNStatus.CONNECTING -> {
                     binding.connectionStatusIcon.setImageResource(R.drawable.ic_connection_status_connecting)
@@ -226,6 +227,7 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
                     isAutomaticCheckChange = true
                     binding.connectionSwitch.isChecked = true
                     isAutomaticCheckChange = false
+                    viewModel.isInDisconnectMode.value = false
                 }
                 VPNStatus.PAUSED -> {
                     binding.connectionStatusIcon.setImageResource(R.drawable.ic_connection_status_connecting)
@@ -233,6 +235,7 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
                     isAutomaticCheckChange = true
                     binding.connectionSwitch.isChecked = true
                     isAutomaticCheckChange = false
+                    viewModel.isInDisconnectMode.value = false
                 }
                 VPNStatus.DISCONNECTED -> {
                     binding.connectionStatusIcon.setImageResource(R.drawable.ic_connection_status_disconnected)
@@ -243,6 +246,7 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
                         isAutomaticCheckChange = false
                     }
                     gracefulDisconnectHandler.removeCallbacksAndMessages(null)
+                    viewModel.isInDisconnectMode.value = true
                 }
                 VPNStatus.FAILED -> {
                     skipNextDisconnect = false
@@ -257,6 +261,7 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
                     isAutomaticCheckChange = true
                     binding.connectionSwitch.isChecked = false
                     isAutomaticCheckChange = false
+                    viewModel.isInDisconnectMode.value = true
                 }
             }
         }
@@ -302,6 +307,7 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
 
     private fun disconnect(retryCount: Int = 0) {
         val isConnecting = vpnService.getStatus() == VPNStatus.CONNECTING
+        viewModel.disconnectWithCall(vpnService)
         if (isConnecting) {
             // In this case, if we call disconnect, the process can be killed.
             // That means we won't get any notification from the disconnect event.
@@ -315,13 +321,9 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
                 if (retryCount < 3) {
                     disconnect(retryCount + 1)
                 } else {
-                    viewModel.disconnectWithCall(vpnService)
                     viewModel.isInDisconnectMode.value = true
                 }
             }, WAIT_FOR_DISCONNECT_UNTIL_MS.toLong())
-        } else {
-            viewModel.disconnectWithCall(vpnService)
-            viewModel.isInDisconnectMode.value = true
         }
     }
 
