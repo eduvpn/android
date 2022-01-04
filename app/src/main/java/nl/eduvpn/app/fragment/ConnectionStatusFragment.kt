@@ -16,7 +16,6 @@
  */
 package nl.eduvpn.app.fragment
 
-import SupportedProtocol
 import android.app.NotificationManager
 import android.content.Context
 import android.os.Bundle
@@ -296,40 +295,9 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
     }
 
     private fun connectToProfile(profile: Profile) {
-        val preferredProfile = when (profile) {
-            is ProfileV2 -> profile
-            is OpenVPNProfileV3 -> if (profile.serverPreferredProtocol == SupportedProtocol.WireGuard
-                && !viewModel.preferencesService.getAppSettings().forceTcp()
-            ) {
-                WireGuardProfileV3(
-                    profile.profileId,
-                    profile.displayName,
-                    profile.defaultGateway,
-                    null,
-                    null,
-                    profile.serverPreferredProtocol,
-                    true
-                )
-            } else {
-                profile
-            }
-            is WireGuardProfileV3 -> if (profile.supportsOpenVPN
-                && viewModel.preferencesService.getAppSettings().forceTcp()
-            ) {
-                OpenVPNProfileV3(
-                    profile.profileId,
-                    profile.displayName,
-                    profile.defaultGateway,
-                    null,
-                    profile.serverPreferredProtocol
-                )
-            } else {
-                profile
-            }
-        }
         skipNextDisconnect = true
         viewModel.isInDisconnectMode.value = false
-        viewModel.selectProfileToConnectTo(preferredProfile)
+        viewModel.selectProfileToConnectTo(profile)
     }
 
     private fun disconnect(retryCount: Int = 0) {

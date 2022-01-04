@@ -217,20 +217,54 @@ abstract class BaseConnectionViewModel(
         selectProfile(supportedProfiles)
     }
 
+    private fun updatePreferredProtocol(profile: ProfileV3): ProfileV3 {
+        return when (profile) {
+            is OpenVPNProfileV3 -> if (profile.serverPreferredProtocol == SupportedProtocol.WireGuard
+                && !preferencesService.getAppSettings().forceTcp()
+            ) {
+                WireGuardProfileV3(
+                    profile.profileId,
+                    profile.displayName,
+                    profile.defaultGateway,
+                    null,
+                    null,
+                    profile.serverPreferredProtocol,
+                    true
+                )
+            } else {
+                profile
+            }
+            is WireGuardProfileV3 -> if (profile.supportsOpenVPN
+                && preferencesService.getAppSettings().forceTcp()
+            ) {
+                OpenVPNProfileV3(
+                    profile.profileId,
+                    profile.displayName,
+                    profile.defaultGateway,
+                    null,
+                    profile.serverPreferredProtocol
+                )
+            } else {
+                profile
+            }
+        }
+    }
+
     private suspend fun connectToProfileV3(
         instance: Instance, discoveredAPI: DiscoveredAPIV3,
         profile: ProfileV3, authState: AuthState
     ) {
+        val pProfile = updatePreferredProtocol(profile)
         val cachedSavedProfile =
-            historyService.getCachedSavedProfile(instance.sanitizedBaseURI, profile.profileId)
+            historyService.getCachedSavedProfile(instance.sanitizedBaseURI, pProfile.profileId)
         val now = System.currentTimeMillis() / 10000
         val expiry = (cachedSavedProfile?.profile as? ProfileV3)?.expiry
         if (expiry != null && expiry > now) {
-            val storedVPNConfig = when (profile) {
+            val storedVPNConfig = when (pProfile) {
                 is OpenVPNProfileV3 -> eduVpnOpenVpnService.findMatchingVpnProfile(
                     cachedSavedProfile
                 )?.let { p -> VPNConfig.OpenVPN(p) }
-                is WireGuardProfileV3 -> profile.config?.let { p -> VPNConfig.WireGuard(p) }
+                is WireGuardProfileV3 -> pProfile.config?.let { p -> VPNConfig.WireGuard(p) }
             }
             if (storedVPNConfig != null) {
                 preferencesService.setCurrentProfile(cachedSavedProfile.profile)
@@ -242,16 +276,16 @@ abstract class BaseConnectionViewModel(
         val configName = FormattingUtils.formatProfileName(
             context,
             instance,
-            profile
+            pProfile
         )
         connectionState.value = ConnectionState.ProfileDownloadingKeyPair
         val (configString, expireDate) = runCatchingCoroutine {
-            when (profile) {
+            when (pProfile) {
                 is OpenVPNProfileV3 -> {
                     fetchProfileConfigurationOpenVPN(
                         discoveredAPI,
                         authState,
-                        profile,
+                        pProfile,
                         preferencesService.getAppSettings().forceTcp()
                     )
                 }
@@ -260,7 +294,7 @@ abstract class BaseConnectionViewModel(
                     val (configString, expireDate) = fetchProfileConfigurationWireGuard(
                         discoveredAPI,
                         authState,
-                        profile,
+                        pProfile,
                         keyPair
                     )
                     val configStringWithPrivateKey = configString
@@ -277,7 +311,7 @@ abstract class BaseConnectionViewModel(
         }.getOrElse { return }
 
         val (vpnConfig, updatedProfile) = when (val profileWithExpiry =
-            profile.updateExpiry(expiry = expireDate?.time)) {
+            pProfile.updateExpiry(expiry = expireDate?.time)) {
             is OpenVPNProfileV3 -> {
                 val vpnProfile = eduVpnOpenVpnService.importConfig(
                     configString,

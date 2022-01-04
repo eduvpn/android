@@ -40,7 +40,7 @@ import javax.inject.Named
 
 class ConnectionStatusViewModel @Inject constructor(
     private val context: Context,
-    val preferencesService: PreferencesService,
+    private val preferencesService: PreferencesService,
     private val eduVPNOpenVPNService: EduVPNOpenVPNService,
     private val vpnService: VPNService,
     private val historyService: HistoryService,
