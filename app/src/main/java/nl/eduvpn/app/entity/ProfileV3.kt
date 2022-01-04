@@ -1,5 +1,6 @@
 package nl.eduvpn.app.entity
 
+import SupportedProtocol
 import com.wireguard.config.Config
 import kotlinx.parcelize.Parcelize
 import kotlinx.parcelize.RawValue
@@ -11,12 +12,14 @@ import nl.eduvpn.app.utils.serializer.WireGuardConfigSerializer
 sealed class ProfileV3 : Profile() {
     abstract val defaultGateway: Boolean
     abstract val expiry: Long?
+    abstract val serverPreferredProtocol: SupportedProtocol?
+
     abstract fun updateExpiry(expiry: Long?): ProfileV3
 }
 
 @Parcelize
 @Serializable
-@SerialName("OpenVpnProfileV3")
+@SerialName("OpenVPNProfileV3")
 data class OpenVPNProfileV3(
     @SerialName("profile_id")
     override val profileId: String,
@@ -30,6 +33,9 @@ data class OpenVPNProfileV3(
 
     @SerialName("expiry")
     override val expiry: Long?,
+
+    @SerialName("server_preferred_protocol")
+    override val serverPreferredProtocol: SupportedProtocol?,
 ) : ProfileV3() {
     override fun updateExpiry(expiry: Long?): ProfileV3 = copy(expiry = expiry)
 }
@@ -55,6 +61,12 @@ data class WireGuardProfileV3(
 
     @SerialName("expiry")
     override val expiry: Long?,
+
+    @SerialName("server_preferred_protocol")
+    override val serverPreferredProtocol: SupportedProtocol?,
+
+    @SerialName("supports_openvpn")
+    val supportsOpenVPN: Boolean,
 ) : ProfileV3() {
     override fun updateExpiry(expiry: Long?): ProfileV3 = copy(expiry = expiry)
 }

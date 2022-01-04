@@ -78,7 +78,7 @@ abstract class BaseConnectionViewModel(
     val warning = MutableLiveData<String>()
 
     val parentAction = MutableLiveData<ParentAction?>()
-    
+
     fun discoverApi(instance: Instance, reauthorize: Boolean = false) {
         // If no discovered API, fetch it first, then initiate the connection for the login
         connectionState.value = ConnectionState.DiscoveringApi
@@ -192,14 +192,17 @@ abstract class BaseConnectionViewModel(
                             profile.profileId,
                             profile.displayName,
                             profile.defaultGateway,
-                            null
+                            null,
+                            preferredByServer,
                         )
                         SupportedProtocol.WireGuard -> WireGuardProfileV3(
                             profile.profileId,
                             profile.displayName,
                             profile.defaultGateway,
                             null,
-                            null
+                            null,
+                            preferredByServer,
+                            supportedProtocols.contains(SupportedProtocol.OpenVPN)
                         )
                     }
                 }

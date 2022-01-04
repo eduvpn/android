@@ -16,6 +16,7 @@
  */
 package nl.eduvpn.app.fragment
 
+import SupportedProtocol
 import android.app.NotificationManager
 import android.content.Context
 import android.os.Bundle
@@ -32,8 +33,7 @@ import nl.eduvpn.app.MainActivity
 import nl.eduvpn.app.R
 import nl.eduvpn.app.base.BaseFragment
 import nl.eduvpn.app.databinding.FragmentConnectionStatusBinding
-import nl.eduvpn.app.entity.Profile
-import nl.eduvpn.app.entity.VPNConfig
+import nl.eduvpn.app.entity.*
 import nl.eduvpn.app.fragment.ServerSelectionFragment.Companion.newInstance
 import nl.eduvpn.app.service.VPNConnectionService
 import nl.eduvpn.app.service.VPNService
@@ -296,10 +296,41 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
         viewModel.isInDisconnectMode.value = false
     }
 
-    private fun connectToProfile(currentProfile: Profile) {
+    private fun connectToProfile(profile: Profile) {
+        val preferredProfile = when (profile) {
+            is ProfileV2 -> profile
+            is OpenVPNProfileV3 -> if (profile.serverPreferredProtocol == SupportedProtocol.WireGuard
+                && !viewModel.preferencesService.getAppSettings().forceTcp()
+            ) {
+                WireGuardProfileV3(
+                    profile.profileId,
+                    profile.displayName,
+                    profile.defaultGateway,
+                    null,
+                    null,
+                    profile.serverPreferredProtocol,
+                    true
+                )
+            } else {
+                profile
+            }
+            is WireGuardProfileV3 -> if (profile.supportsOpenVPN
+                && viewModel.preferencesService.getAppSettings().forceTcp()
+            ) {
+                OpenVPNProfileV3(
+                    profile.profileId,
+                    profile.displayName,
+                    profile.defaultGateway,
+                    null,
+                    profile.serverPreferredProtocol
+                )
+            } else {
+                profile
+            }
+        }
         skipNextDisconnect = true
         viewModel.isInDisconnectMode.value = false
-        viewModel.selectProfileToConnectTo(currentProfile)
+        viewModel.selectProfileToConnectTo(preferredProfile)
     }
 
     private fun disconnect(retryCount: Int = 0) {
