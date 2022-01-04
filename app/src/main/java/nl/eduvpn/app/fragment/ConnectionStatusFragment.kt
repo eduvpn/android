@@ -125,8 +125,7 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
                         .toTypedArray()) { _, which ->
                         val profileToConnectTo = profileItems[which]
                         activity?.let {
-                            viewModel.isInDisconnectMode.value = false
-                            viewModel.selectProfileToConnectTo(profileToConnectTo)
+                            connectToProfile(profileToConnectTo)
                         }
                     }.show()
             } else {
@@ -191,7 +190,7 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
                             parentAction.profiles.find { p -> p.profileId == currentProfile.profileId }
                         }
                     if (profile != null) {
-                        viewModel.selectProfileToConnectTo(profile)
+                        connectToProfile(profile)
                     } else {
                         (activity as? MainActivity)?.openFragment(
                             ProfileSelectionFragment.newInstance(
