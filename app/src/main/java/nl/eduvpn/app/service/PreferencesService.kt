@@ -22,14 +22,10 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.SharedPreferences
 import androidx.annotation.VisibleForTesting
-import kotlinx.serialization.json.JsonArray
-import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.JsonPrimitive
 import net.openid.appauth.AuthState
 import nl.eduvpn.app.Constants
 import nl.eduvpn.app.entity.*
 import nl.eduvpn.app.utils.Log
-import nl.eduvpn.app.utils.jsonInstance
 import org.json.JSONException
 import org.json.JSONObject
 
@@ -50,7 +46,7 @@ class PreferencesService(
     companion object {
         private val TAG = PreferencesService::class.simpleName
 
-        private const val STORAGE_VERSION = 4
+        private const val STORAGE_VERSION = 3
 
         private const val KEY_PREFERENCES_NAME = "app_preferences"
 
@@ -139,49 +135,12 @@ class PreferencesService(
             editor.remove(KEY_INSTANCE_LIST_SECURE_INTERNET)
             @Suppress("DEPRECATION")
             editor.remove(KEY_INSTANCE_LIST_INSTITUTE_ACCESS)
+
+            editor.putInt(KEY_STORAGE_VERSION, STORAGE_VERSION)
+
             editor.commit()
             if (Constants.DEBUG) {
                 Log.d(TAG, "Migrated over to storage version v3.")
-            }
-        }
-        if (version < 4) {
-            val editor = newPreferences.edit()
-
-            val oldSavedProfileListString =
-                getSharedPreferences().getString(KEY_SAVED_PROFILES, null)
-
-            if (oldSavedProfileListString != null) {
-                try {
-                    val savedProfiles = jsonInstance.decodeFromString(
-                        JsonObject.Companion
-                            .serializer(), oldSavedProfileListString
-                    )
-                    val list = savedProfiles.getOrDefault("data", null) as JsonArray
-                    val migratedList = JsonArray(list.map { sp ->
-                        val savedProfile = sp as JsonObject
-                        val profile = savedProfile["profile"] as JsonObject
-                        val migratedProfile =
-                            JsonObject(profile.plus(Pair("type", JsonPrimitive("ProfileV2"))))
-                        JsonObject(savedProfile.plus(Pair("profile", migratedProfile)))
-                    })
-                    val migratedProfiles =
-                        JsonObject(savedProfiles.plus(Pair("data", migratedList)))
-                    editor.putString(
-                        KEY_SAVED_PROFILES, jsonInstance.encodeToString(
-                            JsonObject.Companion
-                                .serializer(), migratedProfiles
-                        )
-                    )
-                } catch (ex: ClassCastException) {
-                    Log.e(TAG, "Unable to migrate saved profiles", ex)
-                    editor.remove(KEY_SAVED_PROFILES)
-                }
-            }
-
-            editor.putInt(KEY_STORAGE_VERSION, STORAGE_VERSION)
-            editor.commit()
-            if (Constants.DEBUG) {
-                Log.d(TAG, "Migrated over to storage version v4.")
             }
         }
     }

@@ -30,7 +30,7 @@ data class SavedProfile(
     val instance: Instance,
 
     @SerialName("profile")
-    val profile: Profile,
+    val profile: ProfileV2,
 
     @SerialName("profile_uuid")
     val profileUUID: String

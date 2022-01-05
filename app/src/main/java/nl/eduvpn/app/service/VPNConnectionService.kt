@@ -14,10 +14,7 @@ import nl.eduvpn.app.Constants
 import nl.eduvpn.app.DisconnectVPNBroadcastReceiver
 import nl.eduvpn.app.MainActivity
 import nl.eduvpn.app.R
-import nl.eduvpn.app.entity.DiscoveredAPIV3
-import nl.eduvpn.app.entity.ProfileV3
-import nl.eduvpn.app.entity.VPNConfig
-import nl.eduvpn.app.entity.WireGuardProfileV3
+import nl.eduvpn.app.entity.*
 import nl.eduvpn.app.utils.FormattingUtils
 import nl.eduvpn.app.utils.Log
 import nl.eduvpn.app.utils.runCatchingCoroutine
@@ -53,11 +50,13 @@ class VPNConnectionService(
             return
         }
         val profile = preferencesService.getCurrentProfile() ?: return
-        if (profile !is ProfileV3) {
-            throw java.lang.IllegalStateException("Discovered API V3 with incompatible Profile")
-        }
-        if (profile is WireGuardProfileV3) {
-            preferencesService.setCurrentProfile(profile.copy(config = null, expiry = null))
+        when (profile) {
+            is ProfileV2 -> throw java.lang.IllegalStateException("Discovered API V3 with incompatible Profile")
+            is WireGuardProfileV3 -> preferencesService.setCurrentProfile(profile.copy(expiry = null))
+            // We do not have to remove the VpnConfig from the ProfileManager in EduVPNOpenVPNService
+            // because only 1 VpnConfig is stored at a time and it will thus be automatically overwritten.
+            // Storing more VpnConfigs is useless as it becomes invalid after a /disconnect call.
+            is OpenVPNProfileV3 -> Unit
         }
         val instance = preferencesService.getCurrentInstance()
         if (instance == null) {
@@ -65,15 +64,6 @@ class VPNConnectionService(
             return
         }
         val authState = historyService.getCachedAuthState(instance)?.first
-        val savedProfile =
-            historyService.getCachedSavedProfile(instance.sanitizedBaseURI, profile.profileId)
-        if (savedProfile != null) {
-            // We do not have to remove the VpnConfig from the ProfileManager in EduVPNOpenVPNService
-            // because only 1 VpnConfig is stored at a time and it will thus be automatically overwritten.
-            // Storing more VpnConfigs is useless as it becomes invalid after a /disconnect call.
-            historyService.removeSavedProfile(savedProfile)
-        }
-
         // We do not wait for the disconnect request to finish when disconnecting,
         // but when connecting again, a call to the API will wait for the disconnect to finish.
         GlobalScope.launch {

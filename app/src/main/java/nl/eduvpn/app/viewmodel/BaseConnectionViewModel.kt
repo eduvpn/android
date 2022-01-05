@@ -201,7 +201,6 @@ abstract class BaseConnectionViewModel(
                             profile.displayName,
                             profile.defaultGateway,
                             null,
-                            null,
                             serverPreferred,
                             supportedProtocols.contains(SupportedProtocol.OpenVPN)
                         )
@@ -227,7 +226,6 @@ abstract class BaseConnectionViewModel(
                     profile.profileId,
                     profile.displayName,
                     profile.defaultGateway,
-                    null,
                     null,
                     profile.serverPreferredProtocol,
                     true
@@ -256,29 +254,6 @@ abstract class BaseConnectionViewModel(
         profile: ProfileV3, authState: AuthState
     ) {
         val pProfile = updatePreferredProtocol(profile)
-        val cachedSavedProfile =
-            historyService.getCachedSavedProfile(instance.sanitizedBaseURI, pProfile.profileId)
-        val now = System.currentTimeMillis() / 10000
-        val expiry = (cachedSavedProfile?.profile as? ProfileV3)?.expiry
-        if (expiry != null && expiry > now) {
-            val storedVPNConfig = when (pProfile) {
-                is OpenVPNProfileV3 -> eduVpnOpenVpnService.findMatchingVpnProfile(
-                    cachedSavedProfile
-                )?.let { p -> VPNConfig.OpenVPN(p) }
-                is WireGuardProfileV3 -> pProfile.config?.let { p -> VPNConfig.WireGuard(p) }
-            }
-            if (storedVPNConfig != null) {
-                preferencesService.setCurrentProfile(cachedSavedProfile.profile)
-                parentAction.value =
-                    ParentAction.ConnectWithConfig(storedVPNConfig)
-                return
-            }
-        }
-        val configName = FormattingUtils.formatProfileName(
-            context,
-            instance,
-            pProfile
-        )
         connectionState.value = ConnectionState.ProfileDownloadingKeyPair
         val (configString, expireDate) = runCatchingCoroutine {
             when (pProfile) {
@@ -311,15 +286,20 @@ abstract class BaseConnectionViewModel(
             showError<Unit>(throwable, R.string.error_creating_keypair)
         }.getOrElse { return }
 
-        val (vpnConfig, updatedProfile) = when (val profileWithExpiry =
-            pProfile.updateExpiry(expiry = expireDate?.time)) {
+        val updatedProfile = pProfile.updateExpiry(expiry = expireDate?.time)
+        val vpnConfig = when (updatedProfile) {
             is OpenVPNProfileV3 -> {
+                val configName = FormattingUtils.formatProfileName(
+                    context,
+                    instance,
+                    pProfile
+                )
                 val vpnProfile = eduVpnOpenVpnService.importConfig(
                     configString,
                     configName,
                     null,
                 )
-                Pair(vpnProfile?.let { p -> VPNConfig.OpenVPN(p) }, profileWithExpiry)
+                vpnProfile?.let { p -> VPNConfig.OpenVPN(p) }
             }
             is WireGuardProfileV3 -> {
                 val config = withContext(Dispatchers.IO) {
@@ -329,10 +309,7 @@ abstract class BaseConnectionViewModel(
                         null
                     }
                 }
-                Pair(
-                    config?.let { c -> VPNConfig.WireGuard(c) },
-                    profileWithExpiry.copy(config = config)
-                )
+                config?.let { c -> VPNConfig.WireGuard(c) }
             }
         }
         if (vpnConfig == null) {
@@ -344,18 +321,6 @@ abstract class BaseConnectionViewModel(
             return
         }
         preferencesService.setCurrentProfile(updatedProfile)
-
-        val uuidString = when (vpnConfig) {
-            is VPNConfig.OpenVPN -> vpnConfig.profile.uuidString
-            is VPNConfig.WireGuard -> "not used for WireGuard" //todo
-        }
-        // Cache the profile
-        val savedProfile = SavedProfile(
-            instance,
-            updatedProfile,
-            uuidString
-        )
-        historyService.cacheSavedProfile(savedProfile)
         // Connect with the profile
         parentAction.value =
             ParentAction.ConnectWithConfig(vpnConfig)

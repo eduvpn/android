@@ -30,7 +30,10 @@ import androidx.lifecycle.liveData
 import kotlinx.coroutines.delay
 import nl.eduvpn.app.CertExpiredBroadcastReceiver
 import nl.eduvpn.app.R
-import nl.eduvpn.app.entity.*
+import nl.eduvpn.app.entity.Profile
+import nl.eduvpn.app.entity.ProfileV2
+import nl.eduvpn.app.entity.ProfileV3
+import nl.eduvpn.app.entity.VPNConfig
 import nl.eduvpn.app.service.*
 import nl.eduvpn.app.utils.getCountryText
 import nl.eduvpn.app.utils.toSingleEvent
@@ -214,17 +217,17 @@ class ConnectionStatusViewModel @Inject constructor(
         return true
     }
 
-    fun findCurrentConfig(): VPNConfig? {
+    fun findCurrentConfigV2(): VPNConfig.OpenVPN? {
         val currentProfile = preferencesService.getCurrentProfile() ?: return null
         return when (currentProfile) {
-            is WireGuardProfileV3 -> currentProfile.config?.let { c -> VPNConfig.WireGuard(c) }
-            else -> {
+            is ProfileV2 -> {
                 val matchingSavedProfile = preferencesService.getSavedProfileList()
                     ?.firstOrNull { it.profile.profileId == currentProfile.profileId }
                     ?: return null
                 val vpnProfile = eduVPNOpenVPNService.findMatchingVpnProfile(matchingSavedProfile)
                 vpnProfile?.let { p -> VPNConfig.OpenVPN(p) }
             }
+            is ProfileV3 -> null
         }
     }
 

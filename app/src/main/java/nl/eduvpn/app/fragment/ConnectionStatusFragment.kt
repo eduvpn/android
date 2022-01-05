@@ -94,9 +94,9 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
                 disconnect()
             } else {
                 val currentProfile = viewModel.findCurrentProfile()
-                val config = viewModel.findCurrentConfig()
-                if (config != null) {
-                    connect(config)
+                val configV2 = viewModel.findCurrentConfigV2()
+                if (configV2 != null) {
+                    connect(configV2)
                 } else if (currentProfile != null) {
                     connectToProfile(currentProfile)
                 } else {
