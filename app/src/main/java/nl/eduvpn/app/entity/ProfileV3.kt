@@ -1,11 +1,11 @@
 package nl.eduvpn.app.entity
 
-import SupportedProtocol
 import com.wireguard.config.Config
 import kotlinx.parcelize.Parcelize
 import kotlinx.parcelize.RawValue
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import nl.eduvpn.app.entity.v3.SupportedProtocol
 import nl.eduvpn.app.utils.serializer.TranslatableStringSerializer
 import nl.eduvpn.app.utils.serializer.WireGuardConfigSerializer
 

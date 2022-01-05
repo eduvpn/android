@@ -1,3 +1,5 @@
+package nl.eduvpn.app.entity.v3
+
 enum class SupportedProtocol {
     OpenVPN,
     WireGuard;
@@ -12,4 +14,3 @@ enum class SupportedProtocol {
         }
     }
 }
-

@@ -19,7 +19,6 @@
 package nl.eduvpn.app.viewmodel
 
 import ProfileV3API
-import SupportedProtocol
 import android.app.Activity
 import android.content.Context
 import androidx.annotation.StringRes
@@ -36,6 +35,7 @@ import nl.eduvpn.app.BuildConfig
 import nl.eduvpn.app.Constants
 import nl.eduvpn.app.R
 import nl.eduvpn.app.entity.*
+import nl.eduvpn.app.entity.v3.SupportedProtocol
 import nl.eduvpn.app.service.*
 import nl.eduvpn.app.utils.*
 import java.io.BufferedReader
