@@ -12,7 +12,7 @@ import nl.eduvpn.app.utils.serializer.WireGuardConfigSerializer
 sealed class ProfileV3 : Profile() {
     abstract val defaultGateway: Boolean
     abstract val expiry: Long?
-    abstract val serverPreferredProtocol: SupportedProtocol?
+    abstract val serverPreferredProtocol: SupportedProtocol
 
     abstract fun updateExpiry(expiry: Long?): ProfileV3
 }
@@ -42,7 +42,7 @@ data class OpenVPNProfileV3(
     override val expiry: Long?,
 
     @SerialName("server_preferred_protocol")
-    override val serverPreferredProtocol: SupportedProtocol?,
+    override val serverPreferredProtocol: SupportedProtocol,
 ) : ProfileV3() {
     override fun updateExpiry(expiry: Long?): ProfileV3 = copy(expiry = expiry)
 }
@@ -70,7 +70,7 @@ data class WireGuardProfileV3(
     override val expiry: Long?,
 
     @SerialName("server_preferred_protocol")
-    override val serverPreferredProtocol: SupportedProtocol?,
+    override val serverPreferredProtocol: SupportedProtocol,
 
     @SerialName("supports_openvpn")
     val supportsOpenVPN: Boolean,

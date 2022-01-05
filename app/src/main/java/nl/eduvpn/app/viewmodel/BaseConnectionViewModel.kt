@@ -173,27 +173,28 @@ abstract class BaseConnectionViewModel(
             .getOrElse { return }
         val supportedProfiles =
             apiProfiles.mapNotNull { profile ->
-                val supportedProtocols =
-                    profile.vpnProtocolList.mapNotNull { protocol ->
-                        SupportedProtocol.fromString(protocol)
-                    }
-                val preferredByServer = SupportedProtocol.fromString(profile.vpnProtocolPreferred)
-                val protocolOrNull =
-                    if (preferencesService.getAppSettings().forceTcp()
-                        && supportedProtocols.contains(SupportedProtocol.OpenVPN)
-                    ) {
-                        SupportedProtocol.OpenVPN
-                    } else {
-                        preferredByServer ?: supportedProtocols.firstOrNull()
-                    }
-                protocolOrNull?.let { protocol ->
-                    when (protocol) {
+                val supportedProtocols = profile.vpnProtocolList.mapNotNull { protocol ->
+                    SupportedProtocol.fromString(protocol)
+                }
+                val serverPreferredOrNull =
+                    SupportedProtocol.fromString(profile.vpnProtocolPreferred)
+                        ?: supportedProtocols.firstOrNull()
+                serverPreferredOrNull?.let { serverPreferred ->
+                    val preferredProtocol =
+                        if (preferencesService.getAppSettings().forceTcp()
+                            && supportedProtocols.contains(SupportedProtocol.OpenVPN)
+                        ) {
+                            SupportedProtocol.OpenVPN
+                        } else {
+                            serverPreferred
+                        }
+                    when (preferredProtocol) {
                         SupportedProtocol.OpenVPN -> OpenVPNProfileV3(
                             profile.profileId,
                             profile.displayName,
                             profile.defaultGateway,
                             null,
-                            preferredByServer,
+                            serverPreferred,
                         )
                         SupportedProtocol.WireGuard -> WireGuardProfileV3(
                             profile.profileId,
@@ -201,7 +202,7 @@ abstract class BaseConnectionViewModel(
                             profile.defaultGateway,
                             null,
                             null,
-                            preferredByServer,
+                            serverPreferred,
                             supportedProtocols.contains(SupportedProtocol.OpenVPN)
                         )
                     }
