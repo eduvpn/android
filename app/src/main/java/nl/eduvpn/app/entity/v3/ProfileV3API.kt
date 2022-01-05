@@ -14,12 +14,6 @@ data class ProfileV3API(
     @Serializable(with = TranslatableStringSerializer::class)
     val displayName: TranslatableString,
 
-    @SerialName("default_gateway")
-    val defaultGateway: Boolean,
-
     @SerialName("vpn_proto_list")
     val vpnProtocolList: List<String>,
-
-    @SerialName("vpn_proto_preferred")
-    val vpnProtocolPreferred: String,
 )

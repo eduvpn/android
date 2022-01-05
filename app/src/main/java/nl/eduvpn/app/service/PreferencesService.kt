@@ -25,6 +25,7 @@ import androidx.annotation.VisibleForTesting
 import net.openid.appauth.AuthState
 import nl.eduvpn.app.Constants
 import nl.eduvpn.app.entity.*
+import nl.eduvpn.app.entity.v3.Protocol
 import nl.eduvpn.app.utils.Log
 import org.json.JSONException
 import org.json.JSONObject
@@ -56,6 +57,7 @@ class PreferencesService(
         const val KEY_ORGANIZATION = "organization"
         const val KEY_INSTANCE = "instance"
         const val KEY_PROFILE = "profile"
+        const val KEY_VPN_PROTOCOL = "vpn_protocol"
         const val KEY_PROFILE_LIST = "profile_list"
         const val KEY_DISCOVERED_API = "discovered_api"
 
@@ -247,9 +249,11 @@ class PreferencesService(
     /**
      * Saves the current profile as the selected one.
      *
-     * @param profile The profile to save.
+     * @param profile  The profile to save.
+     * @param protocol Protocol used by the profile, null if not known yet.
      */
-    fun setCurrentProfile(profile: Profile?) {
+    fun setCurrentProfile(profile: Profile?, protocol: Protocol?) {
+        setCurrentProtocol(protocol)
         try {
             if (profile == null) {
                 getSharedPreferences().edit().remove(KEY_PROFILE).apply()
@@ -689,6 +693,31 @@ class PreferencesService(
             } catch (ex: Exception) {
                 Log.w(TAG, "Unable to set server list!")
             }
+        }
+    }
+
+    private fun setCurrentProtocol(protocol: Protocol?) {
+        try {
+            if (protocol == null) {
+                getSharedPreferences().edit().remove(KEY_VPN_PROTOCOL).apply()
+            } else {
+                getSharedPreferences().edit()
+                    .putString(KEY_VPN_PROTOCOL, _serializerService.serializeProtocol(protocol))
+                    .apply()
+            }
+        } catch (ex: SerializerService.UnknownFormatException) {
+            Log.e(TAG, "Unable to serialize protocol!", ex)
+        }
+    }
+
+    fun getCurrentProtocol(): Protocol? {
+        val serializedProtocol = getSharedPreferences().getString(KEY_VPN_PROTOCOL, null)
+            ?: return null
+        return try {
+            _serializerService.deserializeProtocol(serializedProtocol)
+        } catch (ex: SerializerService.UnknownFormatException) {
+            Log.e(TAG, "Unable to deserialize saved protocol!", ex)
+            null
         }
     }
 }

@@ -27,12 +27,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.modules.SerializersModule
 import nl.eduvpn.app.Constants
 import nl.eduvpn.app.entity.Instance
-import nl.eduvpn.app.entity.OpenVPNProfileV3
-import nl.eduvpn.app.entity.Profile
-import nl.eduvpn.app.entity.WireGuardProfileV3
 import okhttp3.Call
 import okhttp3.Callback
 import okhttp3.Response
@@ -130,14 +126,6 @@ inline fun <R> runCatchingCoroutine(block: () -> R): Result<R> {
 val jsonInstance: Json by lazy {
     Json {
         ignoreUnknownKeys = true
-        // fixes nl.eduvpn.app.service.SerializerService$UnknownFormatException:
-        // kotlinx.serialization.SerializationException: Class 'WireGuardProfileV3' is not
-        // registered for polymorphic serialization in the scope of 'Profile'.
-        // todo: create or reference issue on kotlinx.serialization project
-        serializersModule = SerializersModule {
-            polymorphic(Profile::class, WireGuardProfileV3::class, WireGuardProfileV3.serializer())
-            polymorphic(Profile::class, OpenVPNProfileV3::class, OpenVPNProfileV3.serializer())
-        }
     }
 }
 

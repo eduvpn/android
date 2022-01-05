@@ -60,6 +60,7 @@ import nl.eduvpn.app.entity.message.Maintenance;
 import nl.eduvpn.app.entity.message.Message;
 import nl.eduvpn.app.entity.message.Notification;
 import nl.eduvpn.app.entity.v3.Info;
+import nl.eduvpn.app.entity.v3.Protocol;
 import nl.eduvpn.app.utils.GeneralExtensionsKt;
 import nl.eduvpn.app.utils.Log;
 import nl.eduvpn.app.utils.serializer.KeyPairSerializer;
@@ -634,5 +635,21 @@ public class SerializerService {
             translationsMap.put(key, value);
         }
         return new TranslatableString(translationsMap);
+    }
+
+    public String serializeProtocol(Protocol protocol) throws UnknownFormatException {
+        try {
+            return jsonSerializer.encodeToString(Protocol.Companion.serializer(), protocol);
+        } catch (SerializationException ex) {
+            throw new UnknownFormatException(ex);
+        }
+    }
+
+    public Protocol deserializeProtocol(String json) throws UnknownFormatException {
+        try {
+            return jsonSerializer.decodeFromString(Protocol.Companion.serializer(), json);
+        } catch (SerializationException ex) {
+            throw new UnknownFormatException(ex);
+        }
     }
 }

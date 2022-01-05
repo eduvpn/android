@@ -26,9 +26,7 @@ import dagger.Provides
 import kotlinx.coroutines.delay
 import nl.eduvpn.app.BuildConfig
 import nl.eduvpn.app.EduVPNApplication
-import nl.eduvpn.app.entity.OpenVPNProfileV3
-import nl.eduvpn.app.entity.ProfileV2
-import nl.eduvpn.app.entity.WireGuardProfileV3
+import nl.eduvpn.app.entity.v3.Protocol
 import nl.eduvpn.app.livedata.ConnectionTimeLiveData
 import nl.eduvpn.app.livedata.openvpn.IPLiveData
 import nl.eduvpn.app.service.*
@@ -161,10 +159,9 @@ class ApplicationModule(private val application: EduVPNApplication) {
         eduOpenVPNServiceProvider: Provider<EduVPNOpenVPNService>,
         wireGuardServiceProvider: Provider<WireGuardService>
     ): Optional<VPNService> {
-        return when (preferencesService.getCurrentProfile()) {
-            is ProfileV2 -> Optional.of(eduOpenVPNServiceProvider.get())
-            is OpenVPNProfileV3 -> Optional.of(eduOpenVPNServiceProvider.get())
-            is WireGuardProfileV3 -> Optional.of(wireGuardServiceProvider.get())
+        return when (preferencesService.getCurrentProtocol()) {
+            is Protocol.OpenVPN -> Optional.of(eduOpenVPNServiceProvider.get())
+            is Protocol.WireGuard -> Optional.of(wireGuardServiceProvider.get())
             null -> Optional.empty()
         }
     }

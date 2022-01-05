@@ -35,10 +35,11 @@ import nl.eduvpn.app.BuildConfig
 import nl.eduvpn.app.Constants
 import nl.eduvpn.app.R
 import nl.eduvpn.app.entity.*
-import nl.eduvpn.app.entity.v3.SupportedProtocol
+import nl.eduvpn.app.entity.v3.Protocol
 import nl.eduvpn.app.service.*
 import nl.eduvpn.app.utils.*
 import java.io.BufferedReader
+import java.io.IOException
 import java.io.StringReader
 import java.io.UnsupportedEncodingException
 import java.net.URLEncoder
@@ -169,42 +170,19 @@ abstract class BaseConnectionViewModel(
         discoveredAPI: DiscoveredAPIV3,
         authState: AuthState
     ) {
-        val apiProfiles = fetchProfilesV3(instance, discoveredAPI, authState)
-            .getOrElse { return }
+        val apiProfiles = fetchProfilesV3(instance, discoveredAPI, authState).getOrElse { return }
         val supportedProfiles =
             apiProfiles.mapNotNull { profile ->
-                val supportedProtocols = profile.vpnProtocolList.mapNotNull { protocol ->
-                    SupportedProtocol.fromString(protocol)
-                }
-                val serverPreferredOrNull =
-                    SupportedProtocol.fromString(profile.vpnProtocolPreferred)
-                        ?: supportedProtocols.firstOrNull()
-                serverPreferredOrNull?.let { serverPreferred ->
-                    val preferredProtocol =
-                        if (preferencesService.getAppSettings().forceTcp()
-                            && supportedProtocols.contains(SupportedProtocol.OpenVPN)
-                        ) {
-                            SupportedProtocol.OpenVPN
-                        } else {
-                            serverPreferred
-                        }
-                    when (preferredProtocol) {
-                        SupportedProtocol.OpenVPN -> OpenVPNProfileV3(
-                            profile.profileId,
-                            profile.displayName,
-                            profile.defaultGateway,
-                            null,
-                            serverPreferred,
-                        )
-                        SupportedProtocol.WireGuard -> WireGuardProfileV3(
-                            profile.profileId,
-                            profile.displayName,
-                            profile.defaultGateway,
-                            null,
-                            serverPreferred,
-                            supportedProtocols.contains(SupportedProtocol.OpenVPN)
-                        )
-                    }
+                val supportedProtocols = profile.vpnProtocolList
+                    .mapNotNull { protocol -> Protocol.fromString(protocol) }
+                if (supportedProtocols.isEmpty()) {
+                    null
+                } else {
+                    ProfileV3(
+                        profile.profileId,
+                        profile.displayName,
+                        null,
+                    )
                 }
             }
         if (supportedProfiles.isEmpty() && apiProfiles.isNotEmpty()) {
@@ -217,82 +195,43 @@ abstract class BaseConnectionViewModel(
         selectProfile(supportedProfiles)
     }
 
-    private fun updatePreferredProtocol(profile: ProfileV3): ProfileV3 {
-        return when (profile) {
-            is OpenVPNProfileV3 -> if (profile.serverPreferredProtocol == SupportedProtocol.WireGuard
-                && !preferencesService.getAppSettings().forceTcp()
-            ) {
-                WireGuardProfileV3(
-                    profile.profileId,
-                    profile.displayName,
-                    profile.defaultGateway,
-                    null,
-                    profile.serverPreferredProtocol,
-                    true
-                )
-            } else {
-                profile
-            }
-            is WireGuardProfileV3 -> if (profile.supportsOpenVPN
-                && preferencesService.getAppSettings().forceTcp()
-            ) {
-                OpenVPNProfileV3(
-                    profile.profileId,
-                    profile.displayName,
-                    profile.defaultGateway,
-                    null,
-                    profile.serverPreferredProtocol
-                )
-            } else {
-                profile
-            }
-        }
-    }
-
     private suspend fun connectToProfileV3(
         instance: Instance, discoveredAPI: DiscoveredAPIV3,
         profile: ProfileV3, authState: AuthState
     ) {
-        val pProfile = updatePreferredProtocol(profile)
         connectionState.value = ConnectionState.ProfileDownloadingKeyPair
-        val (configString, expireDate) = runCatchingCoroutine {
-            when (pProfile) {
-                is OpenVPNProfileV3 -> {
-                    fetchProfileConfigurationOpenVPN(
-                        discoveredAPI,
-                        authState,
-                        pProfile,
-                        preferencesService.getAppSettings().forceTcp()
-                    )
-                }
-                is WireGuardProfileV3 -> {
-                    val keyPair = com.wireguard.crypto.KeyPair()
-                    val (configString, expireDate) = fetchProfileConfigurationWireGuard(
-                        discoveredAPI,
-                        authState,
-                        pProfile,
-                        keyPair
-                    )
+        val (protocol, configString, expireDate) = runCatchingCoroutine {
+            val keyPair = com.wireguard.crypto.KeyPair()
+            val (protocol, configString, expireDate) = fetchProfileConfiguration(
+                discoveredAPI,
+                authState,
+                profile,
+                preferencesService.getAppSettings().forceTcp(),
+                keyPair
+            )
+            when (protocol) {
+                is Protocol.OpenVPN -> Triple(protocol, configString, expireDate)
+                is Protocol.WireGuard -> {
                     val configStringWithPrivateKey = configString
                         .replace(
                             "[Interface]",
                             "[Interface]\n" +
                                     "PrivateKey = ${keyPair.privateKey.toBase64()}"
                         )
-                    Pair(configStringWithPrivateKey, expireDate)
+                    Triple(protocol, configStringWithPrivateKey, expireDate)
                 }
             }
         }.onFailure { throwable ->
             showError<Unit>(throwable, R.string.error_creating_keypair)
         }.getOrElse { return }
 
-        val updatedProfile = pProfile.updateExpiry(expiry = expireDate?.time)
-        val vpnConfig = when (updatedProfile) {
-            is OpenVPNProfileV3 -> {
+        val updatedProfile = profile.copy(expiry = expireDate?.time)
+        val vpnConfig = when (protocol) {
+            is Protocol.OpenVPN -> {
                 val configName = FormattingUtils.formatProfileName(
                     context,
                     instance,
-                    pProfile
+                    updatedProfile
                 )
                 val vpnProfile = eduVpnOpenVpnService.importConfig(
                     configString,
@@ -301,7 +240,7 @@ abstract class BaseConnectionViewModel(
                 )
                 vpnProfile?.let { p -> VPNConfig.OpenVPN(p) }
             }
-            is WireGuardProfileV3 -> {
+            is Protocol.WireGuard -> {
                 val config = withContext(Dispatchers.IO) {
                     try {
                         Config.parse(BufferedReader(StringReader(configString)))
@@ -320,7 +259,7 @@ abstract class BaseConnectionViewModel(
             )
             return
         }
-        preferencesService.setCurrentProfile(updatedProfile)
+        preferencesService.setCurrentProfile(updatedProfile, protocol)
         // Connect with the profile
         parentAction.value =
             ParentAction.ConnectWithConfig(vpnConfig)
@@ -418,7 +357,7 @@ abstract class BaseConnectionViewModel(
     }
 
     private fun getExpiryFromHeaders(headers: Map<String, List<String>>): Date? {
-        return headers.get("Expires")
+        return headers["Expires"]
             ?.let { hl: List<String> -> hl.firstOrNull() }
             ?.let { expiredValue ->
                 try {
@@ -432,38 +371,30 @@ abstract class BaseConnectionViewModel(
             }
     }
 
-    private suspend fun fetchProfileConfigurationOpenVPN(
+    private suspend fun fetchProfileConfiguration(
         discoveredAPI: DiscoveredAPIV3,
         authState: AuthState,
-        profile: OpenVPNProfileV3,
+        profile: ProfileV3,
         tcpOnly: Boolean,
-    ): Pair<String, Date?> {
+        keyPair: WGKeyPair,
+    ): Triple<Protocol, String, Date?> {
         val tcpOnlyString = if (tcpOnly) {
             "on"
         } else {
             "off"
         }
-        val (config, headers) = apiService.postResource(
-            discoveredAPI.connectEndpoint,
-            "profile_id=${profile.profileId}&vpn_proto=openvpn&tcp_only=${tcpOnlyString}",
-            authState
-        )
-        return Pair(config, getExpiryFromHeaders(headers))
-    }
-
-    private suspend fun fetchProfileConfigurationWireGuard(
-        discoveredAPI: DiscoveredAPIV3,
-        authState: AuthState,
-        profile: WireGuardProfileV3,
-        keyPair: WGKeyPair,
-    ): Pair<String, Date?> {
         val base64PublicKey = URLEncoder.encode(keyPair.publicKey.toBase64(), Charsets.UTF_8.name())
         val (configString, headers) = apiService.postResource(
             discoveredAPI.connectEndpoint,
-            "profile_id=${profile.profileId}&vpn_proto=wireguard&public_key=${base64PublicKey}",
+            "profile_id=${profile.profileId}&public_key=${base64PublicKey}&tcp_only=${tcpOnlyString}",
             authState
         )
-        return Pair(configString, getExpiryFromHeaders(headers))
+        val protocolHeader = headers["Content-Type"]
+            ?.let { hl: List<String> -> hl.firstOrNull() }
+            ?: throw IOException("Could not determine protocol, missing Content-Type header")
+        val protocol = Protocol.fromContentType(protocolHeader)
+            ?: throw IOException("Unsupported protocol: $protocolHeader")
+        return Triple(protocol, configString, getExpiryFromHeaders(headers))
     }
 
     private fun authorize(instance: Instance, discoveredAPI: DiscoveredAPI) {
@@ -497,7 +428,11 @@ abstract class BaseConnectionViewModel(
             )
             return
         }
-        preferencesService.setCurrentProfile(profile)
+        val protocol = when (profile) {
+            is ProfileV2 -> Protocol.OpenVPN
+            is ProfileV3 -> null
+        }
+        preferencesService.setCurrentProfile(profile, protocol)
         preferencesService.setCurrentAuthState(authState)
         when (profile) {
             is ProfileV2 -> when (discoveredAPI) {

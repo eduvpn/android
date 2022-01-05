@@ -14,7 +14,8 @@ import nl.eduvpn.app.Constants
 import nl.eduvpn.app.DisconnectVPNBroadcastReceiver
 import nl.eduvpn.app.MainActivity
 import nl.eduvpn.app.R
-import nl.eduvpn.app.entity.*
+import nl.eduvpn.app.entity.DiscoveredAPIV3
+import nl.eduvpn.app.entity.VPNConfig
 import nl.eduvpn.app.utils.FormattingUtils
 import nl.eduvpn.app.utils.Log
 import nl.eduvpn.app.utils.runCatchingCoroutine
@@ -50,14 +51,6 @@ class VPNConnectionService(
             return
         }
         val profile = preferencesService.getCurrentProfile() ?: return
-        when (profile) {
-            is ProfileV2 -> throw java.lang.IllegalStateException("Discovered API V3 with incompatible Profile")
-            is WireGuardProfileV3 -> preferencesService.setCurrentProfile(profile.copy(expiry = null))
-            // We do not have to remove the VpnConfig from the ProfileManager in EduVPNOpenVPNService
-            // because only 1 VpnConfig is stored at a time and it will thus be automatically overwritten.
-            // Storing more VpnConfigs is useless as it becomes invalid after a /disconnect call.
-            is OpenVPNProfileV3 -> Unit
-        }
         val instance = preferencesService.getCurrentInstance()
         if (instance == null) {
             Log.e(TAG, "No instance available when trying to disconnect.")
