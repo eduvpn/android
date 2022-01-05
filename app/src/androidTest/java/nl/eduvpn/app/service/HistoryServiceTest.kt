@@ -101,7 +101,7 @@ class HistoryServiceTest {
                 "https://example.com/template",
                 ArrayList()
             )
-            val profile: Profile = ProfileV2(TranslatableString("displayName"), profileId)
+            val profile = ProfileV2(TranslatableString("displayName"), profileId)
             val savedProfile = SavedProfile(instance, profile, profileUUID)
             _historyService!!.cacheSavedProfile(savedProfile)
             _historyService!!.cacheAuthorizationState(instance, AuthState(), Date())
@@ -175,7 +175,7 @@ class HistoryServiceTest {
             null,
             ArrayList()
         )
-        val profile: Profile = ProfileV2(TranslatableString("displayName"), profileId)
+        val profile = ProfileV2(TranslatableString("displayName"), profileId)
         val savedProfile = SavedProfile(instance, profile, profileUUID)
         _historyService!!.cacheSavedProfile(savedProfile)
         reloadHistoryService(false)

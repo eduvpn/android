@@ -179,8 +179,8 @@ public class SerializerServiceTest {
         Instance instance1 = new Instance("baseUri1", new TranslatableString("displayName1"), "logoUri1", AuthorizationType.Distributed, "SV", true, "https://example.com/template", Collections
                 .singletonList("mailto:support@example.com"));
         Instance instance2 = new Instance("baseUri2", new TranslatableString("displayName2"), "logoUri2", AuthorizationType.Local, "CH", true, null, new ArrayList<>());
-        Profile profile1 = new ProfileV2(new TranslatableString("displayName1"), "profileId1");
-        Profile profile2 = new ProfileV2(new TranslatableString("displayName2"), "profileId2");
+        ProfileV2 profile1 = new ProfileV2(new TranslatableString("displayName1"), "profileId1");
+        ProfileV2 profile2 = new ProfileV2(new TranslatableString("displayName2"), "profileId2");
         SavedProfile savedProfile1 = new SavedProfile(instance1, profile1, "profileUUID1");
         SavedProfile savedProfile2 = new SavedProfile(instance2, profile2, "profileUUID2");
         List<SavedProfile> list = Arrays.asList(savedProfile1, savedProfile2);
