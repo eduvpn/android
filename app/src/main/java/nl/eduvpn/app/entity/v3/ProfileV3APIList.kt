@@ -1,4 +1,4 @@
-package nl.eduvpn.app.entity
+package nl.eduvpn.app.entity.v3
 
 import ProfileV3API
 import kotlinx.serialization.SerialName
