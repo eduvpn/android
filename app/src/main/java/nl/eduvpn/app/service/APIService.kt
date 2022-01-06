@@ -25,6 +25,7 @@ import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
+import okhttp3.internal.EMPTY_REQUEST
 import org.json.JSONException
 import org.json.JSONObject
 import java.io.IOException
@@ -107,12 +108,11 @@ class APIService(private val connectionService: ConnectionService, private val o
     ): Pair<String, Map<String, List<String>>> {
         val requestBuilder = createRequestBuilder(url, accessToken)
         if (requestData != null) {
-            requestBuilder.method(
-                "POST",
+            requestBuilder.post(
                 requestData.toRequestBody("application/x-www-form-urlencoded".toMediaTypeOrNull())
             )
         } else {
-            requestBuilder.method("POST", null)
+            requestBuilder.post(EMPTY_REQUEST)
         }
         val request = requestBuilder.build()
         val response = okHttpClient.newCall(request).await()

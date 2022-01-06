@@ -50,7 +50,6 @@ class VPNConnectionService(
         if (discoveredAPI !is DiscoveredAPIV3) {
             return
         }
-        val profile = preferencesService.getCurrentProfile() ?: return
         val instance = preferencesService.getCurrentInstance()
         if (instance == null) {
             Log.e(TAG, "No instance available when trying to disconnect.")
@@ -63,7 +62,7 @@ class VPNConnectionService(
             runCatchingCoroutine {
                 apiService.postResource(
                     discoveredAPI.disconnectEndpoint,
-                    "profile_id=${profile.profileId}",
+                    null,
                     authState
                 )
             }.onSuccess {
