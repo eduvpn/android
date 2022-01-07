@@ -21,7 +21,11 @@ import android.os.Bundle
 import android.view.View
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
+import androidx.lifecycle.viewModelScope
 import androidx.recyclerview.widget.LinearLayoutManager
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import nl.eduvpn.app.EduVPNApplication
 import nl.eduvpn.app.MainActivity
 import nl.eduvpn.app.R
@@ -89,11 +93,21 @@ class ProfileSelectionFragment : BaseFragment<FragmentProfileSelectionBinding>()
         // Add click listeners
         ItemClickSupport.addTo(binding.profileList).setOnItemClickListener { _, position, _ ->
             val profile = profileAdapter.getItem(position)
-            viewModel.selectProfileToConnectTo(profile)
+            selectProfileToConnectTo(profile)
         }
 
         if (profiles.size == 1) {
-            viewModel.selectProfileToConnectTo(profiles[0])
+            selectProfileToConnectTo(profiles[0])
+        }
+    }
+
+    private fun selectProfileToConnectTo(profile: Profile) {
+        viewModel.viewModelScope.launch {
+            viewModel.selectProfileToConnectTo(profile).onFailure { thr ->
+                withContext(Dispatchers.Main) {
+                    ErrorDialog.show(requireContext(), thr)
+                }
+            }
         }
     }
 

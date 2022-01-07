@@ -26,6 +26,10 @@ import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import androidx.lifecycle.map
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import nl.eduvpn.app.Constants
 import nl.eduvpn.app.EduVPNApplication
 import nl.eduvpn.app.MainActivity
@@ -298,7 +302,16 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
     private fun connectToProfile(profile: Profile) {
         skipNextDisconnect = true
         viewModel.isInDisconnectMode.value = false
-        viewModel.selectProfileToConnectTo(profile)
+        setToggleCheckedWithoutAction(true)
+        viewModel.viewModelScope.launch {
+            viewModel.selectProfileToConnectTo(profile).onFailure { thr ->
+                withContext(Dispatchers.Main) {
+                    setToggleCheckedWithoutAction(false)
+                    viewModel.isInDisconnectMode.value = true
+                    ErrorDialog.show(requireContext(), thr)
+                }
+            }
+        }
     }
 
     private fun disconnect(retryCount: Int = 0) {

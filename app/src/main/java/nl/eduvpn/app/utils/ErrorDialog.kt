@@ -26,6 +26,7 @@ import android.widget.Button
 import android.widget.TextView
 import androidx.annotation.StringRes
 import nl.eduvpn.app.R
+import nl.eduvpn.app.entity.exception.EduVPNException
 
 
 /**
@@ -56,6 +57,21 @@ object ErrorDialog {
     @JvmStatic
     fun show(context: Context, @StringRes title: Int, @StringRes message: Int): Dialog? {
         return show(context, context.getString(title), context.getString(message))
+    }
+
+    @JvmStatic
+    fun show(context: Context, thr: Throwable): Dialog? {
+        val titleId = if (thr is EduVPNException) {
+            thr.resourceIdTitle
+        } else {
+            R.string.error_dialog_title
+        }
+        val message = if (thr is EduVPNException) {
+            context.getString(thr.resourceIdMessage, thr.throwable)
+        } else {
+            thr.localizedMessage!!
+        }
+        return show(context, titleId, message)
     }
 
     /**
