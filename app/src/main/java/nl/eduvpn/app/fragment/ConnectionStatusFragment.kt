@@ -216,34 +216,26 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
                 VPNStatus.CONNECTED -> {
                     binding.connectionStatusIcon.setImageResource(R.drawable.ic_connection_status_connected)
                     skipNextDisconnect = false
-                    isAutomaticCheckChange = true
-                    binding.connectionSwitch.isChecked = true
-                    isAutomaticCheckChange = false
+                    setToggleCheckedWithoutAction(true)
                     viewModel.isInDisconnectMode.value = false
                 }
                 VPNStatus.CONNECTING -> {
                     binding.connectionStatusIcon.setImageResource(R.drawable.ic_connection_status_connecting)
                     skipNextDisconnect = false
-                    isAutomaticCheckChange = true
-                    binding.connectionSwitch.isChecked = true
-                    isAutomaticCheckChange = false
+                    setToggleCheckedWithoutAction(true)
                     viewModel.isInDisconnectMode.value = false
                 }
                 VPNStatus.PAUSED -> {
                     binding.connectionStatusIcon.setImageResource(R.drawable.ic_connection_status_connecting)
                     skipNextDisconnect = false
-                    isAutomaticCheckChange = true
-                    binding.connectionSwitch.isChecked = true
-                    isAutomaticCheckChange = false
+                    setToggleCheckedWithoutAction(true)
                     viewModel.isInDisconnectMode.value = false
                 }
                 VPNStatus.DISCONNECTED -> {
                     binding.connectionStatusIcon.setImageResource(R.drawable.ic_connection_status_disconnected)
                     if (!skipNextDisconnect) {
                         // The first disconnect can mess a bit with the UI so we skip this part in special cases
-                        isAutomaticCheckChange = true
-                        binding.connectionSwitch.isChecked = false
-                        isAutomaticCheckChange = false
+                        setToggleCheckedWithoutAction(false)
                     }
                     gracefulDisconnectHandler.removeCallbacksAndMessages(null)
                     viewModel.isInDisconnectMode.value = true
@@ -258,9 +250,7 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
                         message
                     )
                     binding.connectionStatusIcon.setImageResource(R.drawable.ic_connection_status_disconnected)
-                    isAutomaticCheckChange = true
-                    binding.connectionSwitch.isChecked = false
-                    isAutomaticCheckChange = false
+                    setToggleCheckedWithoutAction(false)
                     viewModel.isInDisconnectMode.value = true
                 }
             }
@@ -268,6 +258,12 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
         // Update the icon immediately
         vpnStatusObserver(vpnService.getStatus())
         vpnService.observe(viewLifecycleOwner, vpnStatusObserver)
+    }
+
+    private fun setToggleCheckedWithoutAction(isChecked: Boolean) {
+        isAutomaticCheckChange = true
+        binding.connectionSwitch.isChecked = isChecked
+        isAutomaticCheckChange = false
     }
 
     fun returnToHome() {
