@@ -239,11 +239,15 @@ abstract class BaseConnectionViewModel(
         }.getOrElse { throwable ->
             connectionState.value = ConnectionState.Ready
             return Result.failure(
-                EduVPNException(
-                    R.string.unexpected_error,
-                    R.string.error_creating_keypair,
+                if (throwable is APIService.UserNotAuthorizedException) {
                     throwable
-                )
+                } else {
+                    EduVPNException(
+                        R.string.unexpected_error,
+                        R.string.error_creating_keypair,
+                        throwable
+                    )
+                }
             )
         }
 
@@ -377,6 +381,7 @@ abstract class BaseConnectionViewModel(
         }.onFailure { throwable ->
             Log.e(TAG, "Error fetching profile list.", throwable)
             // It is highly probable that the auth state is not valid anymore.
+            // todo: do not reauthorize on server error, i.e. response code 500
             authorize(instance, discoveredAPI)
         }.flatMap { result ->
             try {
@@ -433,6 +438,16 @@ abstract class BaseConnectionViewModel(
         parentAction.value = ParentAction.InitiateConnection(instance, discoveredAPI)
         parentAction.value =
             null // Immediately reset it, so it is not triggered twice, when coming back to the activity.
+    }
+
+    fun initiateConnection(activity: Activity) {
+        viewModelScope.launch {
+            connectionService.initiateConnection(
+                activity,
+                preferencesService.getCurrentInstance()!!,
+                preferencesService.getCurrentDiscoveredAPI()!!
+            )
+        }
     }
 
     fun initiateConnection(activity: Activity, instance: Instance, discoveredAPI: DiscoveredAPI) {

@@ -185,14 +185,16 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                 )
                 withContext(Dispatchers.Main) {
                     parseResult.onSuccess {
-                        if (currentFragment is ServerSelectionFragment) {
-                            currentFragment.connectToSelectedInstance()
-                        } else if (currentFragment is OrganizationSelectionFragment) {
-                            Toast.makeText(
-                                this@MainActivity,
-                                R.string.provider_added_new_configs_available,
-                                Toast.LENGTH_LONG
-                            ).show()
+                        when (currentFragment) {
+                            is ServerSelectionFragment -> currentFragment.connectToSelectedInstance()
+                            is OrganizationSelectionFragment -> {
+                                Toast.makeText(
+                                    this@MainActivity,
+                                    R.string.provider_added_new_configs_available,
+                                    Toast.LENGTH_LONG
+                                ).show()
+                            }
+                            is ConnectionStatusFragment -> currentFragment.reconnectToInstance()
                         }
                     }.onFailure { thr ->
                         show(this@MainActivity, thr)
@@ -202,9 +204,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
 
             // Remove it so we don't parse it again.
             intent.data = null
-            if (currentFragment is ConnectionStatusFragment) {
-                currentFragment.reconnectToInstance()
-            } else if (currentFragment !is ServerSelectionFragment) {
+            if (currentFragment !is ConnectionStatusFragment
+                && currentFragment !is ServerSelectionFragment
+            ) {
                 openFragment(newInstance(true), false)
             }
         }
