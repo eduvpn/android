@@ -25,6 +25,10 @@ import android.view.MenuItem
 import android.view.View
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import net.openid.appauth.AuthorizationException
 import net.openid.appauth.AuthorizationResponse
 import nl.eduvpn.app.base.BaseActivity
@@ -35,7 +39,6 @@ import nl.eduvpn.app.fragment.OrganizationSelectionFragment
 import nl.eduvpn.app.fragment.ServerSelectionFragment
 import nl.eduvpn.app.fragment.ServerSelectionFragment.Companion.newInstance
 import nl.eduvpn.app.service.ConnectionService
-import nl.eduvpn.app.service.ConnectionService.AuthorizationStateCallback
 import nl.eduvpn.app.service.EduVPNOpenVPNService
 import nl.eduvpn.app.service.HistoryService
 import nl.eduvpn.app.service.VPNService
@@ -174,20 +177,28 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         } else {
             val authenticationDate = Date()
             val currentFragment = supportFragmentManager.findFragmentById(R.id.content_frame)
-            val callback: AuthorizationStateCallback = object : AuthorizationStateCallback {
-                override fun onAuthorizationStateUpdated() {
-                    if (currentFragment is ServerSelectionFragment) {
-                        currentFragment.connectToSelectedInstance()
-                    } else if (currentFragment is OrganizationSelectionFragment) {
-                        Toast.makeText(
-                            this@MainActivity,
-                            R.string.provider_added_new_configs_available,
-                            Toast.LENGTH_LONG
-                        ).show()
+
+            this.lifecycleScope.launch {
+                val parseResult = connectionService.parseAuthorizationResponse(
+                    authorizationResponse!!,
+                    authenticationDate
+                )
+                withContext(Dispatchers.Main) {
+                    parseResult.onSuccess {
+                        if (currentFragment is ServerSelectionFragment) {
+                            currentFragment.connectToSelectedInstance()
+                        } else if (currentFragment is OrganizationSelectionFragment) {
+                            Toast.makeText(
+                                this@MainActivity,
+                                R.string.provider_added_new_configs_available,
+                                Toast.LENGTH_LONG
+                            ).show()
+                        }
+                    }.onFailure { thr ->
+                        show(this@MainActivity, thr)
                     }
                 }
             }
-            connectionService.parseAuthorizationResponse(authorizationResponse!!, this, callback, authenticationDate)
 
             // Remove it so we don't parse it again.
             intent.data = null

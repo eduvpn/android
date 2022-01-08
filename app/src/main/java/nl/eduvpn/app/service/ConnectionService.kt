@@ -31,6 +31,7 @@ import nl.eduvpn.app.MainActivity
 import nl.eduvpn.app.R
 import nl.eduvpn.app.entity.DiscoveredAPI
 import nl.eduvpn.app.entity.Instance
+import nl.eduvpn.app.entity.exception.EduVPNException
 import nl.eduvpn.app.utils.ErrorDialog.show
 import nl.eduvpn.app.utils.Log
 import nl.eduvpn.app.utils.runCatchingCoroutine
@@ -144,35 +145,39 @@ class ConnectionService(private val preferencesService: PreferencesService,
      * Parses the authorization response and retrieves the access token.
      *
      * @param authorizationResponse The auth response to process.
-     * @param activity              The current activity.
-     * @param callback              Callback which is called when the states are updated.
      */
-    fun parseAuthorizationResponse(
+    suspend fun parseAuthorizationResponse(
         authorizationResponse: AuthorizationResponse,
-        activity: Activity,
-        callback: AuthorizationStateCallback?,
         authenticationDate: Date
-    ) {
+    ): Result<Unit> {
         Log.i(TAG, "Got auth response: " + authorizationResponse.jsonSerializeString())
-        authorizationService!!.performTokenRequest(
-            authorizationResponse.createTokenExchangeRequest()
-        ) { tokenResponse: TokenResponse?, ex: AuthorizationException? ->
-            if (tokenResponse != null) {
-                // exchange succeeded
-                processTokenExchangeResponse(
-                    authorizationResponse,
-                    tokenResponse,
-                    activity,
-                    authenticationDate
-                )
-                callback?.onAuthorizationStateUpdated()
-            } else {
-                // authorization failed, check ex for more details
-                show(activity,
-                        R.string.authorization_error_title,
-                        activity.getString(R.string.authorization_error_message, ex!!.error, ex.code, ex.message))
+        val tokenResponse = suspendCoroutine<Result<TokenResponse>> { cont ->
+            authorizationService!!.performTokenRequest(
+                authorizationResponse.createTokenExchangeRequest()
+            ) { tokenResponse: TokenResponse?, ex: AuthorizationException? ->
+                if (tokenResponse != null) {
+                    cont.resume(Result.success(tokenResponse))
+                } else {
+                    cont.resume(
+                        Result.failure(
+                            EduVPNException(
+                                R.string.authorization_error_title,
+                                R.string.authorization_error_message,
+                                ex!!.error,
+                                ex.code,
+                                ex.message
+                            )
+                        )
+                    )
+                }
             }
-        }
+        }.getOrElse { return Result.failure(it) }
+
+        return processTokenExchangeResponse(
+            authorizationResponse,
+            tokenResponse,
+            authenticationDate
+        )
     }
 
     /**
@@ -180,19 +185,21 @@ class ConnectionService(private val preferencesService: PreferencesService,
      *
      * @param authorizationResponse The authorization response.
      * @param tokenResponse         The response from the token exchange updated into the authorization state
-     * @param activity              The current activity.
      */
     private fun processTokenExchangeResponse(
         authorizationResponse: AuthorizationResponse,
         tokenResponse: TokenResponse,
-        activity: Activity,
         authenticationDate: Date,
-    ) {
+    ): Result<Unit> {
         val authState = AuthState(authorizationResponse, tokenResponse, null)
         val accessToken = authState.accessToken
         if (accessToken == null || accessToken.isEmpty()) {
-            show(activity, R.string.error_dialog_title, R.string.error_access_token_missing)
-            return
+            return Result.failure(
+                EduVPNException(
+                    R.string.error_dialog_title,
+                    R.string.error_access_token_missing
+                )
+            )
         }
         // Save the authorization state.
         preferencesService.setCurrentAuthState(authState)
@@ -209,6 +216,7 @@ class ConnectionService(private val preferencesService: PreferencesService,
         } else {
             Log.w(TAG, "Organization and instances were not available, so no caching was done.")
         }
+        return Result.success((Unit))
     }
 
     /**
@@ -248,10 +256,6 @@ class ConnectionService(private val preferencesService: PreferencesService,
                 Uri.parse(discoveredAPI.authorizationEndpoint),
                 Uri.parse(discoveredAPI.tokenEndpoint),
                 null)
-    }
-
-    interface AuthorizationStateCallback {
-        fun onAuthorizationStateUpdated()
     }
 
     companion object {

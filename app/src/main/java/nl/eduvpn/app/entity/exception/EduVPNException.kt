@@ -4,9 +4,13 @@ import androidx.annotation.StringRes
 
 /**
  * Exception with translatable message.
+ *
+ * @param formatArgs Arguments for [resourceIdMessage]
  */
-data class EduVPNException(
+class EduVPNException(
     @StringRes val resourceIdTitle: Int,
     @StringRes val resourceIdMessage: Int,
-    val throwable: Throwable? = null
-) : Exception(throwable)
+    vararg formatArgs: Any?
+) : Exception() {
+    val formatArgs = formatArgs
+}
