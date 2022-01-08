@@ -420,9 +420,10 @@ abstract class BaseConnectionViewModel(
             "off"
         }
         val base64PublicKey = URLEncoder.encode(keyPair.publicKey.toBase64(), Charsets.UTF_8.name())
+        val urlEncodedProfileId = URLEncoder.encode(profile.profileId, Charsets.UTF_8.name())
         val (configString, headers) = apiService.postResource(
             discoveredAPI.connectEndpoint,
-            "profile_id=${profile.profileId}&public_key=${base64PublicKey}&tcp_only=${tcpOnlyString}",
+            "profile_id=${urlEncodedProfileId}&public_key=${base64PublicKey}&tcp_only=${tcpOnlyString}",
             authState
         )
         val protocolHeader = headers["Content-Type"]
