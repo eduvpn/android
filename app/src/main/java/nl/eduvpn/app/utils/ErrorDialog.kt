@@ -69,7 +69,7 @@ object ErrorDialog {
         val message = if (thr is EduVPNException) {
             context.getString(thr.resourceIdMessage, *thr.formatArgs)
         } else {
-            thr.localizedMessage!!
+            thr.localizedMessage ?: thr.toString()
         }
         return show(context, titleId, message)
     }
