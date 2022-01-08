@@ -244,7 +244,7 @@ abstract class BaseConnectionViewModel(
                 } else {
                     EduVPNException(
                         R.string.unexpected_error,
-                        R.string.error_creating_keypair,
+                        R.string.error_downloading_vpn_config,
                         throwable
                     )
                 }
