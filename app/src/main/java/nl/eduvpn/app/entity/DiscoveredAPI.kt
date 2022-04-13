@@ -67,7 +67,7 @@ class DiscoveredAPIV3(
     }
 
     val disconnectEndpoint: String by lazy {
-        getURL(apiEndpoint, Constants.API_V3_DICONNECT_PATH)
+        getURL(apiEndpoint, Constants.API_V3_DISCONNECT_PATH)
     }
 }
 
