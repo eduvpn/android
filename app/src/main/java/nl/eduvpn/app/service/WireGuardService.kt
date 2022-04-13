@@ -99,8 +99,8 @@ class WireGuardService(private val context: Context, timer: LiveData<Unit>) :
     }
 
     private fun fail(errorString: String) {
-        setConnectionStatus(VPNStatus.FAILED)
         this.errorString = errorString
+        setConnectionStatus(VPNStatus.FAILED)
     }
 
     override fun disconnect() {
