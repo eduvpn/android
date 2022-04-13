@@ -12,7 +12,7 @@ import javax.inject.Inject
 class CertExpiredBroadcastReceiver : BroadcastReceiver() {
 
     @Inject
-    lateinit var vpnService: VPNService
+    protected lateinit var vpnService: VPNService
 
     override fun onReceive(context: Context, intent: Intent) {
         EduVPNApplication.get(context).component().inject(this)
