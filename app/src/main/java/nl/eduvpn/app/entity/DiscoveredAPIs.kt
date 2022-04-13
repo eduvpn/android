@@ -13,6 +13,6 @@ data class DiscoveredAPIs(
     val v3: DiscoveredAPIV3? = null,
 ) {
     fun getPreferredAPI(): DiscoveredAPI? {
-        return v2 ?: v3
+        return v3 ?: v2
     }
 }
