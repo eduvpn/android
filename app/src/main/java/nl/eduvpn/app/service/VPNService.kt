@@ -42,5 +42,8 @@ abstract class VPNService : LiveData<VPNService.VPNStatus>() {
      */
     abstract fun getStatus(): VPNStatus
 
+    /**
+     * Name of the VPN protocol.
+     */
     abstract fun getProtocolName(): String
 }
