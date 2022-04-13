@@ -37,8 +37,10 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
 
+import kotlin.Unit;
 import kotlinx.serialization.SerializationException;
 import kotlinx.serialization.json.Json;
+import kotlinx.serialization.json.JsonKt;
 import nl.eduvpn.app.entity.DiscoveredAPIs;
 import nl.eduvpn.app.entity.Instance;
 import nl.eduvpn.app.entity.JsonListWrapper;
@@ -61,7 +63,6 @@ import nl.eduvpn.app.entity.message.Message;
 import nl.eduvpn.app.entity.message.Notification;
 import nl.eduvpn.app.entity.v3.Info;
 import nl.eduvpn.app.entity.v3.Protocol;
-import nl.eduvpn.app.utils.GeneralExtensionsKt;
 import nl.eduvpn.app.utils.Log;
 import nl.eduvpn.app.utils.serializer.KeyPairSerializer;
 
@@ -84,7 +85,10 @@ public class SerializerService {
     private static final String TAG = SerializerService.class.getName();
     private static final DateFormat API_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US);
 
-    private static final Json jsonSerializer = GeneralExtensionsKt.getJsonInstance();
+    private static final Json jsonSerializer = JsonKt.Json(Json.Default, (j) -> {
+        j.setIgnoreUnknownKeys(true);
+        return Unit.INSTANCE;
+    });
 
     static {
         API_DATE_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));

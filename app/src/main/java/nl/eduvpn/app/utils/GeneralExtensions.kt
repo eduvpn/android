@@ -26,7 +26,6 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.json.Json
 import nl.eduvpn.app.Constants
 import nl.eduvpn.app.entity.Instance
 import okhttp3.Call
@@ -121,12 +120,6 @@ inline fun <R> runCatchingCoroutine(block: () -> R): Result<R> {
         }
     }
     return result
-}
-
-val jsonInstance: Json by lazy {
-    Json {
-        ignoreUnknownKeys = true
-    }
 }
 
 inline fun <R, T> Result<T>.flatMap(transform: (T) -> Result<R>): Result<R> {
