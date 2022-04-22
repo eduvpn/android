@@ -25,6 +25,7 @@ import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
+import okhttp3.internal.EMPTY_REQUEST
 import org.json.JSONException
 import org.json.JSONObject
 import java.io.IOException
@@ -67,7 +68,6 @@ class APIService(private val connectionService: ConnectionService, private val o
     suspend fun getString(url: String, authState: AuthState?): String {
         return createNetworkCall(authState) { accessToken ->
             fetchString(url, accessToken)
-
         }
     }
 
@@ -77,15 +77,19 @@ class APIService(private val connectionService: ConnectionService, private val o
      * @param url      The URL as a string.
      * @param authState If an auth token should be sent, include an auth state.
      * @param data     The request data.
+     * @return Response with headers.
      * @throws UserNotAuthorizedException
      * @throws IOException
      */
-    suspend fun postResource(url: String, data: String?, authState: AuthState?): String {
+    suspend fun postResource(
+        url: String,
+        data: String?,
+        authState: AuthState?
+    ): Pair<String, Map<String, List<String>>> {
         return createNetworkCall(authState) { accessToken ->
             fetchByteResource(url, data, accessToken)
         }
     }
-
 
     /**
      * Downloads a byte resource from a URL.
@@ -93,16 +97,22 @@ class APIService(private val connectionService: ConnectionService, private val o
      * @param url         The URL as a string.
      * @param requestData The request data, if any.
      * @param accessToken The access token to fetch the resource with. Can be null.
-     * @return The result as a byte array.
+     * @return Response with headers.
      * @throws UserNotAuthorizedException
      * @throws IOException Thrown if there was a problem creating the connection.
      */
-    private suspend fun fetchByteResource(url: String, requestData: String?, accessToken: String?): String {
+    private suspend fun fetchByteResource(
+        url: String,
+        requestData: String?,
+        accessToken: String?
+    ): Pair<String, Map<String, List<String>>> {
         val requestBuilder = createRequestBuilder(url, accessToken)
         if (requestData != null) {
-            requestBuilder.method("POST", requestData.toRequestBody("application/x-www-form-urlencoded".toMediaTypeOrNull()))
+            requestBuilder.post(
+                requestData.toRequestBody("application/x-www-form-urlencoded".toMediaTypeOrNull())
+            )
         } else {
-            requestBuilder.method("POST", null)
+            requestBuilder.post(EMPTY_REQUEST)
         }
         val request = requestBuilder.build()
         val response = okHttpClient.newCall(request).await()
@@ -119,9 +129,12 @@ class APIService(private val connectionService: ConnectionService, private val o
             responseBody.close()
             Log.d(TAG, "POST $url data: '$requestData': $result")
             if (statusCode in 200..299) {
-                return result
+                return Pair(
+                    result,
+                    response.headers.toMultimap()
+                )
             } else {
-                throw IOException("Unsuccessful response: $result")
+                throw IOException("Unsuccessful response with status code $statusCode: $result")
             }
         }
     }
@@ -164,6 +177,9 @@ class APIService(private val connectionService: ConnectionService, private val o
             val responseString = withContext(Dispatchers.IO) { responseBody.string() }
             responseBody.close()
             Log.d(TAG, "GET $url: $responseString")
+            if (statusCode !in 200..299) {
+                throw IOException("Unsuccessful response with status code $statusCode: $responseString")
+            }
             return responseString
         }
     }

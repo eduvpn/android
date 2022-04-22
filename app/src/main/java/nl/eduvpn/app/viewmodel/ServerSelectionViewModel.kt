@@ -35,21 +35,26 @@ import java.util.*
 import javax.inject.Inject
 
 class ServerSelectionViewModel @Inject constructor(
-        context: Context,
-        apiService: APIService,
-        serializerService: SerializerService,
-        private val historyService: HistoryService,
-        private val preferencesService: PreferencesService,
-        connectionService: ConnectionService,
-        vpnService: VPNService,
-        private val organizationService: OrganizationService) : BaseConnectionViewModel(
-        context, apiService,
-        serializerService,
-        historyService,
-        preferencesService,
-        connectionService,
-        vpnService), Observer {
-
+    context: Context,
+    apiService: APIService,
+    serializerService: SerializerService,
+    private val historyService: HistoryService,
+    private val preferencesService: PreferencesService,
+    connectionService: ConnectionService,
+    eduVpnOpenVpnService: EduVPNOpenVPNService,
+    wireGuardService: WireGuardService,
+    private val organizationService: OrganizationService,
+    vpnConnectionService: VPNConnectionService,
+) : BaseConnectionViewModel(
+    context, apiService,
+    serializerService,
+    historyService,
+    preferencesService,
+    connectionService,
+    eduVpnOpenVpnService,
+    wireGuardService,
+    vpnConnectionService,
+), Observer {
 
     val adapterItems = MutableLiveData<List<OrganizationAdapter.OrganizationAdapterItem>>()
 
@@ -60,7 +65,7 @@ class ServerSelectionViewModel @Inject constructor(
 
     init {
         historyService.addObserver(this)
-        preferencesService.serverList?.let { serverList ->
+        preferencesService.getServerList()?.let { serverList ->
             serverListCache.value = Pair(System.currentTimeMillis(), serverList)
         }
     }
@@ -95,7 +100,7 @@ class ServerSelectionViewModel @Inject constructor(
             runCatchingCoroutine { organizationService.fetchServerList() }.onSuccess { serverList ->
                 Log.v(TAG, "Updated server list with latest entries.")
                 serverListCache.value = Pair(System.currentTimeMillis(), serverList)
-                preferencesService.serverList = serverList
+                preferencesService.setServerList(serverList)
                 refreshInstances(serverList)
             }.onFailure { throwable ->
                 Log.w(TAG, "Unable to fetch server list. Trying to show servers without it.", throwable)
@@ -114,7 +119,7 @@ class ServerSelectionViewModel @Inject constructor(
         val distributedInstance = savedInstances.firstOrNull { it.authorizationType == AuthorizationType.Distributed }
         val customServers = savedInstances.filter { it.authorizationType == AuthorizationType.Local && it.isCustom }.sortedBy { it.sanitizedBaseURI }
         val instituteAccessItems = savedInstances.filter { it.authorizationType == AuthorizationType.Local && !it.isCustom }.sortedBy {
-            it.displayName ?: it.countryCode
+            it.displayName.bestTranslation ?: it.countryCode
         }
         val result = mutableListOf<OrganizationAdapter.OrganizationAdapterItem>()
         if (instituteAccessItems.isNotEmpty()) {
@@ -122,8 +127,8 @@ class ServerSelectionViewModel @Inject constructor(
             result += instituteAccessItems.map { OrganizationAdapter.OrganizationAdapterItem.InstituteAccess(it) }
         }
         if (distributedInstance != null) {
-            val preferredCountry = preferencesService.preferredCountry
-            val countryMatch = if (preferencesService.preferredCountry == null) {
+            val preferredCountry = preferencesService.getPreferredCountry()
+            val countryMatch = if (preferredCountry == null) {
                 null
             } else {
                 serverList.serverList.firstOrNull { it.authorizationType == AuthorizationType.Distributed && it.countryCode.equals(preferredCountry, ignoreCase = true) }
@@ -156,7 +161,7 @@ class ServerSelectionViewModel @Inject constructor(
     }
 
     fun changePreferredCountry(selectedInstance: Instance) {
-        preferencesService.preferredCountry = selectedInstance.countryCode
+        preferencesService.setPreferredCountry(selectedInstance.countryCode)
         refresh()
     }
 

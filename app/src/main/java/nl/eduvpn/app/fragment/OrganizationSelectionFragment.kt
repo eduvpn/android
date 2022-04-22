@@ -32,12 +32,13 @@ import nl.eduvpn.app.base.BaseFragment
 import nl.eduvpn.app.databinding.FragmentOrganizationSelectionBinding
 import nl.eduvpn.app.entity.AuthorizationType
 import nl.eduvpn.app.entity.Instance
+import nl.eduvpn.app.entity.TranslatableString
 import nl.eduvpn.app.service.OrganizationService
 import nl.eduvpn.app.utils.ErrorDialog
 import nl.eduvpn.app.utils.ItemClickSupport
 import nl.eduvpn.app.utils.hideKeyboard
-import nl.eduvpn.app.viewmodel.ConnectionState
 import nl.eduvpn.app.viewmodel.BaseConnectionViewModel
+import nl.eduvpn.app.viewmodel.ConnectionState
 import nl.eduvpn.app.viewmodel.OrganizationSelectionViewModel
 import javax.inject.Inject
 
@@ -75,12 +76,22 @@ class OrganizationSelectionFragment : BaseFragment<FragmentOrganizationSelection
             } else if (item is OrganizationAdapter.OrganizationAdapterItem.InstituteAccess) {
                 viewModel.selectOrganizationAndInstance(null, item.server)
             } else if (item is OrganizationAdapter.OrganizationAdapterItem.AddServer) {
-                val customUrl  = if (item.url.startsWith("http://") || item.url.startsWith("https://")) {
-                    item.url
-                } else {
-                    "https://${item.url}"
-                }
-                val customInstance = Instance(customUrl, getString(R.string.custom_provider_display_name), null, AuthorizationType.Local, null, true, null, emptyList())
+                val customUrl =
+                    if (item.url.startsWith("http://") || item.url.startsWith("https://")) {
+                        item.url
+                    } else {
+                        "https://${item.url}"
+                    }
+                val customInstance = Instance(
+                    customUrl,
+                    TranslatableString(getString(R.string.custom_provider_display_name)),
+                    null,
+                    AuthorizationType.Local,
+                    null,
+                    true,
+                    null,
+                    emptyList()
+                )
                 viewModel.discoverApi(customInstance)
             }
         }
@@ -111,12 +122,16 @@ class OrganizationSelectionFragment : BaseFragment<FragmentOrganizationSelection
                 is BaseConnectionViewModel.ParentAction.InitiateConnection -> {
                     activity?.let { activity ->
                         if (!activity.isFinishing) {
-                            viewModel.initiateConnection(activity, parentAction.instance, parentAction.discoveredAPI)
+                            viewModel.initiateConnection(
+                                activity,
+                                parentAction.instance,
+                                parentAction.discoveredAPI
+                            )
                         }
                     }
                 }
-                is BaseConnectionViewModel.ParentAction.ConnectWithProfile -> {
-                    viewModel.openVpnConnectionToProfile(requireActivity(), parentAction.vpnProfile)
+                is BaseConnectionViewModel.ParentAction.ConnectWithConfig -> {
+                    viewModel.connectionToConfig(requireActivity(), parentAction.vpnConfig)
                     (activity as? MainActivity)?.openFragment(ConnectionStatusFragment(), false)
                 }
                 is BaseConnectionViewModel.ParentAction.DisplayError -> {

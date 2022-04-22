@@ -34,7 +34,7 @@ import nl.eduvpn.app.utils.FormattingUtils
 class ProfileViewHolder(private val binding: ListItemProfileBinding) : RecyclerView.ViewHolder(binding.getRoot()) {
 
     fun bind(instance: Instance, profile: Profile) {
-        binding.profileName.text = profile.displayName
+        binding.profileName.text = profile.displayName.bestTranslation
         binding.profileProvider.text = FormattingUtils.formatDisplayName(instance)
         if (!TextUtils.isEmpty(instance.logoUri)) {
             Picasso.get()

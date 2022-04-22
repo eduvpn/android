@@ -18,57 +18,80 @@
 
 package nl.eduvpn.app.viewmodel
 
+import android.app.AlarmManager
+import android.app.PendingIntent
 import android.content.Context
-import android.os.Handler
+import android.content.Intent
 import android.text.Spanned
 import androidx.core.text.HtmlCompat
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import de.blinkt.openvpn.VpnProfile
+import androidx.lifecycle.liveData
+import kotlinx.coroutines.delay
+import nl.eduvpn.app.CertExpiredBroadcastReceiver
 import nl.eduvpn.app.R
 import nl.eduvpn.app.entity.Profile
+import nl.eduvpn.app.entity.ProfileV2
+import nl.eduvpn.app.entity.ProfileV3
+import nl.eduvpn.app.entity.VPNConfig
 import nl.eduvpn.app.service.*
 import nl.eduvpn.app.utils.getCountryText
 import nl.eduvpn.app.utils.toSingleEvent
+import java.util.*
 import javax.inject.Inject
+import javax.inject.Named
 
 class ConnectionStatusViewModel @Inject constructor(
-        private val context: Context,
-        private val preferencesService: PreferencesService,
-        private val vpnService: VPNService,
-        historyService: HistoryService,
-        apiService: APIService,
-        serializerService: SerializerService,
-        connectionService: ConnectionService
-) : BaseConnectionViewModel(context, apiService, serializerService, historyService,
-        preferencesService, connectionService, vpnService) {
+    private val context: Context,
+    private val preferencesService: PreferencesService,
+    private val eduVPNOpenVPNService: EduVPNOpenVPNService,
+    private val vpnService: VPNService,
+    private val historyService: HistoryService,
+    @Named("timer")
+    val timer: LiveData<Unit>,
+    @Named("connectionTimeLiveData")
+    val connectionTimeLiveData: LiveData<Long?>,
+    wireGuardService: WireGuardService,
+    apiService: APIService,
+    serializerService: SerializerService,
+    connectionService: ConnectionService,
+    vpnConnectionService: VPNConnectionService,
+) : BaseConnectionViewModel(
+    context, apiService, serializerService, historyService,
+    preferencesService, connectionService, eduVPNOpenVPNService, wireGuardService,
+    vpnConnectionService,
+) {
 
     sealed class ParentAction {
         object SessionExpired : ParentAction()
     }
 
-    private val certExpiryTime: Long?
+    private var certExpiryTime: Long? = null
 
     val serverName = MutableLiveData<String>()
-    val serverSupport = MutableLiveData<String>()
-    val certValidity = MutableLiveData<Spanned>()
+    val serverSupport = MutableLiveData<String?>()
+    val certValidity = MutableLiveData<Spanned?>()
     val profileName = MutableLiveData<String>()
+
     val isInDisconnectMode = MutableLiveData(false)
     val serverProfiles = MutableLiveData<List<Profile>>()
+    val byteCountLiveData = vpnService.byteCountLiveData
+    val ipLiveData = vpnService.ipLiveData
+    val canRenew: LiveData<Boolean>
 
     private val _connectionParentAction = MutableLiveData<ParentAction>()
     val connectionParentAction = _connectionParentAction.toSingleEvent()
 
-    private var updateCertHandler: Handler = Handler()
-    private var updateCertCallback: Runnable = Runnable {
-        if(updateCertExpiry()) {
-            runUpdateCertExpiryEverySecond()
-        }
-    }
+    private val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+    private val intent = Intent(context, CertExpiredBroadcastReceiver::class.java)
+        .setAction(CertExpiredBroadcastReceiver.ACTION)
+    private val pendingIntent =
+        PendingIntent.getBroadcast(context, 0, intent, 0)
 
     init {
         refreshProfile()
-        val connectionInstance = preferencesService.currentInstance
-        serverProfiles.value = preferencesService.currentProfileList
+        val connectionInstance = preferencesService.getCurrentInstance()
+        serverProfiles.value = preferencesService.getCurrentProfileList()
         if (connectionInstance != null && connectionInstance.supportContact.isNotEmpty()) {
             val supportContacts = StringBuilder()
             for (contact in connectionInstance.supportContact) {
@@ -83,35 +106,78 @@ class ConnectionStatusViewModel @Inject constructor(
             }
             // Remove the last separator
             supportContacts.delete(supportContacts.length - 2, supportContacts.length)
-            serverSupport.value = context.getString(R.string.connection_info_support, supportContacts)
+            serverSupport.value =
+                context.getString(R.string.connection_info_support, supportContacts)
         } else {
             serverSupport.value = null
         }
-        certExpiryTime = historyService.getSavedKeyPairForInstance(connectionInstance).keyPair.expiryTimeMillis
+
+        val authenticationDate =
+            historyService.getCachedAuthState(preferencesService.getCurrentInstance()!!)?.second
+        canRenew = if (authenticationDate == null) {
+            MutableLiveData(true)
+        } else {
+            val now = Date().time
+            val millisecondAmountOf30Minutes = 30 * 60 * 1000
+            val canRenewAt = authenticationDate.time + millisecondAmountOf30Minutes
+            val remaining = canRenewAt - now
+            if (remaining > 0) {
+                liveData {
+                    emit(false)
+                    delay(remaining)
+                    emit(true)
+                }
+            } else {
+                MutableLiveData(true)
+            }
+        }
     }
 
     override fun onResume() {
         super.onResume()
-        updateCertHandler.post(updateCertCallback)
+        cancelAllExpiryNotifications()
     }
 
     fun onPause() {
-        stopUpdateCertExpiry()
+        planExpiryNotification()
     }
 
-    private fun runUpdateCertExpiryEverySecond() {
-        updateCertHandler.postDelayed(updateCertCallback, 1 * 1000)
+    private fun planExpiryNotification() {
+        val certExpiryTime = this.certExpiryTime
+        if (certExpiryTime != null && vpnService.getStatus() != VPNService.VPNStatus.DISCONNECTED) {
+            val maxMillisecondsBeforeNotification: Long = 30 * 60 * 1000L
+            val now = System.currentTimeMillis()
+            val millisecondsUntilExpiry = now - certExpiryTime
+            val startMilliseconds = maxOf(certExpiryTime - maxMillisecondsBeforeNotification, now)
+            val notificationWindowLength = minOf(millisecondsUntilExpiry, 15 * 60 * 1000L)
+            alarmManager.setWindow(
+                AlarmManager.RTC,
+                startMilliseconds,
+                notificationWindowLength,
+                pendingIntent
+            )
+        }
     }
 
-    private fun stopUpdateCertExpiry() {
-        updateCertHandler.removeCallbacks(updateCertCallback)
+    private fun cancelAllExpiryNotifications() {
+        alarmManager.cancel(pendingIntent)
+    }
+
+    fun renewSession() {
+        discoverApi(preferencesService.getCurrentInstance()!!, true)
+    }
+
+    fun reconnectToInstance() {
+        historyService.removeSavedKeyPairs(preferencesService.getCurrentInstance())
+        discoverApi(preferencesService.getCurrentInstance()!!)
     }
 
     /**
      * @return If the cert expiry time should continue to be updated.
      */
-    private fun updateCertExpiry(): Boolean {
+    fun updateCertExpiry(): Boolean {
         val currentTime = System.currentTimeMillis()
+        val certExpiryTime = this.certExpiryTime
         if (certExpiryTime == null) {
             // No cert or time, nothing to display
             certValidity.value = null
@@ -151,28 +217,40 @@ class ConnectionStatusViewModel @Inject constructor(
         return true
     }
 
-    fun findCurrentConfig(): VpnProfile? {
-        val currentProfile = preferencesService.currentProfile ?: return null
-        val matchingSavedProfile = preferencesService.savedProfileList?.firstOrNull { it.profile.profileId == currentProfile.profileId }
-                ?: return null
-        return vpnService.findMatchingVpnProfile(matchingSavedProfile)
+    fun findCurrentConfigV2(): VPNConfig.OpenVPN? {
+        val currentProfile = preferencesService.getCurrentProfile() ?: return null
+        return when (currentProfile) {
+            is ProfileV2 -> {
+                val matchingSavedProfile = preferencesService.getSavedProfileList()
+                    ?.firstOrNull { it.profile.profileId == currentProfile.profileId }
+                    ?: return null
+                val vpnProfile = eduVPNOpenVPNService.findMatchingVpnProfile(matchingSavedProfile)
+                vpnProfile?.let { p -> VPNConfig.OpenVPN(p) }
+            }
+            is ProfileV3 -> null
+        }
     }
 
     fun findCurrentProfile(): Profile? {
-        return preferencesService.currentProfile
+        return preferencesService.getCurrentProfile()
     }
 
     fun refreshProfile() {
-        val savedProfile = preferencesService.currentProfile
-        val connectionInstance = preferencesService.currentInstance
+        val savedProfile = preferencesService.getCurrentProfile()
+        val connectionInstance = preferencesService.getCurrentInstance()
         if (connectionInstance?.countryCode != null) {
             serverName.value = connectionInstance.getCountryText()
         } else if (savedProfile != null) {
-            serverName.value = savedProfile.displayName
+            serverName.value = savedProfile.displayName.bestTranslation
         } else {
             serverName.value = context.getString(R.string.profile_name_not_found)
         }
-        profileName.value = savedProfile?.displayName
+        profileName.value = savedProfile?.displayName?.bestTranslation
+        certExpiryTime = when (savedProfile) {
+            is ProfileV2 -> historyService.getSavedKeyPairForInstance(connectionInstance).keyPair.expiryTimeMillis
+            is ProfileV3 -> savedProfile.expiry
+            null -> null
+        }
         updateCertExpiry()
     }
 

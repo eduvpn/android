@@ -18,15 +18,14 @@
 package nl.eduvpn.app.entity
 
 import android.os.Parcelable
-import kotlinx.parcelize.Parcelize
+import kotlinx.serialization.Serializable
 
 /**
  * Represents a VPN connection profile.
  * Created by Daniel Zolnai on 2016-10-11.
  */
-@Parcelize
-data class Profile(
-        // How this profile should appear in the UI
-        val displayName: String,
-        // The pool ID of this VPN profile
-        val profileId: String) : Parcelable
+@Serializable
+sealed class Profile : Parcelable {
+        abstract val displayName: TranslatableString
+        abstract val profileId: String
+}

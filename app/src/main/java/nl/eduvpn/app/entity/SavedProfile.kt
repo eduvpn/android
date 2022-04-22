@@ -14,34 +14,24 @@
  *     You should have received a copy of the GNU General Public License
  *     along with eduVPN.  If not, see <http://www.gnu.org/licenses/>.
  */
+package nl.eduvpn.app.entity
 
-package nl.eduvpn.app.entity;
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
 /**
  * Stores the data of a saved profile.
  * Created by Daniel Zolnai on 2016-10-20.
  */
-public class SavedProfile {
+@Serializable
+data class SavedProfile(
 
-    private Instance _instance;
-    private Profile _profile;
-    private String _profileUUID;
+    @SerialName("provider")
+    val instance: Instance,
 
-    public SavedProfile(Instance instance, Profile profile, String profileUUID) {
-        _instance = instance;
-        _profile = profile;
-        _profileUUID = profileUUID;
-    }
+    @SerialName("profile")
+    val profile: ProfileV2,
 
-    public Instance getInstance() {
-        return _instance;
-    }
-
-    public Profile getProfile() {
-        return _profile;
-    }
-
-    public String getProfileUUID() {
-        return _profileUUID;
-    }
-}
+    @SerialName("profile_uuid")
+    val profileUUID: String
+)
