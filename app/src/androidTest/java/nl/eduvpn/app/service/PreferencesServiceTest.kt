@@ -37,8 +37,8 @@ import java.util.*
 @LargeTest
 class PreferencesServiceTest {
 
-    private var _preferencesService: PreferencesService? = null
-    private var _oldPreferences: SharedPreferences? = null
+    private lateinit var _preferencesService: PreferencesService
+    private lateinit var _oldPreferences: SharedPreferences
 
     @Before
     fun before() {
@@ -63,8 +63,8 @@ class PreferencesServiceTest {
             "https://example.com/template",
             ArrayList()
         )
-        _preferencesService!!.setCurrentInstance(instance)
-        val retrievedInstance = _preferencesService!!.getCurrentInstance()
+        _preferencesService.setCurrentInstance(instance)
+        val retrievedInstance = _preferencesService.getCurrentInstance()
         Assert.assertNotNull(retrievedInstance)
         Assert.assertEquals(instance.displayName, retrievedInstance!!.displayName)
         Assert.assertEquals(instance.logoUri, retrievedInstance.logoUri)
@@ -85,8 +85,8 @@ class PreferencesServiceTest {
             "http://example.com/auth_endpoint",
             "http://example.com/token_endpoint"
         )
-        _preferencesService!!.setCurrentDiscoveredAPI(discoveredAPIV2)
-        val retrievedDiscoveredAPI = _preferencesService!!.getCurrentDiscoveredAPI()
+        _preferencesService.setCurrentDiscoveredAPI(discoveredAPIV2)
+        val retrievedDiscoveredAPI = _preferencesService.getCurrentDiscoveredAPI()
         Assert.assertEquals(
             discoveredAPIV2.authorizationEndpoint,
             retrievedDiscoveredAPI!!.authorizationEndpoint
@@ -100,17 +100,17 @@ class PreferencesServiceTest {
 
     @Test
     fun testLastKnownOrganizationListVersionSave() {
-        val version = 121323L
-        _preferencesService!!.setLastKnownOrganizationListVersion(version)
-        val retrievedVersion = _preferencesService!!.getLastKnownOrganizationListVersion()
+        val version = 121_323L
+        _preferencesService.setLastKnownOrganizationListVersion(version)
+        val retrievedVersion = _preferencesService.getLastKnownOrganizationListVersion()
         Assert.assertEquals(version, retrievedVersion)
     }
 
     @Test
     fun testLastKnownServerListVersionSave() {
-        val version = 8982398L
-        _preferencesService!!.setLastKnownServerListVersion(version)
-        val retrievedVersion = _preferencesService!!.getLastKnownServerListVersion()
+        val version = 8_982_398L
+        _preferencesService.setLastKnownServerListVersion(version)
+        val retrievedVersion = _preferencesService.getLastKnownServerListVersion()
         Assert.assertEquals(version, retrievedVersion)
     }
 
@@ -134,7 +134,7 @@ class PreferencesServiceTest {
             "https://example.com/template",
             ArrayList()
         )
-        val editor = _oldPreferences!!.edit()
+        val editor = _oldPreferences.edit()
 
         val serializerService = SerializerService()
 
@@ -148,14 +148,14 @@ class PreferencesServiceTest {
         )
         editor.commit()
 
-        _preferencesService!!.getSharedPreferences().edit().clear().commit()
-        _preferencesService!!.migrateIfNeeded(
-            _preferencesService!!.getSharedPreferences(),
-            _oldPreferences!!
+        _preferencesService.getSharedPreferences().edit().clear().commit()
+        _preferencesService.migrateIfNeeded(
+            _preferencesService.getSharedPreferences(),
+            _oldPreferences
         )
 
-        val instanceResult = _preferencesService!!.getCurrentInstance()
-        val retrievedDiscoveredAPI = _preferencesService!!.getCurrentDiscoveredAPI()
+        val instanceResult = _preferencesService.getCurrentInstance()
+        val retrievedDiscoveredAPI = _preferencesService.getCurrentDiscoveredAPI()
 
         Assert.assertEquals(
             discoveredAPI.authorizationEndpoint,
