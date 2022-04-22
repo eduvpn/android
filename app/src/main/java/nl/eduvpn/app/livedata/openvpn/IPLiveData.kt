@@ -15,7 +15,7 @@
  *     along with eduVPN.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package nl.eduvpn.app.livedata
+package nl.eduvpn.app.livedata.openvpn
 
 import android.content.Intent
 import androidx.core.util.Pair
@@ -23,6 +23,8 @@ import androidx.lifecycle.LiveData
 import de.blinkt.openvpn.core.ConnectionStatus
 import de.blinkt.openvpn.core.VpnStatus
 import de.blinkt.openvpn.core.VpnStatus.StateListener
+import nl.eduvpn.app.livedata.IPs
+import nl.eduvpn.app.service.EduVPNOpenVPNService
 import nl.eduvpn.app.service.VPNService
 import nl.eduvpn.app.utils.Log
 import java.net.InetAddress
@@ -31,12 +33,10 @@ import java.net.SocketException
 import java.util.*
 import java.util.regex.Pattern
 
-class IPLiveData : LiveData<IPLiveData.IPs>() {
-
-    data class IPs(val ipv4: String?, val ipv6: String?)
+class IPLiveData : LiveData<IPs>() {
 
     private val VPN_INTERFACE_NAME = "tun0"
-    private val TAG = VPNService::class.java.name
+    private val TAG = IPLiveData::class.java.name
 
     private val stateListener: StateListener = object : StateListener {
         override fun updateState(
@@ -46,7 +46,7 @@ class IPLiveData : LiveData<IPLiveData.IPs>() {
             level: ConnectionStatus,
             intent: Intent?
         ) {
-            if(VPNService.connectionStatusToVPNStatus(level) == VPNService.VPNStatus.DISCONNECTED) {
+            if (EduVPNOpenVPNService.connectionStatusToVPNStatus(level) == VPNService.VPNStatus.DISCONNECTED) {
                 postValue(IPs(null, null))
                 return
             }
@@ -100,8 +100,8 @@ class IPLiveData : LiveData<IPLiveData.IPs>() {
                         } else {
                             val delimiter = ip.indexOf('%')
                             ipV6 =
-                                if (delimiter < 0) ip.toLowerCase() else ip.substring(0, delimiter)
-                                    .toLowerCase()
+                                if (delimiter < 0) ip.lowercase() else ip.substring(0, delimiter)
+                                    .lowercase()
                         }
                     }
                     return if (ipV4 != null || ipV6 != null) {

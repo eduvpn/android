@@ -29,7 +29,7 @@ import nl.eduvpn.app.entity.Instance
  */
 class ProviderViewHolder(private val binding: ListItemProviderBinding) : RecyclerView.ViewHolder(binding.root) {
     fun bind(instance: Instance) {
-        binding.providerDisplayName.text = instance.displayName
+        binding.providerDisplayName.text = instance.displayName.bestTranslation
         if (!TextUtils.isEmpty(instance.logoUri)) {
             Picasso.get()
                     .load(instance.logoUri)

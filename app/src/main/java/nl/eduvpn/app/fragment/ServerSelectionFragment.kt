@@ -79,10 +79,14 @@ class ServerSelectionFragment : BaseFragment<FragmentServerSelectionBinding>() {
                     }
                 }
                 is BaseConnectionViewModel.ParentAction.OpenProfileSelector -> {
-                    (activity as? MainActivity)?.openFragment(ProfileSelectionFragment.newInstance(parentAction.profiles), true)
+                    (activity as? MainActivity)?.openFragment(
+                        ProfileSelectionFragment.newInstance(
+                            parentAction.profiles
+                        ), true
+                    )
                 }
-                is BaseConnectionViewModel.ParentAction.ConnectWithProfile -> {
-                    viewModel.openVpnConnectionToProfile(requireActivity(), parentAction.vpnProfile)
+                is BaseConnectionViewModel.ParentAction.ConnectWithConfig -> {
+                    viewModel.connectionToConfig(requireActivity(), parentAction.vpnConfig)
                     (activity as? MainActivity)?.openFragment(ConnectionStatusFragment(), false)
                 }
                 is BaseConnectionViewModel.ParentAction.DisplayError -> {
@@ -95,10 +99,10 @@ class ServerSelectionFragment : BaseFragment<FragmentServerSelectionBinding>() {
             val item = adapter.getItem(position)
             if (item is OrganizationAdapter.OrganizationAdapterItem.SecureInternet) {
                 viewModel.connectingTo.value = item.server
-                viewModel.discoverApi(item.server, null)
+                viewModel.discoverApi(item.server)
             } else if (item is OrganizationAdapter.OrganizationAdapterItem.InstituteAccess) {
                 viewModel.connectingTo.value = item.server
-                viewModel.discoverApi(item.server, null)
+                viewModel.discoverApi(item.server)
             }
         }.setOnItemLongClickListener { _, position, _ ->
             val item = adapter.getItem(position)
@@ -113,28 +117,38 @@ class ServerSelectionFragment : BaseFragment<FragmentServerSelectionBinding>() {
             ErrorDialog.show(it.context, R.string.warning_title, viewModel.warning.value!!)
         }
         binding.addServerButton.setOnClickListener {
-            @Suppress("ConstantConditionIf")
-            if (BuildConfig.API_DISCOVERY_ENABLED) {
-                (activity as? MainActivity)?.openFragment(OrganizationSelectionFragment(), true)
-            } else {
-                (activity as? MainActivity)?.openFragment(AddServerFragment(), true)
-            }
+            openAddServerFragment(true)
+        }
+    }
+
+    private fun openAddServerFragment(openOnTop: Boolean) {
+        @Suppress("ConstantConditionIf")
+        if (BuildConfig.API_DISCOVERY_ENABLED) {
+            (activity as? MainActivity)?.openFragment(OrganizationSelectionFragment(), openOnTop)
+        } else {
+            (activity as? MainActivity)?.openFragment(AddServerFragment(), openOnTop)
         }
     }
 
     private fun displayDeleteDialog(instance: Instance) {
         AlertDialog.Builder(requireContext())
-                .setTitle(R.string.delete_server)
-                .setMessage(getString(R.string.delete_server_message, instance.displayName, instance.sanitizedBaseURI))
-                .setPositiveButton(R.string.button_remove) { dialog, _ ->
-                    viewModel.deleteAllDataForInstance(instance)
-                    if (viewModel.hasNoMoreServers()) {
-                        (activity as? MainActivity)?.openFragment(OrganizationSelectionFragment(), false)
-                    }
-                    dialog.dismiss()
+            .setTitle(R.string.delete_server)
+            .setMessage(
+                getString(
+                    R.string.delete_server_message,
+                    instance.displayName.bestTranslation,
+                    instance.sanitizedBaseURI
+                )
+            )
+            .setPositiveButton(R.string.button_remove) { dialog, _ ->
+                viewModel.deleteAllDataForInstance(instance)
+                if (viewModel.hasNoMoreServers()) {
+                    openAddServerFragment(false)
                 }
-                .setNegativeButton(R.string.delete_server_cancel) { dialog, _ -> dialog.dismiss() }
-                .show()
+                dialog.dismiss()
+            }
+            .setNegativeButton(R.string.delete_server_cancel) { dialog, _ -> dialog.dismiss() }
+            .show()
     }
 
     override fun onResume() {

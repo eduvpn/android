@@ -35,14 +35,27 @@ import nl.eduvpn.app.utils.runCatchingCoroutine
 import javax.inject.Inject
 
 class OrganizationSelectionViewModel @Inject constructor(
-        organizationService: OrganizationService,
-        private val preferencesService: PreferencesService,
-        context: Context,
-        apiService: APIService,
-        serializerService: SerializerService,
-        historyService: HistoryService,
-        connectionService: ConnectionService,
-        vpnService: VPNService) : BaseConnectionViewModel(context, apiService, serializerService, historyService, preferencesService, connectionService, vpnService) {
+    organizationService: OrganizationService,
+    private val preferencesService: PreferencesService,
+    context: Context,
+    apiService: APIService,
+    serializerService: SerializerService,
+    historyService: HistoryService,
+    connectionService: ConnectionService,
+    eduVpnOpenVpnService: EduVPNOpenVPNService,
+    wireGuardService: WireGuardService,
+    vpnConnectionService: VPNConnectionService,
+) : BaseConnectionViewModel(
+    context,
+    apiService,
+    serializerService,
+    historyService,
+    preferencesService,
+    connectionService,
+    eduVpnOpenVpnService,
+    wireGuardService,
+    vpnConnectionService,
+) {
 
     val state = MutableLiveData<ConnectionState>().also { it.value = ConnectionState.Ready }
 
@@ -66,20 +79,22 @@ class OrganizationSelectionViewModel @Inject constructor(
                     state.value = ConnectionState.FetchingServerList
                     CompletableDeferred(OrganizationList(-1L, emptyList()))
                 }
-                val cachedServerList = preferencesService.serverList
+                val cachedServerList = preferencesService.getServerList()
                 val serverListDeferred = if (cachedServerList != null) {
                     CompletableDeferred(cachedServerList)
                 } else {
                     async { organizationService.fetchServerList() }
                 }
 
-                val lastKnownOrganizationVersion = preferencesService.lastKnownOrganizationListVersion
-                val lastKnownServerListVersion = preferencesService.lastKnownServerListVersion
+                val lastKnownOrganizationVersion =
+                    preferencesService.getLastKnownOrganizationListVersion()
+                val lastKnownServerListVersion = preferencesService.getLastKnownServerListVersion()
 
-                val organizationList = runCatchingCoroutine { organizationListDeferred.await() }.getOrElse {
-                    Log.w(TAG, "Organizations call has failed!", it)
-                    OrganizationList(-1L, emptyList())
-                }
+                val organizationList =
+                    runCatchingCoroutine { organizationListDeferred.await() }.getOrElse {
+                        Log.w(TAG, "Organizations call has failed!", it)
+                        OrganizationList(-1L, emptyList())
+                    }
 
                 val serverList = runCatchingCoroutine { serverListDeferred.await() }.getOrElse {
                     Log.w(TAG, "Server list call has failed!", it)
@@ -99,10 +114,10 @@ class OrganizationSelectionViewModel @Inject constructor(
                 }
 
                 if (organizationList.version > 0) {
-                    preferencesService.lastKnownOrganizationListVersion = organizationList.version
+                    preferencesService.setLastKnownOrganizationListVersion(organizationList.version)
                 }
                 if (serverList.version > 0) {
-                    preferencesService.lastKnownServerListVersion = serverList.version
+                    preferencesService.setLastKnownServerListVersion(serverList.version)
                 }
 
                 organizations.value = organizationList.organizationList
@@ -123,8 +138,11 @@ class OrganizationSelectionViewModel @Inject constructor(
                     return@map resultList
                 }
                 val instituteAccessServers = servers.filter {
-                    it.authorizationType == AuthorizationType.Local && (searchText.isNullOrBlank() || it.displayName?.contains(searchText, ignoreCase = true) == true)
-                }.sortedBy { it.displayName }
+                    it.authorizationType == AuthorizationType.Local && (searchText.isNullOrBlank() || it.displayName.bestTranslation?.contains(
+                        searchText,
+                        ignoreCase = true
+                    ) == true)
+                }.sortedBy { it.displayName.bestTranslation }
                         .map { OrganizationAdapter.OrganizationAdapterItem.InstituteAccess(it) }
                 val secureInternetServers = organizations.filter {
                     if (searchText.isNullOrBlank()) {
@@ -164,9 +182,8 @@ class OrganizationSelectionViewModel @Inject constructor(
         }
     }
 
-
     fun selectOrganizationAndInstance(organization: Organization?, instance: Instance) {
-        preferencesService.currentOrganization = organization
+        preferencesService.setCurrentOrganization(organization)
         discoverApi(instance)
     }
 

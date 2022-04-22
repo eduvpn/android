@@ -85,8 +85,7 @@ class OrganizationService(private val serializerService: SerializerService,
                 Log.w(TAG, "Server list is empty")
                 throw IllegalArgumentException("Server list is empty!")
             }
-            val organizationListJson = JSONObject(serverListString)
-            serializerService.deserializeServerList(organizationListJson)
+            serializerService.deserializeServerList(serverListString)
         }
     }
 

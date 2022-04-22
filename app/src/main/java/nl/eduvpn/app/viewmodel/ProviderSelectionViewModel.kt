@@ -26,28 +26,34 @@ import nl.eduvpn.app.service.*
 import javax.inject.Inject
 
 class ProviderSelectionViewModel @Inject constructor(
-        context: Context,
-        apiService: APIService,
-        serializerService: SerializerService,
-        historyService: HistoryService,
-        private val preferencesService: PreferencesService,
-        connectionService: ConnectionService,
-        vpnService: VPNService,
-        private val organizationService: OrganizationService) : BaseConnectionViewModel(
-        context,
-        apiService,
-        serializerService,
-        historyService,
-        preferencesService,
-        connectionService,
-        vpnService) {
+    context: Context,
+    apiService: APIService,
+    serializerService: SerializerService,
+    historyService: HistoryService,
+    private val preferencesService: PreferencesService,
+    connectionService: ConnectionService,
+    eduVpnOpenVpnService: EduVPNOpenVPNService,
+    wireGuardService: WireGuardService,
+    private val organizationService: OrganizationService,
+    vpnConnectionService: VPNConnectionService,
+) : BaseConnectionViewModel(
+    context,
+    apiService,
+    serializerService,
+    historyService,
+    preferencesService,
+    connectionService,
+    eduVpnOpenVpnService,
+    wireGuardService,
+    vpnConnectionService,
+) {
 
-    val currentOrganization = MutableLiveData<Organization>()
+    val currentOrganization = MutableLiveData<Organization?>()
     val currentOrganizationInstances = MutableLiveData<List<Instance>>()
     val isLoadingInstances = MutableLiveData<Boolean>(true)
 
     init {
-        setCurrentOrganization(preferencesService.currentOrganization)
+        setCurrentOrganization(preferencesService.getCurrentOrganization())
     }
 
     fun setCurrentOrganization(organization: Organization?) {

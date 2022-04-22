@@ -137,3 +137,11 @@ inline fun <R> runCatchingCoroutine(block: () -> R): Result<R> {
     }
     return result
 }
+
+inline fun <R, T> Result<T>.flatMap(transform: (T) -> Result<R>): Result<R> {
+    return if (this.isSuccess) {
+        transform(this.getOrThrow())
+    } else {
+        Result.failure(this.exceptionOrNull()!!)
+    }
+}

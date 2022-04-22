@@ -31,9 +31,11 @@ import nl.eduvpn.app.MainActivity
 import nl.eduvpn.app.R
 import nl.eduvpn.app.entity.DiscoveredAPI
 import nl.eduvpn.app.entity.Instance
+import nl.eduvpn.app.entity.exception.EduVPNException
 import nl.eduvpn.app.utils.ErrorDialog.show
 import nl.eduvpn.app.utils.Log
 import nl.eduvpn.app.utils.runCatchingCoroutine
+import java.util.*
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
@@ -53,13 +55,13 @@ class ConnectionService(private val preferencesService: PreferencesService,
     private var authorizationService: AuthorizationService? = null
 
     fun onStart(activity: Activity) {
-        authorizationService = if (!preferencesService.appSettings.useCustomTabs()) {
+        authorizationService = if (!preferencesService.getAppSettings().useCustomTabs()) {
             // We do not allow any custom tab implementation.
             AuthorizationService(activity, AppAuthConfiguration.Builder()
                     .setBrowserMatcher(BrowserDenyList(
                             VersionedBrowserMatcher.CHROME_CUSTOM_TAB,
                             VersionedBrowserMatcher.SAMSUNG_CUSTOM_TAB)
-                    )
+                        )
                     .build())
         } else {
             // Default behavior
@@ -83,18 +85,18 @@ class ConnectionService(private val preferencesService: PreferencesService,
         withContext(Dispatchers.Main) {
             runCatchingCoroutine {
                 val stateString = securityService.generateSecureRandomString(32)
-                preferencesService.currentInstance = instance
-                preferencesService.currentDiscoveredAPI = discoveredAPI
+                preferencesService.setCurrentInstance(instance)
+                preferencesService.setCurrentDiscoveredAPI(discoveredAPI)
                 val serviceConfig = buildAuthConfiguration(discoveredAPI)
                 val authRequestBuilder = AuthorizationRequest.Builder(
-                        serviceConfig,  // the authorization service configuration
-                        CLIENT_ID,  // the client ID, typically pre-registered and static
-                        ResponseTypeValues.CODE,  // the response_type value: we want a code
+                    serviceConfig,  // the authorization service configuration
+                    CLIENT_ID,  // the client ID, typically pre-registered and static
+                    ResponseTypeValues.CODE,  // the response_type value: we want a code
                         Uri.parse(REDIRECT_URI)) // the redirect URI to which the auth response is sent
-                        .setScope(SCOPE)
-                        .setCodeVerifier(CodeVerifierUtil.generateRandomCodeVerifier()) // Use S256 challenge method if possible
-                        .setResponseType(RESPONSE_TYPE)
-                        .setState(stateString)
+                    .setScope(SCOPE)
+                    .setCodeVerifier(CodeVerifierUtil.generateRandomCodeVerifier()) // Use S256 challenge method if possible
+                    .setResponseType(RESPONSE_TYPE)
+                    .setState(stateString)
                 authRequestBuilder.build()
             }.onSuccess { authorizationRequest ->
                 if (authorizationService == null) {
@@ -102,14 +104,26 @@ class ConnectionService(private val preferencesService: PreferencesService,
                 }
                 if (!activity.isFinishing) {
                     val originalIntent = authorizationService!!.getAuthorizationRequestIntent(
-                            authorizationRequest,
-                            PendingIntent.getActivity(activity, REQUEST_CODE_APP_AUTH, Intent(activity, MainActivity::class.java), 0))
-                    if (instance.authenticationUrlTemplate != null && instance.authenticationUrlTemplate.isNotEmpty() && originalIntent.getParcelableExtra<Parcelable?>("authIntent") != null && preferencesService.currentOrganization != null) {
+                        authorizationRequest,
+                        PendingIntent.getActivity(
+                            activity,
+                            REQUEST_CODE_APP_AUTH,
+                            Intent(activity, MainActivity::class.java),
+                            0
+                        )
+                    )
+                    if (instance.authenticationUrlTemplate != null && instance.authenticationUrlTemplate.isNotEmpty() && originalIntent.getParcelableExtra<Parcelable?>(
+                            "authIntent"
+                        ) != null && preferencesService.getCurrentOrganization() != null
+                    ) {
                         val authIntent = originalIntent.getParcelableExtra<Intent>("authIntent")
                         if (authIntent != null && authIntent.dataString != null) {
                             val replacedUrl = instance.authenticationUrlTemplate
-                                    .replace("@RETURN_TO@", Uri.encode(authIntent.dataString))
-                                    .replace("@ORG_ID@", Uri.encode(preferencesService.currentOrganization!!.orgId))
+                                .replace("@RETURN_TO@", Uri.encode(authIntent.dataString))
+                                .replace(
+                                    "@ORG_ID@",
+                                    Uri.encode(preferencesService.getCurrentOrganization()!!.orgId)
+                                )
                             authIntent.data = Uri.parse(replacedUrl)
                             originalIntent.putExtra("authIntent", authIntent)
                         }
@@ -128,25 +142,39 @@ class ConnectionService(private val preferencesService: PreferencesService,
      * Parses the authorization response and retrieves the access token.
      *
      * @param authorizationResponse The auth response to process.
-     * @param activity              The current activity.
-     * @param callback              Callback which is called when the states are updated.
      */
-    fun parseAuthorizationResponse(authorizationResponse: AuthorizationResponse, activity: Activity, callback: AuthorizationStateCallback?) {
+    suspend fun parseAuthorizationResponse(
+        authorizationResponse: AuthorizationResponse,
+        authenticationDate: Date
+    ): Result<Unit> {
         Log.i(TAG, "Got auth response: " + authorizationResponse.jsonSerializeString())
-        authorizationService!!.performTokenRequest(
+        val tokenResponse = suspendCoroutine<Result<TokenResponse>> { cont ->
+            authorizationService!!.performTokenRequest(
                 authorizationResponse.createTokenExchangeRequest()
-        ) { tokenResponse: TokenResponse?, ex: AuthorizationException? ->
-            if (tokenResponse != null) {
-                // exchange succeeded
-                processTokenExchangeResponse(authorizationResponse, tokenResponse, activity)
-                callback?.onAuthorizationStateUpdated()
-            } else {
-                // authorization failed, check ex for more details
-                show(activity,
-                        R.string.authorization_error_title,
-                        activity.getString(R.string.authorization_error_message, ex!!.error, ex.code, ex.message))
+            ) { tokenResponse: TokenResponse?, ex: AuthorizationException? ->
+                if (tokenResponse != null) {
+                    cont.resume(Result.success(tokenResponse))
+                } else {
+                    cont.resume(
+                        Result.failure(
+                            EduVPNException(
+                                R.string.authorization_error_title,
+                                R.string.authorization_error_message,
+                                ex!!.error,
+                                ex.code,
+                                ex.message
+                            )
+                        )
+                    )
+                }
             }
-        }
+        }.getOrElse { return Result.failure(it) }
+
+        return processTokenExchangeResponse(
+            authorizationResponse,
+            tokenResponse,
+            authenticationDate
+        )
     }
 
     /**
@@ -154,26 +182,38 @@ class ConnectionService(private val preferencesService: PreferencesService,
      *
      * @param authorizationResponse The authorization response.
      * @param tokenResponse         The response from the token exchange updated into the authorization state
-     * @param activity              The current activity.
      */
-    private fun processTokenExchangeResponse(authorizationResponse: AuthorizationResponse, tokenResponse: TokenResponse, activity: Activity) {
+    private fun processTokenExchangeResponse(
+        authorizationResponse: AuthorizationResponse,
+        tokenResponse: TokenResponse,
+        authenticationDate: Date,
+    ): Result<Unit> {
         val authState = AuthState(authorizationResponse, tokenResponse, null)
         val accessToken = authState.accessToken
         if (accessToken == null || accessToken.isEmpty()) {
-            show(activity, R.string.error_dialog_title, R.string.error_access_token_missing)
-            return
+            return Result.failure(
+                EduVPNException(
+                    R.string.error_dialog_title,
+                    R.string.error_access_token_missing
+                )
+            )
         }
         // Save the authorization state.
-        preferencesService.currentAuthState = authState
+        preferencesService.setCurrentAuthState(authState)
         // Save the access token for later use.
-        historyService.cacheAuthorizationState(preferencesService.currentInstance, authState)
-        val organization = preferencesService.currentOrganization
+        historyService.cacheAuthorizationState(
+            preferencesService.getCurrentInstance()!!,
+            authState,
+            authenticationDate
+        )
+        val organization = preferencesService.getCurrentOrganization()
         if (organization != null) {
             historyService.storeSavedOrganization(organization)
-            preferencesService.currentOrganization = null
+            preferencesService.setCurrentOrganization(null)
         } else {
             Log.w(TAG, "Organization and instances were not available, so no caching was done.")
         }
+        return Result.success((Unit))
     }
 
     /**
@@ -190,7 +230,7 @@ class ConnectionService(private val preferencesService: PreferencesService,
                 suspendCoroutine<String> { cont ->
                     authState.performActionWithFreshTokens((authorizationService)!!) { accessToken, _, ex ->
                         if (accessToken != null) {
-                            preferencesService.currentAuthState = authState
+                            preferencesService.setCurrentAuthState(authState)
                             historyService.refreshAuthState(authState)
                             cont.resume(accessToken)
                         } else {
@@ -213,10 +253,6 @@ class ConnectionService(private val preferencesService: PreferencesService,
                 Uri.parse(discoveredAPI.authorizationEndpoint),
                 Uri.parse(discoveredAPI.tokenEndpoint),
                 null)
-    }
-
-    interface AuthorizationStateCallback {
-        fun onAuthorizationStateUpdated()
     }
 
     companion object {

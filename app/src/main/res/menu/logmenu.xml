@@ -30,7 +30,10 @@
         android:titleCondensed="@string/send"
         tools:ignore="AppCompatResource"/>
 
+    <!-- Disabled because it does not disconnect a WireGuard connection,
+    disconnecting can be done using the notification. -->
     <item
+        android:visible="false"
         android:id="@+id/cancel"
         android:icon="@drawable/ic_menu_close_clear_cancel"
         android:showAsAction="ifRoom"

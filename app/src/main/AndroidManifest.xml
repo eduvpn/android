@@ -16,6 +16,7 @@
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
+        android:usesCleartextTraffic="false"
         tools:ignore="AllowBackup"
         tools:replace="android:allowBackup">
         <activity
@@ -37,6 +38,9 @@
             android:screenOrientation="portrait"
             android:theme="@style/AppTheme.NoActionBar"
             tools:ignore="LockedOrientationActivity" />
+
+        <receiver android:name=".CertExpiredBroadcastReceiver" />
+        <receiver android:name=".DisconnectVPNBroadcastReceiver" />
 
         <!-- Activities and services inherited from the OpenVPN library. -->
         <service

@@ -17,10 +17,22 @@
 
 package nl.eduvpn.app.entity
 
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+
 /**
  * The type of the VPN which the user will connect to.
  * Created by Daniel Zolnai on 2017-07-31.
  */
+@Serializable
 enum class AuthorizationType {
-        Local, Distributed, Organization
+
+        @SerialName("institute_access")
+        Local,
+
+        @SerialName("secure_internet")
+        Distributed,
+
+        @SerialName("organization")
+        Organization
 }
