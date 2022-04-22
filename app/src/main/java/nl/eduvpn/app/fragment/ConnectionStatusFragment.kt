@@ -203,6 +203,9 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
                         )
                     }
                 }
+                else -> {
+                    // Do nothing.
+                }
             }
         }
         viewModel.isInDisconnectMode.observe(viewLifecycleOwner) { isInDisconnectMode ->

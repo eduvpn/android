@@ -92,6 +92,9 @@ class ServerSelectionFragment : BaseFragment<FragmentServerSelectionBinding>() {
                 is BaseConnectionViewModel.ParentAction.DisplayError -> {
                     ErrorDialog.show(requireContext(), parentAction.title, parentAction.message)
                 }
+                else -> {
+                    // Do nothing.
+                }
             }
         })
 
