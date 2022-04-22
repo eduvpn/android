@@ -14,27 +14,23 @@
  *     You should have received a copy of the GNU General Public License
  *     along with eduVPN.  If not, see <http://www.gnu.org/licenses/>.
  */
+package nl.eduvpn.app.entity
 
-package nl.eduvpn.app.entity;
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+import nl.eduvpn.app.utils.serializer.KeyPairSerializer
 
 /**
  * Extends the keypair with a base URI which we add.
  * Created by Daniel Zolnai on 2017-08-01.
  */
-public class SavedKeyPair {
-    private Instance _instance;
-    private KeyPair _keyPair;
+@Serializable
+data class SavedKeyPair(
 
-    public SavedKeyPair(Instance instance, KeyPair keyPair) {
-        _instance = instance;
-        _keyPair = keyPair;
-    }
+    @SerialName("instance")
+    val instance: Instance,
 
-    public Instance getInstance() {
-        return _instance;
-    }
-
-    public KeyPair getKeyPair() {
-        return _keyPair;
-    }
-}
+    @SerialName("key_pair")
+    @Serializable(with = KeyPairSerializer::class)
+    val keyPair: KeyPair
+)

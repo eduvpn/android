@@ -18,13 +18,16 @@
 
 package nl.eduvpn.app.entity
 
+import android.os.Parcel
+import android.os.Parcelable
+import android.os.PersistableBundle
 import android.text.TextUtils
 import nl.eduvpn.app.Constants
-import java.util.Locale
+import java.util.*
 
 data class TranslatableString(
-        val translations: Map<String, String>
-) {
+    val translations: Map<String, String>
+) : Parcelable {
     constructor(defaultValue: String) : this(mapOf("en" to defaultValue))
     constructor() : this(emptyMap())
 
@@ -80,5 +83,29 @@ data class TranslatableString(
             }
             return bestTranslationMatch
         }
+
+    override fun writeToParcel(out: Parcel, flags: Int) {
+        val persistableBundle = PersistableBundle(translations.size)
+        translations.forEach { (k, v) ->
+            persistableBundle.putString(k, v)
+        }
+        out.writePersistableBundle(persistableBundle)
+    }
+
+    override fun describeContents(): Int {
+        return 0
+    }
+
+    companion object CREATOR : Parcelable.Creator<TranslatableString> {
+        override fun createFromParcel(inParcel: Parcel): TranslatableString {
+            val bundle = inParcel.readPersistableBundle(this::class.java.classLoader)!!
+            val map = bundle.keySet().map { k -> Pair(k, bundle.getString(k)!!) }.toMap()
+            return TranslatableString(map)
+        }
+
+        override fun newArray(size: Int): Array<TranslatableString?> {
+            return arrayOfNulls(size)
+        }
+    }
 
 }

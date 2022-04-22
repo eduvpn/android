@@ -15,14 +15,13 @@
  *     along with eduVPN.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package nl.eduvpn.app.livedata
+package nl.eduvpn.app.livedata.openvpn
 
 import androidx.lifecycle.LiveData
 import de.blinkt.openvpn.core.VpnStatus
+import nl.eduvpn.app.livedata.ByteCount
 
-class ByteCountLiveData : LiveData<ByteCountLiveData.ByteCount>() {
-
-    data class ByteCount(val bytesIn: Long, val bytesOut: Long)
+class ByteCountLiveData : LiveData<ByteCount>() {
 
     private val byteCountListener: VpnStatus.ByteCountListener =
         VpnStatus.ByteCountListener { inBytes, outBytes, _, _ ->

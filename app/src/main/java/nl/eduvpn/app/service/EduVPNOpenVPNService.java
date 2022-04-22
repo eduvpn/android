@@ -18,6 +18,7 @@
 package nl.eduvpn.app.service;
 
 import android.app.Activity;
+import android.app.Notification;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -29,6 +30,8 @@ import android.os.RemoteException;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.lifecycle.LiveData;
+
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.io.StringReader;
@@ -47,21 +50,20 @@ import de.blinkt.openvpn.core.VpnStatus;
 import nl.eduvpn.app.R;
 import nl.eduvpn.app.entity.SavedKeyPair;
 import nl.eduvpn.app.entity.SavedProfile;
+import nl.eduvpn.app.livedata.ByteCount;
+import nl.eduvpn.app.livedata.IPs;
+import nl.eduvpn.app.livedata.UnlessDisconnectedLiveData;
+import nl.eduvpn.app.livedata.openvpn.ByteCountLiveData;
+import nl.eduvpn.app.livedata.openvpn.IPLiveData;
 import nl.eduvpn.app.utils.Log;
 
 /**
- * Service responsible for managing the VPN profiles and the connection.
+ * Service responsible for managing the OpenVPN profiles and the connection.
  * Created by Daniel Zolnai on 2016-10-13.
  */
-public class VPNService extends LiveData<VPNService.VPNStatus> implements VpnStatus.StateListener {
+public class EduVPNOpenVPNService extends VPNService implements VpnStatus.StateListener {
 
-    public enum VPNStatus {
-        DISCONNECTED, CONNECTING, CONNECTED, PAUSED, FAILED
-    }
-
-    private static final Long CONNECTION_INFO_UPDATE_INTERVAL_MS = 1000L;
-
-    private static final String TAG = VPNService.class.getName();
+    private static final String TAG = EduVPNOpenVPNService.class.getName();
 
     private Context _context;
 
@@ -88,16 +90,20 @@ public class VPNService extends LiveData<VPNService.VPNStatus> implements VpnSta
         }
     };
 
+    private IPLiveData _ipLiveData;
+    private LiveData<ByteCount> _byteCountLiveData;
+
     /**
      * Constructor.
      *
      * @param context The application or activity context.
      */
-    public VPNService(Context context, PreferencesService preferencesService) {
+    public EduVPNOpenVPNService(Context context, PreferencesService preferencesService, IPLiveData ipLiveData) {
         _context = context;
         _preferencesService = preferencesService;
+        _ipLiveData = ipLiveData;
+        _byteCountLiveData = UnlessDisconnectedLiveData.INSTANCE.create(new ByteCountLiveData(), this);
     }
-
 
     /**
      * Call this when your activity is starting up.
@@ -107,7 +113,7 @@ public class VPNService extends LiveData<VPNService.VPNStatus> implements VpnSta
     public void onCreate(@NonNull Activity activity) {
         OpenVPNService.setNotificationActivityClass(activity.getClass());
         Intent intent = new Intent(activity, OpenVPNService.class);
-        intent.putExtra(OpenVPNService.ALWAYS_SHOW_NOTIFICATION, true);
+        intent.putExtra(OpenVPNService.ALWAYS_SHOW_NOTIFICATION, false);
         intent.setAction(OpenVPNService.START_SERVICE);
         activity.bindService(intent, _serviceConnection, Context.BIND_AUTO_CREATE);
     }
@@ -131,6 +137,18 @@ public class VPNService extends LiveData<VPNService.VPNStatus> implements VpnSta
      */
     public void onDestroy(@NonNull Activity activity) {
         activity.unbindService(_serviceConnection);
+    }
+
+    @NonNull
+    @Override
+    public LiveData<ByteCount> getByteCountLiveData() {
+        return _byteCountLiveData;
+    }
+
+    @NonNull
+    @Override
+    public LiveData<IPs> getIpLiveData() {
+        return _ipLiveData;
     }
 
     /**
@@ -214,6 +232,21 @@ public class VPNService extends LiveData<VPNService.VPNStatus> implements VpnSta
         activity.startActivity(intent);
     }
 
+    @Override
+    public void startForeground(int id, @NonNull Notification notification) {
+        // We do not use the notification provided by the OpenVPN library because it is not possible
+        // to execute an action when the user presses disconnect in the notification. When the user
+        // presses disconnect, we need to send a /disconnect call to the API. We could have added
+        // this functionality to the OpenVPN library, but we have to use our own notification for
+        // WireGuard anyway because the WireGuard library does not provide a notification, so we
+        // might as well use the same notification for all VPN implementations.
+        try {
+            _openVPNService.startForeground(id, notification);
+        } catch (RemoteException ex) {
+            Log.e(TAG, "Exception when trying to start foreground service.", ex);
+        }
+    }
+
     /**
      * Disconnects the current VPN connection.
      */
@@ -264,6 +297,7 @@ public class VPNService extends LiveData<VPNService.VPNStatus> implements VpnSta
      *
      * @return The current status of the VPN.
      */
+    @NonNull
     public VPNStatus getStatus() {
         return connectionStatusToVPNStatus(_connectionStatus);
     }
@@ -289,20 +323,21 @@ public class VPNService extends LiveData<VPNService.VPNStatus> implements VpnSta
 
     @Override
     public void updateState(String state, String logmessage, int localizedResId, ConnectionStatus level, Intent Intent) {
-        ConnectionStatus oldStatus = _connectionStatus;
+        VPNService.VPNStatus oldStatus = connectionStatusToVPNStatus(_connectionStatus);
         _connectionStatus = level;
-        if (_connectionStatus == oldStatus) {
+        VPNService.VPNStatus status = connectionStatusToVPNStatus(level);
+        if (status == oldStatus) {
             // Nothing changed.
             return;
         }
-        if (getStatus() == VPNStatus.FAILED) {
+        if (status == VPNStatus.FAILED) {
             _errorResource = localizedResId;
-        } else if (getStatus() == VPNStatus.DISCONNECTED) {
+        } else if (status == VPNStatus.DISCONNECTED) {
             _onDisconnect();
         }
         // Notify the observers.
         _updatesHandler.post(() -> {
-            setValue(getStatus());
+            setValue(status);
         });
     }
 
@@ -321,5 +356,10 @@ public class VPNService extends LiveData<VPNService.VPNStatus> implements VpnSta
             }
         }
         return null;
+    }
+
+    @NotNull
+    public String getProtocolName() {
+        return "OpenVPN";
     }
 }

@@ -21,26 +21,34 @@ package nl.eduvpn.app.viewmodel
 import android.content.Context
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Transformations
-import nl.eduvpn.app.service.APIService
-import nl.eduvpn.app.service.ConnectionService
-import nl.eduvpn.app.service.HistoryService
-import nl.eduvpn.app.service.PreferencesService
-import nl.eduvpn.app.service.SerializerService
-import nl.eduvpn.app.service.VPNService
+import nl.eduvpn.app.service.*
 import javax.inject.Inject
 
 class AddServerViewModel @Inject constructor(
-        preferencesService: PreferencesService,
-        context: Context,
-        apiService: APIService,
-        serializerService: SerializerService,
-        historyService: HistoryService,
-        connectionService: ConnectionService,
-        vpnService: VPNService) : BaseConnectionViewModel(context, apiService, serializerService, historyService, preferencesService, connectionService, vpnService) {
+    preferencesService: PreferencesService,
+    context: Context,
+    apiService: APIService,
+    serializerService: SerializerService,
+    historyService: HistoryService,
+    connectionService: ConnectionService,
+    eduVpnOpenVpnService: EduVPNOpenVPNService,
+    wireGuardService: WireGuardService,
+    vpnConnectionService: VPNConnectionService,
+) : BaseConnectionViewModel(
+    context,
+    apiService,
+    serializerService,
+    historyService,
+    preferencesService,
+    connectionService,
+    eduVpnOpenVpnService,
+    wireGuardService,
+    vpnConnectionService,
+) {
 
     val serverUrl = MutableLiveData("")
 
-    val addButtonEnabled = Transformations.map(serverUrl) {url ->
+    val addButtonEnabled = Transformations.map(serverUrl) { url ->
         url != null && url.contains(".") && url.length > 3
     }
 }

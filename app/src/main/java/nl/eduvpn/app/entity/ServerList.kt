@@ -18,10 +18,18 @@
 
 package nl.eduvpn.app.entity
 
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+
 /**
  * A versioned list of organizations
  */
+@Serializable
 data class ServerList(
+
+        @SerialName("v")
         val version: Long,
+
+        @SerialName("server_list")
         val serverList: List<Instance>
 )

@@ -29,6 +29,7 @@ import nl.eduvpn.app.base.BaseFragment
 import nl.eduvpn.app.databinding.FragmentAddServerBinding
 import nl.eduvpn.app.entity.AuthorizationType
 import nl.eduvpn.app.entity.Instance
+import nl.eduvpn.app.entity.TranslatableString
 import nl.eduvpn.app.utils.ErrorDialog
 import nl.eduvpn.app.utils.hideKeyboard
 import nl.eduvpn.app.viewmodel.AddServerViewModel
@@ -66,12 +67,16 @@ class AddServerFragment : BaseFragment<FragmentAddServerBinding>() {
                 is BaseConnectionViewModel.ParentAction.InitiateConnection -> {
                     activity?.let { activity ->
                         if (!activity.isFinishing) {
-                            viewModel.initiateConnection(activity, parentAction.instance, parentAction.discoveredAPI)
+                            viewModel.initiateConnection(
+                                activity,
+                                parentAction.instance,
+                                parentAction.discoveredAPI
+                            )
                         }
                     }
                 }
-                is BaseConnectionViewModel.ParentAction.ConnectWithProfile -> {
-                    viewModel.openVpnConnectionToProfile(requireActivity(), parentAction.vpnProfile)
+                is BaseConnectionViewModel.ParentAction.ConnectWithConfig -> {
+                    viewModel.connectionToConfig(requireActivity(), parentAction.vpnConfig)
                     (activity as? MainActivity)?.openFragment(ConnectionStatusFragment(), false)
                 }
                 is BaseConnectionViewModel.ParentAction.DisplayError -> {
@@ -93,7 +98,16 @@ class AddServerFragment : BaseFragment<FragmentAddServerBinding>() {
         } else {
             "https://${url}"
         }
-        val customInstance = Instance(customUrl, getString(R.string.custom_provider_display_name), null, AuthorizationType.Local, null, true, null, emptyList())
+        val customInstance = Instance(
+            customUrl,
+            TranslatableString(getString(R.string.custom_provider_display_name)),
+            null,
+            AuthorizationType.Local,
+            null,
+            true,
+            null,
+            emptyList()
+        )
         viewModel.discoverApi(customInstance)
     }
 }

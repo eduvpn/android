@@ -36,7 +36,7 @@ class ProfileAdapter(private val instance: Instance) : ListAdapter<Profile, Prof
     }
 
     override fun areContentsTheSame(oldItem: Profile, newItem: Profile): Boolean {
-        return oldItem.profileId == newItem.profileId && oldItem.displayName == newItem.displayName
+        return oldItem == newItem
     }
 }) {
 

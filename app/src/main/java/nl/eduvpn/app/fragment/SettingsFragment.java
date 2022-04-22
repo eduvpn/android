@@ -22,11 +22,12 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Toast;
 
-import javax.inject.Inject;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
+
+import javax.inject.Inject;
+
 import de.blinkt.openvpn.activities.LogWindow;
 import nl.eduvpn.app.BuildConfig;
 import nl.eduvpn.app.EduVPNApplication;
@@ -38,7 +39,6 @@ import nl.eduvpn.app.databinding.FragmentSettingsBinding;
 import nl.eduvpn.app.entity.Settings;
 import nl.eduvpn.app.service.HistoryService;
 import nl.eduvpn.app.service.PreferencesService;
-import nl.eduvpn.app.service.VPNService;
 
 /**
  * Fragment which displays the available settings to the user.
@@ -51,9 +51,6 @@ public class SettingsFragment extends BaseFragment<FragmentSettingsBinding> {
 
     @Inject
     protected HistoryService _historyService;
-
-    @Inject
-    protected VPNService _vpnService;
 
     private Settings _originalSettings;
 
