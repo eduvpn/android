@@ -87,6 +87,9 @@ class ProfileSelectionFragment : BaseFragment<FragmentProfileSelectionBinding>()
                 is BaseConnectionViewModel.ParentAction.DisplayError -> {
                     ErrorDialog.show(requireContext(), parentAction.title, parentAction.message)
                 }
+                else -> {
+                    // Do nothing.
+                }
             }
         })
 

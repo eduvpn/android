@@ -198,6 +198,6 @@ dependencies {
 // This will fail the build if there is a Kotlin compiler warning.
 tasks.withType(KotlinCompile).all {
     kotlinOptions {
-        freeCompilerArgs = ["-Werror", "-Xopt-in=kotlin.RequiresOptIn"]
+        freeCompilerArgs = ["-Werror", "-opt-in=kotlin.RequiresOptIn"]
     }
 }

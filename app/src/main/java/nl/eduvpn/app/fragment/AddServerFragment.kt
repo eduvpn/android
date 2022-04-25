@@ -62,7 +62,7 @@ class AddServerFragment : BaseFragment<FragmentAddServerBinding>() {
                 false
             }
         }
-        viewModel.parentAction.observe(viewLifecycleOwner, Observer { parentAction ->
+        viewModel.parentAction.observe(viewLifecycleOwner) { parentAction ->
             when (parentAction) {
                 is BaseConnectionViewModel.ParentAction.InitiateConnection -> {
                     activity?.let { activity ->
@@ -82,8 +82,11 @@ class AddServerFragment : BaseFragment<FragmentAddServerBinding>() {
                 is BaseConnectionViewModel.ParentAction.DisplayError -> {
                     ErrorDialog.show(requireContext(), parentAction.title, parentAction.message)
                 }
+                else -> {
+                    // Do nothing.
+                }
             }
-        })
+        }
     }
 
     override fun onResume() {

@@ -137,6 +137,9 @@ class OrganizationSelectionFragment : BaseFragment<FragmentOrganizationSelection
                 is BaseConnectionViewModel.ParentAction.DisplayError -> {
                     ErrorDialog.show(requireContext(), parentAction.title, parentAction.message)
                 }
+                else -> {
+                    // Do nothing.
+                }
             }
         })
         binding.search.setOnFocusChangeListener { _, hasFocus ->
