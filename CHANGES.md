@@ -1,6 +1,6 @@
 # Changelog
 
-## 2.99.0 (...)
+## 2.99.0 (2022-04-25)
 - add support for [APIv3](https://github.com/eduvpn/documentation/blob/v3/API.md)
 - add support for [WireGuard](https://www.wireguard.com/) in combination with 
   eduVPN/Let's Connect! 3.x servers
