@@ -6,7 +6,7 @@
 
 SDK_DIR=${HOME}/android-sdk
 
-# current as of 20191028
+# current as of 20220425
 # see https://developer.android.com/studio/#downloads "Command line tools only"
 SDK_VERSION=8092744
 
