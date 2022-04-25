@@ -60,14 +60,14 @@ not tested, but 1GB definitely does not work.
         tar \
         git \
         swig \
-        java-1.8.0-openjdk \
-        java-1.8.0-openjdk-devel \
+        java-11-openjdk \
+        java-11-openjdk-devel \
         ncurses-compat-libs \
         ninja-build \
         cmake \
 	    pv
 
-We last tested this (successfully) on 2021-05-11 with Fedora 34.
+We last tested this (successfully) on 2022-04-25 with Fedora 35.
 
 ### Debian
 
