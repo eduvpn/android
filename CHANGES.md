@@ -1,9 +1,12 @@
 # Changelog
 
-## 3.0.0 (...)
+## 2.99.0 (...)
 - add support for [APIv3](https://github.com/eduvpn/documentation/blob/v3/API.md)
 - add support for [WireGuard](https://www.wireguard.com/) in combination with 
   eduVPN/Let's Connect! 3.x servers
+- improve expiry notification
+- allow user to request a new session
+- update ics-openvpn
 
 ## 2.0.5 (2021-06-11)
 - fix 'certificate expired' popup loop (issue #329)
