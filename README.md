@@ -71,7 +71,7 @@ We last tested this (successfully) on 2022-04-25 with Fedora 35.
 
 ### Debian
 
-    $ sudo apt -y install openjdk-8-jdk git curl unzip swig ninja-build cmake pv
+    $ sudo apt -y install openjdk-11-jdk git curl unzip swig ninja-build cmake pv
 
 ## Key Store
 
