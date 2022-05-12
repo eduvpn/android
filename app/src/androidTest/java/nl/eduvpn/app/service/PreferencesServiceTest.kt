@@ -17,17 +17,17 @@
 package nl.eduvpn.app.service
 
 import android.content.Context
-import android.content.SharedPreferences
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
-import nl.eduvpn.app.entity.*
-import nl.eduvpn.app.service.SerializerService.UnknownFormatException
+import nl.eduvpn.app.entity.AuthorizationType
+import nl.eduvpn.app.entity.DiscoveredAPIV2
+import nl.eduvpn.app.entity.Instance
+import nl.eduvpn.app.entity.TranslatableString
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import java.util.*
 
 /**
  * Tests for the preferences service.
@@ -38,7 +38,6 @@ import java.util.*
 class PreferencesServiceTest {
 
     private lateinit var _preferencesService: PreferencesService
-    private lateinit var _oldPreferences: SharedPreferences
 
     @Before
     fun before() {
@@ -46,9 +45,8 @@ class PreferencesServiceTest {
         val context = ApplicationProvider.getApplicationContext<Context>()
         _preferencesService = PreferencesService(
             context,
-            serializerService,
-            @Suppress("DEPRECATION")
-            SecurityService(context).securePreferences.also { _oldPreferences = it })
+            serializerService
+        )
     }
 
     @Test
@@ -112,70 +110,5 @@ class PreferencesServiceTest {
         _preferencesService.setLastKnownServerListVersion(version)
         val retrievedVersion = _preferencesService.getLastKnownServerListVersion()
         Assert.assertEquals(version, retrievedVersion)
-    }
-
-    @Test
-    @Throws(UnknownFormatException::class)
-    fun testMigration() {
-        // We only test a few properties
-        val discoveredAPI = DiscoveredAPIV2(
-            "http://example.com/",
-            "http://example.com/auth_endpoint",
-            "http://example.com/token_endpoint"
-        )
-        val discoveredAPIs = DiscoveredAPIs(discoveredAPI, null)
-        val instance = Instance(
-            "base_uri",
-            TranslatableString("display_name"),
-            "logo_uri",
-            AuthorizationType.Distributed,
-            "NL",
-            false,
-            "https://example.com/template",
-            ArrayList()
-        )
-        val editor = _oldPreferences.edit()
-
-        val serializerService = SerializerService()
-
-        editor.putString(
-            PreferencesService.KEY_INSTANCE, serializerService.serializeInstance(instance)
-                .toString()
-        )
-        editor.putString(
-            PreferencesService.KEY_DISCOVERED_API,
-            serializerService.serializeDiscoveredAPIs(discoveredAPIs)
-        )
-        editor.commit()
-
-        _preferencesService.getSharedPreferences().edit().clear().commit()
-        _preferencesService.migrateIfNeeded(
-            _preferencesService.getSharedPreferences(),
-            _oldPreferences
-        )
-
-        val instanceResult = _preferencesService.getCurrentInstance()
-        val retrievedDiscoveredAPI = _preferencesService.getCurrentDiscoveredAPI()
-
-        Assert.assertEquals(
-            discoveredAPI.authorizationEndpoint,
-            retrievedDiscoveredAPI!!.authorizationEndpoint
-        )
-        Assert.assertEquals(
-            discoveredAPI.apiBaseUri,
-            retrievedDiscoveredAPI.toDiscoveredAPIs().v2!!.apiBaseUri
-        )
-        Assert.assertEquals(discoveredAPI.tokenEndpoint, retrievedDiscoveredAPI.tokenEndpoint)
-        Assert.assertEquals(instanceResult!!.baseURI, instanceResult.baseURI)
-
-        Assert.assertEquals(instanceResult.displayName, instanceResult.displayName)
-        Assert.assertEquals(instanceResult.authorizationType, instanceResult.authorizationType)
-        Assert.assertEquals(instanceResult.isCustom, instanceResult.isCustom)
-        Assert.assertEquals(instanceResult.countryCode, instanceResult.countryCode)
-        Assert.assertEquals(instanceResult.supportContact, instanceResult.supportContact)
-        Assert.assertEquals(
-            instanceResult.authenticationUrlTemplate,
-            instanceResult.authenticationUrlTemplate
-        )
     }
 }

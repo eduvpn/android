@@ -21,14 +21,18 @@ package nl.eduvpn.app.service
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.SharedPreferences
+import android.os.Build
 import androidx.annotation.VisibleForTesting
 import net.openid.appauth.AuthState
+import nl.eduvpn.app.BuildConfig
 import nl.eduvpn.app.Constants
 import nl.eduvpn.app.entity.*
 import nl.eduvpn.app.entity.v3.Protocol
 import nl.eduvpn.app.utils.Log
 import org.json.JSONException
 import org.json.JSONObject
+import java.io.File
+import java.io.IOException
 
 /**
  * This service is used to save temporary data
@@ -37,17 +41,15 @@ import org.json.JSONObject
 
 /**
  * @param serializerService The serializer service used to serialize and deserialize objects.
- * @param securePreferences The deprecated secured shared preferences, used to migrate old data to the new version.
  */
 class PreferencesService(
     applicationContext: Context,
     serializerService: SerializerService,
-    securePreferences: SharedPreferences
 ) {
     companion object {
         private val TAG = PreferencesService::class.simpleName
 
-        private const val STORAGE_VERSION = 3
+        private const val STORAGE_VERSION = 4
 
         private const val KEY_PREFERENCES_NAME = "app_preferences"
 
@@ -91,46 +93,16 @@ class PreferencesService(
         applicationContext.getSharedPreferences(KEY_PREFERENCES_NAME, Context.MODE_PRIVATE)
 
     init {
-        migrateIfNeeded(_sharedPreferences, securePreferences)
+        migrateIfNeeded(_sharedPreferences, applicationContext)
     }
 
     @SuppressLint("ApplySharedPref")
     @VisibleForTesting
     fun migrateIfNeeded(
         newPreferences: SharedPreferences,
-        oldPreferences: SharedPreferences
+        applicationContext: Context,
     ) {
         val version = newPreferences.getInt(KEY_STORAGE_VERSION, 1)
-        if (version < 2) {
-            val editor = newPreferences.edit()
-
-            editor.putString(KEY_INSTANCE, oldPreferences.getString(KEY_INSTANCE, null))
-            editor.putString(KEY_PROFILE, oldPreferences.getString(KEY_PROFILE, null))
-            editor.putString(
-                KEY_DISCOVERED_API,
-                oldPreferences.getString(KEY_DISCOVERED_API, null)
-            )
-            editor.putString(KEY_AUTH_STATE, oldPreferences.getString(KEY_AUTH_STATE, null))
-            editor.putString(KEY_APP_SETTINGS, oldPreferences.getString(KEY_APP_SETTINGS, null))
-            editor.putString(
-                KEY_SAVED_PROFILES,
-                oldPreferences.getString(KEY_SAVED_PROFILES, null)
-            )
-            editor.putString(
-                KEY_SAVED_AUTH_STATES,
-                oldPreferences.getString(KEY_SAVED_AUTH_STATES, null)
-            )
-            editor.putString(
-                KEY_SAVED_KEY_PAIRS,
-                oldPreferences.getString(KEY_SAVED_KEY_PAIRS, null)
-            )
-
-            editor.commit()
-            oldPreferences.edit().clear().commit()
-            if (Constants.DEBUG) {
-                Log.d(TAG, "Migrated over to storage version v2.")
-            }
-        }
         if (version < 3) {
             val editor = newPreferences.edit()
             @Suppress("DEPRECATION")
@@ -138,11 +110,37 @@ class PreferencesService(
             @Suppress("DEPRECATION")
             editor.remove(KEY_INSTANCE_LIST_INSTITUTE_ACCESS)
 
-            editor.putInt(KEY_STORAGE_VERSION, STORAGE_VERSION)
-
             editor.commit()
             if (Constants.DEBUG) {
                 Log.d(TAG, "Migrated over to storage version v3.")
+            }
+        }
+        if (version < 4) {
+            // Remove the old preference file used by com.scottyab:secure-preferences:
+            // nl.eduvpn.app_preferences.xml or org.letsconnect_vpn.app_preferences.xml.
+
+            val preferenceName = BuildConfig.APPLICATION_ID + "_preferences"
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                applicationContext.deleteSharedPreferences(preferenceName)
+            } else {
+                val dataDir = applicationContext.filesDir.parent
+                if (dataDir != null) {
+                    val file =
+                        File(dataDir + File.separator + "shared_prefs" + File.separator + preferenceName + ".xml")
+                    try {
+                        file.delete()
+                    } catch (e: IOException) {
+
+                    }
+                }
+            }
+
+            val editor = newPreferences.edit()
+            editor.putInt(KEY_STORAGE_VERSION, STORAGE_VERSION)
+            editor.commit()
+            if (Constants.DEBUG) {
+                Log.d(TAG, "Migrated over to storage version v4.")
             }
         }
     }

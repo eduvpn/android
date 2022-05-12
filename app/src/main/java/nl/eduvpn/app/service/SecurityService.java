@@ -17,11 +17,12 @@
 
 package nl.eduvpn.app.service;
 
-import android.content.Context;
-import android.content.SharedPreferences;
 import android.util.Base64;
 
-import com.securepreferences.SecurePreferences;
+import androidx.annotation.CheckResult;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.VisibleForTesting;
 
 import org.libsodium.jni.NaCl;
 import org.libsodium.jni.Sodium;
@@ -34,10 +35,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import androidx.annotation.CheckResult;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.annotation.VisibleForTesting;
 import nl.eduvpn.app.BuildConfig;
 import nl.eduvpn.app.utils.Log;
 
@@ -68,11 +65,7 @@ public class SecurityService {
         NaCl.sodium();
     }
 
-    private final Context _context;
-
-
-    public SecurityService(Context context) {
-        _context = context;
+    public SecurityService() {
         loadMinisignPublicKeys(BuildConfig.MINISIGN_SIGNATURE_VALIDATION_PUBLIC_KEY);
     }
 
@@ -94,16 +87,6 @@ public class SecurityService {
         }
         MINISIGN_PUBLIC_KEY_ID_LIST = Collections.unmodifiableList(idList);
         MINISIGN_PUBLIC_KEY_BYTES_LIST = Collections.unmodifiableList(bytesList);
-    }
-
-    /**
-     * @deprecated This will be removed in favor of the regular preferences. Currently
-     * we migrate all data over from these preferences to the regular if we detect any data in this one.
-     * This method will be probably removed in 1.4 or 1.5. For more info, see: https://github.com/eduvpn/android/issues/117
-     */
-    @Deprecated
-    public SharedPreferences getSecurePreferences() {
-        return new SecurePreferences(_context);
     }
 
     @CheckResult
