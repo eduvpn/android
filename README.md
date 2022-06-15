@@ -117,3 +117,11 @@ necessary. Use this if you want to use an official release.
     $ ./build_app_tar.sh
 
 You'll find the signed output APK in ${HOME}/Projects.
+
+# Testing
+
+To run all tests, execute the following command:
+
+```bash
+./gradlew :app:connectedBasicDebugAndroidTest
+```
