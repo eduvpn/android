@@ -19,11 +19,6 @@ Or if your git version is below 2.13:
      alt="Get it on Google Play"
      height="80">](https://play.google.com/store/apps/details?id=nl.eduvpn.app)
 
-# Organizations
-
-A future version of the app will contain automatic organization discovery, where you can select your institute from a wide list.
-This way you don't have to manually enter discovery URLs. To build this version of the app, build the `organization` flavor instead of `basic`.
- 
 # Running with Android Studio
 
 First install the `swig` package with your operating system package manager.
