@@ -50,7 +50,7 @@ class OrganizationService(private val serializerService: SerializerService,
 
             val signatureDeferred = async {
                 runCatchingCoroutine {
-                    createSignatureSingle(serverListUrl)
+                    getSignature(serverListUrl)
                 }.mapCatching { signature ->
                     if (signature.isBlank()) {
                         throw IllegalArgumentException("Signature of server list is empty!")
@@ -62,7 +62,7 @@ class OrganizationService(private val serializerService: SerializerService,
             }
             val serverListDeferred = async {
                 runCatchingCoroutine {
-                    createGetJsonSingle(serverListUrl)
+                    getJsonBytes(serverListUrl)
                 }.onFailure { it ->
                     Log.w(TAG, "Unable to fetch signature of server list!", it)
                 }.getOrThrow()
@@ -95,7 +95,7 @@ class OrganizationService(private val serializerService: SerializerService,
 
             val organizationListDeferred = async {
                 runCatchingCoroutine {
-                    createGetJsonSingle(listUrl)
+                    getJsonBytes(listUrl)
                 }.onFailure {
                     Log.w(TAG, "Unable to fetch organization list!", it)
                 }.getOrThrow()
@@ -103,7 +103,7 @@ class OrganizationService(private val serializerService: SerializerService,
 
             val signatureDeferred = async {
                 runCatchingCoroutine {
-                    createSignatureSingle(listUrl)
+                    getSignature(listUrl)
                 }.mapCatching { signature ->
                     if (signature.isBlank()) {
                         throw throw IllegalArgumentException("Signature of organization list is empty!")
@@ -136,7 +136,7 @@ class OrganizationService(private val serializerService: SerializerService,
         }
     }
 
-    private suspend fun createSignatureSingle(signatureRequestUrl: String): String {
+    private suspend fun getSignature(signatureRequestUrl: String): String {
         val postfixedUrl = signatureRequestUrl + BuildConfig.SIGNATURE_URL_POSTFIX
         val request = Request.Builder().url(postfixedUrl).build()
         val response = okHttpClient.newCall(request).await()
@@ -150,7 +150,7 @@ class OrganizationService(private val serializerService: SerializerService,
         }
     }
 
-    private suspend fun createGetJsonSingle(url: String): Pair<ByteArray, Charset> {
+    private suspend fun getJsonBytes(url: String): Pair<ByteArray, Charset> {
         val request = Request.Builder().url(url).build()
         val response = okHttpClient.newCall(request).await()
         val responseBody = response.body
