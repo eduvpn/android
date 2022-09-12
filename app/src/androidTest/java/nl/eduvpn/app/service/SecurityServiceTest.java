@@ -18,21 +18,18 @@
 
 package nl.eduvpn.app.service;
 
-import android.content.Context;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
+import androidx.test.ext.junit.runners.AndroidJUnit4;
+import androidx.test.filters.LargeTest;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.IOException;
-
-import androidx.test.core.app.ApplicationProvider;
-import androidx.test.ext.junit.runners.AndroidJUnit4;
-import androidx.test.filters.LargeTest;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 
 @RunWith(AndroidJUnit4.class)
 @LargeTest
@@ -48,8 +45,7 @@ public class SecurityServiceTest {
 
     @Before
     public void before() {
-        Context context = ApplicationProvider.getApplicationContext();
-        _securityService = new SecurityService(context);
+        _securityService = new SecurityService();
         SecurityService.loadMinisignPublicKeys(UNIT_TEST_PUBLIC_KEYS);
     }
 

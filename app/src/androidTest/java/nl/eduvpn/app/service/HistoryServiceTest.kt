@@ -18,7 +18,6 @@ package nl.eduvpn.app.service
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.content.SharedPreferences
 import android.net.Uri
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -47,18 +46,6 @@ class HistoryServiceTest {
         reloadHistoryService(true)
     }
 
-    companion object {
-        lateinit var securePreferences: SharedPreferences
-
-        @JvmStatic
-        @BeforeClass
-        fun setPreferences() {
-            val context = ApplicationProvider.getApplicationContext<Context>()
-            @Suppress("DEPRECATION")
-            securePreferences = SecurityService(context).securePreferences
-        }
-    }
-
     /**
      * Reloads the service, so we can test if the (de)serialization works as expected.
      *
@@ -68,8 +55,7 @@ class HistoryServiceTest {
     private fun reloadHistoryService(clearHistory: Boolean) {
         val serializerService = SerializerService()
         val context = ApplicationProvider.getApplicationContext<Context>()
-        val preferencesService =
-            PreferencesService(context, serializerService, securePreferences)
+        val preferencesService = PreferencesService(context, serializerService)
         // Clean the shared preferences if needed
         if (clearHistory) {
             preferencesService.clearPreferences()

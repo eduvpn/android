@@ -17,7 +17,6 @@
 package nl.eduvpn.app.inject
 
 import android.content.Context
-import android.content.SharedPreferences
 import android.os.Build
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.liveData
@@ -69,19 +68,11 @@ class ApplicationModule(private val application: EduVPNApplication) {
 
     @Provides
     @Singleton
-    fun provideSecurePreferences(securityService: SecurityService): SharedPreferences {
-        @Suppress("DEPRECATION")
-        return securityService.securePreferences
-    }
-
-    @Provides
-    @Singleton
     fun providePreferencesService(
         context: Context,
         serializerService: SerializerService,
-        sharedPreferences: SharedPreferences
     ): PreferencesService {
-        return PreferencesService(context, serializerService, sharedPreferences)
+        return PreferencesService(context, serializerService)
     }
 
     @Provides
@@ -181,8 +172,8 @@ class ApplicationModule(private val application: EduVPNApplication) {
 
     @Provides
     @Singleton
-    fun provideSecurityService(context: Context?): SecurityService {
-        return SecurityService(context)
+    fun provideSecurityService(): SecurityService {
+        return SecurityService()
     }
 
     @Provides
