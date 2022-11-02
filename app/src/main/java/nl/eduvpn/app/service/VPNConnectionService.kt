@@ -18,6 +18,7 @@ import nl.eduvpn.app.entity.DiscoveredAPIV3
 import nl.eduvpn.app.entity.VPNConfig
 import nl.eduvpn.app.utils.FormattingUtils
 import nl.eduvpn.app.utils.Log
+import nl.eduvpn.app.utils.pendingIntentImmutableFlag
 import nl.eduvpn.app.utils.runCatchingCoroutine
 
 class VPNConnectionService(
@@ -115,7 +116,12 @@ class VPNConnectionService(
         val disconnectVPNIntent = Intent(context, DisconnectVPNBroadcastReceiver::class.java)
             .setAction(DisconnectVPNBroadcastReceiver.ACTION)
         val disconnectVPNPendingIntent =
-            PendingIntent.getBroadcast(context, 0, disconnectVPNIntent, 0)
+            PendingIntent.getBroadcast(
+                context,
+                0,
+                disconnectVPNIntent,
+                pendingIntentImmutableFlag
+            )
 
         val notification = NotificationCompat.Builder(context, channelID)
             .setSmallIcon(R.drawable.logo_black)
@@ -127,7 +133,7 @@ class VPNConnectionService(
                     context,
                     0,
                     Intent(context, MainActivity::class.java),
-                    0
+                    pendingIntentImmutableFlag
                 )
             )
             .setAutoCancel(false)

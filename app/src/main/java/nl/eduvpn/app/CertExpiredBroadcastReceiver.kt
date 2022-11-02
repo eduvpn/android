@@ -7,6 +7,7 @@ import android.content.Context
 import android.content.Intent
 import androidx.core.app.NotificationCompat
 import nl.eduvpn.app.service.VPNService
+import nl.eduvpn.app.utils.pendingIntentImmutableFlag
 import javax.inject.Inject
 
 class CertExpiredBroadcastReceiver : BroadcastReceiver() {
@@ -32,7 +33,7 @@ class CertExpiredBroadcastReceiver : BroadcastReceiver() {
                     context,
                     0,
                     Intent(context, MainActivity::class.java),
-                    0
+                    pendingIntentImmutableFlag
                 )
             )
             .setAutoCancel(true)
