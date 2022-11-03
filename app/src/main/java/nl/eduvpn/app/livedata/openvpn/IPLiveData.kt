@@ -90,10 +90,10 @@ class IPLiveData : LiveData<IPs>() {
                 if (VPN_INTERFACE_NAME == networkInterface.name) {
                     val addresses: List<InetAddress> =
                         Collections.list(networkInterface.inetAddresses)
+                    val ips = addresses.mapNotNull { a -> a.hostAddress }
                     var ipV4: String? = null
                     var ipV6: String? = null
-                    for (address in addresses) {
-                        val ip = address.hostAddress
+                    for (ip in ips) {
                         val isIPv4 = ip.indexOf(':') < 0
                         if (isIPv4) {
                             ipV4 = ip

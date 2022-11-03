@@ -8,6 +8,7 @@ import android.content.Intent
 import androidx.core.app.NotificationCompat
 import androidx.lifecycle.Observer
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import nl.eduvpn.app.Constants
@@ -18,6 +19,7 @@ import nl.eduvpn.app.entity.DiscoveredAPIV3
 import nl.eduvpn.app.entity.VPNConfig
 import nl.eduvpn.app.utils.FormattingUtils
 import nl.eduvpn.app.utils.Log
+import nl.eduvpn.app.utils.pendingIntentImmutableFlag
 import nl.eduvpn.app.utils.runCatchingCoroutine
 
 class VPNConnectionService(
@@ -41,6 +43,7 @@ class VPNConnectionService(
         disconnectCall()
     }
 
+    @OptIn(DelicateCoroutinesApi::class) // Necessary for GlobalScope.launch
     private fun disconnectCall() {
         val discoveredAPI = preferencesService.getCurrentDiscoveredAPI()
         if (discoveredAPI == null) {
@@ -115,7 +118,12 @@ class VPNConnectionService(
         val disconnectVPNIntent = Intent(context, DisconnectVPNBroadcastReceiver::class.java)
             .setAction(DisconnectVPNBroadcastReceiver.ACTION)
         val disconnectVPNPendingIntent =
-            PendingIntent.getBroadcast(context, 0, disconnectVPNIntent, 0)
+            PendingIntent.getBroadcast(
+                context,
+                0,
+                disconnectVPNIntent,
+                pendingIntentImmutableFlag
+            )
 
         val notification = NotificationCompat.Builder(context, channelID)
             .setSmallIcon(R.drawable.logo_black)
@@ -127,7 +135,7 @@ class VPNConnectionService(
                     context,
                     0,
                     Intent(context, MainActivity::class.java),
-                    0
+                    pendingIntentImmutableFlag
                 )
             )
             .setAutoCancel(false)

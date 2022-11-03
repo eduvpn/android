@@ -135,11 +135,11 @@ class WireGuardService(private val context: Context, timer: LiveData<Unit>) :
         private fun getIPs(wgInterface: Interface): IPs {
             val ipv4Addresses = wgInterface.addresses
                 .filter { network -> network.address is java.net.Inet4Address }
-                .map { ip -> ip.address.hostAddress }
+                .mapNotNull { ip -> ip.address.hostAddress }
 
             val ipv6Addresses = wgInterface.addresses
                 .filter { network -> network.address is java.net.Inet6Address }
-                .map { ip -> ip.address.hostAddress }
+                .mapNotNull { ip -> ip.address.hostAddress }
 
             fun ipListToString(ipList: List<String>): String? {
                 return ipList.reduceOrNull { s1, s2 -> "$s1, $s2" }

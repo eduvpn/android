@@ -18,7 +18,9 @@
 
 package nl.eduvpn.app.utils
 
+import android.app.PendingIntent
 import android.content.Context
+import android.os.Build
 import android.view.View
 import android.view.inputmethod.InputMethodManager
 import androidx.lifecycle.LiveData
@@ -128,4 +130,10 @@ inline fun <R, T> Result<T>.flatMap(transform: (T) -> Result<R>): Result<R> {
     } else {
         Result.failure(this.exceptionOrNull()!!)
     }
+}
+
+val pendingIntentImmutableFlag = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+    PendingIntent.FLAG_IMMUTABLE
+} else {
+    0
 }
