@@ -8,6 +8,7 @@ import android.content.Intent
 import androidx.core.app.NotificationCompat
 import androidx.lifecycle.Observer
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import nl.eduvpn.app.Constants
@@ -42,6 +43,7 @@ class VPNConnectionService(
         disconnectCall()
     }
 
+    @OptIn(DelicateCoroutinesApi::class) // Necessary for GlobalScope.launch
     private fun disconnectCall() {
         val discoveredAPI = preferencesService.getCurrentDiscoveredAPI()
         if (discoveredAPI == null) {
