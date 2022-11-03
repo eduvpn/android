@@ -50,13 +50,14 @@ jobs:
             ics-openvpn/.gradle
             ics-openvpn/main/build
             ics-openvpn/main/.cxx
-          key: ${{ runner.os }}-ics_openvpn-${{ hashFiles('.git/modules/ics-openvpn/HEAD') }}
+          key: ${{ runner.os }}-ics_openvpn_2-${{ hashFiles('.git/modules/ics-openvpn/HEAD') }}
 
       - if: ${{ steps.cache-ics-openvpn.outputs.cache-hit == 'true' }}
         # For unknown reason, ninja always rebuilds, so force use of cache
         name: Build app with ics-openvpn cache
         run: |
-          ./gradlew app:assembleBasicRelease --build-cache --warning-mode all \
+          ./gradlew app:assembleBasicRelease app:assembleBasicDebugAndroidTest \
+          --build-cache --warning-mode all \
           -x :ics-openvpn-main:configureCMakeRelWithDebInfo[arm64-v8a] \
           -x :ics-openvpn-main:buildCMakeRelWithDebInfo[arm64-v8a] \
           -x :ics-openvpn-main:configureCMakeRelWithDebInfo[armeabi-v7a] \
@@ -67,11 +68,17 @@ jobs:
           -x :ics-openvpn-main:buildCMakeRelWithDebInfo[x86_64] \
           -x :ics-openvpn-main:externalNativeBuildUiRelease \
           -x :ics-openvpn-main:packageUiReleaseResources \
-          -x :ics-openvpn-main:compileUiReleaseJavaWithJavac
+          -x :ics-openvpn-main:compileUiReleaseJavaWithJavac \
+          -x :ics-openvpn-main:configureCMakeDebug[x86_64] \
+          -x :ics-openvpn-main:buildCMakeDebug[x86_64] \
+          -x :ics-openvpn-main:buildCMakeDebug[arm64-v8a] \
+          -x :ics-openvpn-main:buildCMakeDebug[armeabi-v7a] \
+          -x :ics-openvpn-main:buildCMakeDebug[x86]
 
       - if: ${{ steps.cache-ics-openvpn.outputs.cache-hit != 'true' }}
         name: Build app
         run: |
           sudo apt-get update
           sudo apt-get -y install swig ninja-build cmake
-          ./gradlew app:assembleBasicRelease --build-cache --warning-mode all
+          ./gradlew app:assembleBasicRelease app:assembleBasicDebugAndroidTest \
+          --build-cache --warning-mode all
