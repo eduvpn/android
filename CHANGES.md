@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.0.1 (...)
+- update ics-openvpn
+- Remove secure-preferences ([#117](https://github.com/eduvpn/android/issues/117))
+
 ## 3.0.0 (2022-05-09)
 - add support for [APIv3](https://github.com/eduvpn/documentation/blob/v3/API.md)
 - add support for [WireGuard](https://www.wireguard.com/) in combination with 
