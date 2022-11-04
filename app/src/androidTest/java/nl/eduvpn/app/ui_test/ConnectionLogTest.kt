@@ -56,7 +56,7 @@ class ConnectionLogTest {
     fun testOpenConnectionLog() {
         // Wait for list to load
         try {
-            onView(withText("Fetching organizations...")).perform(waitUntilGone(2_000L))
+            onView(withText("Fetching organizations...")).perform(waitUntilGone(5_000L))
         } catch (ex: Exception) {
             Log.i(TAG, "Couldn't find loading popup")
         }
