@@ -1,0 +1,5 @@
+* add support for APIv3
+* add support for WireGuard in combination with eduVPN/Let's Connect! 3.x servers
+* improve expiry notification
+* allow user to request a new session
+* update ics-openvpn

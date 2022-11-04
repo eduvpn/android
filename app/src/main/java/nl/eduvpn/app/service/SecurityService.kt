@@ -20,7 +20,6 @@ import android.content.Context
 import android.util.Base64
 import androidx.annotation.CheckResult
 import androidx.annotation.VisibleForTesting
-import com.securepreferences.SecurePreferences
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import nl.eduvpn.app.BuildConfig
@@ -93,15 +92,6 @@ class SecurityService(private val context: Context) {
 
     init {
         loadMinisignPublicKeys(BuildConfig.MINISIGN_SIGNATURE_VALIDATION_PUBLIC_KEY)
-    }
-
-    @Deprecated(
-        """This will be removed in favor of the regular preferences. Currently
-      we migrate all data over from these preferences to the regular if we detect any data in this one.
-      This method will be probably removed in 1.4 or 1.5. For more info, see: https://github.com/eduvpn/android/issues/117"""
-    )
-    fun getSecurePreferences(): SecurePreferences {
-        return SecurePreferences(context)
     }
 
     private fun hashMessage(messageBytes: ByteArray): ByteArray {

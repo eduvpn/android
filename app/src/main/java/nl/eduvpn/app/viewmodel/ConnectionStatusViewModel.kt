@@ -36,6 +36,7 @@ import nl.eduvpn.app.entity.ProfileV3
 import nl.eduvpn.app.entity.VPNConfig
 import nl.eduvpn.app.service.*
 import nl.eduvpn.app.utils.getCountryText
+import nl.eduvpn.app.utils.pendingIntentImmutableFlag
 import nl.eduvpn.app.utils.toSingleEvent
 import java.util.*
 import javax.inject.Inject
@@ -86,7 +87,7 @@ class ConnectionStatusViewModel @Inject constructor(
     private val intent = Intent(context, CertExpiredBroadcastReceiver::class.java)
         .setAction(CertExpiredBroadcastReceiver.ACTION)
     private val pendingIntent =
-        PendingIntent.getBroadcast(context, 0, intent, 0)
+        PendingIntent.getBroadcast(context, 0, intent, pendingIntentImmutableFlag)
 
     init {
         refreshProfile()

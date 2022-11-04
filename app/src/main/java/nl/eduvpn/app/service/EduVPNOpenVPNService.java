@@ -111,7 +111,6 @@ public class EduVPNOpenVPNService extends VPNService implements VpnStatus.StateL
      * @param activity The current activity to bind the service with.
      */
     public void onCreate(@NonNull Activity activity) {
-        OpenVPNService.setNotificationActivityClass(activity.getClass());
         Intent intent = new Intent(activity, OpenVPNService.class);
         intent.putExtra(OpenVPNService.ALWAYS_SHOW_NOTIFICATION, false);
         intent.setAction(OpenVPNService.START_SERVICE);

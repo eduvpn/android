@@ -19,11 +19,6 @@ Or if your git version is below 2.13:
      alt="Get it on Google Play"
      height="80">](https://play.google.com/store/apps/details?id=nl.eduvpn.app)
 
-# Organizations
-
-A future version of the app will contain automatic organization discovery, where you can select your institute from a wide list.
-This way you don't have to manually enter discovery URLs. To build this version of the app, build the `organization` flavor instead of `basic`.
- 
 # Running with Android Studio
 
 First install the `swig` package with your operating system package manager.
@@ -60,18 +55,18 @@ not tested, but 1GB definitely does not work.
         tar \
         git \
         swig \
-        java-1.8.0-openjdk \
-        java-1.8.0-openjdk-devel \
+        java-11-openjdk \
+        java-11-openjdk-devel \
         ncurses-compat-libs \
         ninja-build \
         cmake \
 	    pv
 
-We last tested this (successfully) on 2021-05-11 with Fedora 34.
+We last tested this (successfully) on 2022-04-25 with Fedora 35.
 
 ### Debian
 
-    $ sudo apt -y install openjdk-8-jdk git curl unzip swig ninja-build cmake pv
+    $ sudo apt -y install openjdk-11-jdk git curl unzip swig ninja-build cmake pv
 
 ## Key Store
 
@@ -93,12 +88,8 @@ Additional documentation
 ## Setup
 
 ### Google SDK
+
     $ ./builder_setup.sh
-
-### Android Rebuilds SDK
-    $ ./ar_builder_setup.sh
-
-[Android Rebuilds](https://android-rebuilds.beuc.net) is a reproducibly built version of the Android SDK. This is possible because the entire SDK is licensed under the Open Source APACHE license. This allows you to compile apps without having to accept Google's license agreement within sdkmanager.
 
 ## Build
 
@@ -110,10 +101,6 @@ development release.
 
     $ ./build_app_git.sh
 
-If you have set up the Android Rebuilds SDK you can use
-
-    $ ./ar_build_app_git.sh
-
 You'll find the signed output APK in ${HOME}/Projects.
 
 ### Tar
@@ -124,8 +111,12 @@ necessary. Use this if you want to use an official release.
 
     $ ./build_app_tar.sh
 
-If you have set up the Android Rebuilds SDK you can use
-
-    $ ./ar_build_app_tar.sh
-
 You'll find the signed output APK in ${HOME}/Projects.
+
+# Testing
+
+To run all tests, execute the following command:
+
+```bash
+./gradlew :app:connectedBasicDebugAndroidTest
+```

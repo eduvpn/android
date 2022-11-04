@@ -1,5 +1,13 @@
 # Changelog
 
+## 3.0.0 (2022-05-09)
+- add support for [APIv3](https://github.com/eduvpn/documentation/blob/v3/API.md)
+- add support for [WireGuard](https://www.wireguard.com/) in combination with 
+  eduVPN/Let's Connect! 3.x servers
+- improve expiry notification
+- allow user to request a new session
+- update ics-openvpn
+
 ## 2.0.5 (2021-06-11)
 - fix 'certificate expired' popup loop (issue #329)
 - add fastlane for F-Droid/Google Play release automation

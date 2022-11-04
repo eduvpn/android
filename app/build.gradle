@@ -9,14 +9,14 @@ plugins {
 }
 
 android {
-    compileSdkVersion 30
+    compileSdk 32
 
     defaultConfig {
         applicationId "nl.eduvpn.app"
         minSdkVersion 21
-        targetSdkVersion 30
-        versionCode 18
-        versionName "2.0.5"
+        targetSdkVersion 31
+        versionCode 20
+        versionName "3.0.0"
         ndkVersion "21.0.6113669"
 
         vectorDrawables.useSupportLibrary = true
@@ -178,7 +178,7 @@ dependencies {
     implementation "com.github.joshjdevl.libsodiumjni:libsodium-jni-aar:2.0.2@aar"
 
     // Kotlin coroutines
-    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.2"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4"
 
     implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:1.3.0"
 
@@ -198,6 +198,6 @@ dependencies {
 // This will fail the build if there is a Kotlin compiler warning.
 tasks.withType(KotlinCompile).all {
     kotlinOptions {
-        freeCompilerArgs = ["-Werror", "-Xopt-in=kotlin.RequiresOptIn"]
+        freeCompilerArgs = ["-Werror", "-opt-in=kotlin.RequiresOptIn"]
     }
 }

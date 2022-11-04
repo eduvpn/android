@@ -20,6 +20,7 @@ import android.app.Activity
 import android.app.PendingIntent
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
 import android.os.Parcelable
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -103,13 +104,18 @@ class ConnectionService(private val preferencesService: PreferencesService,
                     throw RuntimeException("Please call onStart() on this service from your activity!")
                 }
                 if (!activity.isFinishing) {
+                    val flags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                        PendingIntent.FLAG_MUTABLE
+                    } else {
+                        0
+                    }
                     val originalIntent = authorizationService!!.getAuthorizationRequestIntent(
                         authorizationRequest,
                         PendingIntent.getActivity(
                             activity,
                             REQUEST_CODE_APP_AUTH,
                             Intent(activity, MainActivity::class.java),
-                            0
+                            flags
                         )
                     )
                     if (instance.authenticationUrlTemplate != null && instance.authenticationUrlTemplate.isNotEmpty() && originalIntent.getParcelableExtra<Parcelable?>(
