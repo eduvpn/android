@@ -1,6 +1,6 @@
 # Changelog
 
-## 3.0.1 (...)
+## 3.0.1 (2022-11-04)
 - update ics-openvpn
 - Remove secure-preferences ([#117](https://github.com/eduvpn/android/issues/117))
 
