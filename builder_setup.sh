@@ -8,13 +8,13 @@ SDK_DIR=${HOME}/android-sdk
 
 # current as of 20220425
 # see https://developer.android.com/studio/#downloads "Command line tools only"
-SDK_VERSION=8092744
+SDK_VERSION=8512546
 
 # Always use latest from https://developer.android.com/studio/releases/build-tools
 BUILD_TOOLS_VERSION=29.0.3
 
 # see app/build.gradle for "targetSdkVersion"
-PLATFORM_VERSION=30
+PLATFORM_VERSION=31
 
 # should not require modification...
 SDK_URL=https://dl.google.com/android/repository/commandlinetools-linux-${SDK_VERSION}_latest.zip
