@@ -21,7 +21,6 @@ import android.os.Bundle
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.Observer
 import nl.eduvpn.app.EduVPNApplication
 import nl.eduvpn.app.MainActivity
 import nl.eduvpn.app.R
@@ -104,6 +103,7 @@ class AddServerFragment : BaseFragment<FragmentAddServerBinding>() {
         val customInstance = Instance(
             customUrl,
             TranslatableString(getString(R.string.custom_provider_display_name)),
+            TranslatableString(),
             null,
             AuthorizationType.Local,
             null,
