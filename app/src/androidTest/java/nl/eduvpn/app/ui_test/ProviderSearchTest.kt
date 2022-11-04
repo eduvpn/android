@@ -71,6 +71,7 @@ class ProviderSearchTest {
             typeText("konijn"),
             closeSoftKeyboard()
         )
+        onView(withText("SURF BV")).check(matches(isDisplayed()))
         onView(withText("SURF (New)")).check(matches(withEffectiveVisibility(Visibility.VISIBLE))) // For some reason isDisplayed() does not work
     }
 }

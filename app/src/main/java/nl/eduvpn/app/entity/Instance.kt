@@ -34,6 +34,10 @@ data class Instance(
     @Serializable(with = TranslatableStringSerializer::class)
     val displayName: TranslatableString = TranslatableString(),
 
+    @SerialName("keyword_list")
+    @Serializable(with = TranslatableStringSerializer::class)
+    val keywords: TranslatableString? = TranslatableString(),
+
     @SerialName("logo")
     val logoUri: String? = null,
 

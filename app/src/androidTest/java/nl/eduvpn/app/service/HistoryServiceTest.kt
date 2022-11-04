@@ -80,6 +80,7 @@ class HistoryServiceTest {
             val instance = Instance(
                 baseURI + i,
                 TranslatableString("displayName"),
+                TranslatableString("konijn"),
                 null,
                 AuthorizationType.Distributed,
                 "NL",
@@ -100,6 +101,7 @@ class HistoryServiceTest {
                     Instance(
                         baseURI + i,
                         TranslatableString("displayName"),
+                        TranslatableString("konijn"),
                         null,
                         AuthorizationType.Distributed,
                         "NL",
@@ -124,6 +126,7 @@ class HistoryServiceTest {
         val instance = Instance(
             baseURI,
             TranslatableString("displayName"),
+            TranslatableString("konijn"),
             null,
             AuthorizationType.Distributed,
             "HU",
@@ -154,6 +157,7 @@ class HistoryServiceTest {
         val instance = Instance(
             baseURI,
             TranslatableString("displayName"),
+            TranslatableString("konijn"),
             null,
             AuthorizationType.Distributed,
             "HU",
@@ -188,6 +192,7 @@ class HistoryServiceTest {
         val instance1 = Instance(
             "http://example.com/",
             TranslatableString("example.com"),
+            TranslatableString("konijn"),
             null,
             AuthorizationType.Distributed,
             "DK",
@@ -199,6 +204,7 @@ class HistoryServiceTest {
         val instance2 = Instance(
             "http://something.else/",
             TranslatableString("something.else"),
+            TranslatableString("konijn"),
             null,
             AuthorizationType.Distributed,
             "DK",

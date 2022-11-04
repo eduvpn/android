@@ -54,6 +54,7 @@ class PreferencesServiceTest {
         val instance = Instance(
             "http://example.com",
             TranslatableString("Example"),
+            TranslatableString("konijn"),
             "http://example.com/image.jpg",
             AuthorizationType.Distributed,
             "HU",
