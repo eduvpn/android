@@ -78,8 +78,9 @@ class ProviderSearchTest {
             closeSoftKeyboard()
         )
         try {
-            onView(withText("SURF BV")).check(matches(isDisplayed()))
-            onView(withText("SURF (New)")).check(matches(withEffectiveVisibility(Visibility.VISIBLE))) // For some reason isDisplayed() does not work
+            // For some reason isDisplayed() does not work
+            onView(withText("SURF BV")).check(matches(withEffectiveVisibility(Visibility.VISIBLE)))
+            onView(withText("SURF (New)")).check(matches(withEffectiveVisibility(Visibility.VISIBLE)))
         } catch (e: Exception) {
             if (retryCount == 0) {
                 throw e
