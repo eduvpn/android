@@ -48,17 +48,12 @@ class ProviderSearchTest {
     }
 
     @get:Rule
-    var activityRule: ActivityScenarioRule<MainActivity> =
-        ActivityScenarioRule(MainActivity::class.java)
+    var activityRule: ActivityScenarioRule<MainActivity> = ActivityScenarioRule(MainActivity::class.java)
 
     private val isLetsConnect = BuildConfig.FLAVOR == "home"
 
     @Test
-    fun testProviderSearchRetry() {
-        testProviderSearch(1)
-    }
-
-    private fun testProviderSearch(retryCount: Int) {
+    fun testProviderSearch() {
         if (isLetsConnect) {
             fail("This test only works on the EduVPN app!")
             return
@@ -72,22 +67,10 @@ class ProviderSearchTest {
 
         BaseRobot().waitForView(withText("Institute Access"), waitMillis = 2_000)
             .check(matches(isDisplayed()))
-        val searchView = onView(withHint("Search for your organization..."))
-        searchView.perform(
+        onView(withHint("Search for your organization...")).perform(
             typeText("konijn"),
             closeSoftKeyboard()
         )
-        try {
-            onView(withText("SURF (New)")).check(matches(withEffectiveVisibility(Visibility.VISIBLE))) // For some reason isDisplayed() does not work
-        } catch (e: Exception) {
-            if (retryCount == 0) {
-                throw e
-            } else {
-                searchView.perform(
-                    clearText()
-                )
-                testProviderSearch(retryCount - 1)
-            }
-        }
+        onView(withText("SURF (New)")).check(matches(withEffectiveVisibility(Visibility.VISIBLE))) // For some reason isDisplayed() does not work
     }
 }
