@@ -42,7 +42,6 @@ class ServerSelectionViewModel @Inject constructor(
     private val preferencesService: PreferencesService,
     connectionService: ConnectionService,
     eduVpnOpenVpnService: EduVPNOpenVPNService,
-    wireGuardService: WireGuardService,
     private val organizationService: OrganizationService,
     vpnConnectionService: VPNConnectionService,
 ) : BaseConnectionViewModel(
@@ -52,7 +51,6 @@ class ServerSelectionViewModel @Inject constructor(
     preferencesService,
     connectionService,
     eduVpnOpenVpnService,
-    wireGuardService,
     vpnConnectionService,
 ), Observer {
 

@@ -32,7 +32,6 @@ class AddServerViewModel @Inject constructor(
     historyService: HistoryService,
     connectionService: ConnectionService,
     eduVpnOpenVpnService: EduVPNOpenVPNService,
-    wireGuardService: WireGuardService,
     vpnConnectionService: VPNConnectionService,
 ) : BaseConnectionViewModel(
     context,
@@ -42,7 +41,6 @@ class AddServerViewModel @Inject constructor(
     preferencesService,
     connectionService,
     eduVpnOpenVpnService,
-    wireGuardService,
     vpnConnectionService,
 ) {
 

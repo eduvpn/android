@@ -340,23 +340,6 @@ public class EduVPNOpenVPNService extends VPNService implements VpnStatus.StateL
         });
     }
 
-    /**
-     * Returns the profile with the given UUID.
-     *
-     * @param profileUUID The UUID of the profile.
-     * @return The profile if found, otherwise null.
-     */
-    @Nullable
-    public VpnProfile getProfileWithUUID(@NonNull String profileUUID) {
-        ProfileManager profileManager = ProfileManager.getInstance(_context);
-        for (VpnProfile vpnProfile : profileManager.getProfiles()) {
-            if (vpnProfile.getUUIDString().equals(profileUUID)) {
-                return vpnProfile;
-            }
-        }
-        return null;
-    }
-
     @NotNull
     public String getProtocolName() {
         return "OpenVPN";

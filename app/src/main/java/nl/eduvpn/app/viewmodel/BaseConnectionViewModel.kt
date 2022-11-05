@@ -64,7 +64,6 @@ abstract class BaseConnectionViewModel(
     private val preferencesService: PreferencesService,
     private val connectionService: ConnectionService,
     private val eduVpnOpenVpnService: EduVPNOpenVPNService,
-    private val wireGuardService: WireGuardService,
     private val vpnConnectionService: VPNConnectionService,
 ) : ViewModel() {
 

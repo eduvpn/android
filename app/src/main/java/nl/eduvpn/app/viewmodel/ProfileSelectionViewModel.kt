@@ -30,7 +30,6 @@ class ProfileSelectionViewModel @Inject constructor(
     preferencesService: PreferencesService,
     connectionService: ConnectionService,
     eduVpnOpenVpnService: EduVPNOpenVPNService,
-    wireGuardService: WireGuardService,
     vpnConnectionService: VPNConnectionService,
 ) : BaseConnectionViewModel(
     context,
@@ -40,6 +39,5 @@ class ProfileSelectionViewModel @Inject constructor(
     preferencesService,
     connectionService,
     eduVpnOpenVpnService,
-    wireGuardService,
     vpnConnectionService,
 )

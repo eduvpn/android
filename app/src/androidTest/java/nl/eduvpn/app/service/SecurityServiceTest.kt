@@ -17,8 +17,6 @@
  */
 package nl.eduvpn.app.service
 
-import android.content.Context
-import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
 import nl.eduvpn.app.service.SecurityService.Companion.loadMinisignPublicKeys
@@ -45,8 +43,7 @@ class SecurityServiceTest {
 
     @Before
     fun before() {
-        val context = ApplicationProvider.getApplicationContext<Context>()
-        securityService = SecurityService(context)
+        securityService = SecurityService()
         loadMinisignPublicKeys(UNIT_TEST_PUBLIC_KEYS)
     }
 

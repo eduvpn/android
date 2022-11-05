@@ -43,7 +43,6 @@ class OrganizationSelectionViewModel @Inject constructor(
     historyService: HistoryService,
     connectionService: ConnectionService,
     eduVpnOpenVpnService: EduVPNOpenVPNService,
-    wireGuardService: WireGuardService,
     vpnConnectionService: VPNConnectionService,
 ) : BaseConnectionViewModel(
     context,
@@ -53,7 +52,6 @@ class OrganizationSelectionViewModel @Inject constructor(
     preferencesService,
     connectionService,
     eduVpnOpenVpnService,
-    wireGuardService,
     vpnConnectionService,
 ) {
 
