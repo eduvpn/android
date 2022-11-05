@@ -164,8 +164,6 @@ dependencies {
     implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycleVersion"
     implementation "androidx.lifecycle:lifecycle-livedata-ktx:$lifecycleVersion"
 
-    // Secure preferences (deprecated, only kept for backwards compatibility)
-    implementation 'com.scottyab:secure-preferences-lib:0.1.4'
     // HTTP client
     implementation "com.squareup.okhttp3:okhttp:$okHttpVersion"
     implementation "com.squareup.okhttp3:logging-interceptor:$okHttpVersion"
