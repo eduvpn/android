@@ -333,22 +333,6 @@ class PreferencesService(
     }
 
     /**
-     * Returns a saved access token, if any found.
-     *
-     * @return The lastly saved access token.
-     */
-    fun getCurrentAuthState(): AuthState? {
-        return if (!getSharedPreferences().contains(KEY_AUTH_STATE)) {
-            null
-        } else try {
-            AuthState.jsonDeserialize(getSharedPreferences().getString(KEY_AUTH_STATE, null)!!)
-        } catch (ex: JSONException) {
-            Log.e(TAG, "Could not deserialize saved authorization state", ex)
-            null
-        }
-    }
-
-    /**
      * Returns the saved app settings, or the default settings if none found.
      *
      * @return True if the user does not want to use Custom Tabs. Otherwise false.

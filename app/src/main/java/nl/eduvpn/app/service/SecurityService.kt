@@ -16,7 +16,6 @@
  */
 package nl.eduvpn.app.service
 
-import android.content.Context
 import android.util.Base64
 import androidx.annotation.CheckResult
 import androidx.annotation.VisibleForTesting
@@ -35,7 +34,7 @@ import java.security.SecureRandom
  *
  * Created by Daniel Zolnai on 2017-08-01.
  */
-class SecurityService(private val context: Context) {
+class SecurityService() {
     companion object {
         private val TAG = SecurityService::class.java.name
 

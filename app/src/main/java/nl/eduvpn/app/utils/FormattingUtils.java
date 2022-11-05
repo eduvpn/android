@@ -28,7 +28,6 @@ import java.util.Locale;
 import nl.eduvpn.app.R;
 import nl.eduvpn.app.entity.Instance;
 import nl.eduvpn.app.entity.Profile;
-import nl.eduvpn.app.entity.message.Maintenance;
 
 /**
  * Utility methods for different formatting cases.
@@ -89,19 +88,6 @@ public class FormattingUtils {
             String gigaByteString = DECIMAL_FORMAT.format(gigaBytes);
             return context.getString(R.string.traffic_gigabytes, gigaByteString);
         }
-    }
-
-    /**
-     * Return the default text for maintenance messages.
-     *
-     * @param context     The application or activity context.
-     * @param maintenance The maintenance instance describing the conditions.
-     * @return The string to display in the message contents.
-     */
-    public static String getMaintenanceText(Context context, Maintenance maintenance) {
-        String beginDateString = MAINTENANCE_DATE_FORMAT.format(maintenance.getStart());
-        String endDateString = MAINTENANCE_DATE_FORMAT.format(maintenance.getEnd());
-        return context.getString(R.string.maintenance_message, beginDateString, endDateString);
     }
 
     /**

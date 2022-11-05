@@ -33,8 +33,6 @@ object Constants {
     const val API_DISCOVERY_POSTFIX = "/.well-known/vpn-user-portal"
 
     // V2 API
-    const val API_SYSTEM_MESSAGES_PATH = "system_messages"
-    const val API_USER_MESSAGES_PATH = "user_messages"
     const val API_PROFILE_LIST_PATH = "profile_list"
     const val API_CREATE_KEYPAIR = "create_keypair"
     const val API_PROFILE_CONFIG = "profile_config"

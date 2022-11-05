@@ -83,14 +83,6 @@ class DiscoveredAPIV2(
     override val tokenEndpoint: String
 ) : DiscoveredAPI() {
 
-    val systemMessagesEndpoint: String by lazy {
-        getURL(apiBaseUri, Constants.API_SYSTEM_MESSAGES_PATH)
-    }
-
-    val userMessagesEndpoint: String by lazy {
-        getURL(apiBaseUri, Constants.API_USER_MESSAGES_PATH)
-    }
-
     val profileListEndpoint: String by lazy {
         getURL(apiBaseUri, Constants.API_PROFILE_LIST_PATH)
     }
