@@ -69,7 +69,7 @@ class HistoryServiceTest {
         _historyService = HistoryService(preferencesService)
     }
 
-    @Test(timeout = 1000) // Could be a lot faster, but we use secure preferences, which encrypts and decrypts on-the-fly.
+    @Test(timeout = 1500)
     fun testSerializationSpeed() {
         // We create, save and restore 10 discovered APIs, 10 saved profiles, 10 access tokens.
         // Should be still fast.
@@ -80,6 +80,7 @@ class HistoryServiceTest {
             val instance = Instance(
                 baseURI + i,
                 TranslatableString("displayName"),
+                TranslatableString("konijn"),
                 null,
                 AuthorizationType.Distributed,
                 "NL",
@@ -100,6 +101,7 @@ class HistoryServiceTest {
                     Instance(
                         baseURI + i,
                         TranslatableString("displayName"),
+                        TranslatableString("konijn"),
                         null,
                         AuthorizationType.Distributed,
                         "NL",
@@ -124,6 +126,7 @@ class HistoryServiceTest {
         val instance = Instance(
             baseURI,
             TranslatableString("displayName"),
+            TranslatableString("konijn"),
             null,
             AuthorizationType.Distributed,
             "HU",
@@ -154,6 +157,7 @@ class HistoryServiceTest {
         val instance = Instance(
             baseURI,
             TranslatableString("displayName"),
+            TranslatableString("konijn"),
             null,
             AuthorizationType.Distributed,
             "HU",
@@ -188,6 +192,7 @@ class HistoryServiceTest {
         val instance1 = Instance(
             "http://example.com/",
             TranslatableString("example.com"),
+            TranslatableString("konijn"),
             null,
             AuthorizationType.Distributed,
             "DK",
@@ -199,6 +204,7 @@ class HistoryServiceTest {
         val instance2 = Instance(
             "http://something.else/",
             TranslatableString("something.else"),
+            TranslatableString("konijn"),
             null,
             AuthorizationType.Distributed,
             "DK",
