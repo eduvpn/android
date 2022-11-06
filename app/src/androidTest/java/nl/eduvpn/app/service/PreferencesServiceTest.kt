@@ -20,10 +20,7 @@ import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
-import nl.eduvpn.app.entity.AuthorizationType
-import nl.eduvpn.app.entity.DiscoveredAPIV2
-import nl.eduvpn.app.entity.Instance
-import nl.eduvpn.app.entity.TranslatableString
+import nl.eduvpn.app.entity.*
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
@@ -78,22 +75,22 @@ class PreferencesServiceTest {
 
     @Test
     fun testDiscoveredAPISave() {
-        val discoveredAPIV2 = DiscoveredAPIV2(
+        val discoveredAPIV3 = DiscoveredAPIV3(
             "http://example.com/",
             "http://example.com/auth_endpoint",
             "http://example.com/token_endpoint"
         )
-        _preferencesService.setCurrentDiscoveredAPI(discoveredAPIV2)
+        _preferencesService.setCurrentDiscoveredAPI(discoveredAPIV3)
         val retrievedDiscoveredAPI = _preferencesService.getCurrentDiscoveredAPI()
         Assert.assertEquals(
-            discoveredAPIV2.authorizationEndpoint,
+            discoveredAPIV3.authorizationEndpoint,
             retrievedDiscoveredAPI!!.authorizationEndpoint
         )
         Assert.assertEquals(
-            discoveredAPIV2.apiBaseUri,
-            retrievedDiscoveredAPI.toDiscoveredAPIs().v2!!.apiBaseUri
+            discoveredAPIV3.apiEndpoint,
+            retrievedDiscoveredAPI.toDiscoveredAPIs().v3!!.apiEndpoint
         )
-        Assert.assertEquals(discoveredAPIV2.tokenEndpoint, retrievedDiscoveredAPI.tokenEndpoint)
+        Assert.assertEquals(discoveredAPIV3.tokenEndpoint, retrievedDiscoveredAPI.tokenEndpoint)
     }
 
     @Test

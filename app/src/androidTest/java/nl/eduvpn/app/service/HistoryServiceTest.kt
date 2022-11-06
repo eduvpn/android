@@ -71,12 +71,10 @@ class HistoryServiceTest {
 
     @Test(timeout = 1000) // Could be a lot faster, but we use secure preferences, which encrypts and decrypts on-the-fly.
     fun testSerializationSpeed() {
-        // We create, save and restore 10 discovered APIs, 10 saved profiles, 10 access tokens.
+        // We create, save and restore 10 discovered APIs and 10 access tokens.
         // Should be still fast.
         val baseURI = "http://example.com/baseURI"
         for (i in 0..9) {
-            val profileId = "vpn_profile"
-            val profileUUID = "ABCD-1234-DEFG-5678"
             val instance = Instance(
                 baseURI + i,
                 TranslatableString("displayName"),
@@ -87,13 +85,9 @@ class HistoryServiceTest {
                 "https://example.com/template",
                 ArrayList()
             )
-            val profile = ProfileV2(TranslatableString("displayName"), profileId)
-            val savedProfile = SavedProfile(instance, profile, profileUUID)
-            _historyService!!.cacheSavedProfile(savedProfile)
             _historyService!!.cacheAuthorizationState(instance, AuthState(), Date())
         }
         reloadHistoryService(false)
-        Assert.assertEquals(10, _historyService!!.savedProfileList.size.toLong())
         for (i in 0..9) {
             Assert.assertNotNull(
                 _historyService!!.getCachedAuthState(
@@ -147,6 +141,7 @@ class HistoryServiceTest {
     }
 
     @Test
+<<<<<<< HEAD
     fun testCacheAndRemoveSavedProfile() {
         val baseURI = "http://example.com/baseURI"
         val profileId = "vpn_profile"
@@ -183,6 +178,8 @@ class HistoryServiceTest {
     }
 
     @Test
+=======
+>>>>>>> 2ce8415 (Remove API V2)
     fun testStoreSavedKeyPair() {
         val keyPair1 = KeyPair(false, "cert1", "pk1")
         val instance1 = Instance(
