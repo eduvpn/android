@@ -32,8 +32,7 @@ sealed class DiscoveredAPI {
 
     fun toDiscoveredAPIs(): DiscoveredAPIs {
         return when (this) {
-            is DiscoveredAPIV2 -> DiscoveredAPIs(this, null)
-            is DiscoveredAPIV3 -> DiscoveredAPIs(null, this)
+            is DiscoveredAPIV3 -> DiscoveredAPIs(this)
         }
     }
 
@@ -68,38 +67,5 @@ class DiscoveredAPIV3(
 
     val disconnectEndpoint: String by lazy {
         getURL(apiEndpoint, Constants.API_V3_DISCONNECT_PATH)
-    }
-}
-
-@Serializable
-class DiscoveredAPIV2(
-    @SerialName("api_base_uri")
-    val apiBaseUri: String,
-
-    @SerialName("authorization_endpoint")
-    override val authorizationEndpoint: String,
-
-    @SerialName("token_endpoint")
-    override val tokenEndpoint: String
-) : DiscoveredAPI() {
-
-    val profileListEndpoint: String by lazy {
-        getURL(apiBaseUri, Constants.API_PROFILE_LIST_PATH)
-    }
-
-    val createKeyPairEndpoint: String by lazy {
-        getURL(apiBaseUri, Constants.API_CREATE_KEYPAIR)
-    }
-
-    val profileConfigEndpoint: String by lazy {
-        getURL(apiBaseUri, Constants.API_PROFILE_CONFIG)
-    }
-
-    fun getCheckCertificateEndpoint(certCommonName: String?): String {
-        return Uri.parse(apiBaseUri).buildUpon()
-            .appendPath(Constants.API_CHECK_CERTIFICATE)
-            .appendQueryParameter("common_name", certCommonName)
-            .build()
-            .toString()
     }
 }

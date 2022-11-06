@@ -20,10 +20,7 @@ package nl.eduvpn.app.utils;
 import android.content.Context;
 
 import java.net.URI;
-import java.text.DateFormat;
 import java.text.DecimalFormat;
-import java.text.SimpleDateFormat;
-import java.util.Locale;
 
 import nl.eduvpn.app.R;
 import nl.eduvpn.app.entity.Instance;
@@ -36,8 +33,6 @@ import nl.eduvpn.app.entity.Profile;
 public class FormattingUtils {
 
     private static final DecimalFormat DECIMAL_FORMAT = new DecimalFormat("0.00");
-
-    private static final DateFormat MAINTENANCE_DATE_FORMAT = new SimpleDateFormat("EEE M/dd HH:mm", Locale.getDefault());
 
     private static final long BYTES_IN_A_KB = 1024;
     private static final long BYTES_IN_A_MB = BYTES_IN_A_KB * 1024;
@@ -118,21 +113,5 @@ public class FormattingUtils {
             return instance.getDisplayName().getBestTranslation();
         }
 
-    }
-
-    /**
-     * Formats a warning to be displayed if there was a login error.
-     *
-     * @param context  The application or activity context.
-     * @param instance The instance the warning belongs to.
-     * @return The string to display.
-     */
-    public static String formatAccessWarning(Context context, Instance instance) {
-        String instanceName = instance.getDisplayName().getBestTranslation();
-        if (instance.isCustom()) {
-            URI uri = URI.create(instance.getSanitizedBaseURI());
-            instanceName = uri.getHost();
-        }
-        return context.getString(R.string.access_rejected_instance, instanceName);
     }
 }

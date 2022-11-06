@@ -78,8 +78,6 @@ class PreferencesService(
         const val KEY_SERVER_LIST_DATA = "server_list_data"
         const val KEY_SERVER_LIST_TIMESTAMP = "server_list_timestamp"
 
-
-        const val KEY_SAVED_PROFILES = "saved_profiles"
         const val KEY_SAVED_AUTH_STATES = "saved_auth_state"
         const val KEY_SAVED_KEY_PAIRS = "saved_key_pairs"
         const val KEY_SAVED_ORGANIZATION = "saved_organization"
@@ -402,49 +400,15 @@ class PreferencesService(
      *
      * @return A discovered API if saved, otherwise null.
      */
-    fun getCurrentDiscoveredAPI(): DiscoveredAPI? {
+    fun getCurrentDiscoveredAPI(): DiscoveredAPIV3? {
         val serializedDiscoveredAPI =
             getSharedPreferences().getString(KEY_DISCOVERED_API, null)
                 ?: return null
         return try {
-            _serializerService.deserializeDiscoveredAPIs(serializedDiscoveredAPI)
-                .getPreferredAPI()
+            _serializerService.deserializeDiscoveredAPIs(serializedDiscoveredAPI).v3
         } catch (ex: SerializerService.UnknownFormatException) {
             Log.e(TAG, "Unable to deserialize saved discovered API", ex)
             null
-        }
-    }
-
-    /**
-     * Returns a previously saved list of saved profiles.
-     *
-     * @return The saved list, or null if not exists.
-     */
-    fun getSavedProfileList(): List<SavedProfile>? {
-        val serializedSavedProfileList =
-            getSharedPreferences().getString(KEY_SAVED_PROFILES, null)
-                ?: return null
-        return try {
-            _serializerService.deserializeSavedProfileList(serializedSavedProfileList)
-        } catch (ex: SerializerService.UnknownFormatException) {
-            Log.e(TAG, "Unable to deserialize saved profile list", ex)
-            null
-        }
-    }
-
-    /**
-     * Stores a saved profile list.
-     *
-     * @param savedProfileList The list to save.
-     */
-    fun storeSavedProfileList(savedProfileList: List<SavedProfile?>) {
-        try {
-            val serializedSavedProfileList =
-                _serializerService.serializeSavedProfileList(savedProfileList).toString()
-            getSharedPreferences().edit().putString(KEY_SAVED_PROFILES, serializedSavedProfileList)
-                .apply()
-        } catch (ex: SerializerService.UnknownFormatException) {
-            Log.e(TAG, "Can not save saved profile list.", ex)
         }
     }
 
