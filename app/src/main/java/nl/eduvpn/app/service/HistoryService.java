@@ -334,6 +334,7 @@ public class HistoryService extends LiveData<Void> {
             removeSavedKeyPairs(instance);
             _removeAuthorizations(instance);
         }
+        postValue(null);
     }
 
     /***
