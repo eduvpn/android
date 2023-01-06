@@ -122,6 +122,9 @@ class ServerSelectionFragment : BaseFragment<FragmentServerSelectionBinding>() {
         binding.addServerButton.setOnClickListener {
             openAddServerFragment(true)
         }
+        viewModel.historyService.observe(viewLifecycleOwner) {
+            viewModel.refresh()
+        }
     }
 
     private fun openAddServerFragment(openOnTop: Boolean) {

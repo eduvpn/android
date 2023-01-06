@@ -31,14 +31,13 @@ import nl.eduvpn.app.service.*
 import nl.eduvpn.app.utils.Log
 import nl.eduvpn.app.utils.getCountryText
 import nl.eduvpn.app.utils.runCatchingCoroutine
-import java.util.*
 import javax.inject.Inject
 
 class ServerSelectionViewModel @Inject constructor(
     context: Context,
     apiService: APIService,
     serializerService: SerializerService,
-    private val historyService: HistoryService,
+    val historyService: HistoryService,
     private val preferencesService: PreferencesService,
     connectionService: ConnectionService,
     eduVpnOpenVpnService: EduVPNOpenVPNService,
@@ -52,7 +51,7 @@ class ServerSelectionViewModel @Inject constructor(
     connectionService,
     eduVpnOpenVpnService,
     vpnConnectionService,
-), Observer {
+) {
 
     val adapterItems = MutableLiveData<List<OrganizationAdapter.OrganizationAdapterItem>>()
 
@@ -62,24 +61,14 @@ class ServerSelectionViewModel @Inject constructor(
     private val serverListCache = MutableLiveData<Pair<Long, ServerList>>()
 
     init {
-        historyService.addObserver(this)
         preferencesService.getServerList()?.let { serverList ->
             serverListCache.value = Pair(System.currentTimeMillis(), serverList)
         }
     }
 
-    override fun onCleared() {
-        super.onCleared()
-        historyService.deleteObserver(this)
-    }
-
-    override fun onResume() {
-        super.onResume()
-        refresh()
-    }
-
-    private fun refresh() {
-        val needsServerList = historyService.savedAuthStateList.any { it.instance.authorizationType == AuthorizationType.Distributed }
+    fun refresh() {
+        val needsServerList =
+            historyService.savedAuthStateList.any { it.instance.authorizationType == AuthorizationType.Distributed }
         if (needsServerList && (serverListCache.value == null || System.currentTimeMillis() - serverListCache.value!!.first > SERVER_LIST_CACHE_TTL)) {
             refreshServerList()
         } else {
@@ -141,12 +130,6 @@ class ServerSelectionViewModel @Inject constructor(
         }
         adapterItems.value = result
         connectionState.value = ConnectionState.Ready
-    }
-
-    override fun update(o: Observable?, arg: Any?) {
-        if (o is HistoryService) {
-            refresh()
-        }
     }
 
     fun requestCountryList(): List<Pair<Instance, String>>? {
