@@ -28,6 +28,9 @@ import androidx.test.espresso.matcher.ViewMatchers.withText
 import androidx.test.ext.junit.rules.ActivityScenarioRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
+import androidx.test.platform.app.InstrumentationRegistry
+import androidx.test.uiautomator.UiDevice
+import androidx.test.uiautomator.UiSelector
 import nl.eduvpn.app.BaseRobot
 import nl.eduvpn.app.MainActivity
 import nl.eduvpn.app.R
@@ -54,6 +57,15 @@ class ConnectionLogTest {
 
     @Test
     fun testOpenConnectionLog() {
+        val device = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
+        try {
+            val allowButton =
+                device.findObject(UiSelector().className("android.widget.Button").text("Allow"))
+            allowButton.click()
+        } catch (ex: Exception) {
+            Log.i(TAG, "No notification permission request")
+        }
+
         // Wait for list to load
         try {
             onView(withText("Fetching organizations...")).perform(waitUntilGone(5_000L))
@@ -61,7 +73,8 @@ class ConnectionLogTest {
             Log.i(TAG, "Couldn't find loading popup")
         }
 
-        BaseRobot().waitForView(withText("Institute Access"), waitMillis = 2_000).check(matches(isDisplayed()))
+        BaseRobot().waitForView(withText("Institute Access"), waitMillis = 2_000)
+            .check(matches(isDisplayed()))
         // Open the connection log from settings
         onView(ViewMatchers.withId(R.id.settingsButton)).perform(ViewActions.click())
         onView(ViewMatchers.withId(R.id.settings_scroller)).perform(swipeUp())

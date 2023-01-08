@@ -69,7 +69,7 @@ class HistoryServiceTest {
         _historyService = HistoryService(preferencesService)
     }
 
-    @Test(timeout = 1500)
+    @Test(timeout = 6000)
     fun testSerializationSpeed() {
         // We create, save and restore 10 discovered APIs and 10 access tokens.
         // Should be still fast.

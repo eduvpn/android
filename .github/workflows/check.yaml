@@ -27,7 +27,7 @@ jobs:
         -x :ics-openvpn-main:buildCMakeDebug[x86]
     strategy:
       matrix:
-        api-level: [ 31 ]
+        api-level: [ 33 ]
     steps:
       - name: Use Java 17
         run: echo "JAVA_HOME=${!JAVA_HOME_17_X64}" >> $GITHUB_ENV
@@ -107,6 +107,7 @@ jobs:
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: ${{ matrix.api-level }}
+          target: google_apis # todo: replace with 'default' once it becomes available
           arch: x86_64
           force-avd-creation: false
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
@@ -117,6 +118,7 @@ jobs:
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: ${{ matrix.api-level }}
+          target: google_apis # todo: replace with 'default' once it becomes available
           arch: x86_64
           force-avd-creation: false
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
