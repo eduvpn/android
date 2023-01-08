@@ -11,22 +11,10 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <Button
-            android:id="@+id/saveButton"
-            style="@style/BigButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentBottom="true"
-            android:layout_centerHorizontal="true"
-            android:layout_marginBottom="@dimen/button_margin_bottom"
-            android:enabled="false"
-            android:text="@string/settings_save" />
-
         <ScrollView
             android:id="@+id/settings_scroller"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_above="@id/saveButton"
             android:layout_marginBottom="8dp"
             android:fillViewport="true">
 
