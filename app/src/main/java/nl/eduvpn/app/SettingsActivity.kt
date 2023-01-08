@@ -19,6 +19,7 @@ package nl.eduvpn.app
 import android.content.Intent
 import android.content.res.ColorStateList
 import android.os.Bundle
+import android.view.MenuItem
 import android.view.View
 import androidx.core.content.ContextCompat
 import nl.eduvpn.app.base.BaseActivity
@@ -37,10 +38,21 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
         supportFragmentManager.beginTransaction()
             .replace(R.id.content_frame, SettingsFragment())
             .commit()
+        setSupportActionBar(binding.toolbar.toolbar)
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
         binding.toolbar.settingsButton.imageTintList =
             ColorStateList.valueOf(ContextCompat.getColor(this, R.color.buttonBackgroundColor))
         binding.toolbar.helpButton.setOnClickListener { _: View ->
             startActivity(Intent(Intent.ACTION_VIEW, Constants.HELP_URI))
+        }
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return if (item.itemId == android.R.id.home) {
+            onBackPressedDispatcher.onBackPressed()
+            true
+        } else {
+            super.onOptionsItemSelected(item)
         }
     }
 
