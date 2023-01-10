@@ -120,13 +120,13 @@ class ConnectionService(private val preferencesService: PreferencesService,
                     )
                     if (instance.authenticationUrlTemplate != null
                         && instance.authenticationUrlTemplate.isNotEmpty()
-                        && originalIntent.getParcelableExtra(
-                            "authIntent", Parcelable::class.java
-                        ) != null && preferencesService.getCurrentOrganization() != null
+                        //todo: fix deprecation when new compat library released https://issuetracker.google.com/issues/242048899
+                        && @Suppress("DEPRECATION") originalIntent.getParcelableExtra<Parcelable?>("authIntent") != null
+                        && preferencesService.getCurrentOrganization() != null
                     ) {
-                        val authIntent = originalIntent.getParcelableExtra(
-                            "authIntent", Intent::class.java
-                        )
+                        //todo: fix deprecation when new compat library released https://issuetracker.google.com/issues/242048899
+                        @Suppress("DEPRECATION") val authIntent =
+                            originalIntent.getParcelableExtra<Intent>("authIntent")
                         if (authIntent != null && authIntent.dataString != null) {
                             val replacedUrl = instance.authenticationUrlTemplate
                                 .replace("@RETURN_TO@", Uri.encode(authIntent.dataString))
