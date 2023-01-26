@@ -17,11 +17,13 @@
 package nl.eduvpn.app.utils
 
 import android.content.Context
+import nl.eduvpn.app.Constants
 import nl.eduvpn.app.R
 import nl.eduvpn.app.entity.Instance
 import nl.eduvpn.app.entity.Profile
 import java.net.URI
 import java.text.DecimalFormat
+import java.util.*
 
 /**
  * Utility methods for different formatting cases.
@@ -120,6 +122,8 @@ object FormattingUtils {
         return if (instance.isCustom) {
             val uri = URI.create(instance.sanitizedBaseURI)
             uri.host
+        } else if (instance.countryCode != null) {
+            Locale("en", instance.countryCode).getDisplayCountry(Constants.ENGLISH_LOCALE)
         } else {
             instance.displayName.bestTranslation
         }
