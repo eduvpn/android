@@ -74,19 +74,19 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
         binding.viewModel = viewModel
         binding.secondsConnected = viewModel.connectionTimeLiveData.map { secondsConnected ->
             FormattingUtils.formatDurationSeconds(
-                context,
+                requireContext(),
                 secondsConnected
             )
         }
         binding.bytesDownloaded = viewModel.byteCountLiveData.map { bc ->
             FormattingUtils.formatBytesTraffic(
-                context,
+                requireContext(),
                 bc?.bytesIn
             )
         }
         binding.bytesUploaded = viewModel.byteCountLiveData.map { bc ->
             FormattingUtils.formatBytesTraffic(
-                context,
+                requireContext(),
                 bc?.bytesOut
             )
         }
