@@ -43,30 +43,34 @@ to the device selector.
 # Building
 
 **NOTE**: building Android applications takes a lot of resources. The VM used
-to build the Let's Connect! application has 8GB of memory. Anything lower was
-not tested, but 1GB definitely does not work.
+to build the Let's Connect! application has 6GB of memory and 50G disk. 
+Anything lower was not tested, but 1GB of memory definitely does not work.
+
+The builder will spew a lot of backtraces/warnings, but does seem to complete 
+eventually.
+
+We last tested this on 2023-03-06 with Fedora 37.
+
+We removed the Debian instructions as building on Debian no longer works on 
+Debian 11 (as of 2023-03-06) and I have no desire to investigate fixing this.
 
 ## Dependencies
 
 ### Fedora
 
-    $ sudo dnf -y install \
-        unzip \
-        tar \
-        git \
-        swig \
-        java-11-openjdk \
-        java-11-openjdk-devel \
-        ncurses-compat-libs \
-        ninja-build \
-        cmake \
-	    pv
-
-We last tested this (successfully) on 2022-04-25 with Fedora 35.
-
-### Debian
-
-    $ sudo apt -y install openjdk-11-jdk git curl unzip swig ninja-build cmake pv
+```bash
+$ sudo dnf -y install \
+    unzip \
+    tar \
+    git \
+    swig \
+    java-11-openjdk \
+    java-11-openjdk-devel \
+    ncurses-compat-libs \
+    ninja-build \
+    cmake \
+    pv
+```
 
 ## Key Store
 
@@ -87,9 +91,9 @@ Additional documentation
 
 ## Setup
 
-### Google SDK
-
-    $ ./builder_setup.sh
+```bash
+$ ./builder_setup.sh
+```
 
 ## Build
 
@@ -99,9 +103,11 @@ To build the app from git, i.e. tag, branch or commit, use the following after
 modifying the file if necessary. Use this if you want to build a test or 
 development release.
 
-    $ ./build_app_git.sh
+```bash
+$ ./build_app_git.sh
+```
 
-You'll find the signed output APK in ${HOME}/Projects.
+You'll find the signed output APK in `${HOME}/Projects`.
 
 ### Tar
 
@@ -109,14 +115,16 @@ To build the app from tar, i.e. the archive that contains the full source code
 including all submodules, use the following after modifying the file if 
 necessary. Use this if you want to use an official release.
 
-    $ ./build_app_tar.sh
+```bash
+$ ./build_app_tar.sh
+```
 
-You'll find the signed output APK in ${HOME}/Projects.
+You'll find the signed output APK in `${HOME}/Projects`.
 
 # Testing
 
 To run all tests, execute the following command:
 
 ```bash
-./gradlew :app:connectedBasicDebugAndroidTest
+$ ./gradlew :app:connectedBasicDebugAndroidTest
 ```
