@@ -40,7 +40,7 @@ class SecurityService(private val context: Context) {
         private val TAG = SecurityService::class.java.name
 
         // Public key ID is used as map keys, public key bytes are used as map values.
-        private lateinit var MINISIGN_PUBLIC_KEYS: Map<String, ByteArray> //todo: val
+        private lateinit var MINISIGN_PUBLIC_KEYS: Map<String, ByteArray>
 
         private const val MINISIGN_ALGO_DESCRIPTION_LEGACY = "Ed"
         private const val MINISIGN_ALGO_DESCRIPTION_HASHED = "ED"
