@@ -121,4 +121,4 @@ jobs:
           force-avd-creation: false
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           disable-animations: true
-          script: ./gradlew :app:connectedBasicDebugAndroidTest $SKIP_ICS_OPENVPN_BUILD
+          script: ./gradlew :app:connectedBasicDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.package=nl.eduvpn.app.service $SKIP_ICS_OPENVPN_BUILD
