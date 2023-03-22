@@ -85,10 +85,7 @@ class ConnectionService(private val preferencesService: PreferencesService,
     suspend fun initiateConnection(activity: Activity, instance: Instance, discoveredAPI: DiscoveredAPI): Unit {
         withContext(Dispatchers.Main) {
             runCatchingCoroutine {
-                //todo: convert SecurityService to Kotlin and make generateSecureRandomString a suspending function
-                val stateString = withContext(Dispatchers.IO) {
-                    securityService.generateSecureRandomString(32)
-                }
+                val stateString = securityService.generateSecureRandomString(32)
                 preferencesService.setCurrentInstance(instance)
                 preferencesService.setCurrentDiscoveredAPI(discoveredAPI)
                 val serviceConfig = buildAuthConfiguration(discoveredAPI)

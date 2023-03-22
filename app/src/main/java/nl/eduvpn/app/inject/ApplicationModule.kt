@@ -172,8 +172,8 @@ class ApplicationModule(private val application: EduVPNApplication) {
 
     @Provides
     @Singleton
-    fun provideSecurityService(): SecurityService {
-        return SecurityService()
+    fun provideSecurityService(context: Context): SecurityService {
+        return SecurityService(context)
     }
 
     @Provides
