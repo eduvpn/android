@@ -39,7 +39,6 @@ import nl.eduvpn.app.waitUntilGone
 import org.hamcrest.CoreMatchers
 import org.hamcrest.core.AllOf
 import org.junit.Assert.fail
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith

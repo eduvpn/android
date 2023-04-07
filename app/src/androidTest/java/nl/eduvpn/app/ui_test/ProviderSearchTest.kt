@@ -31,7 +31,6 @@ import nl.eduvpn.app.MainActivity
 import nl.eduvpn.app.utils.Log
 import nl.eduvpn.app.waitUntilGone
 import org.junit.Assert.fail
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
