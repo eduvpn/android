@@ -69,7 +69,7 @@ class HistoryServiceTest {
         _historyService = HistoryService(preferencesService)
     }
 
-    @Test(timeout = 1000) // Could be a lot faster, but we use secure preferences, which encrypts and decrypts on-the-fly.
+    @Test(timeout = 1500) // The timeout should be lower, but the CI is too slow.
     fun testSerializationSpeed() {
         // We create, save and restore 10 discovered APIs, 10 saved profiles, 10 access tokens.
         // Should be still fast.

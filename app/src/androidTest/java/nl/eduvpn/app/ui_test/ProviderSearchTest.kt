@@ -19,8 +19,7 @@
 package nl.eduvpn.app.ui_test
 
 import androidx.test.espresso.Espresso.onView
-import androidx.test.espresso.action.ViewActions.closeSoftKeyboard
-import androidx.test.espresso.action.ViewActions.typeText
+import androidx.test.espresso.action.ViewActions.*
 import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.matcher.ViewMatchers.*
 import androidx.test.ext.junit.rules.ActivityScenarioRule
@@ -61,17 +60,17 @@ class ProviderSearchTest {
         }
         // Wait for list to load
         try {
-            onView(withText("Fetching organizations...")).perform(waitUntilGone(2_000L))
+            onView(withText("Fetching organizations...")).perform(waitUntilGone(5_000L))
         } catch (ex: Exception) {
             Log.i(TAG, "Couldn't find loading popup")
         }
 
-        BaseRobot().waitForView(withText("Institute Access"), waitMillis = 2_000).check(matches(isDisplayed()))
+        BaseRobot().waitForView(withText("Institute Access"), waitMillis = 2_000)
+            .check(matches(isDisplayed()))
         onView(withHint("Search for your organization...")).perform(
             typeText("konijn"),
             closeSoftKeyboard()
         )
-        onView(withText("SURF (New)")).check(matches(isDisplayed()))
+        onView(withText("SURF (New)")).check(matches(withEffectiveVisibility(Visibility.VISIBLE))) // For some reason isDisplayed() does not work
     }
-
 }

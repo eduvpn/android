@@ -1,0 +1,124 @@
+name: Run tests
+
+on: [ push, pull_request ]
+
+jobs:
+  build:
+    name: build
+    runs-on: macos-latest # Needs to be macos for running AVD on Github
+    env:
+      SKIP_ICS_OPENVPN_BUILD: >
+        --build-cache
+        -x :ics-openvpn-main:configureCMakeRelWithDebInfo[arm64-v8a]
+        -x :ics-openvpn-main:buildCMakeRelWithDebInfo[arm64-v8a]
+        -x :ics-openvpn-main:configureCMakeRelWithDebInfo[armeabi-v7a]
+        -x :ics-openvpn-main:buildCMakeRelWithDebInfo[armeabi-v7a]
+        -x :ics-openvpn-main:configureCMakeRelWithDebInfo[x86]
+        -x :ics-openvpn-main:buildCMakeRelWithDebInfo[x86]
+        -x :ics-openvpn-main:configureCMakeRelWithDebInfo[x86_64]
+        -x :ics-openvpn-main:buildCMakeRelWithDebInfo[x86_64]
+        -x :ics-openvpn-main:externalNativeBuildUiRelease
+        -x :ics-openvpn-main:packageUiReleaseResources
+        -x :ics-openvpn-main:compileUiReleaseJavaWithJavac
+        -x :ics-openvpn-main:configureCMakeDebug[x86_64]
+        -x :ics-openvpn-main:buildCMakeDebug[x86_64]
+        -x :ics-openvpn-main:buildCMakeDebug[arm64-v8a]
+        -x :ics-openvpn-main:buildCMakeDebug[armeabi-v7a]
+        -x :ics-openvpn-main:buildCMakeDebug[x86]
+    strategy:
+      matrix:
+        api-level: [ 31 ]
+    steps:
+      - name: Use Java 17
+        run: echo "JAVA_HOME=${!JAVA_HOME_17_X64}" >> $GITHUB_ENV
+
+      - name: Checkout repository and submodules
+        uses: actions/checkout@v2
+        with:
+          submodules: recursive
+
+      # Based on https://github.com/actions/cache/blob/main/examples.md#java---gradle
+      - name: Cache Gradle caches and wrapper
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-${{ matrix.api-level }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ matrix.api-level }}-gradle-
+
+      - name: Cache build
+        uses: actions/cache@v3
+        with:
+          path: |
+            .gradle
+            app/build
+          key: ${{ runner.os }}-${{ matrix.api-level }}-build-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-${{ matrix.api-level }}-build-
+
+      - name: Cache appauth build
+        uses: actions/cache@v3
+        with:
+          path: |
+            appauth/library/build
+          key: ${{ runner.os }}-${{ matrix.api-level }}-appauth-${{ hashFiles('.git/modules/appauth/HEAD') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ matrix.api-level }}-appauth-
+
+      - name: Cache ics-openvpn build
+        id: cache-ics-openvpn
+        uses: actions/cache@v3
+        with:
+          path: |
+            ics-openvpn/.gradle
+            ics-openvpn/main/build
+            ics-openvpn/main/.cxx
+          key: ${{ runner.os }}-${{ matrix.api-level }}-ics_openvpn-${{ hashFiles('.git/modules/ics-openvpn/HEAD') }}
+
+      - if: ${{ steps.cache-ics-openvpn.outputs.cache-hit == 'true' }}
+        # For unknown reason, ninja always rebuilds, so force use of cache
+        name: Build app with ics-openvpn cache
+        run: |
+          ./gradlew app:assembleBasicRelease app:assembleBasicDebugAndroidTest \
+            --warning-mode all $SKIP_ICS_OPENVPN_BUILD
+
+      - if: ${{ steps.cache-ics-openvpn.outputs.cache-hit != 'true' }}
+        name: Build app
+        run: |
+          #sudo apt-get update
+          #sudo apt-get -y install swig ninja-build cmake
+          ./gradlew app:assembleBasicRelease app:assembleBasicDebugAndroidTest \
+            --build-cache --warning-mode all
+
+      # Based on https://github.com/marketplace/actions/android-emulator-runner
+      - name: AVD cache
+        uses: actions/cache@v3
+        id: avd-cache
+        with:
+          path: |
+            ~/.android/avd/*
+            ~/.android/adb*
+          key: avd-${{ matrix.api-level }}
+
+      - name: Create AVD and generate snapshot for caching
+        if: steps.avd-cache.outputs.cache-hit != 'true'
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: ${{ matrix.api-level }}
+          arch: x86_64
+          force-avd-creation: false
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          disable-animations: false
+          script: echo "Generated AVD snapshot for caching."
+
+      - name: Run tests
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: ${{ matrix.api-level }}
+          arch: x86_64
+          force-avd-creation: false
+          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          disable-animations: true
+          script: ./gradlew :app:connectedBasicDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.package=nl.eduvpn.app.service $SKIP_ICS_OPENVPN_BUILD
