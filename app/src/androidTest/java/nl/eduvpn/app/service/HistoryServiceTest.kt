@@ -141,45 +141,6 @@ class HistoryServiceTest {
     }
 
     @Test
-<<<<<<< HEAD
-    fun testCacheAndRemoveSavedProfile() {
-        val baseURI = "http://example.com/baseURI"
-        val profileId = "vpn_profile"
-        val profileUUID = "ABCD-1234-DEFG-5678"
-        val instance = Instance(
-            baseURI,
-            TranslatableString("displayName"),
-            null,
-            AuthorizationType.Distributed,
-            "HU",
-            true,
-            null,
-            ArrayList()
-        )
-        val profile = ProfileV2(TranslatableString("displayName"), profileId)
-        val savedProfile = SavedProfile(instance, profile, profileUUID)
-        _historyService!!.cacheSavedProfile(savedProfile)
-        reloadHistoryService(false)
-        val restoredProfile =
-            _historyService!!.getCachedSavedProfile(instance.sanitizedBaseURI, profileId)
-        Assert.assertNotNull(restoredProfile)
-        Assert.assertEquals(savedProfile.profileUUID, restoredProfile!!.profileUUID)
-        // Now test if it can be removed correctly
-        _historyService!!.removeSavedProfile(restoredProfile)
-        var removedProfile =
-            _historyService!!.getCachedSavedProfile(instance.sanitizedBaseURI, profileId)
-        // Since it was removed, it should be null
-        Assert.assertNull(removedProfile)
-        // Also make sure it stays removed after a reload
-        reloadHistoryService(false)
-        removedProfile =
-            _historyService!!.getCachedSavedProfile(instance.sanitizedBaseURI, profileId)
-        Assert.assertNull(removedProfile)
-    }
-
-    @Test
-=======
->>>>>>> 2ce8415 (Remove API V2)
     fun testStoreSavedKeyPair() {
         val keyPair1 = KeyPair(false, "cert1", "pk1")
         val instance1 = Instance(

@@ -158,42 +158,6 @@ public class SerializerServiceTest {
     }
 
     @Test
-<<<<<<< HEAD
-    public void testSavedProfileListSerialization() throws SerializerService.UnknownFormatException {
-        Instance instance1 = new Instance("baseUri1", new TranslatableString("displayName1"), "logoUri1", AuthorizationType.Distributed, "SV", true, "https://example.com/template", Collections
-                .singletonList("mailto:support@example.com"));
-        Instance instance2 = new Instance("baseUri2", new TranslatableString("displayName2"), "logoUri2", AuthorizationType.Local, "CH", true, null, new ArrayList<>());
-        ProfileV2 profile1 = new ProfileV2(new TranslatableString("displayName1"), "profileId1");
-        ProfileV2 profile2 = new ProfileV2(new TranslatableString("displayName2"), "profileId2");
-        SavedProfile savedProfile1 = new SavedProfile(instance1, profile1, "profileUUID1");
-        SavedProfile savedProfile2 = new SavedProfile(instance2, profile2, "profileUUID2");
-        List<SavedProfile> list = Arrays.asList(savedProfile1, savedProfile2);
-        String serializedList = _serializerService.serializeSavedProfileList(list);
-        List<SavedProfile> deserializedList = _serializerService.deserializeSavedProfileList(serializedList);
-        assertEquals(list.size(), deserializedList.size());
-        for (int i = 0; i < list.size(); ++i) {
-            assertEquals(list.get(i).getInstance().getBaseURI(), deserializedList.get(i)
-                    .getInstance()
-                    .getBaseURI());
-            assertEquals(list.get(i).getInstance().getDisplayName(), deserializedList.get(i)
-                    .getInstance()
-                    .getDisplayName());
-            assertEquals(list.get(i).getInstance().getLogoUri(), deserializedList.get(i)
-                    .getInstance()
-                    .getLogoUri());
-            assertEquals(list.get(i).getInstance().isCustom(), deserializedList.get(i).getInstance().isCustom());
-            assertEquals(list.get(i).getInstance().getAuthorizationType(), deserializedList.get(i).getInstance().getAuthorizationType());
-            assertEquals(list.get(i).getInstance().getAuthenticationUrlTemplate(), deserializedList.get(i).getInstance().getAuthenticationUrlTemplate());
-
-            assertEquals(list.get(i).getProfile().getDisplayName(), deserializedList.get(i).getProfile().getDisplayName());
-            assertEquals(list.get(i).getProfile().getProfileId(), deserializedList.get(i).getProfile().getProfileId());
-            assertEquals(list.get(i).getProfileUUID(), deserializedList.get(i).getProfileUUID());
-        }
-    }
-
-    @Test
-=======
->>>>>>> 2ce8415 (Remove API V2)
     public void testKeyPairSerialization() throws SerializerService.UnknownFormatException {
         KeyPair keyPair = new KeyPair(false, "cert1", "pk1");
         String serializedKeyPair = _serializerService.serializeKeyPair(keyPair);
