@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~  This file is part of eduVPN.
+  ~
+  ~     eduVPN is free software: you can redistribute it and/or modify
+  ~     it under the terms of the GNU General Public License as published by
+  ~     the Free Software Foundation, either version 3 of the License, or
+  ~     (at your option) any later version.
+  ~
+  ~     eduVPN is distributed in the hope that it will be useful,
+  ~     but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~     GNU General Public License for more details.
+  ~
+  ~     You should have received a copy of the GNU General Public License
+  ~     along with eduVPN.  If not, see <http://www.gnu.org/licenses/>.
+  -->
+
+<resources>
+    <string name="content_description_secure_internet">Sicheres Internet</string>
+    <string name="content_description_institute_access">Organisations-Zugang</string>
+    <string name="content_description_connection_status_icon">Verbindungsstatus</string>
+    <string name="content_description_provider_icon">Anbieter-Symbol</string>
+    <string name="content_description_application_logo">Anwendungs-Symbol</string>
+    <string name="content_description_settings_button">Schaltfläche Einstellungen</string>
+    <string name="content_description_message_icon">Nachrichten-Symbol</string>
+    <string name="content_description_warning_icon">Warnungs-Symbol</string>
+    <string name="content_description_expand_arrow">Pfeil zum aus-/einklappen</string>
+</resources>

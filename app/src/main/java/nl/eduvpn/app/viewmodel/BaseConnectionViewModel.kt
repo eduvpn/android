@@ -580,7 +580,7 @@ abstract class BaseConnectionViewModel(
      * @param discoveredAPI The discovered API URLs.
      * @param savedKeyPair  The private key and certificate used to generate the profile.
      * @param profile       The profile to create.
-     * @param authState     Authorization state which helps us connect tot the API.
+     * @param authState     Authorization state which helps us connect to the API.
      */
     private suspend fun downloadProfileWithKeyPair(
         instance: Instance, discoveredAPI: DiscoveredAPIV2,
