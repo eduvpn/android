@@ -85,6 +85,7 @@ class OrganizationSelectionFragment : BaseFragment<FragmentOrganizationSelection
                 val customInstance = Instance(
                     customUrl,
                     TranslatableString(getString(R.string.custom_provider_display_name)),
+                    TranslatableString(),
                     null,
                     AuthorizationType.Local,
                     null,
