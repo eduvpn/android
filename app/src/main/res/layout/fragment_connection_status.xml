@@ -105,7 +105,6 @@
                 android:layout_marginLeft="32dp"
                 android:layout_marginTop="8dp"
                 android:layout_marginRight="32dp"
-                android:autoLink="all"
                 android:fontFamily="@font/open_sans_regular"
                 android:gravity="center"
                 android:text="@{viewModel.certValidity}"

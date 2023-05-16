@@ -23,21 +23,12 @@ import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.action.ViewActions.click
 import androidx.test.espresso.action.ViewActions.typeText
 import androidx.test.espresso.assertion.ViewAssertions.matches
-import androidx.test.espresso.matcher.ViewMatchers.isDisplayed
-import androidx.test.espresso.matcher.ViewMatchers.isFocusable
-import androidx.test.espresso.matcher.ViewMatchers.withClassName
-import androidx.test.espresso.matcher.ViewMatchers.withHint
-import androidx.test.espresso.matcher.ViewMatchers.withText
+import androidx.test.espresso.matcher.ViewMatchers.*
 import androidx.test.ext.junit.rules.ActivityScenarioRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
 import androidx.test.platform.app.InstrumentationRegistry.getInstrumentation
-import androidx.test.uiautomator.By
-import androidx.test.uiautomator.UiDevice
-import androidx.test.uiautomator.UiObjectNotFoundException
-import androidx.test.uiautomator.UiScrollable
-import androidx.test.uiautomator.UiSelector
-import androidx.test.uiautomator.Until
+import androidx.test.uiautomator.*
 import nl.eduvpn.app.BaseRobot
 import nl.eduvpn.app.BuildConfig
 import nl.eduvpn.app.MainActivity
@@ -80,7 +71,7 @@ class ConnectVpnTest {
         } else {
             // Wait for list to load
             try {
-                onView(withText("Fetching organizations...")).perform(waitUntilGone(2_000L))
+                onView(withText("Fetching organizations...")).perform(waitUntilGone(5_000L))
             } catch (ex: Exception) {
                 Log.i(TAG, "Couldn't find loading popup")
             }

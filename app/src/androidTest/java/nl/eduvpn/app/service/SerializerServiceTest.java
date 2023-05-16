@@ -97,8 +97,7 @@ public class SerializerServiceTest {
 
     @Test
     public void testInstanceSerialization() throws SerializerService.UnknownFormatException {
-        Instance instance = new Instance("baseUri", new TranslatableString("displayName"), "logoUri", AuthorizationType.Distributed, "HU", true, null, Arrays
-                .asList("mailto:user@test.example.com", "tel:+0011223344659898"));
+        Instance instance = new Instance("baseUri", new TranslatableString("displayName"), new TranslatableString("konijn"), "logoUri", AuthorizationType.Distributed, "HU", true, null, Arrays.asList("mailto:user@test.example.com", "tel:+0011223344659898"));
         String serializedInstance = _serializerService.serializeInstance(instance);
         Instance deserializedInstance = _serializerService.deserializeInstance(serializedInstance);
         assertEquals(instance.getDisplayName(), deserializedInstance.getDisplayName());
@@ -127,13 +126,10 @@ public class SerializerServiceTest {
     @SuppressWarnings("ConstantConditions")
     @Test
     public void testSavedTokenListSerialization() throws SerializerService.UnknownFormatException {
-        Instance instance1 = new Instance("baseUri1", new TranslatableString("displayName1"), null, AuthorizationType.Distributed, "DE", true, "https://example.com/template", Arrays
-                .asList("mailto:support@example.com", "tel:+00123456789"));
-        Instance instance2 = new Instance("baseUri2", new TranslatableString("displayName2"), null, AuthorizationType.Local, "FR", true, null, new ArrayList<>());
-        AuthState state1 = new AuthState(new AuthorizationServiceConfiguration(Uri.parse("http://eduvpn.org/auth"), Uri
-                .parse("http://eduvpn.org/token"), null));
-        AuthState state2 = new AuthState(new AuthorizationServiceConfiguration(Uri.parse("http://example.com/auth"), Uri
-                .parse("http://example.com/token"), null));
+        Instance instance1 = new Instance("baseUri1", new TranslatableString("displayName1"), new TranslatableString("konijn"), null, AuthorizationType.Distributed, "DE", true, "https://example.com/template", Arrays.asList("mailto:support@example.com", "tel:+00123456789"));
+        Instance instance2 = new Instance("baseUri2", new TranslatableString("displayName2"), new TranslatableString("konijn"), null, AuthorizationType.Local, "FR", true, null, new ArrayList<>());
+        AuthState state1 = new AuthState(new AuthorizationServiceConfiguration(Uri.parse("http://eduvpn.org/auth"), Uri.parse("http://eduvpn.org/token"), null));
+        AuthState state2 = new AuthState(new AuthorizationServiceConfiguration(Uri.parse("http://example.com/auth"), Uri.parse("http://example.com/token"), null));
         SavedAuthState token1 = new SavedAuthState(instance1, state1, new Date());
         SavedAuthState token2 = new SavedAuthState(instance2, state2, new Date());
         List<SavedAuthState> list = Arrays.asList(token1, token2);
@@ -176,11 +172,10 @@ public class SerializerServiceTest {
     @Test
     public void testSavedKeyPairListSerialization() throws SerializerService.UnknownFormatException {
         KeyPair keyPair1 = new KeyPair(false, "cert1", "pk1");
-        Instance instance1 = new Instance("http://example.com/", new TranslatableString("example.com"), null, AuthorizationType.Distributed, "NL", false, "https://example.com/url_template", new ArrayList<>());
+        Instance instance1 = new Instance("http://example.com/", new TranslatableString("example.com"), new TranslatableString("konijn"), null, AuthorizationType.Distributed, "NL", false, "https://example.com/url_template", new ArrayList<>());
         SavedKeyPair savedKeyPair1 = new SavedKeyPair(instance1, keyPair1);
         KeyPair keyPair2 = new KeyPair(true, "example certificate", "example private key");
-        Instance instance2 = new Instance("http://something.else/", new TranslatableString("something.else"), "http://www.example.com/logo", AuthorizationType.Local, "HU", true, null, Collections
-                .emptyList());
+        Instance instance2 = new Instance("http://something.else/", new TranslatableString("something.else"), new TranslatableString("konijn"), "http://www.example.com/logo", AuthorizationType.Local, "HU", true, null, Collections.emptyList());
         SavedKeyPair savedKeyPair2 = new SavedKeyPair(instance2, keyPair2);
         List<SavedKeyPair> savedKeyPairList = Arrays.asList(savedKeyPair1, savedKeyPair2);
         String serializedSavedKeyPairList = _serializerService.serializeSavedKeyPairList(savedKeyPairList);
@@ -239,7 +234,6 @@ public class SerializerServiceTest {
             assertEquals(profiles.get(i).getExpiry(), deserializedProfiles.get(i).getExpiry());
         }
     }
-
 
     /**
      * Removes the milliseconds from a date. Required because the parser does not care about milliseconds.
