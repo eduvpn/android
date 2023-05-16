@@ -32,6 +32,8 @@ import nl.eduvpn.app.entity.*
 import nl.eduvpn.app.service.*
 import nl.eduvpn.app.utils.Log
 import nl.eduvpn.app.utils.runCatchingCoroutine
+import java.text.Collator
+import java.util.*
 import javax.inject.Inject
 
 class OrganizationSelectionViewModel @Inject constructor(
@@ -161,11 +163,20 @@ class OrganizationSelectionViewModel @Inject constructor(
                 val instituteAccessServers = servers.filter {
                     it.authorizationType == AuthorizationType.Local
                             && matchesServer(searchText, it.displayName, it.keywords)
-                }.sortedBy { it.displayName.bestTranslation }
-                    .map { OrganizationAdapter.OrganizationAdapterItem.InstituteAccess(it) }
+                }.sortedWith(
+                    Comparator.comparing(
+                        { i -> i.displayName.bestTranslation },
+                        Collator.getInstance(Locale.getDefault())
+                    )
+                ).map { OrganizationAdapter.OrganizationAdapterItem.InstituteAccess(it) }
                 val secureInternetServers = organizations.filter {
                     matchesServer(searchText, it.displayName, it.keywordList)
-                }.mapNotNull { organization ->
+                }.sortedWith(
+                    Comparator.comparing(
+                        { i -> i.displayName.bestTranslation },
+                        Collator.getInstance(Locale.getDefault())
+                    )
+                ).mapNotNull { organization ->
                     val matchingServer = servers
                         .firstOrNull {
                             it.authorizationType == AuthorizationType.Distributed &&
