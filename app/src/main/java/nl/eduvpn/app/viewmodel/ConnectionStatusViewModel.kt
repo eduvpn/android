@@ -31,9 +31,6 @@ import kotlinx.coroutines.delay
 import nl.eduvpn.app.CertExpiredBroadcastReceiver
 import nl.eduvpn.app.R
 import nl.eduvpn.app.entity.Profile
-import nl.eduvpn.app.entity.ProfileV2
-import nl.eduvpn.app.entity.ProfileV3
-import nl.eduvpn.app.entity.VPNConfig
 import nl.eduvpn.app.service.*
 import nl.eduvpn.app.utils.getCountryText
 import nl.eduvpn.app.utils.pendingIntentImmutableFlag
@@ -52,14 +49,13 @@ class ConnectionStatusViewModel @Inject constructor(
     val timer: LiveData<Unit>,
     @Named("connectionTimeLiveData")
     val connectionTimeLiveData: LiveData<Long?>,
-    wireGuardService: WireGuardService,
     apiService: APIService,
     serializerService: SerializerService,
     connectionService: ConnectionService,
     vpnConnectionService: VPNConnectionService,
 ) : BaseConnectionViewModel(
     context, apiService, serializerService, historyService,
-    preferencesService, connectionService, eduVPNOpenVPNService, wireGuardService,
+    preferencesService, connectionService, eduVPNOpenVPNService,
     vpnConnectionService,
 ) {
 
@@ -218,20 +214,6 @@ class ConnectionStatusViewModel @Inject constructor(
         return true
     }
 
-    fun findCurrentConfigV2(): VPNConfig.OpenVPN? {
-        val currentProfile = preferencesService.getCurrentProfile() ?: return null
-        return when (currentProfile) {
-            is ProfileV2 -> {
-                val matchingSavedProfile = preferencesService.getSavedProfileList()
-                    ?.firstOrNull { it.profile.profileId == currentProfile.profileId }
-                    ?: return null
-                val vpnProfile = eduVPNOpenVPNService.findMatchingVpnProfile(matchingSavedProfile)
-                vpnProfile?.let { p -> VPNConfig.OpenVPN(p) }
-            }
-            is ProfileV3 -> null
-        }
-    }
-
     fun findCurrentProfile(): Profile? {
         return preferencesService.getCurrentProfile()
     }
@@ -247,15 +229,7 @@ class ConnectionStatusViewModel @Inject constructor(
             serverName.value = context.getString(R.string.profile_name_not_found)
         }
         profileName.value = savedProfile?.displayName?.bestTranslation
-        certExpiryTime = when (savedProfile) {
-            is ProfileV2 -> historyService.getSavedKeyPairForInstance(connectionInstance).keyPair.expiryTimeMillis
-            is ProfileV3 -> savedProfile.expiry
-            null -> null
-        }
+        certExpiryTime = savedProfile?.expiry
         updateCertExpiry()
-    }
-
-    companion object {
-        private val TAG = ConnectionStatusViewModel::class.qualifiedName
     }
 }

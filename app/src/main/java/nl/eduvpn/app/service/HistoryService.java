@@ -37,7 +37,6 @@ import nl.eduvpn.app.entity.Instance;
 import nl.eduvpn.app.entity.Organization;
 import nl.eduvpn.app.entity.SavedAuthState;
 import nl.eduvpn.app.entity.SavedKeyPair;
-import nl.eduvpn.app.entity.SavedProfile;
 import nl.eduvpn.app.utils.Log;
 
 /**
@@ -48,7 +47,6 @@ import nl.eduvpn.app.utils.Log;
 public class HistoryService extends Observable {
     private static final String TAG = HistoryService.class.getName();
 
-    private List<SavedProfile> _savedProfileList;
     private List<SavedAuthState> _savedAuthStateList;
     private List<SavedKeyPair> _savedKeyPairList;
 
@@ -74,11 +72,6 @@ public class HistoryService extends Observable {
      * Loads the state of the service.
      */
     private void _load() {
-        _savedProfileList = _preferencesService.getSavedProfileList();
-        if (_savedProfileList == null) {
-            _savedProfileList = new ArrayList<>();
-            Log.i(TAG, "No saved profiles found.");
-        }
         _savedAuthStateList = _preferencesService.getSavedAuthStateList();
         if (_savedAuthStateList == null) {
             _savedAuthStateList = new ArrayList<>();
@@ -96,7 +89,6 @@ public class HistoryService extends Observable {
      * Saves the state of the service.
      */
     private void _save() {
-        _preferencesService.storeSavedProfileList(_savedProfileList);
         _preferencesService.storeSavedAuthStateList(_savedAuthStateList);
         _preferencesService.storeSavedOrganization(_savedOrganization);
     }
@@ -150,71 +142,6 @@ public class HistoryService extends Observable {
         _save();
         setChanged();
         notifyObservers(NOTIFICATION_TOKENS_CHANGED);
-        clearChanged();
-    }
-
-    /**
-     * Returns the unmodifiable list of saved profiles.
-     *
-     * @return The list of saved profiles. If none found, the list will be empty.
-     */
-    @NonNull
-    public List<SavedProfile> getSavedProfileList() {
-        return Collections.unmodifiableList(_savedProfileList);
-    }
-
-
-    /**
-     * Stores a saved profile, so the user can select it the next time.
-     *
-     * @param savedProfile The saved profile to store.
-     */
-    public void cacheSavedProfile(@NonNull SavedProfile savedProfile) {
-        // Remove profiles which are for the exact same server and profile, so we don't store outdated profiles.
-        Iterator<SavedProfile> listIterator = _savedProfileList.iterator();
-        while (listIterator.hasNext()) {
-            SavedProfile listProfile = listIterator.next();
-            if (listProfile.getInstance().getAuthorizationType() == savedProfile.getInstance().getAuthorizationType() &&
-                    listProfile.getInstance().getSanitizedBaseURI().equals(savedProfile.getInstance().getSanitizedBaseURI()) &&
-                    listProfile.getProfile().getProfileId().equals(savedProfile.getProfile().getProfileId())) {
-                listIterator.remove();
-            }
-        }
-        _savedProfileList.add(savedProfile);
-        _save();
-        setChanged();
-        notifyObservers(NOTIFICATION_PROFILES_CHANGED);
-        clearChanged();
-    }
-
-    /**
-     * Returns a cached saved profile by looking it up by the API sanitized base URI and the profile ID.
-     *
-     * @param sanitizedBaseURI The sanitized base URI of the provider.
-     * @param profileId        The unique ID of the profile within the provider.
-     * @return The saved profile if found. Null if not found.
-     */
-    @Nullable
-    public SavedProfile getCachedSavedProfile(@NonNull String sanitizedBaseURI, @NonNull String profileId) {
-        for (SavedProfile savedProfile : _savedProfileList) {
-            if (savedProfile.getInstance().getSanitizedBaseURI().equals(sanitizedBaseURI) &&
-                    savedProfile.getProfile().getProfileId().equals(profileId)) {
-                return savedProfile;
-            }
-        }
-        return null;
-    }
-
-    /**
-     * Saves a previously removed profile from the list.
-     *
-     * @param savedProfile The profile to remove.
-     */
-    public void removeSavedProfile(@NonNull SavedProfile savedProfile) {
-        _savedProfileList.remove(savedProfile);
-        _save();
-        setChanged();
-        notifyObservers(NOTIFICATION_PROFILES_CHANGED);
         clearChanged();
     }
 
@@ -409,41 +336,13 @@ public class HistoryService extends Observable {
                 if (savedAuthState.getInstance().getAuthorizationType() == AuthorizationType.Distributed) {
                     removeSavedKeyPairs(savedAuthState.getInstance());
                     _removeAuthorizations(savedAuthState.getInstance());
-                    removeSavedProfilesForInstance(savedAuthState.getInstance()); // This will trigger a profiles changed event
                 }
             }
         } else {
             removeSavedKeyPairs(instance);
             _removeAuthorizations(instance);
-            removeSavedProfilesForInstance(instance); // This will trigger a profiles changed event
         }
     }
-
-    /**
-     * Removes the saved profiles for an instance.
-     *
-     * @param instance The instance which should be removed.
-     */
-    public void removeSavedProfilesForInstance(@NonNull Instance instance) {
-        Iterator<SavedProfile> savedProfileIterator = _savedProfileList.iterator();
-        while (savedProfileIterator.hasNext()) {
-            SavedProfile savedProfile = savedProfileIterator.next();
-            if (instance.getAuthorizationType() == AuthorizationType.Distributed &&
-                    savedProfile.getInstance().getAuthorizationType() == AuthorizationType.Distributed) {
-                savedProfileIterator.remove();
-                Log.i(TAG, "Deleted profile for distributed auth instance " + savedProfile.getInstance().getSanitizedBaseURI());
-            } else if (instance.getAuthorizationType() == AuthorizationType.Local &&
-                    savedProfile.getInstance().getSanitizedBaseURI().equals(instance.getSanitizedBaseURI())) {
-                savedProfileIterator.remove();
-                Log.i(TAG, "Deleted profile for local auth instance " + savedProfile.getInstance().getSanitizedBaseURI());
-            }
-        }
-        _save();
-        setChanged();
-        notifyObservers(NOTIFICATION_PROFILES_CHANGED);
-        clearChanged();
-    }
-
 
     /***
      * Removes all saved data in this app.

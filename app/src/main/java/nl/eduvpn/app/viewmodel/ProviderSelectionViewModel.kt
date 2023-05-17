@@ -20,7 +20,6 @@ package nl.eduvpn.app.viewmodel
 
 import android.content.Context
 import androidx.lifecycle.MutableLiveData
-import nl.eduvpn.app.entity.Instance
 import nl.eduvpn.app.entity.Organization
 import nl.eduvpn.app.service.*
 import javax.inject.Inject
@@ -33,8 +32,6 @@ class ProviderSelectionViewModel @Inject constructor(
     private val preferencesService: PreferencesService,
     connectionService: ConnectionService,
     eduVpnOpenVpnService: EduVPNOpenVPNService,
-    wireGuardService: WireGuardService,
-    private val organizationService: OrganizationService,
     vpnConnectionService: VPNConnectionService,
 ) : BaseConnectionViewModel(
     context,
@@ -44,12 +41,10 @@ class ProviderSelectionViewModel @Inject constructor(
     preferencesService,
     connectionService,
     eduVpnOpenVpnService,
-    wireGuardService,
     vpnConnectionService,
 ) {
 
     val currentOrganization = MutableLiveData<Organization?>()
-    val currentOrganizationInstances = MutableLiveData<List<Instance>>()
     val isLoadingInstances = MutableLiveData<Boolean>(true)
 
     init {
@@ -59,16 +54,5 @@ class ProviderSelectionViewModel @Inject constructor(
     fun setCurrentOrganization(organization: Organization?) {
         currentOrganization.value = organization
         isLoadingInstances.value = true
-        /**
-        disposables.add(organizationService.getInstanceListForOrganization(organization)
-        .subscribe({ instanceList ->
-        currentOrganizationInstances.value = instanceList
-        preferencesService.storeOrganizationInstanceList(instanceList)
-        isLoadingInstances.value = false
-        }, { throwable ->
-        parentAction.value = ParentAction.DisplayError(R.string.error_server_discovery_title, throwable.toString())
-        isLoadingInstances.value = false
-        })
-        )**/
     }
 }

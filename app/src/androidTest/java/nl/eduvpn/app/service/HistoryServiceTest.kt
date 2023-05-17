@@ -71,12 +71,10 @@ class HistoryServiceTest {
 
     @Test(timeout = 1500) // The timeout should be lower, but the CI is too slow.
     fun testSerializationSpeed() {
-        // We create, save and restore 10 discovered APIs, 10 saved profiles, 10 access tokens.
+        // We create, save and restore 10 discovered APIs and 10 access tokens.
         // Should be still fast.
         val baseURI = "http://example.com/baseURI"
         for (i in 0..9) {
-            val profileId = "vpn_profile"
-            val profileUUID = "ABCD-1234-DEFG-5678"
             val instance = Instance(
                 baseURI + i,
                 TranslatableString("displayName"),
@@ -88,13 +86,9 @@ class HistoryServiceTest {
                 "https://example.com/template",
                 ArrayList()
             )
-            val profile = ProfileV2(TranslatableString("displayName"), profileId)
-            val savedProfile = SavedProfile(instance, profile, profileUUID)
-            _historyService!!.cacheSavedProfile(savedProfile)
             _historyService!!.cacheAuthorizationState(instance, AuthState(), Date())
         }
         reloadHistoryService(false)
-        Assert.assertEquals(10, _historyService!!.savedProfileList.size.toLong())
         for (i in 0..9) {
             Assert.assertNotNull(
                 _historyService!!.getCachedAuthState(
@@ -147,43 +141,6 @@ class HistoryServiceTest {
             exampleAuthState.authorizationServiceConfiguration!!.tokenEndpoint, restoredAuthState
                 .authorizationServiceConfiguration!!.tokenEndpoint
         )
-    }
-
-    @Test
-    fun testCacheAndRemoveSavedProfile() {
-        val baseURI = "http://example.com/baseURI"
-        val profileId = "vpn_profile"
-        val profileUUID = "ABCD-1234-DEFG-5678"
-        val instance = Instance(
-            baseURI,
-            TranslatableString("displayName"),
-            TranslatableString("konijn"),
-            null,
-            AuthorizationType.Distributed,
-            "HU",
-            true,
-            null,
-            ArrayList()
-        )
-        val profile = ProfileV2(TranslatableString("displayName"), profileId)
-        val savedProfile = SavedProfile(instance, profile, profileUUID)
-        _historyService!!.cacheSavedProfile(savedProfile)
-        reloadHistoryService(false)
-        val restoredProfile =
-            _historyService!!.getCachedSavedProfile(instance.sanitizedBaseURI, profileId)
-        Assert.assertNotNull(restoredProfile)
-        Assert.assertEquals(savedProfile.profileUUID, restoredProfile!!.profileUUID)
-        // Now test if it can be removed correctly
-        _historyService!!.removeSavedProfile(restoredProfile)
-        var removedProfile =
-            _historyService!!.getCachedSavedProfile(instance.sanitizedBaseURI, profileId)
-        // Since it was removed, it should be null
-        Assert.assertNull(removedProfile)
-        // Also make sure it stays removed after a reload
-        reloadHistoryService(false)
-        removedProfile =
-            _historyService!!.getCachedSavedProfile(instance.sanitizedBaseURI, profileId)
-        Assert.assertNull(removedProfile)
     }
 
     @Test

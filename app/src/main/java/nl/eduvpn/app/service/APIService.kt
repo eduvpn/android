@@ -26,8 +26,6 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.internal.EMPTY_REQUEST
-import org.json.JSONException
-import org.json.JSONObject
 import java.io.IOException
 
 /**
@@ -37,25 +35,6 @@ import java.io.IOException
 class APIService(private val connectionService: ConnectionService, private val okHttpClient: OkHttpClient) {
 
     class UserNotAuthorizedException : Exception()
-    class ParseException(message: String, cause: Throwable) : Exception(message, cause)
-
-    /**
-     * Retrieves a JSON object from a URL, and returns it in the callback
-     *
-     * @param url      The URL to fetch the JSON from.
-     * @throws UserNotAuthorizedException
-     * @throws ParseException if the provided JSON does not match the expected structure.
-     * @throws IOException
-     */
-    suspend fun getJSON(url: String, authState: AuthState?): JSONObject {
-        val string = getString(url, authState)
-        try {
-            return JSONObject(string)
-        } catch (ex: JSONException) {
-            throw ParseException("Error parsing JSON.", ex)
-        }
-    }
-
 
     /**
      * Retrieves a resource as a string.

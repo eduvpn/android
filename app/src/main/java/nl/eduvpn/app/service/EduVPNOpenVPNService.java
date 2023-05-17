@@ -49,7 +49,6 @@ import de.blinkt.openvpn.core.ProfileManager;
 import de.blinkt.openvpn.core.VpnStatus;
 import nl.eduvpn.app.R;
 import nl.eduvpn.app.entity.SavedKeyPair;
-import nl.eduvpn.app.entity.SavedProfile;
 import nl.eduvpn.app.livedata.ByteCount;
 import nl.eduvpn.app.livedata.IPs;
 import nl.eduvpn.app.livedata.UnlessDisconnectedLiveData;
@@ -189,24 +188,6 @@ public class EduVPNOpenVPNService extends VPNService implements VpnStatus.StateL
         }
     }
 
-    /***
-     * Finds a matching VPN library profile for a profile saved by the application.
-     * It should only exist if this is the most recently connected profile.
-     *
-     * @param savedProfile The profile saved by this application in its preferences.
-     * @return The VPN library profile, if found. Otherwise null.
-     */
-    @Nullable
-    public VpnProfile findMatchingVpnProfile(SavedProfile savedProfile) {
-        ProfileManager profileManager = ProfileManager.getInstance(_context);
-        for (VpnProfile profile : profileManager.getProfiles()) {
-            if (profile.getUUIDString().equals(savedProfile.getProfileUUID())) {
-                return profile;
-            }
-        }
-        return null;
-    }
-
     /**
      * Connects to the VPN using the profile supplied as a parameter.
      *
@@ -338,23 +319,6 @@ public class EduVPNOpenVPNService extends VPNService implements VpnStatus.StateL
         _updatesHandler.post(() -> {
             setValue(status);
         });
-    }
-
-    /**
-     * Returns the profile with the given UUID.
-     *
-     * @param profileUUID The UUID of the profile.
-     * @return The profile if found, otherwise null.
-     */
-    @Nullable
-    public VpnProfile getProfileWithUUID(@NonNull String profileUUID) {
-        ProfileManager profileManager = ProfileManager.getInstance(_context);
-        for (VpnProfile vpnProfile : profileManager.getProfiles()) {
-            if (vpnProfile.getUUIDString().equals(profileUUID)) {
-                return vpnProfile;
-            }
-        }
-        return null;
     }
 
     @NotNull

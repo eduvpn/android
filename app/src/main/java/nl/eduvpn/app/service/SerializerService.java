@@ -26,10 +26,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.text.DateFormat;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -48,22 +46,15 @@ import nl.eduvpn.app.entity.KeyPair;
 import nl.eduvpn.app.entity.Organization;
 import nl.eduvpn.app.entity.OrganizationList;
 import nl.eduvpn.app.entity.Profile;
-import nl.eduvpn.app.entity.ProfileV2;
-import nl.eduvpn.app.entity.ProfileV2List;
 import nl.eduvpn.app.entity.SavedAuthState;
 import nl.eduvpn.app.entity.SavedKeyPair;
 import nl.eduvpn.app.entity.SavedKeyPairList;
-import nl.eduvpn.app.entity.SavedProfile;
 import nl.eduvpn.app.entity.ServerList;
 import nl.eduvpn.app.entity.Settings;
 import nl.eduvpn.app.entity.TranslatableString;
 import nl.eduvpn.app.entity.WellKnown;
-import nl.eduvpn.app.entity.message.Maintenance;
-import nl.eduvpn.app.entity.message.Message;
-import nl.eduvpn.app.entity.message.Notification;
 import nl.eduvpn.app.entity.v3.Info;
 import nl.eduvpn.app.entity.v3.Protocol;
-import nl.eduvpn.app.utils.Log;
 import nl.eduvpn.app.utils.serializer.KeyPairSerializer;
 
 /**
@@ -73,16 +64,11 @@ import nl.eduvpn.app.utils.serializer.KeyPairSerializer;
 public class SerializerService {
 
     public static class UnknownFormatException extends Exception {
-        UnknownFormatException(String message) {
-            super(message);
-        }
-
         UnknownFormatException(Throwable throwable) {
             super(throwable);
         }
     }
 
-    private static final String TAG = SerializerService.class.getName();
     private static final DateFormat API_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US);
 
     private static final Json jsonSerializer = JsonKt.Json(Json.Default, (j) -> {
@@ -112,23 +98,6 @@ public class SerializerService {
     public List<Profile> deserializeProfileList(String json) throws UnknownFormatException {
         try {
             return jsonSerializer.decodeFromString(ListSerializer(Profile.Companion.serializer()), json);
-        } catch (SerializationException ex) {
-            throw new UnknownFormatException(ex);
-        }
-    }
-
-    /**
-     * Deserializes a JSON to a list of Profile object.
-     *
-     * @param json The JSON to deserialize.
-     * @return The JSON parsed to a list of Profile instances.
-     * @throws UnknownFormatException Thrown if there was a problem while parsing the JSON.
-     */
-    public List<ProfileV2> deserializeProfileV2List(String json) throws UnknownFormatException {
-        try {
-            return jsonSerializer.decodeFromString(ProfileV2List.Companion.serializer(), json)
-                    .getProfileList()
-                    .getData();
         } catch (SerializationException ex) {
             throw new UnknownFormatException(ex);
         }
@@ -234,79 +203,6 @@ public class SerializerService {
     }
 
     /**
-     * Deserializes a JSON with a list of messages into an ArrayList of message object.
-     *
-     * @param jsonObject    The JSON to deserialize.
-     * @param messageSource the message source, either "user_messages" or "system_messages"
-     * @return The message instances in a list.
-     * @throws UnknownFormatException Thrown if there was a problem while parsing.
-     */
-    public List<Message> deserializeMessageList(JSONObject jsonObject, String messageSource) throws UnknownFormatException {
-        try {
-            JSONObject dataObject = jsonObject.getJSONObject(messageSource);
-            JSONArray messagesArray = dataObject.getJSONArray("data");
-            List<Message> result = new ArrayList<>();
-            for (int i = 0; i < messagesArray.length(); ++i) {
-                JSONObject messageObject = messagesArray.getJSONObject(i);
-                String dateString = messageObject.getString("date_time");
-                Date date = API_DATE_FORMAT.parse(dateString);
-                String messageType = messageObject.getString("type");
-                if ("maintenance".equals(messageType)) {
-                    String startString = messageObject.getString("begin");
-                    Date startDate = API_DATE_FORMAT.parse(startString);
-                    String endString = messageObject.getString("end");
-                    Date endDate = API_DATE_FORMAT.parse(endString);
-                    result.add(new Maintenance(date, startDate, endDate));
-                } else if ("notification".equals(messageType)) {
-                    String content = messageObject.getString("message");
-                    result.add(new Notification(date, content));
-                } else {
-                    Log.w(TAG, "Unknown message type: " + messageType);
-                }
-            }
-            return result;
-        } catch (JSONException | ParseException ex) {
-            throw new UnknownFormatException(ex);
-        }
-    }
-
-    /**
-     * Serializes a list of messages into a JSON format.
-     *
-     * @param messageList   The list of messages to serialize.
-     * @param messageSource the message source, either "user_messages" or "system_messages"
-     * @return The messages as a JSON object.
-     * @throws UnknownFormatException Thrown if there was an error constructing the JSON.
-     */
-    public JSONObject serializeMessageList(List<Message> messageList, String messageSource) throws UnknownFormatException {
-        try {
-            JSONObject result = new JSONObject();
-            JSONObject dataObject = new JSONObject();
-            result.put(messageSource, dataObject);
-            JSONArray messagesArray = new JSONArray();
-            dataObject.put("data", messagesArray);
-            for (Message message : messageList) {
-                JSONObject messageObject = new JSONObject();
-                messageObject.put("date_time", API_DATE_FORMAT.format(message.getDate()));
-                if (message instanceof Maintenance) {
-                    messageObject.put("begin", API_DATE_FORMAT.format(((Maintenance)message).getStart()));
-                    messageObject.put("end", API_DATE_FORMAT.format(((Maintenance)message).getEnd()));
-                    messageObject.put("type", "maintenance");
-                } else if (message instanceof Notification) {
-                    messageObject.put("message", ((Notification)message).getContent());
-                    messageObject.put("type", "notification");
-                } else {
-                    throw new RuntimeException("Unexpected message format!");
-                }
-                messagesArray.put(messageObject);
-            }
-            return result;
-        } catch (JSONException ex) {
-            throw new UnknownFormatException(ex);
-        }
-    }
-
-    /**
      * Serializes a list of saved authorization states.
      *
      * @param savedAuthStateList The list with the saved authorization states.
@@ -332,38 +228,6 @@ public class SerializerService {
     public List<SavedAuthState> deserializeSavedAuthStateList(String json) throws UnknownFormatException {
         try {
             return jsonSerializer.decodeFromString(JsonListWrapper.Companion.serializer(SavedAuthState.Companion
-                    .serializer()), json).getData();
-        } catch (SerializationException ex) {
-            throw new UnknownFormatException(ex);
-        }
-    }
-
-    /**
-     * Serializes a list of saved profiles.
-     *
-     * @param savedProfileList The list of saved profiles.
-     * @return The list as a JSON.
-     * @throws UnknownFormatException Thrown if there was an error while serializing.
-     */
-    public String serializeSavedProfileList(List<SavedProfile> savedProfileList) throws UnknownFormatException {
-        try {
-            return jsonSerializer.encodeToString(JsonListWrapper.Companion.serializer(SavedProfile.Companion
-                    .serializer()), new JsonListWrapper<SavedProfile>(savedProfileList));
-        } catch (SerializationException ex) {
-            throw new UnknownFormatException(ex);
-        }
-    }
-
-    /**
-     * Deserializes a list of saved profiles.
-     *
-     * @param json The JSON to deserialize from.
-     * @return The list of saved profiles as a POJO.
-     * @throws UnknownFormatException Thrown if there was an error while deserializing.
-     */
-    public List<SavedProfile> deserializeSavedProfileList(String json) throws UnknownFormatException {
-        try {
-            return jsonSerializer.decodeFromString(JsonListWrapper.Companion.serializer(SavedProfile.Companion
                     .serializer()), json).getData();
         } catch (SerializationException ex) {
             throw new UnknownFormatException(ex);

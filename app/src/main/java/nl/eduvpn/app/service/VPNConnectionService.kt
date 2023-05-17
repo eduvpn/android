@@ -15,7 +15,6 @@ import nl.eduvpn.app.Constants
 import nl.eduvpn.app.DisconnectVPNBroadcastReceiver
 import nl.eduvpn.app.MainActivity
 import nl.eduvpn.app.R
-import nl.eduvpn.app.entity.DiscoveredAPIV3
 import nl.eduvpn.app.entity.VPNConfig
 import nl.eduvpn.app.utils.FormattingUtils
 import nl.eduvpn.app.utils.Log
@@ -48,9 +47,6 @@ class VPNConnectionService(
         val discoveredAPI = preferencesService.getCurrentDiscoveredAPI()
         if (discoveredAPI == null) {
             Log.e(TAG, "No discovered API available when trying to disconnect.")
-            return
-        }
-        if (discoveredAPI !is DiscoveredAPIV3) {
             return
         }
         val instance = preferencesService.getCurrentInstance()

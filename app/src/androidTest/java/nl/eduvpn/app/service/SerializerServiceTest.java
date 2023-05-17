@@ -44,22 +44,17 @@ import java.util.TimeZone;
 
 import nl.eduvpn.app.entity.AuthorizationType;
 import nl.eduvpn.app.entity.DiscoveredAPI;
-import nl.eduvpn.app.entity.DiscoveredAPIV2;
+import nl.eduvpn.app.entity.DiscoveredAPIV3;
 import nl.eduvpn.app.entity.DiscoveredAPIs;
 import nl.eduvpn.app.entity.Instance;
 import nl.eduvpn.app.entity.KeyPair;
 import nl.eduvpn.app.entity.Organization;
 import nl.eduvpn.app.entity.OrganizationList;
 import nl.eduvpn.app.entity.Profile;
-import nl.eduvpn.app.entity.ProfileV2;
 import nl.eduvpn.app.entity.SavedAuthState;
 import nl.eduvpn.app.entity.SavedKeyPair;
-import nl.eduvpn.app.entity.SavedProfile;
 import nl.eduvpn.app.entity.Settings;
 import nl.eduvpn.app.entity.TranslatableString;
-import nl.eduvpn.app.entity.message.Maintenance;
-import nl.eduvpn.app.entity.message.Message;
-import nl.eduvpn.app.entity.message.Notification;
 
 /**
  * Unit tests for the serializer service.
@@ -92,11 +87,12 @@ public class SerializerServiceTest {
 
     @Test
     public void testProfileSerialization() throws SerializerService.UnknownFormatException {
-        Profile profile = new ProfileV2(new TranslatableString("displayName"), "profileId");
+        Profile profile = new Profile("profileId", new TranslatableString("displayName"), 543628800000L);
         String serializedProfile = _serializerService.serializeProfile(profile);
         Profile deserializedProfile = _serializerService.deserializeProfile(serializedProfile);
         assertEquals(profile.getDisplayName(), deserializedProfile.getDisplayName());
         assertEquals(profile.getProfileId(), deserializedProfile.getProfileId());
+        assertEquals(profile.getExpiry(), deserializedProfile.getExpiry());
     }
 
     @Test
@@ -115,29 +111,16 @@ public class SerializerServiceTest {
 
     @Test
     public void testDiscoveredAPISerialization() throws SerializerService.UnknownFormatException {
-        DiscoveredAPIV2 discoveredAPIV2 = new DiscoveredAPIV2("base_uri", "auth_endpoint", "token_endpoint");
-        DiscoveredAPIs discoveredAPIs = new DiscoveredAPIs(discoveredAPIV2, null);
+        DiscoveredAPIV3 discoveredAPIV3 = new DiscoveredAPIV3("base_uri", "auth_endpoint", "token_endpoint");
+        DiscoveredAPIs discoveredAPIs = new DiscoveredAPIs(discoveredAPIV3);
         String serializedDiscoveredAPIs = _serializerService.serializeDiscoveredAPIs(discoveredAPIs);
-        DiscoveredAPI deserializedDiscoveredAPI = _serializerService.deserializeDiscoveredAPIs(serializedDiscoveredAPIs).getV2();
-        assertEquals(discoveredAPIV2.getAuthorizationEndpoint(), deserializedDiscoveredAPI.getAuthorizationEndpoint());
-        assertEquals(discoveredAPIV2.getApiBaseUri(), deserializedDiscoveredAPI.toDiscoveredAPIs().getV2().getApiBaseUri());
-        assertEquals(discoveredAPIV2.getTokenEndpoint(), deserializedDiscoveredAPI.getTokenEndpoint());
-    }
-
-    @Test
-    public void testMessageListSerialization() throws SerializerService.UnknownFormatException {
-        Calendar utcCalendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
-        Maintenance maintenance = new Maintenance(utcCalendar.getTime(), utcCalendar.getTime(), utcCalendar.getTime());
-        Notification notification = new Notification(utcCalendar.getTime(), "Example notification");
-        List<Message> messageList = Arrays.asList(maintenance, notification);
-        JSONObject serializedList = _serializerService.serializeMessageList(messageList, "system_messages");
-        List<Message> deserializedList = _serializerService.deserializeMessageList(serializedList, "system_messages");
-        assertEquals(messageList.size(), deserializedList.size());
-        assertEquals(_norm(messageList.get(0).getDate()), _norm(deserializedList.get(0).getDate()));
-        assertEquals(_norm(((Maintenance)messageList.get(0)).getStart()), _norm(((Maintenance)deserializedList.get(0)).getStart()));
-        assertEquals(_norm(((Maintenance)messageList.get(0)).getEnd()), _norm(((Maintenance)deserializedList.get(0)).getEnd()));
-        assertEquals(_norm(messageList.get(1).getDate()), _norm(deserializedList.get(1).getDate()));
-        assertEquals(((Notification)messageList.get(1)).getContent(), ((Notification)deserializedList.get(1)).getContent());
+        DiscoveredAPI deserializedDiscoveredAPI = _serializerService.deserializeDiscoveredAPIs(serializedDiscoveredAPIs)
+                .getV3();
+        assertEquals(discoveredAPIV3.getAuthorizationEndpoint(), deserializedDiscoveredAPI.getAuthorizationEndpoint());
+        assertEquals(discoveredAPIV3.getApiEndpoint(), deserializedDiscoveredAPI.toDiscoveredAPIs()
+                .getV3()
+                .getApiEndpoint());
+        assertEquals(discoveredAPIV3.getTokenEndpoint(), deserializedDiscoveredAPI.getTokenEndpoint());
     }
 
     @SuppressWarnings("ConstantConditions")
@@ -167,38 +150,6 @@ public class SerializerServiceTest {
                     .getAuthorizationServiceConfiguration().tokenEndpoint, deserializedList.get(i)
                     .getAuthState()
                     .getAuthorizationServiceConfiguration().tokenEndpoint);
-        }
-    }
-
-    @Test
-    public void testSavedProfileListSerialization() throws SerializerService.UnknownFormatException {
-        Instance instance1 = new Instance("baseUri1", new TranslatableString("displayName1"), new TranslatableString("konijn"), "logoUri1", AuthorizationType.Distributed, "SV", true, "https://example.com/template", Collections.singletonList("mailto:support@example.com"));
-        Instance instance2 = new Instance("baseUri2", new TranslatableString("displayName2"), new TranslatableString("konijn"), "logoUri2", AuthorizationType.Local, "CH", true, null, new ArrayList<>());
-        ProfileV2 profile1 = new ProfileV2(new TranslatableString("displayName1"), "profileId1");
-        ProfileV2 profile2 = new ProfileV2(new TranslatableString("displayName2"), "profileId2");
-        SavedProfile savedProfile1 = new SavedProfile(instance1, profile1, "profileUUID1");
-        SavedProfile savedProfile2 = new SavedProfile(instance2, profile2, "profileUUID2");
-        List<SavedProfile> list = Arrays.asList(savedProfile1, savedProfile2);
-        String serializedList = _serializerService.serializeSavedProfileList(list);
-        List<SavedProfile> deserializedList = _serializerService.deserializeSavedProfileList(serializedList);
-        assertEquals(list.size(), deserializedList.size());
-        for (int i = 0; i < list.size(); ++i) {
-            assertEquals(list.get(i).getInstance().getBaseURI(), deserializedList.get(i)
-                    .getInstance()
-                    .getBaseURI());
-            assertEquals(list.get(i).getInstance().getDisplayName(), deserializedList.get(i)
-                    .getInstance()
-                    .getDisplayName());
-            assertEquals(list.get(i).getInstance().getLogoUri(), deserializedList.get(i)
-                    .getInstance()
-                    .getLogoUri());
-            assertEquals(list.get(i).getInstance().isCustom(), deserializedList.get(i).getInstance().isCustom());
-            assertEquals(list.get(i).getInstance().getAuthorizationType(), deserializedList.get(i).getInstance().getAuthorizationType());
-            assertEquals(list.get(i).getInstance().getAuthenticationUrlTemplate(), deserializedList.get(i).getInstance().getAuthenticationUrlTemplate());
-
-            assertEquals(list.get(i).getProfile().getDisplayName(), deserializedList.get(i).getProfile().getDisplayName());
-            assertEquals(list.get(i).getProfile().getProfileId(), deserializedList.get(i).getProfile().getProfileId());
-            assertEquals(list.get(i).getProfileUUID(), deserializedList.get(i).getProfileUUID());
         }
     }
 
@@ -269,9 +220,9 @@ public class SerializerServiceTest {
 
     @Test
     public void testProfileListSerialization() throws SerializerService.UnknownFormatException {
-        Profile profile1 = new ProfileV2(new TranslatableString("display-name1"), "profile-id1");
-        Profile profile2 = new ProfileV2(new TranslatableString("display-name2"), "profile-id2");
-        Profile profile3 = new ProfileV2(new TranslatableString("display-name3"), "profile-id3");
+        Profile profile1 = new Profile("profile-id1", new TranslatableString("display-name1"), 2277227722772277L);
+        Profile profile2 = new Profile("profile-id2", new TranslatableString("display-name2"), System.currentTimeMillis());
+        Profile profile3 = new Profile("profile-id3", new TranslatableString("display-name3"), null);
         List<Profile> profiles = Arrays.asList(profile1, profile2, profile3);
         String serializedProfiles = _serializerService.serializeProfileList(profiles);
         List<Profile> deserializedProfiles = _serializerService.deserializeProfileList(serializedProfiles);
@@ -280,6 +231,7 @@ public class SerializerServiceTest {
                     .getDisplayName());
             assertEquals(profiles.get(i).getProfileId(), deserializedProfiles.get(i)
                     .getProfileId());
+            assertEquals(profiles.get(i).getExpiry(), deserializedProfiles.get(i).getExpiry());
         }
     }
 
