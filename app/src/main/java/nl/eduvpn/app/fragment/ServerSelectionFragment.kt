@@ -125,6 +125,7 @@ class ServerSelectionFragment : BaseFragment<FragmentServerSelectionBinding>() {
         viewModel.historyService.observe(viewLifecycleOwner) {
             viewModel.refresh()
         }
+        viewModel.refresh()
     }
 
     private fun openAddServerFragment(openOnTop: Boolean) {

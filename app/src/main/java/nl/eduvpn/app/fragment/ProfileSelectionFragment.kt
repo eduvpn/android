@@ -37,7 +37,6 @@ import nl.eduvpn.app.utils.ErrorDialog
 import nl.eduvpn.app.utils.ItemClickSupport
 import nl.eduvpn.app.viewmodel.BaseConnectionViewModel
 import nl.eduvpn.app.viewmodel.ProfileSelectionViewModel
-import java.util.*
 
 /**
  * Fragment which is displayed when the app start.
@@ -57,13 +56,16 @@ class ProfileSelectionFragment : BaseFragment<FragmentProfileSelectionBinding>()
 
         // Basic setup of the lists
         binding.profileList.setHasFixedSize(true)
-        binding.profileList.layoutManager = LinearLayoutManager(view.context, LinearLayoutManager.VERTICAL, false)
+        binding.profileList.layoutManager =
+            LinearLayoutManager(view.context, LinearLayoutManager.VERTICAL, false)
 
         // Add the adapters
         val profileAdapter = ProfileAdapter(viewModel.getProfileInstance())
         binding.profileList.adapter = profileAdapter
 
-        val profiles: ArrayList<Profile> = arguments?.getParcelableArrayList(KEY_PROFILES)!!
+        //todo: fix deprecation when new compat library released https://issuetracker.google.com/issues/242048899
+        @Suppress("DEPRECATION") val profiles: ArrayList<Profile> =
+            arguments?.getParcelableArrayList(KEY_PROFILES)!!
 
         profileAdapter.submitList(profiles)
 

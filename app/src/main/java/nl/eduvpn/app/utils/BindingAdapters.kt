@@ -72,15 +72,15 @@ fun View.setAnimatedVisibility(newVisibility: Int) {
     animator.addListener(object : AnimatorListenerAdapter() {
         private var isCanceled: Boolean = false
 
-        override fun onAnimationStart(anim: Animator?) {
+        override fun onAnimationStart(anim: Animator) {
             setTag(R.id.final_visibility, newVisibility)
         }
 
-        override fun onAnimationCancel(anim: Animator?) {
+        override fun onAnimationCancel(anim: Animator) {
             isCanceled = true
         }
 
-        override fun onAnimationEnd(anim: Animator?) {
+        override fun onAnimationEnd(anim: Animator) {
             setTag(R.id.final_visibility, null)
             if (!isCanceled) {
                 alpha = 1f

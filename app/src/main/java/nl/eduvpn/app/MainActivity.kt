@@ -253,20 +253,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         }
     }
 
-    override fun onBackPressed() {
-        if (_backNavigationEnabled) {
-            val currentFragment = supportFragmentManager.findFragmentById(R.id.content_frame)
-            if (currentFragment is ConnectionStatusFragment) {
-                currentFragment.returnToHome()
-                return
-            }
-        }
-        super.onBackPressed()
-    }
-
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         if (item.itemId == android.R.id.home) {
-            onBackPressed()
+            onBackPressedDispatcher.onBackPressed()
             return true
         }
         return super.onOptionsItemSelected(item)
