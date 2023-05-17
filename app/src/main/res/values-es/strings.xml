@@ -73,7 +73,6 @@
     <string name="settings_custom_tabs_opt_out_title">Usar Pestañas Personalizadas</string>
     <string name="settings_save">Guardar</string>
     <string name="loading_available_profiles">Cargando perfiles disponibles…</string>
-    <string name="settings_saved">Cambios guardados en la configuración.</string>
     <string name="go_back">Volver</string>
     <string name="error_while_connecting">Ocurrió un error inesperado al conectarse al proveedor de VPN: %s</string>
     <string name="error_dialog_title_unable_to_connect">No es posible conectar</string>
