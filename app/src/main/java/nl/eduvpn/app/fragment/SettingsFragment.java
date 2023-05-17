@@ -20,7 +20,6 @@ package nl.eduvpn.app.fragment;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -52,8 +51,6 @@ public class SettingsFragment extends BaseFragment<FragmentSettingsBinding> {
     @Inject
     protected HistoryService _historyService;
 
-    private Settings _originalSettings;
-
     @Override
     protected int getLayout() {
         return R.layout.fragment_settings;
@@ -64,14 +61,13 @@ public class SettingsFragment extends BaseFragment<FragmentSettingsBinding> {
         super.onViewCreated(view, savedInstanceState);
         EduVPNApplication.get(view.getContext()).component().inject(this);
 
-        _originalSettings = _preferencesService.getAppSettings();
+        Settings _originalSettings = _preferencesService.getAppSettings();
 
         binding.useCustomTabsSwitch.setChecked(_originalSettings.useCustomTabs());
         binding.forceTcpSwitch.setChecked(_originalSettings.forceTcp());
 
-        binding.useCustomTabsSwitch.setOnClickListener(v -> onSettingChanged());
-        binding.forceTcpSwitch.setOnClickListener(v -> onSettingChanged());
-        binding.saveButton.setOnClickListener(v -> onSaveButtonClicked());
+        binding.useCustomTabsSwitch.setOnClickListener(v -> saveSettings());
+        binding.forceTcpSwitch.setOnClickListener(v -> saveSettings());
         binding.licensesButton.setOnClickListener(v -> startActivity(new Intent(requireContext(), LicenseActivity.class)));
         binding.resetDataButton.setOnClickListener(v -> onResetDataClicked());
         binding.viewLogButton.setOnClickListener(v -> {
@@ -111,18 +107,9 @@ public class SettingsFragment extends BaseFragment<FragmentSettingsBinding> {
         }
     }
 
-    public void onSettingChanged() {
-        boolean useCustomTabs = binding.useCustomTabsSwitch.isChecked();
-        boolean forceTcp = binding.forceTcpSwitch.isChecked();
-        boolean settingsChanged = useCustomTabs != _originalSettings.useCustomTabs() || forceTcp != _originalSettings.forceTcp();
-        binding.saveButton.setEnabled(settingsChanged);
-    }
-
-    protected void onSaveButtonClicked() {
+    protected void saveSettings() {
         boolean useCustomTabs = binding.useCustomTabsSwitch.isChecked();
         boolean forceTcp = binding.forceTcpSwitch.isChecked();
         _preferencesService.storeAppSettings(new Settings(useCustomTabs, forceTcp));
-        Toast.makeText(getContext(), R.string.settings_saved, Toast.LENGTH_LONG).show();
-        requireActivity().finish();
     }
 }

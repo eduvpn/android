@@ -73,7 +73,6 @@
     <string name="settings_custom_tabs_opt_out_title">Use Custom Tabs</string>
     <string name="settings_save">Save</string>
     <string name="loading_available_profiles">Loading available profiles…</string>
-    <string name="settings_saved">Saved changes to the settings.</string>
     <string name="go_back">Back</string>
     <string name="error_while_connecting">An unexpected error occurred while connecting to the VPN provider: %s</string>
     <string name="error_dialog_title_unable_to_connect">Unable to connect</string>
