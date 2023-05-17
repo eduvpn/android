@@ -72,7 +72,6 @@
     <string name="settings_custom_tabs_opt_out_title">Custom-Tabs verwenden</string>
     <string name="settings_save">Speichern</string>
     <string name="loading_available_profiles">Verfügbare Profile laden…</string>
-    <string name="settings_saved">Änderungen in Einstellungen gespeichert.</string>
     <string name="go_back">Zurück</string>
     <string name="error_while_connecting">Bei der Verbindung mit dem VPN-Anbieter ist ein unerwarteter Fehler aufgetreten: %s</string>
     <string name="error_dialog_title_unable_to_connect">Verbindung nicht möglich</string>
