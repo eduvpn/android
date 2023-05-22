@@ -37,15 +37,12 @@ package nl.eduvpn.app.adapter.viewholder
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewbinding.ViewBinding
-import nl.eduvpn.app.Constants
 import nl.eduvpn.app.adapter.OrganizationAdapter
 import nl.eduvpn.app.databinding.ListItemHeaderBinding
 import nl.eduvpn.app.databinding.ListItemServerBinding
 import nl.eduvpn.app.entity.Instance
 import nl.eduvpn.app.entity.Organization
 import nl.eduvpn.app.utils.FormattingUtils
-import java.text.Format
-import java.util.Locale
 
 /**
  * Viewholder for the organization adapter items.
@@ -69,11 +66,7 @@ class OrganizationHeaderViewHolder(private val binding: ListItemHeaderBinding) :
 
 class OrganizationServerViewHolder(private val binding: ListItemServerBinding) : OrganizationViewHolder(binding) {
     fun bind(instance: Instance) {
-        if (instance.countryCode != null) {
-            binding.displayName.text = Locale("en", instance.countryCode).getDisplayCountry(Constants.ENGLISH_LOCALE)
-        } else {
-            binding.displayName.text = FormattingUtils.formatDisplayName(instance)
-        }
+        binding.displayName.text = FormattingUtils.formatDisplayName(instance)
     }
 
     fun bind(organization: Organization) {
