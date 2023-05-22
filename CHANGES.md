@@ -1,5 +1,15 @@
 # Changelog
 
+## 3.1.0 (2023-05-22)
+- Remove API v2 support ([#382](https://github.com/eduvpn/android/pull/383))
+- German translation ([#386](https://github.com/eduvpn/android/pull/386))
+- Support Minisign prehashed signature format ([#361](https://github.com/eduvpn/android/pull/361))
+- Fix no keyword search for institutes ([#384](https://github.com/eduvpn/android/pull/384))
+- Fix sorting Institute Access and Secure Internet ([#387](https://github.com/eduvpn/android/pull/387))
+- Remove save button ([#383](https://github.com/eduvpn/android/pull/383))
+- Fix "null" in notification when using secure internet ([#390](https://github.com/eduvpn/android/pull/390))
+- Update OkHttp to 4.10.0 ([#390](https://github.com/eduvpn/android/pull/391))
+
 ## 3.0.1 (2022-11-04)
 - update ics-openvpn
 - Remove secure-preferences ([#117](https://github.com/eduvpn/android/issues/117))
