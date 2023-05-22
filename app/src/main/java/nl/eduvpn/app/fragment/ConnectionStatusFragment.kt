@@ -22,6 +22,7 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.view.View
+import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
@@ -204,8 +205,17 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
                 }
             }
         }
+        val backPressedCallback =
+            object : OnBackPressedCallback(viewModel.isInDisconnectMode.value ?: false) {
+                override fun handleOnBackPressed() {
+                    returnToHome()
+                }
+            }
+        (activity as? MainActivity)?.onBackPressedDispatcher
+            ?.addCallback(viewLifecycleOwner, backPressedCallback)
         viewModel.isInDisconnectMode.observe(viewLifecycleOwner) { isInDisconnectMode ->
             (activity as? MainActivity)?.setBackNavigationEnabled(isInDisconnectMode)
+            backPressedCallback.isEnabled = isInDisconnectMode
         }
         var updateCertExpiryObserver: Observer<Unit>? = null
         updateCertExpiryObserver = Observer {
