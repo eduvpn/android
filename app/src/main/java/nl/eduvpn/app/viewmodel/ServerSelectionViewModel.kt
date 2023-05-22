@@ -27,11 +27,18 @@ import nl.eduvpn.app.adapter.OrganizationAdapter
 import nl.eduvpn.app.entity.AuthorizationType
 import nl.eduvpn.app.entity.Instance
 import nl.eduvpn.app.entity.ServerList
-import nl.eduvpn.app.service.*
+import nl.eduvpn.app.service.APIService
+import nl.eduvpn.app.service.ConnectionService
+import nl.eduvpn.app.service.EduVPNOpenVPNService
+import nl.eduvpn.app.service.HistoryService
+import nl.eduvpn.app.service.OrganizationService
+import nl.eduvpn.app.service.PreferencesService
+import nl.eduvpn.app.service.SerializerService
+import nl.eduvpn.app.service.VPNConnectionService
+import nl.eduvpn.app.utils.Listener
 import nl.eduvpn.app.utils.Log
 import nl.eduvpn.app.utils.getCountryText
 import nl.eduvpn.app.utils.runCatchingCoroutine
-import java.util.*
 import javax.inject.Inject
 
 class ServerSelectionViewModel @Inject constructor(
@@ -52,7 +59,7 @@ class ServerSelectionViewModel @Inject constructor(
     connectionService,
     eduVpnOpenVpnService,
     vpnConnectionService,
-), Observer {
+), Listener {
 
     val adapterItems = MutableLiveData<List<OrganizationAdapter.OrganizationAdapterItem>>()
 
@@ -62,7 +69,7 @@ class ServerSelectionViewModel @Inject constructor(
     private val serverListCache = MutableLiveData<Pair<Long, ServerList>>()
 
     init {
-        historyService.addObserver(this)
+        historyService.addListener(this)
         preferencesService.getServerList()?.let { serverList ->
             serverListCache.value = Pair(System.currentTimeMillis(), serverList)
         }
@@ -70,7 +77,7 @@ class ServerSelectionViewModel @Inject constructor(
 
     override fun onCleared() {
         super.onCleared()
-        historyService.deleteObserver(this)
+        historyService.removeListener(this)
     }
 
     override fun onResume() {
@@ -143,7 +150,7 @@ class ServerSelectionViewModel @Inject constructor(
         connectionState.value = ConnectionState.Ready
     }
 
-    override fun update(o: Observable?, arg: Any?) {
+    override fun update(o: Any, arg: Any?) {
         if (o is HistoryService) {
             refresh()
         }

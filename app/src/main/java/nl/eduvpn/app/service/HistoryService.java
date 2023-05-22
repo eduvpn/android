@@ -29,7 +29,6 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
-import java.util.Observable;
 
 import kotlin.Pair;
 import nl.eduvpn.app.entity.AuthorizationType;
@@ -37,6 +36,7 @@ import nl.eduvpn.app.entity.Instance;
 import nl.eduvpn.app.entity.Organization;
 import nl.eduvpn.app.entity.SavedAuthState;
 import nl.eduvpn.app.entity.SavedKeyPair;
+import nl.eduvpn.app.utils.Listener;
 import nl.eduvpn.app.utils.Log;
 
 /**
@@ -44,7 +44,7 @@ import nl.eduvpn.app.utils.Log;
  * This allows us to skip some steps, which will make the user experience more fluid.
  * Created by Daniel Zolnai on 2016-10-20.
  */
-public class HistoryService extends Observable {
+public class HistoryService {
     private static final String TAG = HistoryService.class.getName();
 
     private List<SavedAuthState> _savedAuthStateList;
@@ -54,9 +54,7 @@ public class HistoryService extends Observable {
 
     private final PreferencesService _preferencesService;
 
-    public static final Integer NOTIFICATION_TOKENS_CHANGED = 1;
-    public static final Integer NOTIFICATION_PROFILES_CHANGED = 2;
-    public static final Integer NOTIFICATION_SAVED_ORGANIZATION_CHANGED = 3;
+    private List<Listener> _listeners = new ArrayList<>();
 
     /**
      * Constructor.
@@ -91,6 +89,20 @@ public class HistoryService extends Observable {
     private void _save() {
         _preferencesService.storeSavedAuthStateList(_savedAuthStateList);
         _preferencesService.storeSavedOrganization(_savedOrganization);
+    }
+
+    public void addListener(Listener listener) {
+        if (!_listeners.contains(listener)) {
+            _listeners.add(listener);
+        }
+    }
+
+    public void removeListener(Listener listener) {
+        _listeners.remove(listener);
+    }
+
+    private void notifyListeners() {
+        _listeners.forEach(l -> l.update(this, null));
     }
 
     /**
@@ -140,9 +152,7 @@ public class HistoryService extends Observable {
             _savedAuthStateList.add(new SavedAuthState(existingSharedInstance, authState, authenticationDate));
         }
         _save();
-        setChanged();
-        notifyObservers(NOTIFICATION_TOKENS_CHANGED);
-        clearChanged();
+        notifyListeners();
     }
 
     /**
@@ -228,9 +238,7 @@ public class HistoryService extends Observable {
     public void storeSavedOrganization(@NonNull Organization organization) {
         _savedOrganization = organization;
         _preferencesService.storeSavedOrganization(organization);
-        setChanged();
-        notifyObservers(NOTIFICATION_SAVED_ORGANIZATION_CHANGED);
-        clearChanged();
+        notifyListeners();
     }
 
     /**
@@ -342,6 +350,7 @@ public class HistoryService extends Observable {
             removeSavedKeyPairs(instance);
             _removeAuthorizations(instance);
         }
+        notifyListeners();
     }
 
     /***
