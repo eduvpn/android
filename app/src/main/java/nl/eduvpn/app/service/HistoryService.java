@@ -19,7 +19,6 @@ package nl.eduvpn.app.service;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.lifecycle.LiveData;
 
 import net.openid.appauth.AuthState;
 import net.openid.appauth.AuthorizationServiceConfiguration;
@@ -30,6 +29,7 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Observable;
 
 import kotlin.Pair;
 import nl.eduvpn.app.entity.AuthorizationType;
@@ -44,7 +44,7 @@ import nl.eduvpn.app.utils.Log;
  * This allows us to skip some steps, which will make the user experience more fluid.
  * Created by Daniel Zolnai on 2016-10-20.
  */
-public class HistoryService extends LiveData<Void> {
+public class HistoryService extends Observable {
     private static final String TAG = HistoryService.class.getName();
 
     private List<SavedAuthState> _savedAuthStateList;
@@ -53,6 +53,10 @@ public class HistoryService extends LiveData<Void> {
     private Organization _savedOrganization;
 
     private final PreferencesService _preferencesService;
+
+    public static final Integer NOTIFICATION_TOKENS_CHANGED = 1;
+    public static final Integer NOTIFICATION_PROFILES_CHANGED = 2;
+    public static final Integer NOTIFICATION_SAVED_ORGANIZATION_CHANGED = 3;
 
     /**
      * Constructor.
@@ -136,7 +140,9 @@ public class HistoryService extends LiveData<Void> {
             _savedAuthStateList.add(new SavedAuthState(existingSharedInstance, authState, authenticationDate));
         }
         _save();
-        postValue(null);
+        setChanged();
+        notifyObservers(NOTIFICATION_TOKENS_CHANGED);
+        clearChanged();
     }
 
     /**
@@ -222,7 +228,9 @@ public class HistoryService extends LiveData<Void> {
     public void storeSavedOrganization(@NonNull Organization organization) {
         _savedOrganization = organization;
         _preferencesService.storeSavedOrganization(organization);
-        postValue(null);
+        setChanged();
+        notifyObservers(NOTIFICATION_SAVED_ORGANIZATION_CHANGED);
+        clearChanged();
     }
 
     /**
@@ -334,7 +342,6 @@ public class HistoryService extends LiveData<Void> {
             removeSavedKeyPairs(instance);
             _removeAuthorizations(instance);
         }
-        postValue(null);
     }
 
     /***
