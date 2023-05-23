@@ -1,0 +1,4 @@
+* Remove API v2 support
+* Added German translation
+* Remove save button
+* Bug fixes
