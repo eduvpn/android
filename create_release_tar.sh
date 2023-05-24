@@ -1,7 +1,7 @@
 #!/bin/sh
 
 GIT_REPO=https://github.com/eduvpn/android
-GIT_TAG=3.1.0
+GIT_TAG=3.1.1
 #GIT_TAG=master
 
 PROJECT_DIR=${HOME}/Projects

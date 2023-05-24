@@ -1,0 +1,1 @@
+* Only sort organizations when retrieving lists, not on every keypress

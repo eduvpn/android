@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.1.1 (2023-05-24)
+- Only sort when retrieving lists, not on every keypress 
+  ([#394](https://github.com/eduvpn/android/pull/394))
+
 ## 3.1.0 (2023-05-22)
 - Remove API v2 support ([#382](https://github.com/eduvpn/android/pull/383))
 - German translation ([#386](https://github.com/eduvpn/android/pull/386))
