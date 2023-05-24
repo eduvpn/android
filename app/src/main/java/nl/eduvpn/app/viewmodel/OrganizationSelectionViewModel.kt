@@ -28,12 +28,24 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 import nl.eduvpn.app.R
 import nl.eduvpn.app.adapter.OrganizationAdapter
-import nl.eduvpn.app.entity.*
-import nl.eduvpn.app.service.*
+import nl.eduvpn.app.entity.AuthorizationType
+import nl.eduvpn.app.entity.Instance
+import nl.eduvpn.app.entity.Organization
+import nl.eduvpn.app.entity.OrganizationList
+import nl.eduvpn.app.entity.ServerList
+import nl.eduvpn.app.entity.TranslatableString
+import nl.eduvpn.app.service.APIService
+import nl.eduvpn.app.service.ConnectionService
+import nl.eduvpn.app.service.EduVPNOpenVPNService
+import nl.eduvpn.app.service.HistoryService
+import nl.eduvpn.app.service.OrganizationService
+import nl.eduvpn.app.service.PreferencesService
+import nl.eduvpn.app.service.SerializerService
+import nl.eduvpn.app.service.VPNConnectionService
 import nl.eduvpn.app.utils.Log
 import nl.eduvpn.app.utils.runCatchingCoroutine
 import java.text.Collator
-import java.util.*
+import java.util.Locale
 import javax.inject.Inject
 
 class OrganizationSelectionViewModel @Inject constructor(
@@ -60,7 +72,10 @@ class OrganizationSelectionViewModel @Inject constructor(
     val state = MutableLiveData<ConnectionState>().also { it.value = ConnectionState.Ready }
 
     private val organizations = MutableLiveData<List<Organization>>()
-    private val servers = MutableLiveData<List<Instance>>()
+    private val instituteAccessServers =
+        MutableLiveData<List<OrganizationAdapter.OrganizationAdapterItem.InstituteAccess>>()
+    private val secureInternetServers =
+        MutableLiveData<List<Instance>>()
 
     val artworkVisible = MutableLiveData(true)
 
@@ -103,7 +118,8 @@ class OrganizationSelectionViewModel @Inject constructor(
 
                 if (serverList.version > 0 && lastKnownServerListVersion != null && lastKnownServerListVersion > serverList.version) {
                     organizations.value = emptyList()
-                    servers.value = emptyList()
+                    instituteAccessServers.value = emptyList()
+                    secureInternetServers.value = emptyList()
                     state.value = ConnectionState.Ready
                     parentAction.value = ParentAction.DisplayError(
                         R.string.error_server_list_version_check_title,
@@ -111,7 +127,8 @@ class OrganizationSelectionViewModel @Inject constructor(
                     )
                 } else if (organizationList.version > 0 && lastKnownOrganizationVersion != null && lastKnownOrganizationVersion > organizationList.version) {
                     organizations.value = emptyList()
-                    servers.value = serverList.serverList
+                    instituteAccessServers.value = emptyList()
+                    secureInternetServers.value = emptyList()
                     state.value = ConnectionState.Ready
                     parentAction.value = ParentAction.DisplayError(
                         R.string.error_organization_list_version_check_title,
@@ -126,8 +143,29 @@ class OrganizationSelectionViewModel @Inject constructor(
                     preferencesService.setLastKnownServerListVersion(serverList.version)
                 }
 
-                organizations.value = organizationList.organizationList
-                servers.value = serverList.serverList
+                val sortedOrganizations = organizationList.organizationList.sortedWith(
+                    Comparator.comparing(
+                        { i -> i.displayName.bestTranslation },
+                        Collator.getInstance(Locale.getDefault())
+                    )
+                )
+
+                val sortedInstituteAccessServers = serverList.serverList.filter {
+                    it.authorizationType == AuthorizationType.Local
+                }.sortedWith(
+                    Comparator.comparing(
+                        { i -> i.displayName.bestTranslation },
+                        Collator.getInstance(Locale.getDefault())
+                    )
+                ).map { OrganizationAdapter.OrganizationAdapterItem.InstituteAccess(it) }
+
+                val secureInternetServerList = serverList.serverList.filter {
+                    it.authorizationType == AuthorizationType.Distributed
+                }
+
+                organizations.value = sortedOrganizations
+                instituteAccessServers.value = sortedInstituteAccessServers
+                secureInternetServers.value = secureInternetServerList
                 state.value = ConnectionState.Ready
             }
         }
@@ -146,64 +184,56 @@ class OrganizationSelectionViewModel @Inject constructor(
     }
 
     val adapterItems = Transformations.switchMap(organizations) { organizations ->
-        Transformations.switchMap(servers) { servers ->
-            Transformations.map(searchText) { searchText ->
-                val resultList = mutableListOf<OrganizationAdapter.OrganizationAdapterItem>()
-                // Search contains at least two dots
-                if (searchText.count { ".".contains(it) } > 1) {
-                    resultList += OrganizationAdapter.OrganizationAdapterItem.Header(
-                        R.drawable.ic_server,
-                        R.string.header_connect_your_own_server
-                    )
-                    resultList += OrganizationAdapter.OrganizationAdapterItem.AddServer(searchText)
-                    return@map resultList
-                }
-                val instituteAccessServers = servers.filter {
-                    it.authorizationType == AuthorizationType.Local
-                            && matchesServer(searchText, it.displayName, it.keywords)
-                }.sortedWith(
-                    Comparator.comparing(
-                        { i -> i.displayName.bestTranslation },
-                        Collator.getInstance(Locale.getDefault())
-                    )
-                ).map { OrganizationAdapter.OrganizationAdapterItem.InstituteAccess(it) }
-                val secureInternetServers = organizations.filter {
-                    matchesServer(searchText, it.displayName, it.keywordList)
-                }.sortedWith(
-                    Comparator.comparing(
-                        { i -> i.displayName.bestTranslation },
-                        Collator.getInstance(Locale.getDefault())
-                    )
-                ).mapNotNull { organization ->
-                    val matchingServer = servers
-                        .firstOrNull {
-                            it.authorizationType == AuthorizationType.Distributed &&
-                                    it.baseURI == organization.secureInternetHome
-                        }
-                    if (matchingServer != null) {
-                        OrganizationAdapter.OrganizationAdapterItem.SecureInternet(
-                            matchingServer,
-                            organization
+        Transformations.switchMap(instituteAccessServers) { instituteAccessServers ->
+            Transformations.switchMap(secureInternetServers) { secureInternetServers ->
+                Transformations.map(searchText) { searchText ->
+                    val resultList = mutableListOf<OrganizationAdapter.OrganizationAdapterItem>()
+                    // Search contains at least two dots
+                    if (searchText.count { ".".contains(it) } > 1) {
+                        resultList += OrganizationAdapter.OrganizationAdapterItem.Header(
+                            R.drawable.ic_server,
+                            R.string.header_connect_your_own_server
                         )
-                    } else {
-                        null
+                        resultList += OrganizationAdapter.OrganizationAdapterItem.AddServer(
+                            searchText
+                        )
+                        return@map resultList
                     }
+                    val instituteAccessServersFiltered = instituteAccessServers.filter {
+                        matchesServer(searchText, it.server.displayName, it.server.keywords)
+                    }
+                    val secureInternetServersFiltered = organizations.filter {
+                        matchesServer(searchText, it.displayName, it.keywordList)
+                    }.mapNotNull { organization ->
+                        val matchingServer = secureInternetServers
+                            .firstOrNull {
+                                it.baseURI == organization.secureInternetHome
+                            }
+                        if (matchingServer != null) {
+                            OrganizationAdapter.OrganizationAdapterItem.SecureInternet(
+                                matchingServer,
+                                organization
+                            )
+                        } else {
+                            null
+                        }
+                    }
+                    if (instituteAccessServersFiltered.isNotEmpty()) {
+                        resultList += OrganizationAdapter.OrganizationAdapterItem.Header(
+                            R.drawable.ic_institute,
+                            R.string.header_institute_access
+                        )
+                        resultList += instituteAccessServersFiltered
+                    }
+                    if (secureInternetServersFiltered.isNotEmpty()) {
+                        resultList += OrganizationAdapter.OrganizationAdapterItem.Header(
+                            R.drawable.ic_secure_internet,
+                            R.string.header_secure_internet
+                        )
+                        resultList += secureInternetServersFiltered
+                    }
+                    resultList
                 }
-                if (instituteAccessServers.isNotEmpty()) {
-                    resultList += OrganizationAdapter.OrganizationAdapterItem.Header(
-                        R.drawable.ic_institute,
-                        R.string.header_institute_access
-                    )
-                    resultList += instituteAccessServers
-                }
-                if (secureInternetServers.isNotEmpty()) {
-                    resultList += OrganizationAdapter.OrganizationAdapterItem.Header(
-                        R.drawable.ic_secure_internet,
-                        R.string.header_secure_internet
-                    )
-                    resultList += secureInternetServers
-                }
-                resultList
             }
         }
     }
