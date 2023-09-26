@@ -36,6 +36,6 @@ class BackendService(private val context: Context) {
         }
 
         // TODO do we need statecb?
-        return goBackend.register(BuildConfig.OAUTH_CLIENT_ID, version, configFilesDir, 1)
+        return goBackend.register(BuildConfig.OAUTH_CLIENT_ID, version, configFilesDir, BuildConfig.DEBUG)
     }
 }

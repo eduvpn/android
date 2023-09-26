@@ -22,7 +22,7 @@ void throwJavaException(JNIEnv *env, const char *msg)
 }
 
 extern "C" JNIEXPORT jstring JNICALL
-Java_org_eduvpn_common_GoBackend_register(JNIEnv *env, jobject /* this */, jstring name, jstring version, jstring configDirectory, jint debug) {
+Java_org_eduvpn_common_GoBackend_register(JNIEnv *env, jobject /* this */, jstring name, jstring version, jstring configDirectory, jboolean debug) {
         const char *name_str = env->GetStringUTFChars(name, nullptr);
         const char *version_str = env->GetStringUTFChars(version, nullptr);
 

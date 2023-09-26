@@ -12,6 +12,6 @@ public class GoBackend {
             String name,
             String version,
             @Nullable String configDirectory,
-            int debug
+            boolean debug
     );
 }
