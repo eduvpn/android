@@ -150,6 +150,8 @@ dependencies {
     implementation 'com.wireguard.android:tunnel:1.0.20211029'
     // OAuth2 client
     implementation project(path: ':appauth')
+    // eduVPN common library
+    implementation project(path: ':common')
     // Please try to stay in sync with the versions used in the ics-openvpn module
     implementation "androidx.appcompat:appcompat:1.6.1"
     implementation "androidx.activity:activity-ktx:1.1.0"

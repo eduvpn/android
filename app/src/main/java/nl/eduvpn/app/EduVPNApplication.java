@@ -20,6 +20,9 @@ package nl.eduvpn.app;
 import android.content.Context;
 import android.os.StrictMode;
 
+import org.eduvpn.common.GoBackend;
+import org.eduvpn.common.StateCB;
+
 import de.blinkt.openvpn.core.ICSOpenVPNApplication;
 import nl.eduvpn.app.inject.EduVPNComponent;
 
@@ -42,6 +45,9 @@ public class EduVPNApplication extends ICSOpenVPNApplication {
         // For now, the best solution seems to be disabling strict mode
         StrictMode.VmPolicy policy = new StrictMode.VmPolicy.Builder().build();
         StrictMode.setVmPolicy(policy);
+
+        String nativeResult = new GoBackend().register("name", "version", "/", new StateCB(0, 0, null), 1);
+        System.out.println("Result from native code: " + nativeResult);
     }
 
     public EduVPNComponent component() {

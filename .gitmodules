@@ -4,3 +4,6 @@
 [submodule "appauth"]
 	path = appauth
 	url = https://github.com/eduvpn/AppAuth-Android.git
+[submodule "common/libs/eduvpn-common"]
+	path = common/libs/eduvpn-common
+	url = https://github.com/eduvpn/eduvpn-common
