@@ -38,6 +38,7 @@ import nl.eduvpn.app.fragment.ConnectionStatusFragment
 import nl.eduvpn.app.fragment.OrganizationSelectionFragment
 import nl.eduvpn.app.fragment.ServerSelectionFragment
 import nl.eduvpn.app.fragment.ServerSelectionFragment.Companion.newInstance
+import nl.eduvpn.app.service.BackendService
 import nl.eduvpn.app.service.ConnectionService
 import nl.eduvpn.app.service.EduVPNOpenVPNService
 import nl.eduvpn.app.service.HistoryService
@@ -66,6 +67,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
 
     @Inject
     protected lateinit var connectionService: ConnectionService
+
+    @Inject
+    protected lateinit var backendService: BackendService
 
     private var _backNavigationEnabled = false
     private var _parseIntentOnStart = true
@@ -99,6 +103,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         EduVPNApplication.get(this).component().inject(this)
         setSupportActionBar(binding.toolbar.toolbar)
         eduVPNOpenVPNService.onCreate(this)
+        println("YYYResult: " + backendService.register())
         if (savedInstanceState == null) {
             // If there's an ongoing VPN connection, open the status screen.
             if (vpnService.isPresent

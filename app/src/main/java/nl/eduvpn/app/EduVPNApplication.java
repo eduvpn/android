@@ -25,6 +25,7 @@ import org.eduvpn.common.StateCB;
 
 import de.blinkt.openvpn.core.ICSOpenVPNApplication;
 import nl.eduvpn.app.inject.EduVPNComponent;
+import nl.eduvpn.app.service.BackendService;
 
 /**
  * Application object which keeps track of the app lifecycle.
@@ -46,8 +47,6 @@ public class EduVPNApplication extends ICSOpenVPNApplication {
         StrictMode.VmPolicy policy = new StrictMode.VmPolicy.Builder().build();
         StrictMode.setVmPolicy(policy);
 
-        String nativeResult = new GoBackend().register("name", "version", "/", new StateCB(0, 0, null), 1);
-        System.out.println("Result from native code: " + nativeResult);
     }
 
     public EduVPNComponent component() {
