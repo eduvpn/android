@@ -14,4 +14,8 @@ public class GoBackend {
             @Nullable String configDirectory,
             boolean debug
     );
+
+    public native DataErrorTuple discoverOrganizations();
+
+    public native DataErrorTuple discoverServers();
 }

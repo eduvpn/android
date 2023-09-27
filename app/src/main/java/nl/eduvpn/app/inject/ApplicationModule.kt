@@ -60,10 +60,10 @@ class ApplicationModule(private val application: EduVPNApplication) {
     @Provides
     @Singleton
     fun provideOrganizationService(
-        serializerService: SerializerService?,
-        securityService: SecurityService?, okHttpClient: OkHttpClient?
+        serializerService: SerializerService,
+        backendService: BackendService
     ): OrganizationService {
-        return OrganizationService(serializerService!!, securityService!!, okHttpClient!!)
+        return OrganizationService(serializerService, backendService)
     }
 
 
@@ -92,10 +92,10 @@ class ApplicationModule(private val application: EduVPNApplication) {
     @Provides
     @Singleton
     fun provideAPIService(
-        connectionService: ConnectionService?,
-        okHttpClient: OkHttpClient?
+        connectionService: ConnectionService,
+        okHttpClient: OkHttpClient
     ): APIService {
-        return APIService(connectionService!!, okHttpClient!!)
+        return APIService(connectionService, okHttpClient)
     }
 
     @Provides

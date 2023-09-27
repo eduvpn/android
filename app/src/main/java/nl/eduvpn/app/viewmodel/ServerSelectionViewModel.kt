@@ -21,6 +21,7 @@ package nl.eduvpn.app.viewmodel
 import android.content.Context
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import nl.eduvpn.app.R
 import nl.eduvpn.app.adapter.OrganizationAdapter
@@ -101,8 +102,10 @@ class ServerSelectionViewModel @Inject constructor(
     private fun refreshServerList() {
         connectionState.value = ConnectionState.FetchingServerList
         Log.v(TAG, "Fetching server list...")
-        viewModelScope.launch {
-            runCatchingCoroutine { organizationService.fetchServerList() }.onSuccess { serverList ->
+        viewModelScope.launch(Dispatchers.IO) {
+            runCatchingCoroutine {
+                organizationService.fetchServerList()
+            }.onSuccess { serverList ->
                 Log.v(TAG, "Updated server list with latest entries.")
                 serverListCache.value = Pair(System.currentTimeMillis(), serverList)
                 preferencesService.setServerList(serverList)
@@ -146,8 +149,8 @@ class ServerSelectionViewModel @Inject constructor(
             result += OrganizationAdapter.OrganizationAdapterItem.Header(R.drawable.ic_server, R.string.header_other_servers)
             result += customServers.map { OrganizationAdapter.OrganizationAdapterItem.InstituteAccess(it) }
         }
-        adapterItems.value = result
-        connectionState.value = ConnectionState.Ready
+        adapterItems.postValue(result)
+        connectionState.postValue(ConnectionState.Ready)
     }
 
     override fun update(o: Any, arg: Any?) {

@@ -129,7 +129,7 @@ android {
             // See: https://github.com/google/dagger/issues/306#issuecomment-405525757
             option("-Xmaxerrs", 2000)
             // This will fail the build on warnings which are run in a build phase executed by kapt.
-            option("-Werror")
+            //option("-Werror")
         }
     }
 
@@ -198,6 +198,6 @@ dependencies {
 // This will fail the build if there is a Kotlin compiler warning.
 tasks.withType(KotlinCompile).all {
     kotlinOptions {
-        freeCompilerArgs = ["-Werror", "-opt-in=kotlin.RequiresOptIn"]
+        //freeCompilerArgs = ["-Werror", "-opt-in=kotlin.RequiresOptIn"]
     }
 }

@@ -50,4 +50,5 @@ add_library(eduvpn_common-wrapper SHARED
 target_link_libraries(eduvpn_common-wrapper
         ${OUTPUT_FILE}
         android
+        log
         )

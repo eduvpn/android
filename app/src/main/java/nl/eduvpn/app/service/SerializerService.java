@@ -73,6 +73,7 @@ public class SerializerService {
 
     private static final Json jsonSerializer = JsonKt.Json(Json.Default, (j) -> {
         j.setIgnoreUnknownKeys(true);
+        j.setCoerceInputValues(true);
         return Unit.INSTANCE;
     });
 
