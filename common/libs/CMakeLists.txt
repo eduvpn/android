@@ -23,7 +23,7 @@ find_program(MAKE_EXECUTABLE
 
 # Compile from Go to C
 add_custom_command(
-        OUTPUT $INTERMEDIARY_FILE
+        OUTPUT ${INTERMEDIARY_FILE}
         WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/eduvpn-common/exports"
         COMMENT "Building shared library for ${ANDROID_LLVM_TRIPLE}"
         VERBATIM
@@ -46,6 +46,8 @@ add_custom_target(libeduvpn_common DEPENDS ${OUTPUT_FILE})
 add_library(eduvpn_common-wrapper SHARED
         ../src/main/cpp/jni.cpp
         )
+add_dependencies(eduvpn_common-wrapper libeduvpn_common)
+
 # The wrapper library needs to be linked to the common library and also Android
 target_link_libraries(eduvpn_common-wrapper
         ${OUTPUT_FILE}
