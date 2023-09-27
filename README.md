@@ -21,7 +21,7 @@ Or if your git version is below 2.13:
 
 # Running with Android Studio
 
-First install the `swig` package with your operating system package manager.
+First install the `swig` and `go` packages with your operating system package manager.
 
 Make sure you have the latest stable version of Android Studio installed, you can download it from [here](https://developer.android.com/studio).
 Open the project by opening the build.gradle in the root of this repository with Android Studio.
@@ -32,7 +32,7 @@ Make sure that you have the following packages installed in the SDK Manager (Too
 * SDK Tools - CMake
 * SDK Tools - Android SDK Platform-Tools
 * SDK Tools - Android SDK Tools
-* SDK Tools - NDK - 19.2.x version (a later version might work, but is untested)
+* SDK Tools - NDK - 25.1.x version (a later version might work, but is untested)
 
 To find a specific version of a package (for the NDK), check the option 'Show Package Details'
 in the bottom-lower corner of the SDK Manager.
@@ -64,6 +64,7 @@ $ sudo dnf -y install \
     tar \
     git \
     swig \
+    go \
     java-11-openjdk \
     java-11-openjdk-devel \
     ncurses-compat-libs \

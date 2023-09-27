@@ -82,18 +82,19 @@ class ConnectionService(private val preferencesService: PreferencesService,
      * @param instance      The instance to connect to.
      * @param discoveredAPI The discovered API which has the URL.
      */
-    suspend fun initiateConnection(activity: Activity, instance: Instance, discoveredAPI: DiscoveredAPI): Unit {
+    suspend fun initiateConnection(activity: Activity, instance: Instance, authStringToOpen: String) {
         withContext(Dispatchers.Main) {
             runCatchingCoroutine {
                 val stateString = securityService.generateSecureRandomString(32)
                 preferencesService.setCurrentInstance(instance)
-                preferencesService.setCurrentDiscoveredAPI(discoveredAPI)
-                val serviceConfig = buildAuthConfiguration(discoveredAPI)
+                val serviceConfig = buildAuthConfiguration(authStringToOpen)
+                val uriToOpen = Uri.parse(authStringToOpen)
+                val redirectUri = uriToOpen.getQueryParameter("redirect_uri")
                 val authRequestBuilder = AuthorizationRequest.Builder(
                     serviceConfig,  // the authorization service configuration
                     CLIENT_ID,  // the client ID, typically pre-registered and static
                     ResponseTypeValues.CODE,  // the response_type value: we want a code
-                        Uri.parse(REDIRECT_URI)) // the redirect URI to which the auth response is sent
+                        Uri.parse(redirectUri)) // the redirect URI to which the auth response is sent
                     .setScope(SCOPE)
                     .setCodeVerifier(CodeVerifierUtil.generateRandomCodeVerifier()) // Use S256 challenge method if possible
                     .setResponseType(RESPONSE_TYPE)
@@ -258,10 +259,10 @@ class ConnectionService(private val preferencesService: PreferencesService,
      * @param discoveredAPI The discovered API URLs.
      * @return The configuration for the authorization service.
      */
-    private fun buildAuthConfiguration(discoveredAPI: DiscoveredAPI): AuthorizationServiceConfiguration {
+    private fun buildAuthConfiguration(authStringToOpen: String): AuthorizationServiceConfiguration {
         return AuthorizationServiceConfiguration(
-                Uri.parse(discoveredAPI.authorizationEndpoint),
-                Uri.parse(discoveredAPI.tokenEndpoint),
+                Uri.parse(authStringToOpen),
+                Uri.parse(authStringToOpen),
                 null)
     }
 
@@ -269,7 +270,6 @@ class ConnectionService(private val preferencesService: PreferencesService,
         private val TAG = ConnectionService::class.java.name
         private const val SCOPE = BuildConfig.OAUTH_SCOPE
         private const val RESPONSE_TYPE = ResponseTypeValues.CODE
-        private const val REDIRECT_URI = BuildConfig.OAUTH_REDIRECT_URI
         private const val CLIENT_ID = BuildConfig.OAUTH_CLIENT_ID
         private const val REQUEST_CODE_APP_AUTH = 100 // This is not used, since we only get one type of request for the redirect URL.
     }

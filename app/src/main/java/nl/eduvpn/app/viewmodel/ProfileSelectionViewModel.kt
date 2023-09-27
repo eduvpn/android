@@ -29,11 +29,13 @@ class ProfileSelectionViewModel @Inject constructor(
     historyService: HistoryService,
     preferencesService: PreferencesService,
     connectionService: ConnectionService,
+    backendService: BackendService,
     eduVpnOpenVpnService: EduVPNOpenVPNService,
     vpnConnectionService: VPNConnectionService,
 ) : BaseConnectionViewModel(
     context,
     apiService,
+    backendService,
     serializerService,
     historyService,
     preferencesService,

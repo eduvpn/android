@@ -50,12 +50,19 @@ class ConnectionStatusViewModel @Inject constructor(
     @Named("connectionTimeLiveData")
     val connectionTimeLiveData: LiveData<Long?>,
     apiService: APIService,
+    backendService: BackendService,
     serializerService: SerializerService,
     connectionService: ConnectionService,
     vpnConnectionService: VPNConnectionService,
 ) : BaseConnectionViewModel(
-    context, apiService, serializerService, historyService,
-    preferencesService, connectionService, eduVPNOpenVPNService,
+    context,
+    apiService,
+    backendService,
+    serializerService,
+    historyService,
+    preferencesService,
+    connectionService,
+    eduVPNOpenVPNService,
     vpnConnectionService,
 ) {
 

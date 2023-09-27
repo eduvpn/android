@@ -74,11 +74,12 @@ class ProfileSelectionFragment : BaseFragment<FragmentProfileSelectionBinding>()
                 is BaseConnectionViewModel.ParentAction.InitiateConnection -> {
                     activity?.let { activity ->
                         if (!activity.isFinishing) {
+                            /** TODO
                             viewModel.initiateConnection(
                                 activity,
                                 parentAction.instance,
                                 parentAction.discoveredAPI
-                            )
+                            )**/
                         }
                     }
                 }

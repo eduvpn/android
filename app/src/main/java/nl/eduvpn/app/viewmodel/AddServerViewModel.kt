@@ -31,11 +31,13 @@ class AddServerViewModel @Inject constructor(
     serializerService: SerializerService,
     historyService: HistoryService,
     connectionService: ConnectionService,
+    backendService: BackendService,
     eduVpnOpenVpnService: EduVPNOpenVPNService,
     vpnConnectionService: VPNConnectionService,
 ) : BaseConnectionViewModel(
     context,
     apiService,
+    backendService,
     serializerService,
     historyService,
     preferencesService,

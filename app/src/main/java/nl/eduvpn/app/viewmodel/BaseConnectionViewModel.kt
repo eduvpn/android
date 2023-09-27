@@ -57,6 +57,7 @@ import com.wireguard.crypto.KeyPair as WGKeyPair
 abstract class BaseConnectionViewModel(
     private val context: Context,
     private val apiService: APIService,
+    private val backendService: BackendService,
     private val serializerService: SerializerService,
     private val historyService: HistoryService,
     private val preferencesService: PreferencesService,
@@ -68,7 +69,7 @@ abstract class BaseConnectionViewModel(
     sealed class ParentAction {
         data class DisplayError(@StringRes val title: Int, val message: String) : ParentAction()
         data class OpenProfileSelector(val profiles: List<Profile>) : ParentAction()
-        data class InitiateConnection(val instance: Instance, val discoveredAPI: DiscoveredAPI) :
+        data class InitiateConnection(val instance: Instance, val authStringToOpen: String) :
             ParentAction()
 
         data class ConnectWithConfig(val vpnConfig: VPNConfig) : ParentAction()
@@ -87,69 +88,9 @@ abstract class BaseConnectionViewModel(
         // Discover the API
         viewModelScope.launch(Dispatchers.Main) {
             runCatchingCoroutine {
-                apiService.getString(
-                    instance.sanitizedBaseURI + Constants.API_DISCOVERY_POSTFIX,
-                    null
-                )
+                backendService.addServer(instance)
             }.onSuccess { result ->
-                try {
-                    val discoveredAPI =
-                        serializerService.deserializeDiscoveredAPIs(result).v3
-                    if (discoveredAPI == null) {
-                        val errorMessage = "Server does not provide API version 3"
-                        Log.e(TAG, errorMessage)
-                        connectionState.value = ConnectionState.Ready
-                        parentAction.value = ParentAction.DisplayError(
-                            R.string.error_dialog_title,
-                            context.getString(
-                                R.string.error_discover_api,
-                                instance.sanitizedBaseURI,
-                                errorMessage
-                            )
-                        )
-                    } else {
-                        val savedToken =
-                            historyService.getSavedToken(instance)
-                        if (savedToken == null || reauthorize) {
-                            authorize(instance, discoveredAPI)
-                        } else {
-                            if (savedToken.instance.sanitizedBaseURI != instance.sanitizedBaseURI
-                            ) {
-                                // This is a distributed token. We add it to the list.
-                                Log.i(TAG, "Distributed token found for different instance.")
-                                preferencesService.setCurrentInstance(instance)
-                                preferencesService.setCurrentDiscoveredAPI(discoveredAPI)
-                                preferencesService.setCurrentAuthState(savedToken.authState)
-                                historyService.cacheAuthorizationState(
-                                    instance,
-                                    savedToken.authState,
-                                    savedToken.authenticationDate
-                                )
-                            }
-                            preferencesService.setCurrentInstance(instance)
-                            preferencesService.setCurrentDiscoveredAPI(discoveredAPI)
-                            preferencesService.setCurrentAuthState(savedToken.authState)
-                            getSupportedProfilesV3(
-                                instance,
-                                discoveredAPI,
-                                savedToken.authState
-                            ).flatMap { supportedProfiles ->
-                                selectProfile(supportedProfiles)
-                            }
-                        }
-                    }
-                } catch (ex: SerializerService.UnknownFormatException) {
-                    Log.e(TAG, "Error parsing discovered API!", ex)
-                    connectionState.value = ConnectionState.Ready
-                    parentAction.value = ParentAction.DisplayError(
-                        R.string.error_dialog_title,
-                        context.getString(
-                            R.string.error_discover_api,
-                            instance.sanitizedBaseURI,
-                            ex.toString()
-                        )
-                    )
-                }
+                authorize(instance, result)
             }.onFailure { throwable ->
                 Log.e(TAG, "Error while fetching discovered API.", throwable)
                 connectionState.value = ConnectionState.Ready
@@ -335,7 +276,7 @@ abstract class BaseConnectionViewModel(
             Log.e(TAG, "Error fetching profile list.", throwable)
             // It is highly probable that the auth state is not valid anymore.
             // todo: do not reauthorize on server error, i.e. response code 500
-            authorize(instance, discoveredAPI)
+            // TODO fix this authorize(instance, discoveredAPI)
         }.flatMap { result ->
             try {
                 Result.success(serializerService.deserializeInfo(result).info.profileList)
@@ -387,26 +328,26 @@ abstract class BaseConnectionViewModel(
         return Triple(protocol, configString, getExpiryFromHeaders(headers))
     }
 
-    private fun authorize(instance: Instance, discoveredAPI: DiscoveredAPI) {
+    private fun authorize(instance: Instance, authStringToOpen: String) {
         connectionState.value = ConnectionState.Authorizing
-        parentAction.value = ParentAction.InitiateConnection(instance, discoveredAPI)
-        parentAction.value =
-            null // Immediately reset it, so it is not triggered twice, when coming back to the activity.
+        parentAction.value = ParentAction.InitiateConnection(instance, authStringToOpen)
+        parentAction.value = null // Immediately reset it, so it is not triggered twice, when coming back to the activity.
     }
 
     fun initiateConnection(activity: Activity) {
         viewModelScope.launch {
+            /** TODO
             connectionService.initiateConnection(
                 activity,
                 preferencesService.getCurrentInstance()!!,
                 preferencesService.getCurrentDiscoveredAPI()!!
-            )
+            )**/
         }
     }
 
-    fun initiateConnection(activity: Activity, instance: Instance, discoveredAPI: DiscoveredAPI) {
+    fun initiateConnection(activity: Activity, instance: Instance, authStringToOpen: String) {
         viewModelScope.launch {
-            connectionService.initiateConnection(activity, instance, discoveredAPI)
+            connectionService.initiateConnection(activity, instance, authStringToOpen)
         }
     }
 

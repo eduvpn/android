@@ -28,6 +28,7 @@ class ProviderSelectionViewModel @Inject constructor(
     context: Context,
     apiService: APIService,
     serializerService: SerializerService,
+    backendService: BackendService,
     historyService: HistoryService,
     private val preferencesService: PreferencesService,
     connectionService: ConnectionService,
@@ -36,6 +37,7 @@ class ProviderSelectionViewModel @Inject constructor(
 ) : BaseConnectionViewModel(
     context,
     apiService,
+    backendService,
     serializerService,
     historyService,
     preferencesService,

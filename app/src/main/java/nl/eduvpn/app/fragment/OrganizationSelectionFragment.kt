@@ -126,7 +126,7 @@ class OrganizationSelectionFragment : BaseFragment<FragmentOrganizationSelection
                             viewModel.initiateConnection(
                                 activity,
                                 parentAction.instance,
-                                parentAction.discoveredAPI
+                                parentAction.authStringToOpen
                             )
                         }
                     }

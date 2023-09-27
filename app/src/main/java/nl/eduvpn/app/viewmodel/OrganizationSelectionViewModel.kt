@@ -35,6 +35,7 @@ import nl.eduvpn.app.entity.OrganizationList
 import nl.eduvpn.app.entity.ServerList
 import nl.eduvpn.app.entity.TranslatableString
 import nl.eduvpn.app.service.APIService
+import nl.eduvpn.app.service.BackendService
 import nl.eduvpn.app.service.ConnectionService
 import nl.eduvpn.app.service.EduVPNOpenVPNService
 import nl.eduvpn.app.service.HistoryService
@@ -53,6 +54,7 @@ class OrganizationSelectionViewModel @Inject constructor(
     private val preferencesService: PreferencesService,
     context: Context,
     apiService: APIService,
+    backendService: BackendService,
     serializerService: SerializerService,
     historyService: HistoryService,
     connectionService: ConnectionService,
@@ -61,6 +63,7 @@ class OrganizationSelectionViewModel @Inject constructor(
 ) : BaseConnectionViewModel(
     context,
     apiService,
+    backendService,
     serializerService,
     historyService,
     preferencesService,

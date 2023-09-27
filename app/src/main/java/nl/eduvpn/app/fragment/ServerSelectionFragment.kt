@@ -74,7 +74,7 @@ class ServerSelectionFragment : BaseFragment<FragmentServerSelectionBinding>() {
                 is BaseConnectionViewModel.ParentAction.InitiateConnection -> {
                     activity?.let { activity ->
                         if (!activity.isFinishing) {
-                            viewModel.initiateConnection(activity, parentAction.instance, parentAction.discoveredAPI)
+                            // TODO viewModel.initiateConnection(activity, parentAction.instance, parentAction.authStringToOpen)
                         }
                     }
                 }
