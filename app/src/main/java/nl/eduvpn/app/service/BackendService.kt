@@ -1,6 +1,5 @@
 package nl.eduvpn.app.service
 
-import ProfileV3API
 import android.content.Context
 import android.net.Uri
 import android.provider.Settings.Global
@@ -17,6 +16,8 @@ import nl.eduvpn.app.entity.AddedServers
 import nl.eduvpn.app.entity.AuthorizationType
 import nl.eduvpn.app.entity.Instance
 import nl.eduvpn.app.entity.Profile
+import nl.eduvpn.app.entity.exception.SelectProfilesException
+import nl.eduvpn.app.entity.v3.ProfileV3API
 import nl.eduvpn.app.service.SerializerService.UnknownFormatException
 import nl.eduvpn.app.utils.Log
 import org.eduvpn.common.CommonException
@@ -46,23 +47,46 @@ class BackendService(
 
     enum class State(val nativeValue: Int) {
         INITIAL(1),
-        OAUTH_STARTED(6)
+        OAUTH_STARTED(6),
+        ASK_PROFILE(9)
     }
 
     private val goBackend = GoBackend()
-
-    private val internalStateListeners = mutableListOf<Callback>()
-
     private var pendingOAuthCookie: Int? = null
 
-    fun register(): String? {
+    fun register(
+        startOAuth: (String) -> Unit,
+        selectProfiles: (List<ProfileV3API>) -> Unit,
+        showError: (Throwable) -> Unit
+    ): String? {
         GoBackend.callbackFunction = Callback { newState, data ->
-            internalStateListeners.forEach {
-                if (it.onNewState(newState, data)) {
+            return@Callback if (newState == State.OAUTH_STARTED.nativeValue) {
+                if (data.isNullOrEmpty()) {
+                    showError(CommonException(ERROR_EMPTY_RESPONSE))
                     return@Callback true
                 }
+                val cookieAndData = serializerService.deserializeCookieAndStringData(data)
+                pendingOAuthCookie = cookieAndData.cookie
+                startOAuth(cookieAndData.data)
+                true
+            } else if (newState == State.ASK_PROFILE.nativeValue) {
+                if (data.isNullOrEmpty()) {
+                    showError(CommonException(ERROR_EMPTY_RESPONSE))
+                    return@Callback true
+                }
+                val cookieAndData = serializerService.deserializeCookieAndCookieAndProfileListData(data)
+                selectProfiles(cookieAndData.getProfileList())
+                true
+            } else if (newState == State.OAUTH_STARTED.nativeValue) {
+                if (data.isNullOrEmpty()) {
+                    showError(CommonException(ERROR_EMPTY_RESPONSE))
+                    return@Callback true
+                }
+                startOAuth(data)
+                true
+            } else {
+                false
             }
-            false
         }
         val version = "${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})"
         var configFilesDir: String? = null
@@ -91,7 +115,6 @@ class BackendService(
 
     fun deregister() {
         GoBackend.callbackFunction = null
-        internalStateListeners.clear()
         // TODO call native deregister
     }
 
@@ -120,40 +143,14 @@ class BackendService(
     }
 
     @kotlin.jvm.Throws(CommonException::class)
-    suspend fun addServer(instance: Instance) : String {
-        // We need to launch the native addServer call in a separate thread, because it is blocking
-        // until the actual redirect has been processed.
-        GlobalScope.launch(Dispatchers.IO) {
-            val result = goBackend.addServer(
-                instance.authorizationType.toNativeServerType().nativeValue,
-                instance.baseURI
-            )
-            println("ERROR result: $result")
+    suspend fun addServer(instance: Instance) {
+        val errorString = goBackend.addServer(
+            instance.authorizationType.toNativeServerType().nativeValue,
+            instance.baseURI
+        )
+        if (!errorString.isNullOrEmpty()) {
+            throw CommonException(errorString)
         }
-        val jsonString = suspendCoroutine<String> { continuation ->
-            internalStateListeners.add(object : Callback {
-                override fun onNewState(newState: Int, data: String?): Boolean {
-                    if (newState == State.OAUTH_STARTED.nativeValue) {
-                        internalStateListeners.remove(this)
-                        if (data.isNullOrEmpty()) {
-                            continuation.resumeWithException(CommonException(ERROR_EMPTY_RESPONSE))
-                            return true
-                        }
-                        continuation.resume(data)
-                        return true
-                    } else if (newState == State.INITIAL.nativeValue) {
-                        internalStateListeners.remove(this)
-                        continuation.resumeWithException(CommonException("Could not connect to instance."))
-                        return true
-                    }
-                    return false
-                }
-            })
-        }
-        // Parse the JSON
-        val resultObject = serializerService.deserializeCookieAndData(jsonString)
-        pendingOAuthCookie = resultObject.cookie
-        return resultObject.data
     }
 
     @kotlin.jvm.Throws(CommonException::class)
@@ -202,14 +199,15 @@ class BackendService(
         return serializerService.deserializeAddedServers(dataErrorTuple.data)
     }
 
-    @kotlin.jvm.Throws(CommonException::class, UnknownFormatException::class)
-    fun getProfiles(instance: Instance, preferTcp: Boolean): List<ProfileV3API> {
+    @kotlin.jvm.Throws(CommonException::class, UnknownFormatException::class, SelectProfilesException::class)
+    suspend fun getConfig(instance: Instance, preferTcp: Boolean): String {
         val dataErrorTuple = goBackend.getProfiles(instance.authorizationType.toNativeServerType().nativeValue, instance.baseURI, preferTcp, false)
+
         if (dataErrorTuple.isError) {
             throw CommonException(dataErrorTuple.error)
         }
         println(dataErrorTuple.data)
-        return emptyList()// serializerService.deserializeAddedServers(dataErrorTuple.data)
+        return dataErrorTuple.data ?: "no data"// serializerService.deserializeAddedServers(dataErrorTuple.data)
     }
 }
 

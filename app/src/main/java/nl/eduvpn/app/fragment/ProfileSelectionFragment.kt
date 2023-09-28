@@ -33,6 +33,7 @@ import nl.eduvpn.app.adapter.ProfileAdapter
 import nl.eduvpn.app.base.BaseFragment
 import nl.eduvpn.app.databinding.FragmentProfileSelectionBinding
 import nl.eduvpn.app.entity.Profile
+import nl.eduvpn.app.entity.v3.ProfileV3API
 import nl.eduvpn.app.utils.ErrorDialog
 import nl.eduvpn.app.utils.ItemClickSupport
 import nl.eduvpn.app.viewmodel.BaseConnectionViewModel
@@ -64,25 +65,13 @@ class ProfileSelectionFragment : BaseFragment<FragmentProfileSelectionBinding>()
         binding.profileList.adapter = profileAdapter
 
         //todo: fix deprecation when new compat library released https://issuetracker.google.com/issues/242048899
-        @Suppress("DEPRECATION") val profiles: ArrayList<Profile> =
+        @Suppress("DEPRECATION") val profiles: ArrayList<ProfileV3API> =
             arguments?.getParcelableArrayList(KEY_PROFILES)!!
 
         profileAdapter.submitList(profiles)
 
         viewModel.parentAction.observe(viewLifecycleOwner, Observer { parentAction ->
             when (parentAction) {
-                is BaseConnectionViewModel.ParentAction.InitiateConnection -> {
-                    activity?.let { activity ->
-                        if (!activity.isFinishing) {
-                            /** TODO
-                            viewModel.initiateConnection(
-                                activity,
-                                parentAction.instance,
-                                parentAction.discoveredAPI
-                            )**/
-                        }
-                    }
-                }
                 is BaseConnectionViewModel.ParentAction.ConnectWithConfig -> {
                     viewModel.connectionToConfig(requireActivity(), parentAction.vpnConfig)
                     (activity as? MainActivity)?.openFragment(ConnectionStatusFragment(), false)
@@ -107,7 +96,7 @@ class ProfileSelectionFragment : BaseFragment<FragmentProfileSelectionBinding>()
         }
     }
 
-    private fun selectProfileToConnectTo(profile: Profile) {
+    private fun selectProfileToConnectTo(profile: ProfileV3API) {
         viewModel.viewModelScope.launch {
             viewModel.selectProfileToConnectTo(profile).onFailure { thr ->
                 withContext(Dispatchers.Main) {
@@ -126,7 +115,7 @@ class ProfileSelectionFragment : BaseFragment<FragmentProfileSelectionBinding>()
 
         private const val KEY_PROFILES = "profiles"
 
-        fun newInstance(profileList: List<Profile>): ProfileSelectionFragment {
+        fun newInstance(profileList: List<ProfileV3API>): ProfileSelectionFragment {
             val fragment = ProfileSelectionFragment()
             val arguments = Bundle()
             arguments.putParcelableArrayList(KEY_PROFILES, ArrayList(profileList))

@@ -26,6 +26,7 @@ import androidx.annotation.VisibleForTesting
 import nl.eduvpn.app.BuildConfig
 import nl.eduvpn.app.Constants
 import nl.eduvpn.app.entity.*
+import nl.eduvpn.app.entity.v3.ProfileV3API
 import nl.eduvpn.app.entity.v3.Protocol
 import nl.eduvpn.app.utils.Log
 import org.json.JSONException
@@ -263,23 +264,6 @@ class PreferencesService(
     }
 
     /**
-     * Returns the previously saved profile.
-     *
-     * @return The lastly saved profile with {@link #setCurrentProfile(Profile)}.
-     */
-    fun getCurrentProfile(): Profile? {
-        val serializedProfile = getSharedPreferences().getString(KEY_PROFILE, null)
-            ?: return null
-        return try {
-            _serializerService.deserializeProfile(serializedProfile)
-        } catch (ex: SerializerService.UnknownFormatException) {
-            Log.e(TAG, "Unable to deserialize saved profile!", ex)
-            null
-        }
-    }
-
-
-    /**
      * Sets the current profile list, which is all the profiles the user can connect to for the current server.
      *
      * @param currentProfileList All the profiles available on the current instance. Use null to delete all values.
@@ -298,21 +282,6 @@ class PreferencesService(
         }
     }
 
-    /**
-     * Returns the list of profiles for the current instance.
-     *
-     * @return The available profiles on the currently selected server. Null if none.
-     */
-    fun getCurrentProfileList(): List<Profile>? {
-        val serializedProfileList = getSharedPreferences().getString(KEY_PROFILE_LIST, null)
-            ?: return null
-        return try {
-            _serializerService.deserializeProfileList(serializedProfileList)
-        } catch (ex: SerializerService.UnknownFormatException) {
-            Log.e(TAG, "Unable to deserialize profile list!", ex)
-            null
-        }
-    }
 
     /**
      * Returns the saved app settings, or the default settings if none found.

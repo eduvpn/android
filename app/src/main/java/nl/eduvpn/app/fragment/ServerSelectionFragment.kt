@@ -72,13 +72,6 @@ class ServerSelectionFragment : BaseFragment<FragmentServerSelectionBinding>() {
 
         viewModel.parentAction.observe(viewLifecycleOwner, Observer { parentAction ->
             when (parentAction) {
-                is BaseConnectionViewModel.ParentAction.InitiateConnection -> {
-                    activity?.let { activity ->
-                        if (!activity.isFinishing) {
-                            // TODO viewModel.initiateConnection(activity, parentAction.instance, parentAction.authStringToOpen)
-                        }
-                    }
-                }
                 is BaseConnectionViewModel.ParentAction.OpenProfileSelector -> {
                     (activity as? MainActivity)?.openFragment(
                         ProfileSelectionFragment.newInstance(

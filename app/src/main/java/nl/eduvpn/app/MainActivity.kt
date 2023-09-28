@@ -19,6 +19,7 @@ package nl.eduvpn.app
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Intent
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.view.MenuItem
@@ -34,6 +35,7 @@ import nl.eduvpn.app.databinding.ActivityMainBinding
 import nl.eduvpn.app.fragment.AddServerFragment
 import nl.eduvpn.app.fragment.ConnectionStatusFragment
 import nl.eduvpn.app.fragment.OrganizationSelectionFragment
+import nl.eduvpn.app.fragment.ProfileSelectionFragment
 import nl.eduvpn.app.fragment.ServerSelectionFragment
 import nl.eduvpn.app.service.BackendService
 import nl.eduvpn.app.service.EduVPNOpenVPNService
@@ -94,11 +96,24 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         EduVPNApplication.get(this).component().inject(this)
-        println("Register result: " + backendService.register())
+        backendService.register(
+            startOAuth = { oAuthUrl ->
+                if (!isFinishing) {
+                    // TODO make it work with custom tabs
+                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(oAuthUrl))
+                    startActivity(intent)
+                }
+            },
+            selectProfiles = {
+                openFragment(ProfileSelectionFragment.newInstance(it), false)
+            },
+            showError = { throwable ->
+                show(this, throwable)
+            }
+        )
         setSupportActionBar(binding.toolbar.toolbar)
         historyService.load()
         eduVPNOpenVPNService.onCreate(this)
-        // TODO handle register error
         if (savedInstanceState == null) {
             // If there's an ongoing VPN connection, open the status screen.
             if (vpnService.isPresent  && vpnService.get().getStatus() != VPNService.VPNStatus.DISCONNECTED) {

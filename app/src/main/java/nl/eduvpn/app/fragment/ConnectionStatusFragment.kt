@@ -38,6 +38,7 @@ import nl.eduvpn.app.R
 import nl.eduvpn.app.base.BaseFragment
 import nl.eduvpn.app.databinding.FragmentConnectionStatusBinding
 import nl.eduvpn.app.entity.Profile
+import nl.eduvpn.app.entity.v3.ProfileV3API
 import nl.eduvpn.app.fragment.ServerSelectionFragment.Companion.newInstance
 import nl.eduvpn.app.service.APIService
 import nl.eduvpn.app.service.VPNConnectionService
@@ -98,13 +99,14 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
             if (!isChecked) {
                 disconnect()
             } else {
+                /**
                 val currentProfile = viewModel.findCurrentProfile()
                 if (currentProfile != null) {
                     connectToProfile(currentProfile)
                 } else {
                     // Should not happen
                     returnToHome()
-                }
+                }**/
             }
         }
         binding.connectionInfoDropdown.setOnClickListener {
@@ -164,22 +166,7 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
         }
         viewModel.parentAction.observe(viewLifecycleOwner) { parentAction ->
             when (parentAction) {
-                is BaseConnectionViewModel.ParentAction.InitiateConnection -> {
-                    activity?.let { activity ->
-                        if (!activity.isFinishing) {
-                            // TODO
-                            /**
-                            viewModel.initiateConnection(
-                                activity,
-                                parentAction.instance,
-                                parentAction.discoveredAPI
-                            )
-                            **/
-                        }
-                    }
-                }
                 is BaseConnectionViewModel.ParentAction.ConnectWithConfig -> {
-                    viewModel.refreshProfile()
                     val newVPNService = viewModel.connectionToConfig(requireActivity(), parentAction.vpnConfig)
                     if(vpnService != newVPNService) {
                         (activity as? MainActivity)?.openFragment(ConnectionStatusFragment(), false)
@@ -189,19 +176,11 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
                     ErrorDialog.show(requireContext(), parentAction.title, parentAction.message)
                 }
                 is BaseConnectionViewModel.ParentAction.OpenProfileSelector -> {
-                    val profile = viewModel.findCurrentProfile()
-                        ?.let { currentProfile ->
-                            parentAction.profiles.find { p -> p.profileId == currentProfile.profileId }
-                        }
-                    if (profile != null) {
-                        connectToProfile(profile)
-                    } else {
-                        (activity as? MainActivity)?.openFragment(
-                            ProfileSelectionFragment.newInstance(
-                                parentAction.profiles
-                            ), true
-                        )
-                    }
+                    (activity as? MainActivity)?.openFragment(
+                        ProfileSelectionFragment.newInstance(
+                            parentAction.profiles
+                        ), true
+                    )
                 }
                 else -> {
                     // Do nothing.
@@ -283,14 +262,6 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
         isAutomaticCheckChange = false
     }
 
-    private fun initiateConnection() {
-        activity?.let { activity ->
-            if (!activity.isFinishing) {
-                throw RuntimeException("Should be removed!")
-            }
-        }
-    }
-
     fun returnToHome() {
         disconnect()
         val activity = activity as MainActivity?
@@ -314,7 +285,7 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
         viewModel.reconnectToInstance()
     }
 
-    private fun connectToProfile(profile: Profile) {
+    private fun connectToProfile(profile: ProfileV3API) {
         skipNextDisconnect = true
         viewModel.isInDisconnectMode.value = false
         setToggleCheckedWithoutAction(true)
@@ -324,7 +295,7 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
                     setToggleCheckedWithoutAction(false)
                     viewModel.isInDisconnectMode.value = true
                     if (thr is APIService.UserNotAuthorizedException) {
-                        initiateConnection()
+                        //initiateConnection()
                     } else {
                         ErrorDialog.show(requireContext(), thr)
                     }

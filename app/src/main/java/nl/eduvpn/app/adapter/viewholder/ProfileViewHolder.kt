@@ -25,6 +25,7 @@ import nl.eduvpn.app.R
 import nl.eduvpn.app.databinding.ListItemProfileBinding
 import nl.eduvpn.app.entity.Instance
 import nl.eduvpn.app.entity.Profile
+import nl.eduvpn.app.entity.v3.ProfileV3API
 import nl.eduvpn.app.utils.FormattingUtils
 
 /**
@@ -33,7 +34,7 @@ import nl.eduvpn.app.utils.FormattingUtils
  */
 class ProfileViewHolder(private val binding: ListItemProfileBinding) : RecyclerView.ViewHolder(binding.getRoot()) {
 
-    fun bind(instance: Instance, profile: Profile) {
+    fun bind(instance: Instance, profile: ProfileV3API) {
         binding.profileName.text = profile.displayName.bestTranslation
         binding.profileProvider.text = FormattingUtils.formatDisplayName(instance)
         if (!TextUtils.isEmpty(instance.logoUri)) {

@@ -31,6 +31,7 @@ import kotlinx.coroutines.delay
 import nl.eduvpn.app.CertExpiredBroadcastReceiver
 import nl.eduvpn.app.R
 import nl.eduvpn.app.entity.Profile
+import nl.eduvpn.app.entity.v3.ProfileV3API
 import nl.eduvpn.app.service.*
 import nl.eduvpn.app.utils.getCountryText
 import nl.eduvpn.app.utils.pendingIntentImmutableFlag
@@ -76,7 +77,7 @@ class ConnectionStatusViewModel @Inject constructor(
     val profileName = MutableLiveData<String>()
 
     val isInDisconnectMode = MutableLiveData(false)
-    val serverProfiles = MutableLiveData<List<Profile>>()
+    val serverProfiles = MutableLiveData<List<ProfileV3API>>()
     val byteCountLiveData = vpnService.byteCountLiveData
     val ipLiveData = vpnService.ipLiveData
     val canRenew: LiveData<Boolean>
@@ -91,9 +92,8 @@ class ConnectionStatusViewModel @Inject constructor(
         PendingIntent.getBroadcast(context, 0, intent, pendingIntentImmutableFlag)
 
     init {
-        refreshProfile()
         val connectionInstance = preferencesService.getCurrentInstance()
-        serverProfiles.value = preferencesService.getCurrentProfileList()
+        // TODO serverProfiles.value =  preferencesService.getCurrentProfileList()
         if (connectionInstance != null && connectionInstance.supportContact.isNotEmpty()) {
             val supportContacts = StringBuilder()
             for (contact in connectionInstance.supportContact) {
@@ -217,24 +217,5 @@ class ConnectionStatusViewModel @Inject constructor(
             certValidity.value = HtmlCompat.fromHtml(context.getString(R.string.connection_certificate_status_valid_for_one_part, days), HtmlCompat.FROM_HTML_MODE_COMPACT)
         }
         return true
-    }
-
-    fun findCurrentProfile(): Profile? {
-        return preferencesService.getCurrentProfile()
-    }
-
-    fun refreshProfile() {
-        val savedProfile = preferencesService.getCurrentProfile()
-        val connectionInstance = preferencesService.getCurrentInstance()
-        if (connectionInstance?.countryCode != null) {
-            serverName.value = connectionInstance.getCountryText()
-        } else if (savedProfile != null) {
-            serverName.value = savedProfile.displayName.bestTranslation
-        } else {
-            serverName.value = context.getString(R.string.profile_name_not_found)
-        }
-        profileName.value = savedProfile?.displayName?.bestTranslation
-        certExpiryTime = savedProfile?.expiry
-        updateCertExpiry()
     }
 }

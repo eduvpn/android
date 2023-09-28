@@ -15,6 +15,8 @@ import nl.eduvpn.app.Constants
 import nl.eduvpn.app.DisconnectVPNBroadcastReceiver
 import nl.eduvpn.app.MainActivity
 import nl.eduvpn.app.R
+import nl.eduvpn.app.entity.Profile
+import nl.eduvpn.app.entity.TranslatableString
 import nl.eduvpn.app.entity.VPNConfig
 import nl.eduvpn.app.utils.FormattingUtils
 import nl.eduvpn.app.utils.Log
@@ -102,7 +104,8 @@ class VPNConnectionService(
         val configName = FormattingUtils.formatProfileName(
             context,
             preferencesService.getCurrentInstance()!!,
-            preferencesService.getCurrentProfile()!!
+
+            Profile("TODO", TranslatableString(), null)// preferencesService.getCurrentProfile()!!
         )
         val channelID = Constants.VPN_CONNECTION_NOTIFICATION_CHANNEL_ID
 

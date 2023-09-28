@@ -123,15 +123,6 @@ class OrganizationSelectionFragment : BaseFragment<FragmentOrganizationSelection
         })
         viewModel.parentAction.observe(viewLifecycleOwner, Observer { parentAction ->
             when (parentAction) {
-                is BaseConnectionViewModel.ParentAction.InitiateConnection -> {
-                    activity?.let { activity ->
-                        if (!activity.isFinishing) {
-                            // TODO make it work with custom tabs
-                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(parentAction.authStringToOpen))
-                            activity.startActivity(intent)
-                        }
-                    }
-                }
                 is BaseConnectionViewModel.ParentAction.ConnectWithConfig -> {
                     viewModel.connectionToConfig(requireActivity(), parentAction.vpnConfig)
                     (activity as? MainActivity)?.openFragment(ConnectionStatusFragment(), false)

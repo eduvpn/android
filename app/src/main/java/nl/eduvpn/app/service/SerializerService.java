@@ -40,7 +40,8 @@ import kotlinx.serialization.SerializationException;
 import kotlinx.serialization.json.Json;
 import kotlinx.serialization.json.JsonKt;
 import nl.eduvpn.app.entity.AddedServers;
-import nl.eduvpn.app.entity.CookieAndData;
+import nl.eduvpn.app.entity.CookieAndProfileMapData;
+import nl.eduvpn.app.entity.CookieAndStringData;
 import nl.eduvpn.app.entity.DiscoveredAPIs;
 import nl.eduvpn.app.entity.Instance;
 import nl.eduvpn.app.entity.KeyPair;
@@ -54,6 +55,7 @@ import nl.eduvpn.app.entity.Settings;
 import nl.eduvpn.app.entity.TranslatableString;
 import nl.eduvpn.app.entity.WellKnown;
 import nl.eduvpn.app.entity.v3.Info;
+import nl.eduvpn.app.entity.v3.ProfileV3API;
 import nl.eduvpn.app.entity.v3.Protocol;
 import nl.eduvpn.app.utils.serializer.KeyPairSerializer;
 
@@ -96,9 +98,9 @@ public class SerializerService {
         }
     }
 
-    public List<Profile> deserializeProfileList(String json) throws UnknownFormatException {
+    public List<ProfileV3API> deserializeProfileList(String json) throws UnknownFormatException {
         try {
-            return jsonSerializer.decodeFromString(ListSerializer(Profile.Companion.serializer()), json);
+            return jsonSerializer.decodeFromString(ListSerializer(ProfileV3API.Companion.serializer()), json);
         } catch (SerializationException ex) {
             throw new UnknownFormatException(ex);
         }
@@ -490,9 +492,17 @@ public class SerializerService {
         }
     }
 
-    public CookieAndData deserializeCookieAndData(String json) throws UnknownFormatException {
+    public CookieAndStringData deserializeCookieAndStringData(String json) throws UnknownFormatException {
         try {
-            return jsonSerializer.decodeFromString(CookieAndData.Companion.serializer(), json);
+            return jsonSerializer.decodeFromString(CookieAndStringData.Companion.serializer(), json);
+        } catch (SerializationException ex) {
+            throw new UnknownFormatException(ex);
+        }
+    }
+
+    public CookieAndProfileMapData deserializeCookieAndCookieAndProfileListData(String json) throws UnknownFormatException {
+        try {
+            return jsonSerializer.decodeFromString(CookieAndProfileMapData.Companion.serializer(), json);
         } catch (SerializationException ex) {
             throw new UnknownFormatException(ex);
         }

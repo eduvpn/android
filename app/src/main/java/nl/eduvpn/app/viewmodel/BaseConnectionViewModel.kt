@@ -18,42 +18,28 @@
 
 package nl.eduvpn.app.viewmodel
 
-import ProfileV3API
 import android.app.Activity
 import android.content.Context
 import androidx.annotation.StringRes
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.wireguard.config.BadConfigException
-import com.wireguard.config.Config
-import com.wireguard.crypto.KeyPair
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import nl.eduvpn.app.R
 import nl.eduvpn.app.entity.*
-import nl.eduvpn.app.entity.exception.EduVPNException
-import nl.eduvpn.app.entity.v3.Protocol
+import nl.eduvpn.app.entity.v3.ProfileV3API
 import nl.eduvpn.app.livedata.toSingleEvent
 import nl.eduvpn.app.service.*
-import nl.eduvpn.app.utils.FormattingUtils
 import nl.eduvpn.app.utils.Log
-import nl.eduvpn.app.utils.flatMap
 import nl.eduvpn.app.utils.runCatchingCoroutine
-import java.io.BufferedReader
-import java.io.IOException
-import java.io.StringReader
-import java.net.URLEncoder
 import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.util.*
-import com.wireguard.crypto.KeyPair as WGKeyPair
 
 /**
  * This viewmodel takes care of the entire flow, from connecting to the servers to fetching profiles.
  */
-@Suppress("ConstantConditionIf")
 abstract class BaseConnectionViewModel(
     private val context: Context,
     private val apiService: APIService,
@@ -67,10 +53,7 @@ abstract class BaseConnectionViewModel(
 
     sealed class ParentAction {
         data class DisplayError(@StringRes val title: Int, val message: String) : ParentAction()
-        data class OpenProfileSelector(val profiles: List<Profile>) : ParentAction()
-        data class InitiateConnection(val instance: Instance, val authStringToOpen: String) :
-            ParentAction()
-
+        data class OpenProfileSelector(val profiles: List<ProfileV3API>) : ParentAction()
         data class ConnectWithConfig(val vpnConfig: VPNConfig) : ParentAction()
     }
 
@@ -89,8 +72,8 @@ abstract class BaseConnectionViewModel(
         viewModelScope.launch(Dispatchers.IO) {
             runCatchingCoroutine {
                 backendService.addServer(instance)
-            }.onSuccess { result ->
-                authorize(instance, result)
+            }.onSuccess {
+                getProfiles(instance)
             }.onFailure { throwable ->
                 Log.e(TAG, "Error while fetching discovered API.", throwable)
                 connectionState.postValue(ConnectionState.Ready)
@@ -106,33 +89,11 @@ abstract class BaseConnectionViewModel(
         }
     }
 
-    public fun getProfiles(
-        instance: Instance
-    ): Result<List<Profile>> {
-        val apiProfiles = backendService.getProfiles(instance, false) // TODO get settings
-        val supportedProfiles =
-            apiProfiles.mapNotNull { profile ->
-                val supportedProtocols = profile.vpnProtocolList
-                    .mapNotNull { protocol -> Protocol.fromString(protocol) }
-                if (supportedProtocols.isEmpty()) {
-                    null
-                } else {
-                    Profile(
-                        profile.profileId,
-                        profile.displayName,
-                        null,
-                    )
-                }
-            }
-        if (supportedProfiles.isEmpty() && apiProfiles.isNotEmpty()) {
-            return Result.failure(
-                EduVPNException(
-                    R.string.error_no_profiles_from_server,
-                    R.string.error_no_supported_profiles_from_server
-                )
-            )
+    fun getProfiles(instance: Instance) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val result = backendService.getConfig(instance, false)
+            println("XXX result: $result")
         }
-        return Result.success(supportedProfiles)
     }
 
     private suspend fun connectToProfileV3(
@@ -217,26 +178,9 @@ abstract class BaseConnectionViewModel(
         return Result.success(Unit)
     }
 
-    public fun selectProfileToConnectTo(profile: Profile) : Result<Unit> {
+    public fun selectProfileToConnectTo(profile: ProfileV3API) : Result<Unit> {
         // TODO
         return Result.failure(Throwable())
-    }
-    private suspend fun selectProfile(profiles: List<Profile>): Result<Unit> {
-        preferencesService.setCurrentProfileList(profiles)
-        connectionState.value = ConnectionState.Ready
-        return if (profiles.size > 1) {
-            _parentAction.value = ParentAction.OpenProfileSelector(profiles)
-            Result.success(Unit)
-        } else if (profiles.size == 1) {
-            selectProfileToConnectTo(profiles[0])
-        } else {
-            Result.failure(
-                EduVPNException(
-                    R.string.error_no_profiles_from_server,
-                    R.string.error_no_profiles_from_server_message
-                )
-            )
-        }
     }
 
     open fun onResume() {
@@ -270,12 +214,6 @@ abstract class BaseConnectionViewModel(
                     null
                 }
             }
-    }
-
-
-    private fun authorize(instance: Instance, authStringToOpen: String) {
-        connectionState.postValue(ConnectionState.Authorizing)
-        _parentAction.postValue(ParentAction.InitiateConnection(instance, authStringToOpen))
     }
 
     fun disconnectWithCall(vpnService: VPNService) {
