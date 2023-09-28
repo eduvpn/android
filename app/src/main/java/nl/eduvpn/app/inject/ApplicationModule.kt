@@ -153,9 +153,9 @@ class ApplicationModule(private val application: EduVPNApplication) {
         wireGuardServiceProvider: Provider<WireGuardService>
     ): Optional<VPNService> {
         return when (preferencesService.getCurrentProtocol()) {
-            is Protocol.OpenVPN -> Optional.of(eduOpenVPNServiceProvider.get())
-            is Protocol.WireGuard -> Optional.of(wireGuardServiceProvider.get())
-            null -> Optional.empty()
+            org.eduvpn.common.Protocol.OpenVPN.nativeValue -> Optional.of(eduOpenVPNServiceProvider.get())
+            org.eduvpn.common.Protocol.WireGuard.nativeValue -> Optional.of(wireGuardServiceProvider.get())
+            else -> Optional.empty()
         }
     }
 

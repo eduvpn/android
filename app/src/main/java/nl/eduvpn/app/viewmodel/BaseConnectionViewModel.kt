@@ -24,6 +24,8 @@ import androidx.annotation.StringRes
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.wireguard.config.Config
+import de.blinkt.openvpn.VpnProfile
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import nl.eduvpn.app.R
@@ -31,11 +33,17 @@ import nl.eduvpn.app.entity.*
 import nl.eduvpn.app.entity.v3.ProfileV3API
 import nl.eduvpn.app.livedata.toSingleEvent
 import nl.eduvpn.app.service.*
+import nl.eduvpn.app.service.SerializerService.UnknownFormatException
+import nl.eduvpn.app.utils.FormattingUtils
 import nl.eduvpn.app.utils.Log
 import nl.eduvpn.app.utils.runCatchingCoroutine
+import org.eduvpn.common.Protocol
+import java.io.BufferedReader
+import java.io.StringReader
 import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.jvm.Throws
 
 /**
  * This viewmodel takes care of the entire flow, from connecting to the servers to fetching profiles.
@@ -91,96 +99,41 @@ abstract class BaseConnectionViewModel(
 
     fun getProfiles(instance: Instance) {
         viewModelScope.launch(Dispatchers.IO) {
-            val result = backendService.getConfig(instance, false)
-            println("XXX result: $result")
+            try {
+                val result = backendService.getConfig(instance, false)
+                val vpnConfig = parseConfig(instance, backendService.lastSelectedProfile, result)
+                preferencesService.setCurrentProtocol(result.protocol)
+                _parentAction.postValue(ParentAction.ConnectWithConfig(vpnConfig))
+            } catch (ex: Exception) {
+                _parentAction.postValue(ParentAction.DisplayError(R.string.error_downloading_vpn_config, ex.toString()))
+            }
         }
     }
 
-    private suspend fun connectToProfileV3(
-        instance: Instance, discoveredAPI: DiscoveredAPIV3,
-        profile: Profile
-    ): Result<Unit> {
-        connectionState.value = ConnectionState.ProfileDownloadingKeyPair
-        /**
-        val (protocol, configString, expireDate) = runCatchingCoroutine {
-            /**
-            val keyPair = com.wireguard.crypto.KeyPair()
-            val (protocol, configString, expireDate) = fetchProfileConfiguration(
-                discoveredAPI,
-                profile,
-                preferencesService.getAppSettings().forceTcp(),
-                keyPair
+    @Throws(IllegalArgumentException::class)
+    private fun parseConfig(instance: Instance, lastSelectedProfileId: String?, result: SerializedVpnConfig): VPNConfig {
+        return if (result.protocol == Protocol.OpenVPN.nativeValue) {
+            val configName = FormattingUtils.formatProfileName(
+                context,
+                instance,
+                lastSelectedProfileId
             )
-            when (protocol) {
-                is Protocol.OpenVPN -> Triple(protocol, configString, expireDate)
-                is Protocol.WireGuard -> {
-                    val configStringWithPrivateKey = configString
-                        .replace(
-                            "[Interface]",
-                            "[Interface]\n" +
-                                    "PrivateKey = ${keyPair.privateKey.toBase64()}"
-                        )
-                    Triple(protocol, configStringWithPrivateKey, expireDate)
-                }
-            }
-        }.getOrElse { throwable ->
-            connectionState.value = ConnectionState.Ready
-            return Result.failure(
-                if (throwable is APIService.UserNotAuthorizedException) {
-                    throwable
-                } else {
-                    EduVPNException(
-                        R.string.unexpected_error,
-                        R.string.error_downloading_vpn_config,
-                        throwable
-                    )
-                }
-            )**/
+            eduVpnOpenVpnService.importConfig(
+                result.config,
+                configName,
+            )?.let {
+                VPNConfig.OpenVPN(it)
+            } ?:  throw IllegalArgumentException("Unable to parse profile")
+        } else if (result.protocol == Protocol.WireGuard.nativeValue) {
+            return VPNConfig.WireGuard(Config.parse(BufferedReader(StringReader(result.config))))
+        } else {
+            throw IllegalArgumentException("Unexpected protocol type: ${result.protocol}")
         }
-
-        val updatedProfile = profile.copy(expiry = expireDate?.time)
-        val vpnConfig = when (protocol) {
-            is Protocol.OpenVPN -> {
-                val configName = FormattingUtils.formatProfileName(
-                    context,
-                    instance,
-                    updatedProfile
-                )
-                val vpnProfile = eduVpnOpenVpnService.importConfig(
-                    configString,
-                    configName,
-                    null,
-                )
-                vpnProfile?.let { p -> VPNConfig.OpenVPN(p) }
-            }
-            is Protocol.WireGuard -> {
-                val config = withContext(Dispatchers.IO) {
-                    try {
-                        Config.parse(BufferedReader(StringReader(configString)))
-                    } catch (ex: BadConfigException) {
-                        null
-                    }
-                }
-                config?.let { c -> VPNConfig.WireGuard(c) }
-            }
-        }
-        if (vpnConfig == null) {
-            connectionState.value = ConnectionState.Ready
-            return Result.failure(
-                EduVPNException(
-                    R.string.unexpected_error,
-                    R.string.error_importing_profile
-                )
-            )
-        }
-        preferencesService.setCurrentProfile(updatedProfile, protocol)
-        _parentAction.value = ParentAction.ConnectWithConfig(vpnConfig)**/
-        return Result.success(Unit)
     }
 
     public fun selectProfileToConnectTo(profile: ProfileV3API) : Result<Unit> {
-        // TODO
-        return Result.failure(Throwable())
+        backendService.selectProfile(profile)
+        return Result.success(Unit)
     }
 
     open fun onResume() {

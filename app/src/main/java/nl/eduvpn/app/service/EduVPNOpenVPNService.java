@@ -157,12 +157,7 @@ public class EduVPNOpenVPNService extends VPNService implements VpnStatus.StateL
      * @return True if the import was successful, false if it failed.
      */
     @Nullable
-    public VpnProfile importConfig(String configString, String preferredName, @Nullable SavedKeyPair savedKeyPair) {
-        if (savedKeyPair != null) {
-            Log.d(TAG, "Adding info from saved key pair to the config...");
-            configString = configString + "\n<cert>\n" + savedKeyPair.getKeyPair().getCertificate() + "\n</cert>\n" +
-                    "\n<key>\n" + savedKeyPair.getKeyPair().getPrivateKey() + "\n</key>\n";
-        }
+    public VpnProfile importConfig(String configString, String preferredName) {
         ConfigParser configParser = new ConfigParser();
         try {
             configParser.parseConfig(new StringReader(configString));

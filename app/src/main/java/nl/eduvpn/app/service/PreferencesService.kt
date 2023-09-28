@@ -26,9 +26,8 @@ import androidx.annotation.VisibleForTesting
 import nl.eduvpn.app.BuildConfig
 import nl.eduvpn.app.Constants
 import nl.eduvpn.app.entity.*
-import nl.eduvpn.app.entity.v3.ProfileV3API
-import nl.eduvpn.app.entity.v3.Protocol
 import nl.eduvpn.app.utils.Log
+import org.eduvpn.common.Protocol
 import org.json.JSONException
 import org.json.JSONObject
 import java.io.File
@@ -239,27 +238,6 @@ class PreferencesService(
         } catch (ex: SerializerService.UnknownFormatException) {
             Log.e(TAG, "Unable to deserialize instance!", ex)
             null
-        }
-    }
-
-    /**
-     * Saves the current profile as the selected one.
-     *
-     * @param profile  The profile to save.
-     * @param protocol Protocol used by the profile, null if not known yet.
-     */
-    fun setCurrentProfile(profile: Profile?, protocol: Protocol?) {
-        setCurrentProtocol(protocol)
-        try {
-            if (profile == null) {
-                getSharedPreferences().edit().remove(KEY_PROFILE).apply()
-            } else {
-                getSharedPreferences().edit()
-                    .putString(KEY_PROFILE, _serializerService.serializeProfile(profile))
-                    .apply()
-            }
-        } catch (ex: SerializerService.UnknownFormatException) {
-            Log.e(TAG, "Unable to serialize profile!", ex)
         }
     }
 
@@ -561,28 +539,13 @@ class PreferencesService(
         }
     }
 
-    private fun setCurrentProtocol(protocol: Protocol?) {
-        try {
-            if (protocol == null) {
-                getSharedPreferences().edit().remove(KEY_VPN_PROTOCOL).apply()
-            } else {
-                getSharedPreferences().edit()
-                    .putString(KEY_VPN_PROTOCOL, _serializerService.serializeProtocol(protocol))
-                    .apply()
-            }
-        } catch (ex: SerializerService.UnknownFormatException) {
-            Log.e(TAG, "Unable to serialize protocol!", ex)
-        }
+    fun setCurrentProtocol(protocol: Int) {
+        getSharedPreferences().edit()
+            .putInt(KEY_VPN_PROTOCOL, protocol)
+            .apply()
     }
 
-    fun getCurrentProtocol(): Protocol? {
-        val serializedProtocol = getSharedPreferences().getString(KEY_VPN_PROTOCOL, null)
-            ?: return null
-        return try {
-            _serializerService.deserializeProtocol(serializedProtocol)
-        } catch (ex: SerializerService.UnknownFormatException) {
-            Log.e(TAG, "Unable to deserialize saved protocol!", ex)
-            null
-        }
+    fun getCurrentProtocol(): Int {
+        return getSharedPreferences().getInt(KEY_VPN_PROTOCOL, Protocol.Unknown.nativeValue)
     }
 }

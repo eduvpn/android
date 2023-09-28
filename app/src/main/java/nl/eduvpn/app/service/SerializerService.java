@@ -50,6 +50,7 @@ import nl.eduvpn.app.entity.OrganizationList;
 import nl.eduvpn.app.entity.Profile;
 import nl.eduvpn.app.entity.SavedKeyPair;
 import nl.eduvpn.app.entity.SavedKeyPairList;
+import nl.eduvpn.app.entity.SerializedVpnConfig;
 import nl.eduvpn.app.entity.ServerList;
 import nl.eduvpn.app.entity.Settings;
 import nl.eduvpn.app.entity.TranslatableString;
@@ -476,22 +477,6 @@ public class SerializerService {
         return new TranslatableString(translationsMap);
     }
 
-    public String serializeProtocol(Protocol protocol) throws UnknownFormatException {
-        try {
-            return jsonSerializer.encodeToString(Protocol.Companion.serializer(), protocol);
-        } catch (SerializationException ex) {
-            throw new UnknownFormatException(ex);
-        }
-    }
-
-    public Protocol deserializeProtocol(String json) throws UnknownFormatException {
-        try {
-            return jsonSerializer.decodeFromString(Protocol.Companion.serializer(), json);
-        } catch (SerializationException ex) {
-            throw new UnknownFormatException(ex);
-        }
-    }
-
     public CookieAndStringData deserializeCookieAndStringData(String json) throws UnknownFormatException {
         try {
             return jsonSerializer.decodeFromString(CookieAndStringData.Companion.serializer(), json);
@@ -511,6 +496,14 @@ public class SerializerService {
     public AddedServers deserializeAddedServers(String json) throws UnknownFormatException {
         try {
             return jsonSerializer.decodeFromString(AddedServers.Companion.serializer(), json);
+        } catch (SerializationException ex) {
+            throw new UnknownFormatException(ex);
+        }
+    }
+
+    public SerializedVpnConfig deserializeSerializedVpnConfig(String json) throws UnknownFormatException {
+        try {
+            return jsonSerializer.decodeFromString(SerializedVpnConfig.Companion.serializer(), json);
         } catch (SerializationException ex) {
             throw new UnknownFormatException(ex);
         }

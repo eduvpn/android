@@ -2,20 +2,12 @@ package nl.eduvpn.app.service
 
 import android.content.Context
 import android.net.Uri
-import android.provider.Settings.Global
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.TimeoutCancellationException
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.suspendCancellableCoroutine
-import kotlinx.coroutines.withTimeout
 import nl.eduvpn.app.BuildConfig
 import nl.eduvpn.app.entity.AddedServers
 import nl.eduvpn.app.entity.AuthorizationType
 import nl.eduvpn.app.entity.Instance
 import nl.eduvpn.app.entity.Profile
+import nl.eduvpn.app.entity.SerializedVpnConfig
 import nl.eduvpn.app.entity.exception.SelectProfilesException
 import nl.eduvpn.app.entity.v3.ProfileV3API
 import nl.eduvpn.app.service.SerializerService.UnknownFormatException
@@ -41,18 +33,18 @@ class BackendService(
         private const val ERROR_EMPTY_RESPONSE = "Empty response returned by common module"
 
         private val TAG = BackendService::class.java.simpleName
-
-        const val NATIVE_CALL_TIMEOUT_MILLISECONDS = 10_000L
     }
 
     enum class State(val nativeValue: Int) {
-        INITIAL(1),
         OAUTH_STARTED(6),
         ASK_PROFILE(9)
     }
 
     private val goBackend = GoBackend()
     private var pendingOAuthCookie: Int? = null
+    private var pendingProfileSelectionCookie: Int? = null
+    var lastSelectedProfile: String? = null
+    private set
 
     fun register(
         startOAuth: (String) -> Unit,
@@ -75,6 +67,7 @@ class BackendService(
                     return@Callback true
                 }
                 val cookieAndData = serializerService.deserializeCookieAndCookieAndProfileListData(data)
+                pendingProfileSelectionCookie = cookieAndData.cookie
                 selectProfiles(cookieAndData.getProfileList())
                 true
             } else if (newState == State.OAUTH_STARTED.nativeValue) {
@@ -169,12 +162,6 @@ class BackendService(
         }
     }
 
-    suspend inline fun <T> suspendCoroutineWithTimeout(
-        crossinline block: (Continuation<T>) -> Unit
-    ) = withTimeout(NATIVE_CALL_TIMEOUT_MILLISECONDS) {
-        suspendCancellableCoroutine(block = block)
-    }
-
     @kotlin.jvm.Throws(CommonException::class)
     suspend fun handleRedirection(redirectUri: Uri?) : Boolean {
         val cookie = pendingOAuthCookie
@@ -183,6 +170,7 @@ class BackendService(
             return false
         }
         val error = goBackend.handleRedirection(cookie, urlString)
+        pendingOAuthCookie = null
         if (!error.isNullOrEmpty()) {
             throw CommonException(error)
         }
@@ -200,14 +188,21 @@ class BackendService(
     }
 
     @kotlin.jvm.Throws(CommonException::class, UnknownFormatException::class, SelectProfilesException::class)
-    suspend fun getConfig(instance: Instance, preferTcp: Boolean): String {
+    suspend fun getConfig(instance: Instance, preferTcp: Boolean): SerializedVpnConfig {
         val dataErrorTuple = goBackend.getProfiles(instance.authorizationType.toNativeServerType().nativeValue, instance.baseURI, preferTcp, false)
 
         if (dataErrorTuple.isError) {
             throw CommonException(dataErrorTuple.error)
         }
-        println(dataErrorTuple.data)
-        return dataErrorTuple.data ?: "no data"// serializerService.deserializeAddedServers(dataErrorTuple.data)
+        return serializerService.deserializeSerializedVpnConfig(dataErrorTuple.data)
+    }
+
+    @kotlin.jvm.Throws(CommonException::class)
+    fun selectProfile(profile: ProfileV3API) {
+        lastSelectedProfile = profile.profileId
+        val cookie = pendingProfileSelectionCookie ?: throw CommonException("Can't select profile without cookie!")
+        goBackend.selectProfile(cookie, profile.profileId)
+        pendingProfileSelectionCookie = null
     }
 }
 

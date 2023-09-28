@@ -104,8 +104,7 @@ class VPNConnectionService(
         val configName = FormattingUtils.formatProfileName(
             context,
             preferencesService.getCurrentInstance()!!,
-
-            Profile("TODO", TranslatableString(), null)// preferencesService.getCurrentProfile()!!
+            "TODO"
         )
         val channelID = Constants.VPN_CONNECTION_NOTIFICATION_CHANNEL_ID
 

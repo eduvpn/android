@@ -193,3 +193,10 @@ Java_org_eduvpn_common_GoBackend_getProfiles(JNIEnv *env, jobject /* this */, ji
     CookieDelete(cookie);
     return CreateDataErrorTuple(env, result.r0, result.r1);
 }
+extern "C" JNIEXPORT jstring JNICALL
+Java_org_eduvpn_common_GoBackend_selectProfile(JNIEnv *env, jobject /* this */, jint cookie, jstring profileId) {
+    const char *profileId_str = env->GetStringUTFChars(profileId, nullptr);
+    char *error = CookieReply((uintptr_t)cookie, (char *)profileId_str);
+    env->ReleaseStringUTFChars(profileId, profileId_str);
+    return NativeStringToJString(env, error);
+}
