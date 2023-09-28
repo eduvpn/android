@@ -10,6 +10,8 @@ set(NDK_GO_ARCH_MAP_arm64   "arm64")
 set(NDK_GO_ARCH_MAP_mips    "mipsx")
 set(NDK_GO_ARCH_MAP_mips64  "mips64x")
 
+set(GO_ARCH "${NDK_GO_ARCH_MAP_${ANDROID_ARCH_NAME}}")
+
 # The env var COMMON_VERSION comes from the build.gradle
 set(INTERMEDIARY_FILE "${CMAKE_CURRENT_SOURCE_DIR}/eduvpn-common/exports/lib/android/libeduvpn_common-${COMMON_VERSION}.so")
 set(OUTPUT_FILE "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libeduvpn_common-${COMMON_VERSION}.so")
