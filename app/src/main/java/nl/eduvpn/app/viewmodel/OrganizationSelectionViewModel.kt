@@ -124,7 +124,7 @@ class OrganizationSelectionViewModel @Inject constructor(
                     instituteAccessServers.value = emptyList()
                     secureInternetServers.value = emptyList()
                     state.value = ConnectionState.Ready
-                    parentAction.value = ParentAction.DisplayError(
+                    _parentAction.value = ParentAction.DisplayError(
                         R.string.error_server_list_version_check_title,
                         context.getString(R.string.error_server_list_version_check_message)
                     )
@@ -133,7 +133,7 @@ class OrganizationSelectionViewModel @Inject constructor(
                     instituteAccessServers.value = emptyList()
                     secureInternetServers.value = emptyList()
                     state.value = ConnectionState.Ready
-                    parentAction.value = ParentAction.DisplayError(
+                    _parentAction.value = ParentAction.DisplayError(
                         R.string.error_organization_list_version_check_title,
                         context.getString(R.string.error_organization_list_version_check_message)
                     )

@@ -6,6 +6,29 @@
 #include <android/log.h>
 #include "../../../libs/eduvpn-common/exports/lib/android/eduvpn_common.h"
 
+static JavaVM *globalVM;
+static jclass globalBackendClass;
+static jclass globalCallbackClass;
+
+
+bool GetJniEnv(JavaVM *vm, JNIEnv **env) {
+    bool did_attach_thread = false;
+    *env = nullptr;
+    // Check if the current thread is attached to the VM
+    auto get_env_result = vm->GetEnv((void**)env, JNI_VERSION_1_6);
+    if (get_env_result == JNI_EDETACHED) {
+        if (vm->AttachCurrentThread(env, NULL) == JNI_OK) {
+            did_attach_thread = true;
+        } else {
+            // Failed to attach thread. Throw an exception if you want to.
+        }
+    } else if (get_env_result == JNI_EVERSION) {
+        // Unsupported JNI version. Throw an exception if you want to.
+    }
+    return did_attach_thread;
+}
+
+
 void throwJavaException(JNIEnv *env, const char *msg)
 {
     // You can put your own exception here
@@ -31,24 +54,28 @@ jobject CreateDataErrorTuple(JNIEnv *env, char *data, char *error) {
     return object;
 }
 
-JNIEnv *globalEnv;
-
-
 void callGlobalCallback(int newstate, void *data) {
-
-    jclass backendCls = globalEnv->FindClass("org/eduvpn/common/GoBackend");
-    jfieldID callbackFieldId = globalEnv->GetStaticFieldID(backendCls, "callbackFunction", "Lorg/eduvpn/common/GoBackend$Callback;");
-
-    jobject callbackField = globalEnv->GetStaticObjectField(backendCls, callbackFieldId);
-    jclass callbackClass = globalEnv->FindClass("org/eduvpn/common/GoBackend$Callback");
-    jmethodID callbackFunction = globalEnv->GetMethodID(callbackClass, "onNewState", "(ILjava/lang/String;)V");
+    if (!globalVM) {
+        return;
+    }
+    JNIEnv *env;
+    bool didAttach = GetJniEnv(globalVM, &env);
+    jfieldID callbackFieldId = env->GetStaticFieldID(globalBackendClass, "callbackFunction",
+                                                     "Lorg/eduvpn/common/GoBackend$Callback;");
+    jobject callbackField = env->GetStaticObjectField(globalBackendClass, callbackFieldId);
+    jmethodID callbackFunction = env->GetMethodID(globalCallbackClass, "onNewState",
+                                                        "(ILjava/lang/String;)V");
     if (!data) {
-        globalEnv->CallVoidMethod(callbackField, callbackFunction, newstate, nullptr);
+        env->CallVoidMethod(callbackField, callbackFunction, newstate, nullptr);
     } else {
-        __android_log_print(ANDROID_LOG_ERROR, "NATIVECOMMON", "ERRORCallback: %d, data: %s\n", newstate, (char *)data);
-        jstring dataString = globalEnv->NewStringUTF((char *)data);
+        __android_log_print(ANDROID_LOG_ERROR, "NATIVECOMMON", "ERRORCallback: %d, data: %s\n",
+                            newstate, (char *) data);
+        jstring dataString = env->NewStringUTF((char *) data);
         // We do not call FreeString(...) here on data, because it is already done by the Common library.
-        globalEnv->CallVoidMethod(callbackField, callbackFunction, newstate, dataString);
+        env->CallVoidMethod(callbackField, callbackFunction, newstate, dataString);
+    }
+    if (didAttach) {
+        globalVM->DetachCurrentThread();
     }
 }
 
@@ -61,7 +88,7 @@ int createStateCallback(int oldstate, int newstate, void *data) {
 
 extern "C" JNIEXPORT jstring JNICALL
 Java_org_eduvpn_common_GoBackend_register(JNIEnv *env, jobject /* this */, jstring name, jstring version, jstring configDirectory, jboolean debug) {
-    globalEnv = env;
+    env->GetJavaVM(&globalVM);
     const char *name_str = env->GetStringUTFChars(name, nullptr);
     const char *version_str = env->GetStringUTFChars(version, nullptr);
 
@@ -69,6 +96,15 @@ Java_org_eduvpn_common_GoBackend_register(JNIEnv *env, jobject /* this */, jstri
     if (configDirectory != nullptr) {
             configDirectory_str = env->GetStringUTFChars(configDirectory, nullptr);
     }
+    // Set up callbacks
+
+    jclass backendCls = env->FindClass("org/eduvpn/common/GoBackend");
+
+    jclass callbackClass = env->FindClass("org/eduvpn/common/GoBackend$Callback");
+
+    globalCallbackClass = (jclass)env->NewGlobalRef(callbackClass);
+    globalBackendClass = (jclass)env->NewGlobalRef(backendCls);
+
     StateCB callbackFunction = createStateCallback;
     int debug_int = (int) debug;
     char *nativeResult;
@@ -120,5 +156,17 @@ Java_org_eduvpn_common_GoBackend_addServer(JNIEnv *env, jobject /* this */, jint
         FreeString(error);
         return nativeError;
     }
+    return nullptr;
+}
+
+extern "C" JNIEXPORT jstring JNICALL
+Java_org_eduvpn_common_GoBackend_handleRedirection(JNIEnv *env, jobject /* this */, jint cookie, jstring url) {
+    const char *url_str = env->GetStringUTFChars(url, nullptr);
+    __android_log_print(ANDROID_LOG_ERROR, "NATIVECOMMON", "Cookie reply called with data: %s", (char *)url_str);
+
+    char *error = CookieReply((uintptr_t)cookie, (char *)url_str);
+    //__android_log_print(ANDROID_LOG_ERROR, "NATIVECOMMON", "Error is: %s", (char *)error);
+    //env->ReleaseStringUTFChars(url, url_str);
+    //return NativeStringToJString(env, error);
     return nullptr;
 }

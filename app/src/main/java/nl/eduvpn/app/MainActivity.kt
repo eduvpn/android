@@ -103,7 +103,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         EduVPNApplication.get(this).component().inject(this)
         setSupportActionBar(binding.toolbar.toolbar)
         eduVPNOpenVPNService.onCreate(this)
-        println("YYYResult: " + backendService.register())
+        // TODO handle register error
+        println("Register result: " + backendService.register())
         if (savedInstanceState == null) {
             // If there's an ongoing VPN connection, open the status screen.
             if (vpnService.isPresent
@@ -156,20 +157,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        val authorizationResponse = AuthorizationResponse.fromIntent(intent)
-        val authorizationException = AuthorizationException.fromIntent(intent)
-        if (authorizationResponse == null && authorizationException == null) {
-            // Not a callback intent.
-            return
-        } else {
-            // Although this is sensitive info, we only log in this in debug builds.
-            Log.i(TAG, "Activity opened with URL: " + intent.data)
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP_MR1) {
-                if (referrer != null) {
-                    Log.i(TAG, "Opened from: " + referrer.toString())
-                }
-            }
-        }
+        backendService.handleRedirection(intent.data)
+/**
         if (authorizationException != null) {
             show(
                 this, R.string.authorization_error_title, getString(
@@ -184,10 +173,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             val currentFragment = supportFragmentManager.findFragmentById(R.id.content_frame)
 
             this.lifecycleScope.launch {
-                val parseResult = connectionService.parseAuthorizationResponse(
-                    authorizationResponse!!,
-                    authenticationDate
-                )
+
                 withContext(Dispatchers.Main) {
                     parseResult.onSuccess {
                         when (currentFragment) {
@@ -214,7 +200,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             ) {
                 openFragment(newInstance(true), false)
             }
-        }
+        }**/
     }
 
     override fun onDestroy() {

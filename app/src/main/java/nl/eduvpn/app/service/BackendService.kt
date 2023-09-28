@@ -1,6 +1,7 @@
 package nl.eduvpn.app.service
 
 import android.content.Context
+import android.net.Uri
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withTimeout
@@ -12,14 +13,15 @@ import org.eduvpn.common.CommonException
 import org.eduvpn.common.GoBackend
 import org.eduvpn.common.GoBackend.Callback
 import org.eduvpn.common.ServerType
-import org.eduvpn.common.StateCB
 import java.io.File
-import java.util.concurrent.TimeUnit
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
-class BackendService(private val context: Context) {
+class BackendService(
+    private val context: Context,
+    private val serializerService: SerializerService
+) {
 
     companion object {
         private const val DIRECTORY_BACKEND_CONFIG_FILES = "backend_config_files"
@@ -31,12 +33,15 @@ class BackendService(private val context: Context) {
     }
 
     enum class State(val nativeValue: Int) {
+        INITIAL(1),
         OAUTH_STARTED(6)
     }
 
     private val goBackend = GoBackend()
 
     private val internalStateListeners = mutableListOf<Callback>()
+
+    private var pendingOAuthCookie: Int? = null
 
     fun register(): String? {
         GoBackend.callbackFunction = Callback { newState, data ->
@@ -101,7 +106,7 @@ class BackendService(private val context: Context) {
 
     @kotlin.jvm.Throws(TimeoutCancellationException::class, CommonException::class)
     suspend fun addServer(instance: Instance) : String {
-        return suspendCoroutineWithTimeout { continuation ->
+        val jsonString = suspendCoroutineWithTimeout<String> { continuation ->
             internalStateListeners.add(object : Callback {
                 override fun onNewState(newState: Int, data: String?) {
                     if (newState == State.OAUTH_STARTED.nativeValue) {
@@ -111,6 +116,10 @@ class BackendService(private val context: Context) {
                             return
                         }
                         continuation.resume(data)
+                    } else if (newState == State.INITIAL.nativeValue) {
+                        internalStateListeners.remove(this)
+                        continuation.resumeWithException(CommonException("Could not connect to instance."))
+                        return
                     }
                 }
             })
@@ -119,6 +128,10 @@ class BackendService(private val context: Context) {
                 instance.baseURI
             )
         }
+        // Parse the JSON
+        val resultObject = serializerService.deserializeCookieAndData(jsonString)
+        pendingOAuthCookie = resultObject.cookie
+        return resultObject.data
     }
 
     private fun AuthorizationType.toNativeServerType(): ServerType {
@@ -133,6 +146,17 @@ class BackendService(private val context: Context) {
         crossinline block: (Continuation<T>) -> Unit
     ) = withTimeout(NATIVE_CALL_TIMEOUT_MILLISECONDS) {
         suspendCancellableCoroutine(block = block)
+    }
+
+    @kotlin.jvm.Throws(CommonException::class)
+    fun handleRedirection(redirectUri: Uri?) : Boolean {
+        val cookie = pendingOAuthCookie
+        val urlString = redirectUri?.toString()
+        if (cookie == null || redirectUri == null || urlString.isNullOrEmpty()) {
+            return false
+        }
+        System.out.println("Result from redirection: " + goBackend.handleRedirection(cookie, urlString));
+        return true
     }
 }
 

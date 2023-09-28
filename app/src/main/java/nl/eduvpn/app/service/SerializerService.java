@@ -39,6 +39,7 @@ import kotlin.Unit;
 import kotlinx.serialization.SerializationException;
 import kotlinx.serialization.json.Json;
 import kotlinx.serialization.json.JsonKt;
+import nl.eduvpn.app.entity.CookieAndData;
 import nl.eduvpn.app.entity.DiscoveredAPIs;
 import nl.eduvpn.app.entity.Instance;
 import nl.eduvpn.app.entity.JsonListWrapper;
@@ -517,6 +518,14 @@ public class SerializerService {
     public Protocol deserializeProtocol(String json) throws UnknownFormatException {
         try {
             return jsonSerializer.decodeFromString(Protocol.Companion.serializer(), json);
+        } catch (SerializationException ex) {
+            throw new UnknownFormatException(ex);
+        }
+    }
+
+    public CookieAndData deserializeCookieAndData(String json) throws UnknownFormatException {
+        try {
+            return jsonSerializer.decodeFromString(CookieAndData.Companion.serializer(), json);
         } catch (SerializationException ex) {
             throw new UnknownFormatException(ex);
         }

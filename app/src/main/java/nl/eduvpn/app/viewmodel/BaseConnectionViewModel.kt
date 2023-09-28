@@ -36,6 +36,7 @@ import nl.eduvpn.app.R
 import nl.eduvpn.app.entity.*
 import nl.eduvpn.app.entity.exception.EduVPNException
 import nl.eduvpn.app.entity.v3.Protocol
+import nl.eduvpn.app.livedata.toSingleEvent
 import nl.eduvpn.app.service.*
 import nl.eduvpn.app.utils.FormattingUtils
 import nl.eduvpn.app.utils.Log
@@ -80,28 +81,29 @@ abstract class BaseConnectionViewModel(
 
     val warning = MutableLiveData<String>()
 
-    val parentAction = MutableLiveData<ParentAction?>()
+    val _parentAction = MutableLiveData<ParentAction?>()
+    val parentAction = _parentAction.toSingleEvent()
 
     fun discoverApi(instance: Instance, reauthorize: Boolean = false) {
         // If no discovered API, fetch it first, then initiate the connection for the login
         connectionState.value = ConnectionState.DiscoveringApi
         // Discover the API
-        viewModelScope.launch(Dispatchers.Main) {
+        viewModelScope.launch(Dispatchers.IO) {
             runCatchingCoroutine {
                 backendService.addServer(instance)
             }.onSuccess { result ->
                 authorize(instance, result)
             }.onFailure { throwable ->
                 Log.e(TAG, "Error while fetching discovered API.", throwable)
-                connectionState.value = ConnectionState.Ready
-                parentAction.value = ParentAction.DisplayError(
+                connectionState.postValue(ConnectionState.Ready)
+                _parentAction.postValue(ParentAction.DisplayError(
                     R.string.error_dialog_title,
                     context.getString(
                         R.string.error_discover_api,
                         instance.sanitizedBaseURI,
                         throwable.toString()
                     )
-                )
+                ))
             }
         }
     }
@@ -218,7 +220,7 @@ abstract class BaseConnectionViewModel(
             )
         }
         preferencesService.setCurrentProfile(updatedProfile, protocol)
-        parentAction.value = ParentAction.ConnectWithConfig(vpnConfig)
+        _parentAction.value = ParentAction.ConnectWithConfig(vpnConfig)
         return Result.success(Unit)
     }
 
@@ -226,7 +228,7 @@ abstract class BaseConnectionViewModel(
         preferencesService.setCurrentProfileList(profiles)
         connectionState.value = ConnectionState.Ready
         return if (profiles.size > 1) {
-            parentAction.value = ParentAction.OpenProfileSelector(profiles)
+            _parentAction.value = ParentAction.OpenProfileSelector(profiles)
             Result.success(Unit)
         } else if (profiles.size == 1) {
             selectProfileToConnectTo(profiles[0])
@@ -250,7 +252,7 @@ abstract class BaseConnectionViewModel(
         val message = context.getString(resourceId, thr)
         Log.e(TAG, message, thr)
         connectionState.value = ConnectionState.Ready
-        parentAction.value = ParentAction.DisplayError(
+        _parentAction.value = ParentAction.DisplayError(
             R.string.error_dialog_title,
             message
         )
@@ -329,9 +331,8 @@ abstract class BaseConnectionViewModel(
     }
 
     private fun authorize(instance: Instance, authStringToOpen: String) {
-        connectionState.value = ConnectionState.Authorizing
-        parentAction.value = ParentAction.InitiateConnection(instance, authStringToOpen)
-        parentAction.value = null // Immediately reset it, so it is not triggered twice, when coming back to the activity.
+        connectionState.postValue(ConnectionState.Authorizing)
+        _parentAction.postValue(ParentAction.InitiateConnection(instance, authStringToOpen))
     }
 
     fun initiateConnection(activity: Activity) {
