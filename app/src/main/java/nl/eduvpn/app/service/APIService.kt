@@ -18,7 +18,6 @@ package nl.eduvpn.app.service
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import net.openid.appauth.AuthState
 import nl.eduvpn.app.utils.Log
 import nl.eduvpn.app.utils.await
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -32,43 +31,9 @@ import java.io.IOException
  * This service is responsible for fetching data from API endpoints.
  * Created by Daniel Zolnai on 2016-10-12.
  */
-class APIService(private val connectionService: ConnectionService, private val okHttpClient: OkHttpClient) {
+class APIService(private val okHttpClient: OkHttpClient) {
 
     class UserNotAuthorizedException : Exception()
-
-    /**
-     * Retrieves a resource as a string.
-     *
-     * @param url      The URL to get the resource from.
-     * @param authState If the access token should be used, provide a previous authorization state.
-     * @throws UserNotAuthorizedException
-     * @throws IOException
-     */
-    suspend fun getString(url: String, authState: AuthState?): String {
-        return createNetworkCall(authState) { accessToken ->
-            fetchString(url, accessToken)
-        }
-    }
-
-    /**
-     * Downloads a byte array resource.
-     *
-     * @param url      The URL as a string.
-     * @param authState If an auth token should be sent, include an auth state.
-     * @param data     The request data.
-     * @return Response with headers.
-     * @throws UserNotAuthorizedException
-     * @throws IOException
-     */
-    suspend fun postResource(
-        url: String,
-        data: String?,
-        authState: AuthState?
-    ): Pair<String, Map<String, List<String>>> {
-        return createNetworkCall(authState) { accessToken ->
-            fetchByteResource(url, data, accessToken)
-        }
-    }
 
     /**
      * Downloads a byte resource from a URL.
@@ -160,14 +125,6 @@ class APIService(private val connectionService: ConnectionService, private val o
                 throw IOException("Unsuccessful response with status code $statusCode: $responseString")
             }
             return responseString
-        }
-    }
-
-    private suspend fun <R> createNetworkCall(authState: AuthState?, networkFunction: suspend (String) -> R): R {
-        return if (authState != null) {
-            networkFunction(connectionService.getFreshAccessToken(authState))
-        } else {
-            networkFunction("")
         }
     }
 

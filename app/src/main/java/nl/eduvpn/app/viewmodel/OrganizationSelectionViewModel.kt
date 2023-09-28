@@ -36,7 +36,6 @@ import nl.eduvpn.app.entity.ServerList
 import nl.eduvpn.app.entity.TranslatableString
 import nl.eduvpn.app.service.APIService
 import nl.eduvpn.app.service.BackendService
-import nl.eduvpn.app.service.ConnectionService
 import nl.eduvpn.app.service.EduVPNOpenVPNService
 import nl.eduvpn.app.service.HistoryService
 import nl.eduvpn.app.service.OrganizationService
@@ -57,7 +56,6 @@ class OrganizationSelectionViewModel @Inject constructor(
     backendService: BackendService,
     serializerService: SerializerService,
     historyService: HistoryService,
-    connectionService: ConnectionService,
     eduVpnOpenVpnService: EduVPNOpenVPNService,
     vpnConnectionService: VPNConnectionService,
 ) : BaseConnectionViewModel(
@@ -67,7 +65,6 @@ class OrganizationSelectionViewModel @Inject constructor(
     serializerService,
     historyService,
     preferencesService,
-    connectionService,
     eduVpnOpenVpnService,
     vpnConnectionService,
 ) {

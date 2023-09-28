@@ -86,22 +86,13 @@ class ApplicationModule(private val application: EduVPNApplication) {
         return PreferencesService(context, serializerService)
     }
 
-    @Provides
-    @Singleton
-    fun provideConnectionService(
-        preferencesService: PreferencesService?, historyService: HistoryService?,
-        securityService: SecurityService?
-    ): ConnectionService {
-        return ConnectionService(preferencesService!!, historyService!!, securityService!!)
-    }
 
     @Provides
     @Singleton
     fun provideAPIService(
-        connectionService: ConnectionService,
         okHttpClient: OkHttpClient
     ): APIService {
-        return APIService(connectionService, okHttpClient)
+        return APIService(okHttpClient)
     }
 
     @Provides
@@ -177,8 +168,11 @@ class ApplicationModule(private val application: EduVPNApplication) {
 
     @Provides
     @Singleton
-    fun provideHistoryService(preferencesService: PreferencesService?): HistoryService {
-        return HistoryService(preferencesService!!)
+    fun provideHistoryService(
+        preferencesService: PreferencesService,
+        backendService: BackendService
+    ): HistoryService {
+        return HistoryService(preferencesService, backendService)
     }
 
     @Provides

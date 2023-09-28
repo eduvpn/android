@@ -30,7 +30,6 @@ class AddServerViewModel @Inject constructor(
     apiService: APIService,
     serializerService: SerializerService,
     historyService: HistoryService,
-    connectionService: ConnectionService,
     backendService: BackendService,
     eduVpnOpenVpnService: EduVPNOpenVPNService,
     vpnConnectionService: VPNConnectionService,
@@ -41,7 +40,6 @@ class AddServerViewModel @Inject constructor(
     serializerService,
     historyService,
     preferencesService,
-    connectionService,
     eduVpnOpenVpnService,
     vpnConnectionService,
 ) {

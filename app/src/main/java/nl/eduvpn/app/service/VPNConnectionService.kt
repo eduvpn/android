@@ -54,16 +54,11 @@ class VPNConnectionService(
             Log.e(TAG, "No instance available when trying to disconnect.")
             return
         }
-        val authState = historyService.getCachedAuthState(instance)?.first
         // We do not wait for the disconnect request to finish when disconnecting,
         // but when connecting again, a call to the API will wait for the disconnect to finish.
         GlobalScope.launch {
             runCatchingCoroutine {
-                apiService.postResource(
-                    discoveredAPI.disconnectEndpoint,
-                    null,
-                    authState
-                )
+                throw RuntimeException("Should be removed!")
             }.onSuccess {
                 Log.d(TAG, "Successfully send disconnect to server.")
             }.onFailure { thr ->

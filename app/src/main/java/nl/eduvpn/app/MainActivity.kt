@@ -29,22 +29,17 @@ import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import net.openid.appauth.AuthorizationException
-import net.openid.appauth.AuthorizationResponse
 import nl.eduvpn.app.base.BaseActivity
 import nl.eduvpn.app.databinding.ActivityMainBinding
 import nl.eduvpn.app.fragment.AddServerFragment
 import nl.eduvpn.app.fragment.ConnectionStatusFragment
 import nl.eduvpn.app.fragment.OrganizationSelectionFragment
 import nl.eduvpn.app.fragment.ServerSelectionFragment
-import nl.eduvpn.app.fragment.ServerSelectionFragment.Companion.newInstance
 import nl.eduvpn.app.service.BackendService
-import nl.eduvpn.app.service.ConnectionService
 import nl.eduvpn.app.service.EduVPNOpenVPNService
 import nl.eduvpn.app.service.HistoryService
 import nl.eduvpn.app.service.VPNService
 import nl.eduvpn.app.utils.ErrorDialog.show
-import nl.eduvpn.app.utils.Log
 import org.eduvpn.common.CommonException
 import java.util.*
 import javax.inject.Inject
@@ -65,9 +60,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
 
     @Inject
     protected lateinit var eduVPNOpenVPNService: EduVPNOpenVPNService
-
-    @Inject
-    protected lateinit var connectionService: ConnectionService
 
     @Inject
     protected lateinit var backendService: BackendService
@@ -102,18 +94,17 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         EduVPNApplication.get(this).component().inject(this)
+        println("Register result: " + backendService.register())
         setSupportActionBar(binding.toolbar.toolbar)
+        historyService.load()
         eduVPNOpenVPNService.onCreate(this)
         // TODO handle register error
-        println("Register result: " + backendService.register())
         if (savedInstanceState == null) {
             // If there's an ongoing VPN connection, open the status screen.
-            if (vpnService.isPresent
-                && vpnService.get().getStatus() != VPNService.VPNStatus.DISCONNECTED
-            ) {
+            if (vpnService.isPresent  && vpnService.get().getStatus() != VPNService.VPNStatus.DISCONNECTED) {
                 openFragment(ConnectionStatusFragment(), false)
-            } else if (historyService.savedAuthStateList.isNotEmpty()) {
-                openFragment(newInstance(false), false)
+            } else if (historyService.addedServers?.hasServers() == true) {
+                openFragment(ServerSelectionFragment.newInstance(false), false)
             } else if (BuildConfig.API_DISCOVERY_ENABLED) {
                 openFragment(OrganizationSelectionFragment(), false)
             } else {
@@ -136,19 +127,18 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         createVPNConnectionNotificationChannel()
     }
 
+    override fun onResume() {
+        super.onResume()
+        historyService.load()
+    }
+
     override fun onStart() {
-        connectionService.onStart(this)
         super.onStart()
         if (_parseIntentOnStart) {
             // The app might have been reopened from a URL.
             _parseIntentOnStart = false
             onNewIntent(intent)
         }
-    }
-
-    override fun onStop() {
-        super.onStop()
-        connectionService.onStop()
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -161,6 +151,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         this.lifecycleScope.launch(Dispatchers.IO) {
             try {
                 if (backendService.handleRedirection(intent.data)) {
+                    // Remove it so we don't parse it again.
+                    intent.data = null
                     val currentFragment =
                         supportFragmentManager.findFragmentById(R.id.content_frame)
                     withContext(Dispatchers.Main) {
@@ -180,7 +172,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                     if (currentFragment !is ConnectionStatusFragment
                         && currentFragment !is ServerSelectionFragment
                     ) {
-                        openFragment(newInstance(true), false)
+                        openFragment(ServerSelectionFragment.newInstance(true), false)
                     }
                 }
             } catch (ex: CommonException) {
@@ -195,8 +187,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                 )
             }
         }
-        // Remove it so we don't parse it again.
-        intent.data = null
     }
 
     override fun onDestroy() {

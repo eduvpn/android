@@ -39,15 +39,14 @@ import kotlin.Unit;
 import kotlinx.serialization.SerializationException;
 import kotlinx.serialization.json.Json;
 import kotlinx.serialization.json.JsonKt;
+import nl.eduvpn.app.entity.AddedServers;
 import nl.eduvpn.app.entity.CookieAndData;
 import nl.eduvpn.app.entity.DiscoveredAPIs;
 import nl.eduvpn.app.entity.Instance;
-import nl.eduvpn.app.entity.JsonListWrapper;
 import nl.eduvpn.app.entity.KeyPair;
 import nl.eduvpn.app.entity.Organization;
 import nl.eduvpn.app.entity.OrganizationList;
 import nl.eduvpn.app.entity.Profile;
-import nl.eduvpn.app.entity.SavedAuthState;
 import nl.eduvpn.app.entity.SavedKeyPair;
 import nl.eduvpn.app.entity.SavedKeyPairList;
 import nl.eduvpn.app.entity.ServerList;
@@ -199,38 +198,6 @@ public class SerializerService {
     public String serializeDiscoveredAPIs(DiscoveredAPIs discoveredAPI) throws UnknownFormatException {
         try {
             return jsonSerializer.encodeToString(WellKnown.Companion.serializer(), new WellKnown(discoveredAPI));
-        } catch (SerializationException ex) {
-            throw new UnknownFormatException(ex);
-        }
-    }
-
-    /**
-     * Serializes a list of saved authorization states.
-     *
-     * @param savedAuthStateList The list with the saved authorization states.
-     * @return The parsed list in a JSON format.
-     * @throws UnknownFormatException Thrown if there was an unexpected error.
-     */
-    public String serializeSavedAuthStateList(List<SavedAuthState> savedAuthStateList) throws UnknownFormatException {
-        try {
-            return jsonSerializer.encodeToString(JsonListWrapper.Companion.serializer(SavedAuthState.Companion
-                    .serializer()), new JsonListWrapper<SavedAuthState>(savedAuthStateList));
-        } catch (SerializationException ex) {
-            throw new UnknownFormatException(ex);
-        }
-    }
-
-    /**
-     * Deserializes a JSON containing the list of the saved access tokens.
-     *
-     * @param json The JSON containing the information.
-     * @return The list as a POJO.
-     * @throws UnknownFormatException Thrown if there was an error while deserializing.
-     */
-    public List<SavedAuthState> deserializeSavedAuthStateList(String json) throws UnknownFormatException {
-        try {
-            return jsonSerializer.decodeFromString(JsonListWrapper.Companion.serializer(SavedAuthState.Companion
-                    .serializer()), json).getData();
         } catch (SerializationException ex) {
             throw new UnknownFormatException(ex);
         }
@@ -526,6 +493,14 @@ public class SerializerService {
     public CookieAndData deserializeCookieAndData(String json) throws UnknownFormatException {
         try {
             return jsonSerializer.decodeFromString(CookieAndData.Companion.serializer(), json);
+        } catch (SerializationException ex) {
+            throw new UnknownFormatException(ex);
+        }
+    }
+
+    public AddedServers deserializeAddedServers(String json) throws UnknownFormatException {
+        try {
+            return jsonSerializer.decodeFromString(AddedServers.Companion.serializer(), json);
         } catch (SerializationException ex) {
             throw new UnknownFormatException(ex);
         }

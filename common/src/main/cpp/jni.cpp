@@ -150,10 +150,8 @@ extern "C" JNIEXPORT jstring JNICALL
 Java_org_eduvpn_common_GoBackend_addServer(JNIEnv *env, jobject /* this */, jint serverType, jstring id) {
     uintptr_t cookie = CookieNew();
     const char *id_str = env->GetStringUTFChars(id, nullptr);
-    __android_log_print(ANDROID_LOG_ERROR, "NATIVECOMMON", "Add server start");
     char *error = AddServer(cookie, (int)serverType, (char *)id_str, 0);
-    __android_log_print(ANDROID_LOG_ERROR, "NATIVECOMMON", "Add server end");
-
+    CookieDelete(cookie);
     // Do not delete the cookie, because it might be reused later in the flow
     env->ReleaseStringUTFChars(id, id_str);
     if (error != nullptr) {
@@ -167,9 +165,31 @@ Java_org_eduvpn_common_GoBackend_addServer(JNIEnv *env, jobject /* this */, jint
 extern "C" JNIEXPORT jstring JNICALL
 Java_org_eduvpn_common_GoBackend_handleRedirection(JNIEnv *env, jobject /* this */, jint cookie, jstring url) {
     const char *url_str = env->GetStringUTFChars(url, nullptr);
-    __android_log_print(ANDROID_LOG_ERROR, "NATIVECOMMON", "Cookie reply called with data: %i  %s", (uintptr_t)cookie, (char *)url_str);
     char *error = CookieReply((uintptr_t)cookie, (char *)url_str);
-    __android_log_print(ANDROID_LOG_ERROR, "NATIVECOMMON", "Error is: %s", (char *)error);
     env->ReleaseStringUTFChars(url, url_str);
+    __android_log_print(ANDROID_LOG_ERROR, "NATIVECOMMON", "Cookie reply: %d %s\n", cookie, url_str);
     return NativeStringToJString(env, error);
+}
+
+extern "C" JNIEXPORT jobject JNICALL
+Java_org_eduvpn_common_GoBackend_getAddedServers(JNIEnv *env, jobject /* this */) {
+    ServerList_return result = ServerList();
+    return CreateDataErrorTuple(env, result.r0, result.r1);
+}
+extern "C" JNIEXPORT jstring JNICALL
+Java_org_eduvpn_common_GoBackend_removeServer(JNIEnv *env, jobject /* this */, jint serverType, jstring id) {
+    const char *id_str = env->GetStringUTFChars(id, nullptr);
+    char *error = RemoveServer((int)serverType, (char *)id_str);
+    env->ReleaseStringUTFChars(id, id_str);
+    return NativeStringToJString(env, error);
+
+}
+extern "C" JNIEXPORT jobject JNICALL
+Java_org_eduvpn_common_GoBackend_getProfiles(JNIEnv *env, jobject /* this */, jint serverType, jstring id, jboolean preferTcp, jboolean isStartUp) {
+    const char *id_str = env->GetStringUTFChars(id, nullptr);
+    uintptr_t cookie = CookieNew();
+    GetConfig_return result = GetConfig(cookie, (int)serverType, (char *)id_str, (int)preferTcp, (int)isStartUp);
+    env->ReleaseStringUTFChars(id, id_str);
+    CookieDelete(cookie);
+    return CreateDataErrorTuple(env, result.r0, result.r1);
 }

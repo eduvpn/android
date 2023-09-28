@@ -1,5 +1,6 @@
 package nl.eduvpn.app.service
 
+import ProfileV3API
 import android.content.Context
 import android.net.Uri
 import android.provider.Settings.Global
@@ -12,8 +13,11 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withTimeout
 import nl.eduvpn.app.BuildConfig
+import nl.eduvpn.app.entity.AddedServers
 import nl.eduvpn.app.entity.AuthorizationType
 import nl.eduvpn.app.entity.Instance
+import nl.eduvpn.app.entity.Profile
+import nl.eduvpn.app.service.SerializerService.UnknownFormatException
 import nl.eduvpn.app.utils.Log
 import org.eduvpn.common.CommonException
 import org.eduvpn.common.GoBackend
@@ -120,10 +124,11 @@ class BackendService(
         // We need to launch the native addServer call in a separate thread, because it is blocking
         // until the actual redirect has been processed.
         GlobalScope.launch(Dispatchers.IO) {
-            goBackend.addServer(
+            val result = goBackend.addServer(
                 instance.authorizationType.toNativeServerType().nativeValue,
                 instance.baseURI
             )
+            println("ERROR result: $result")
         }
         val jsonString = suspendCoroutine<String> { continuation ->
             internalStateListeners.add(object : Callback {
@@ -149,6 +154,14 @@ class BackendService(
         val resultObject = serializerService.deserializeCookieAndData(jsonString)
         pendingOAuthCookie = resultObject.cookie
         return resultObject.data
+    }
+
+    @kotlin.jvm.Throws(CommonException::class)
+    fun removeServer(instance: Instance) {
+        val error = goBackend.removeServer(instance.authorizationType.toNativeServerType().nativeValue, instance.baseURI)
+        if (!error.isNullOrEmpty()) {
+            throw CommonException(error)
+        }
     }
 
     private fun AuthorizationType.toNativeServerType(): ServerType {
@@ -177,6 +190,26 @@ class BackendService(
             throw CommonException(error)
         }
         return true
+    }
+
+    @kotlin.jvm.Throws(CommonException::class, UnknownFormatException::class)
+    fun getAddedServers() : AddedServers {
+        val dataErrorTuple = goBackend.addedServers
+        if (dataErrorTuple.isError) {
+            throw CommonException(dataErrorTuple.error)
+        }
+        println("ADDEDSERVERS: " + dataErrorTuple.data)
+        return serializerService.deserializeAddedServers(dataErrorTuple.data)
+    }
+
+    @kotlin.jvm.Throws(CommonException::class, UnknownFormatException::class)
+    fun getProfiles(instance: Instance, preferTcp: Boolean): List<ProfileV3API> {
+        val dataErrorTuple = goBackend.getProfiles(instance.authorizationType.toNativeServerType().nativeValue, instance.baseURI, preferTcp, false)
+        if (dataErrorTuple.isError) {
+            throw CommonException(dataErrorTuple.error)
+        }
+        println(dataErrorTuple.data)
+        return emptyList()// serializerService.deserializeAddedServers(dataErrorTuple.data)
     }
 }
 

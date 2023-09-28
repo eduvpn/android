@@ -50,6 +50,7 @@ class ServerSelectionFragment : BaseFragment<FragmentServerSelectionBinding>() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        viewModel.refreshAddedServers()
         val adapter = OrganizationAdapter {
             val countryList = viewModel.requestCountryList()
             if (countryList == null) {
@@ -102,10 +103,10 @@ class ServerSelectionFragment : BaseFragment<FragmentServerSelectionBinding>() {
             val item = adapter.getItem(position)
             if (item is OrganizationAdapter.OrganizationAdapterItem.SecureInternet) {
                 viewModel.connectingTo.value = item.server
-                viewModel.discoverApi(item.server)
+                viewModel.getProfiles(item.server)
             } else if (item is OrganizationAdapter.OrganizationAdapterItem.InstituteAccess) {
                 viewModel.connectingTo.value = item.server
-                viewModel.discoverApi(item.server)
+                viewModel.getProfiles(item.server)
             }
         }.setOnItemLongClickListener { _, position, _ ->
             val item = adapter.getItem(position)

@@ -28,7 +28,6 @@ class ProfileSelectionViewModel @Inject constructor(
     serializerService: SerializerService,
     historyService: HistoryService,
     preferencesService: PreferencesService,
-    connectionService: ConnectionService,
     backendService: BackendService,
     eduVpnOpenVpnService: EduVPNOpenVPNService,
     vpnConnectionService: VPNConnectionService,
@@ -39,7 +38,6 @@ class ProfileSelectionViewModel @Inject constructor(
     serializerService,
     historyService,
     preferencesService,
-    connectionService,
     eduVpnOpenVpnService,
     vpnConnectionService,
 )

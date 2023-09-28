@@ -17,8 +17,11 @@
 
 package nl.eduvpn.app.fragment
 
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.view.View
+import androidx.browser.customtabs.CustomTabsIntent
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.DefaultItemAnimator
@@ -123,11 +126,9 @@ class OrganizationSelectionFragment : BaseFragment<FragmentOrganizationSelection
                 is BaseConnectionViewModel.ParentAction.InitiateConnection -> {
                     activity?.let { activity ->
                         if (!activity.isFinishing) {
-                            viewModel.initiateConnection(
-                                activity,
-                                parentAction.instance,
-                                parentAction.authStringToOpen
-                            )
+                            // TODO make it work with custom tabs
+                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(parentAction.authStringToOpen))
+                            activity.startActivity(intent)
                         }
                     }
                 }

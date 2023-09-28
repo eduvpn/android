@@ -27,11 +27,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.wireguard.config.BadConfigException
 import com.wireguard.config.Config
+import com.wireguard.crypto.KeyPair
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import net.openid.appauth.AuthState
-import nl.eduvpn.app.Constants
 import nl.eduvpn.app.R
 import nl.eduvpn.app.entity.*
 import nl.eduvpn.app.entity.exception.EduVPNException
@@ -62,7 +61,6 @@ abstract class BaseConnectionViewModel(
     private val serializerService: SerializerService,
     private val historyService: HistoryService,
     private val preferencesService: PreferencesService,
-    private val connectionService: ConnectionService,
     private val eduVpnOpenVpnService: EduVPNOpenVPNService,
     private val vpnConnectionService: VPNConnectionService,
 ) : ViewModel() {
@@ -84,7 +82,7 @@ abstract class BaseConnectionViewModel(
     val _parentAction = MutableLiveData<ParentAction?>()
     val parentAction = _parentAction.toSingleEvent()
 
-    fun discoverApi(instance: Instance, reauthorize: Boolean = false) {
+    fun discoverApi(instance: Instance) {
         // If no discovered API, fetch it first, then initiate the connection for the login
         connectionState.value = ConnectionState.DiscoveringApi
         // Discover the API
@@ -108,16 +106,10 @@ abstract class BaseConnectionViewModel(
         }
     }
 
-    private suspend fun getSupportedProfilesV3(
-        instance: Instance,
-        discoveredAPI: DiscoveredAPIV3,
-        authState: AuthState
+    public fun getProfiles(
+        instance: Instance
     ): Result<List<Profile>> {
-        val apiProfiles = fetchProfilesV3(
-            instance,
-            discoveredAPI,
-            authState
-        ).getOrElse { return Result.failure(it) }
+        val apiProfiles = backendService.getProfiles(instance, false) // TODO get settings
         val supportedProfiles =
             apiProfiles.mapNotNull { profile ->
                 val supportedProtocols = profile.vpnProtocolList
@@ -145,14 +137,15 @@ abstract class BaseConnectionViewModel(
 
     private suspend fun connectToProfileV3(
         instance: Instance, discoveredAPI: DiscoveredAPIV3,
-        profile: Profile, authState: AuthState
+        profile: Profile
     ): Result<Unit> {
         connectionState.value = ConnectionState.ProfileDownloadingKeyPair
+        /**
         val (protocol, configString, expireDate) = runCatchingCoroutine {
+            /**
             val keyPair = com.wireguard.crypto.KeyPair()
             val (protocol, configString, expireDate) = fetchProfileConfiguration(
                 discoveredAPI,
-                authState,
                 profile,
                 preferencesService.getAppSettings().forceTcp(),
                 keyPair
@@ -181,7 +174,7 @@ abstract class BaseConnectionViewModel(
                         throwable
                     )
                 }
-            )
+            )**/
         }
 
         val updatedProfile = profile.copy(expiry = expireDate?.time)
@@ -220,10 +213,14 @@ abstract class BaseConnectionViewModel(
             )
         }
         preferencesService.setCurrentProfile(updatedProfile, protocol)
-        _parentAction.value = ParentAction.ConnectWithConfig(vpnConfig)
+        _parentAction.value = ParentAction.ConnectWithConfig(vpnConfig)**/
         return Result.success(Unit)
     }
 
+    public fun selectProfileToConnectTo(profile: Profile) : Result<Unit> {
+        // TODO
+        return Result.failure(Throwable())
+    }
     private suspend fun selectProfile(profiles: List<Profile>): Result<Unit> {
         preferencesService.setCurrentProfileList(profiles)
         connectionState.value = ConnectionState.Ready
@@ -259,34 +256,6 @@ abstract class BaseConnectionViewModel(
         return Result.failure(thr ?: RuntimeException(message))
     }
 
-    /**
-     * Downloads the list of profiles for a single VPN provider.
-     *
-     * @param instance      The VPN provider instance.
-     * @param discoveredAPI The discovered API containing the URLs.
-     * @param authState     The access and refresh token for the API.
-     */
-    private suspend fun fetchProfilesV3(
-        instance: Instance,
-        discoveredAPI: DiscoveredAPIV3,
-        authState: AuthState
-    ): Result<List<ProfileV3API>> {
-        connectionState.value = ConnectionState.FetchingProfiles
-        return runCatchingCoroutine {
-            apiService.getString(discoveredAPI.infoEndpoint, authState)
-        }.onFailure { throwable ->
-            Log.e(TAG, "Error fetching profile list.", throwable)
-            // It is highly probable that the auth state is not valid anymore.
-            // todo: do not reauthorize on server error, i.e. response code 500
-            // TODO fix this authorize(instance, discoveredAPI)
-        }.flatMap { result ->
-            try {
-                Result.success(serializerService.deserializeInfo(result).info.profileList)
-            } catch (ex: SerializerService.UnknownFormatException) {
-                showError(ex, R.string.error_parsing_profiles)
-            }
-        }
-    }
 
     private fun getExpiryFromHeaders(headers: Map<String, List<String>>): Date? {
         return headers["Expires"]
@@ -303,76 +272,10 @@ abstract class BaseConnectionViewModel(
             }
     }
 
-    private suspend fun fetchProfileConfiguration(
-        discoveredAPI: DiscoveredAPIV3,
-        authState: AuthState,
-        profile: Profile,
-        tcpOnly: Boolean,
-        keyPair: WGKeyPair,
-    ): Triple<Protocol, String, Date?> {
-        val tcpOnlyString = if (tcpOnly) {
-            "on"
-        } else {
-            "off"
-        }
-        val base64PublicKey = URLEncoder.encode(keyPair.publicKey.toBase64(), Charsets.UTF_8.name())
-        val urlEncodedProfileId = URLEncoder.encode(profile.profileId, Charsets.UTF_8.name())
-        val (configString, headers) = apiService.postResource(
-            discoveredAPI.connectEndpoint,
-            "profile_id=${urlEncodedProfileId}&public_key=${base64PublicKey}&tcp_only=${tcpOnlyString}",
-            authState
-        )
-        val protocolHeader = headers["Content-Type"]
-            ?.let { hl: List<String> -> hl.firstOrNull() }
-            ?: throw IOException("Could not determine protocol, missing Content-Type header")
-        val protocol = Protocol.fromContentType(protocolHeader)
-            ?: throw IOException("Unsupported protocol: $protocolHeader")
-        return Triple(protocol, configString, getExpiryFromHeaders(headers))
-    }
 
     private fun authorize(instance: Instance, authStringToOpen: String) {
         connectionState.postValue(ConnectionState.Authorizing)
         _parentAction.postValue(ParentAction.InitiateConnection(instance, authStringToOpen))
-    }
-
-    fun initiateConnection(activity: Activity) {
-        viewModelScope.launch {
-            /** TODO
-            connectionService.initiateConnection(
-                activity,
-                preferencesService.getCurrentInstance()!!,
-                preferencesService.getCurrentDiscoveredAPI()!!
-            )**/
-        }
-    }
-
-    fun initiateConnection(activity: Activity, instance: Instance, authStringToOpen: String) {
-        viewModelScope.launch {
-            connectionService.initiateConnection(activity, instance, authStringToOpen)
-        }
-    }
-
-    suspend fun selectProfileToConnectTo(profile: Profile): Result<Unit> {
-        // We surely have a discovered API and access token, since we just loaded the list with them
-        val instance = preferencesService.getCurrentInstance()
-        val authState = historyService.getCachedAuthState(instance!!)?.first
-        val discoveredAPI = preferencesService.getCurrentDiscoveredAPI()
-        if (authState == null || discoveredAPI == null) {
-            Log.e(
-                TAG,
-                "Unable to connect. Auth state OK: ${authState != null}, discovered API OK: ${discoveredAPI != null}"
-            )
-            connectionState.value = ConnectionState.Ready
-            return Result.failure(
-                EduVPNException(
-                    R.string.unexpected_error,
-                    R.string.cant_connect_application_state_missing
-                )
-            )
-        }
-        preferencesService.setCurrentProfile(profile, null)
-        preferencesService.setCurrentAuthState(authState)
-        return connectToProfileV3(instance, discoveredAPI, profile, authState)
     }
 
     fun disconnectWithCall(vpnService: VPNService) {

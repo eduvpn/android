@@ -37,7 +37,7 @@ android {
         buildConfigField "String", "CERTIFICATE_DISPLAY_NAME", "\"eduVPN for Android\""
 
         manifestPlaceholders = [
-                'appAuthRedirectScheme': 'org.eduvpn.app'
+                'redirectScheme': 'org.eduvpn.app'
         ]
         missingDimensionStrategy 'implementation', 'ui' // Skeleton is no option for us because we need the log activity
 
@@ -98,7 +98,7 @@ android {
             buildConfigField "String", "CERTIFICATE_DISPLAY_NAME", "\"Let's Connect! for Android\""
 
             manifestPlaceholders = [
-                    'appAuthRedirectScheme': 'org.letsconnect-vpn.app'
+                    'redirectScheme': 'org.letsconnect-vpn.app'
             ]
         }
     }
@@ -148,8 +148,6 @@ dependencies {
     implementation project(path: ':ics-openvpn-main')
     // WireGuard VPN library
     implementation 'com.wireguard.android:tunnel:1.0.20211029'
-    // OAuth2 client
-    implementation project(path: ':appauth')
     // eduVPN common library
     implementation project(path: ':common')
     // Please try to stay in sync with the versions used in the ics-openvpn module

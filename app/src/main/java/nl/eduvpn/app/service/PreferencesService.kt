@@ -23,7 +23,6 @@ import android.content.Context
 import android.content.SharedPreferences
 import android.os.Build
 import androidx.annotation.VisibleForTesting
-import net.openid.appauth.AuthState
 import nl.eduvpn.app.BuildConfig
 import nl.eduvpn.app.Constants
 import nl.eduvpn.app.entity.*
@@ -316,21 +315,6 @@ class PreferencesService(
     }
 
     /**
-     * Saves the authorization state for further usage.
-     *
-     * @param authState The access token and refresh token to use for the VPN provider API.
-     */
-    fun setCurrentAuthState(authState: AuthState?) {
-        val editor = getSharedPreferences().edit()
-        if (authState == null) {
-            editor.remove(KEY_AUTH_STATE)
-        } else {
-            editor.putString(KEY_AUTH_STATE, authState.jsonSerializeString())
-        }
-        editor.apply()
-    }
-
-    /**
      * Returns the saved app settings, or the default settings if none found.
      *
      * @return True if the user does not want to use Custom Tabs. Otherwise false.
@@ -409,40 +393,6 @@ class PreferencesService(
         } catch (ex: SerializerService.UnknownFormatException) {
             Log.e(TAG, "Unable to deserialize saved discovered API", ex)
             null
-        }
-    }
-
-    /**
-     * Returns a previously saved list of saved authorization states.
-     *
-     * @return The saved list, or null if not exists.
-     */
-    fun getSavedAuthStateList(): List<SavedAuthState>? {
-        val serializedSavedAuthStateList = getSharedPreferences().getString(
-            KEY_SAVED_AUTH_STATES, null
-        )
-            ?: return null
-        return try {
-            _serializerService.deserializeSavedAuthStateList(serializedSavedAuthStateList)
-        } catch (ex: SerializerService.UnknownFormatException) {
-            Log.e(TAG, "Unable to deserialize saved auth state list", ex)
-            null
-        }
-    }
-
-    /**
-     * Stores a saved token list.
-     *
-     * @param savedAuthStateList The list to save.
-     */
-    fun storeSavedAuthStateList(savedAuthStateList: List<SavedAuthState>) {
-        try {
-            val serializedSavedAuthStateList =
-                _serializerService.serializeSavedAuthStateList(savedAuthStateList)
-            getSharedPreferences().edit()
-                .putString(KEY_SAVED_AUTH_STATES, serializedSavedAuthStateList).apply()
-        } catch (ex: SerializerService.UnknownFormatException) {
-            Log.e(TAG, "Can not save saved token list.", ex)
         }
     }
 

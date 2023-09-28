@@ -286,7 +286,7 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
     private fun initiateConnection() {
         activity?.let { activity ->
             if (!activity.isFinishing) {
-                viewModel.initiateConnection(activity)
+                throw RuntimeException("Should be removed!")
             }
         }
     }

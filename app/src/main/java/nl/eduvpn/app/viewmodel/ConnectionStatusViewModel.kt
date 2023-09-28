@@ -52,7 +52,6 @@ class ConnectionStatusViewModel @Inject constructor(
     apiService: APIService,
     backendService: BackendService,
     serializerService: SerializerService,
-    connectionService: ConnectionService,
     vpnConnectionService: VPNConnectionService,
 ) : BaseConnectionViewModel(
     context,
@@ -61,7 +60,6 @@ class ConnectionStatusViewModel @Inject constructor(
     serializerService,
     historyService,
     preferencesService,
-    connectionService,
     eduVPNOpenVPNService,
     vpnConnectionService,
 ) {
@@ -117,7 +115,7 @@ class ConnectionStatusViewModel @Inject constructor(
         }
 
         val authenticationDate =
-            historyService.getCachedAuthState(preferencesService.getCurrentInstance()!!)?.second
+            historyService.getAuthenticationDateForCurrentInstance()
         canRenew = if (authenticationDate == null) {
             MutableLiveData(true)
         } else {
@@ -168,7 +166,7 @@ class ConnectionStatusViewModel @Inject constructor(
     }
 
     fun renewSession() {
-        discoverApi(preferencesService.getCurrentInstance()!!, true)
+        discoverApi(preferencesService.getCurrentInstance()!!)
     }
 
     fun reconnectToInstance() {

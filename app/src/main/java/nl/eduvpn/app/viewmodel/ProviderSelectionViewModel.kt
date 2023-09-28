@@ -31,7 +31,6 @@ class ProviderSelectionViewModel @Inject constructor(
     backendService: BackendService,
     historyService: HistoryService,
     private val preferencesService: PreferencesService,
-    connectionService: ConnectionService,
     eduVpnOpenVpnService: EduVPNOpenVPNService,
     vpnConnectionService: VPNConnectionService,
 ) : BaseConnectionViewModel(
@@ -41,13 +40,12 @@ class ProviderSelectionViewModel @Inject constructor(
     serializerService,
     historyService,
     preferencesService,
-    connectionService,
     eduVpnOpenVpnService,
     vpnConnectionService,
 ) {
 
     val currentOrganization = MutableLiveData<Organization?>()
-    val isLoadingInstances = MutableLiveData<Boolean>(true)
+    val isLoadingInstances = MutableLiveData(true)
 
     init {
         setCurrentOrganization(preferencesService.getCurrentOrganization())

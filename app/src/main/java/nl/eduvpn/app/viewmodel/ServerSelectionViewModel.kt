@@ -30,7 +30,6 @@ import nl.eduvpn.app.entity.Instance
 import nl.eduvpn.app.entity.ServerList
 import nl.eduvpn.app.service.APIService
 import nl.eduvpn.app.service.BackendService
-import nl.eduvpn.app.service.ConnectionService
 import nl.eduvpn.app.service.EduVPNOpenVPNService
 import nl.eduvpn.app.service.HistoryService
 import nl.eduvpn.app.service.OrganizationService
@@ -50,7 +49,6 @@ class ServerSelectionViewModel @Inject constructor(
     backendService: BackendService,
     private val historyService: HistoryService,
     private val preferencesService: PreferencesService,
-    connectionService: ConnectionService,
     eduVpnOpenVpnService: EduVPNOpenVPNService,
     private val organizationService: OrganizationService,
     vpnConnectionService: VPNConnectionService,
@@ -61,7 +59,6 @@ class ServerSelectionViewModel @Inject constructor(
     serializerService,
     historyService,
     preferencesService,
-    connectionService,
     eduVpnOpenVpnService,
     vpnConnectionService,
 ), Listener {
@@ -91,7 +88,7 @@ class ServerSelectionViewModel @Inject constructor(
     }
 
     private fun refresh() {
-        val needsServerList = historyService.savedAuthStateList.any { it.instance.authorizationType == AuthorizationType.Distributed }
+        val needsServerList = historyService.addedServers?.secureInternetServer != null
         if (needsServerList && (serverListCache.value == null || System.currentTimeMillis() - serverListCache.value!!.first > SERVER_LIST_CACHE_TTL)) {
             refreshServerList()
         } else {
@@ -127,7 +124,7 @@ class ServerSelectionViewModel @Inject constructor(
      * Refreshes the instances for the server selector.
      */
     private fun refreshInstances(serverList: ServerList) {
-        val savedInstances = historyService.savedAuthStateList.map { it.instance }
+        val savedInstances = historyService.addedServers?.asInstances() ?: emptyList()
         val distributedInstance = savedInstances.firstOrNull { it.authorizationType == AuthorizationType.Distributed }
         val customServers = savedInstances.filter { it.authorizationType == AuthorizationType.Local && it.isCustom }.sortedBy { it.sanitizedBaseURI }
         val instituteAccessItems = savedInstances.filter { it.authorizationType == AuthorizationType.Local && !it.isCustom }.sortedBy {
@@ -178,7 +175,11 @@ class ServerSelectionViewModel @Inject constructor(
     }
 
     fun hasNoMoreServers(): Boolean {
-        return historyService.savedAuthStateList.isNullOrEmpty()
+        return historyService.addedServers?.hasServers() != true
+    }
+
+    fun refreshAddedServers() {
+        historyService.load()
     }
 
     companion object {
