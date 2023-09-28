@@ -2,7 +2,13 @@ package nl.eduvpn.app.service
 
 import android.content.Context
 import android.net.Uri
+import android.provider.Settings.Global
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withTimeout
 import nl.eduvpn.app.BuildConfig
@@ -15,8 +21,10 @@ import org.eduvpn.common.GoBackend.Callback
 import org.eduvpn.common.ServerType
 import java.io.File
 import kotlin.coroutines.Continuation
+import kotlin.coroutines.coroutineContext
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
+import kotlin.coroutines.suspendCoroutine
 
 class BackendService(
     private val context: Context,
@@ -45,7 +53,12 @@ class BackendService(
 
     fun register(): String? {
         GoBackend.callbackFunction = Callback { newState, data ->
-            internalStateListeners.forEach { it.onNewState(newState, data) }
+            internalStateListeners.forEach {
+                if (it.onNewState(newState, data)) {
+                    return@Callback true
+                }
+            }
+            false
         }
         val version = "${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})"
         var configFilesDir: String? = null
@@ -64,8 +77,6 @@ class BackendService(
         } catch (ex: Exception) {
             Log.e(TAG, "Could not create files dir for Go backend", ex)
         }
-
-        // TODO do we need statecb?
         return goBackend.register(
             BuildConfig.OAUTH_CLIENT_ID,
             version,
@@ -104,29 +115,35 @@ class BackendService(
         return dataWithError.data!!
     }
 
-    @kotlin.jvm.Throws(TimeoutCancellationException::class, CommonException::class)
+    @kotlin.jvm.Throws(CommonException::class)
     suspend fun addServer(instance: Instance) : String {
-        val jsonString = suspendCoroutineWithTimeout<String> { continuation ->
-            internalStateListeners.add(object : Callback {
-                override fun onNewState(newState: Int, data: String?) {
-                    if (newState == State.OAUTH_STARTED.nativeValue) {
-                        internalStateListeners.remove(this)
-                        if (data.isNullOrEmpty()) {
-                            continuation.resumeWithException(CommonException(ERROR_EMPTY_RESPONSE))
-                            return
-                        }
-                        continuation.resume(data)
-                    } else if (newState == State.INITIAL.nativeValue) {
-                        internalStateListeners.remove(this)
-                        continuation.resumeWithException(CommonException("Could not connect to instance."))
-                        return
-                    }
-                }
-            })
+        // We need to launch the native addServer call in a separate thread, because it is blocking
+        // until the actual redirect has been processed.
+        GlobalScope.launch(Dispatchers.IO) {
             goBackend.addServer(
                 instance.authorizationType.toNativeServerType().nativeValue,
                 instance.baseURI
             )
+        }
+        val jsonString = suspendCoroutine<String> { continuation ->
+            internalStateListeners.add(object : Callback {
+                override fun onNewState(newState: Int, data: String?): Boolean {
+                    if (newState == State.OAUTH_STARTED.nativeValue) {
+                        internalStateListeners.remove(this)
+                        if (data.isNullOrEmpty()) {
+                            continuation.resumeWithException(CommonException(ERROR_EMPTY_RESPONSE))
+                            return true
+                        }
+                        continuation.resume(data)
+                        return true
+                    } else if (newState == State.INITIAL.nativeValue) {
+                        internalStateListeners.remove(this)
+                        continuation.resumeWithException(CommonException("Could not connect to instance."))
+                        return true
+                    }
+                    return false
+                }
+            })
         }
         // Parse the JSON
         val resultObject = serializerService.deserializeCookieAndData(jsonString)
@@ -149,13 +166,16 @@ class BackendService(
     }
 
     @kotlin.jvm.Throws(CommonException::class)
-    fun handleRedirection(redirectUri: Uri?) : Boolean {
+    suspend fun handleRedirection(redirectUri: Uri?) : Boolean {
         val cookie = pendingOAuthCookie
         val urlString = redirectUri?.toString()
         if (cookie == null || redirectUri == null || urlString.isNullOrEmpty()) {
             return false
         }
-        System.out.println("Result from redirection: " + goBackend.handleRedirection(cookie, urlString));
+        val error = goBackend.handleRedirection(cookie, urlString)
+        if (!error.isNullOrEmpty()) {
+            throw CommonException(error)
+        }
         return true
     }
 }

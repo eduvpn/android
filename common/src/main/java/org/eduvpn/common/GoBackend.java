@@ -6,7 +6,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class GoBackend {
     public interface Callback {
-        void onNewState(int newState, @Nullable String data);
+        boolean onNewState(int newState, @Nullable String data);
     }
 
     public static Callback callbackFunction = null;

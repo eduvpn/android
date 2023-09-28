@@ -45,6 +45,7 @@ import nl.eduvpn.app.service.HistoryService
 import nl.eduvpn.app.service.VPNService
 import nl.eduvpn.app.utils.ErrorDialog.show
 import nl.eduvpn.app.utils.Log
+import org.eduvpn.common.CommonException
 import java.util.*
 import javax.inject.Inject
 
@@ -157,25 +158,12 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        backendService.handleRedirection(intent.data)
-/**
-        if (authorizationException != null) {
-            show(
-                this, R.string.authorization_error_title, getString(
-                    R.string.authorization_error_message,
-                    authorizationException.error,
-                    authorizationException.code,
-                    authorizationException.message
-                )
-            )
-        } else {
-            val authenticationDate = Date()
-            val currentFragment = supportFragmentManager.findFragmentById(R.id.content_frame)
-
-            this.lifecycleScope.launch {
-
-                withContext(Dispatchers.Main) {
-                    parseResult.onSuccess {
+        this.lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                if (backendService.handleRedirection(intent.data)) {
+                    val currentFragment =
+                        supportFragmentManager.findFragmentById(R.id.content_frame)
+                    withContext(Dispatchers.Main) {
                         when (currentFragment) {
                             is ServerSelectionFragment -> currentFragment.connectToSelectedInstance()
                             is OrganizationSelectionFragment -> {
@@ -185,22 +173,30 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                                     Toast.LENGTH_LONG
                                 ).show()
                             }
+
                             is ConnectionStatusFragment -> currentFragment.reconnectToInstance()
                         }
-                    }.onFailure { thr ->
-                        show(this@MainActivity, thr)
+                    }
+                    if (currentFragment !is ConnectionStatusFragment
+                        && currentFragment !is ServerSelectionFragment
+                    ) {
+                        openFragment(newInstance(true), false)
                     }
                 }
+            } catch (ex: CommonException) {
+                // TODO improve errors
+                show(
+                    this@MainActivity, R.string.authorization_error_title, getString(
+                        R.string.authorization_error_message,
+                        ex.javaClass.simpleName,
+                        0,
+                        ex.message
+                    )
+                )
             }
-
-            // Remove it so we don't parse it again.
-            intent.data = null
-            if (currentFragment !is ConnectionStatusFragment
-                && currentFragment !is ServerSelectionFragment
-            ) {
-                openFragment(newInstance(true), false)
-            }
-        }**/
+        }
+        // Remove it so we don't parse it again.
+        intent.data = null
     }
 
     override fun onDestroy() {

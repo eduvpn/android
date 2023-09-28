@@ -17,7 +17,7 @@ bool GetJniEnv(JavaVM *vm, JNIEnv **env) {
     // Check if the current thread is attached to the VM
     auto get_env_result = vm->GetEnv((void**)env, JNI_VERSION_1_6);
     if (get_env_result == JNI_EDETACHED) {
-        if (vm->AttachCurrentThread(env, NULL) == JNI_OK) {
+        if (vm->AttachCurrentThread(env, nullptr) == JNI_OK) {
             did_attach_thread = true;
         } else {
             // Failed to attach thread. Throw an exception if you want to.
@@ -54,36 +54,38 @@ jobject CreateDataErrorTuple(JNIEnv *env, char *data, char *error) {
     return object;
 }
 
-void callGlobalCallback(int newstate, void *data) {
+int callGlobalCallback(int newstate, void *data) {
     if (!globalVM) {
-        return;
+        return 0;
     }
     JNIEnv *env;
     bool didAttach = GetJniEnv(globalVM, &env);
     jfieldID callbackFieldId = env->GetStaticFieldID(globalBackendClass, "callbackFunction",
                                                      "Lorg/eduvpn/common/GoBackend$Callback;");
     jobject callbackField = env->GetStaticObjectField(globalBackendClass, callbackFieldId);
-    jmethodID callbackFunction = env->GetMethodID(globalCallbackClass, "onNewState",
-                                                        "(ILjava/lang/String;)V");
+    jmethodID callbackFunction = env->GetMethodID(globalCallbackClass, "onNewState", "(ILjava/lang/String;)Z");
+
+    jboolean didHandle;
+
     if (!data) {
-        env->CallVoidMethod(callbackField, callbackFunction, newstate, nullptr);
+        didHandle = env->CallBooleanMethod(callbackField, callbackFunction, newstate, nullptr);
     } else {
         __android_log_print(ANDROID_LOG_ERROR, "NATIVECOMMON", "ERRORCallback: %d, data: %s\n",
                             newstate, (char *) data);
         jstring dataString = env->NewStringUTF((char *) data);
         // We do not call FreeString(...) here on data, because it is already done by the Common library.
-        env->CallVoidMethod(callbackField, callbackFunction, newstate, dataString);
+        didHandle = env->CallBooleanMethod(callbackField, callbackFunction, newstate, dataString);
     }
     if (didAttach) {
         globalVM->DetachCurrentThread();
     }
+    return didHandle ? 1 : 0;
 }
 
 // Implement a function that matches the StateCB signature
 int createStateCallback(int oldstate, int newstate, void *data) {
     __android_log_print(ANDROID_LOG_ERROR, "NATIVECOMMON", "Callback called with oldstate: %d, newstate: %d, data: %s\n", oldstate, newstate, (char *)data);
-    callGlobalCallback(newstate, data);
-    return 0;  // Return an example value
+    return callGlobalCallback(newstate, data);
 }
 
 extern "C" JNIEXPORT jstring JNICALL
@@ -148,8 +150,11 @@ extern "C" JNIEXPORT jstring JNICALL
 Java_org_eduvpn_common_GoBackend_addServer(JNIEnv *env, jobject /* this */, jint serverType, jstring id) {
     uintptr_t cookie = CookieNew();
     const char *id_str = env->GetStringUTFChars(id, nullptr);
+    __android_log_print(ANDROID_LOG_ERROR, "NATIVECOMMON", "Add server start");
     char *error = AddServer(cookie, (int)serverType, (char *)id_str, 0);
-    CookieDelete(cookie);
+    __android_log_print(ANDROID_LOG_ERROR, "NATIVECOMMON", "Add server end");
+
+    // Do not delete the cookie, because it might be reused later in the flow
     env->ReleaseStringUTFChars(id, id_str);
     if (error != nullptr) {
         jstring nativeError = env->NewStringUTF(error);
@@ -162,11 +167,9 @@ Java_org_eduvpn_common_GoBackend_addServer(JNIEnv *env, jobject /* this */, jint
 extern "C" JNIEXPORT jstring JNICALL
 Java_org_eduvpn_common_GoBackend_handleRedirection(JNIEnv *env, jobject /* this */, jint cookie, jstring url) {
     const char *url_str = env->GetStringUTFChars(url, nullptr);
-    __android_log_print(ANDROID_LOG_ERROR, "NATIVECOMMON", "Cookie reply called with data: %s", (char *)url_str);
-
+    __android_log_print(ANDROID_LOG_ERROR, "NATIVECOMMON", "Cookie reply called with data: %i  %s", (uintptr_t)cookie, (char *)url_str);
     char *error = CookieReply((uintptr_t)cookie, (char *)url_str);
-    //__android_log_print(ANDROID_LOG_ERROR, "NATIVECOMMON", "Error is: %s", (char *)error);
-    //env->ReleaseStringUTFChars(url, url_str);
-    //return NativeStringToJString(env, error);
-    return nullptr;
+    __android_log_print(ANDROID_LOG_ERROR, "NATIVECOMMON", "Error is: %s", (char *)error);
+    env->ReleaseStringUTFChars(url, url_str);
+    return NativeStringToJString(env, error);
 }
