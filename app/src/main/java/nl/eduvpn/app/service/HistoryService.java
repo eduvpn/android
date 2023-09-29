@@ -29,6 +29,7 @@ import java.util.ListIterator;
 
 import nl.eduvpn.app.entity.AddedServers;
 import nl.eduvpn.app.entity.AuthorizationType;
+import nl.eduvpn.app.entity.CurrentServer;
 import nl.eduvpn.app.entity.Instance;
 import nl.eduvpn.app.entity.Organization;
 import nl.eduvpn.app.entity.SavedKeyPair;
@@ -46,7 +47,6 @@ public class HistoryService {
     private List<SavedKeyPair> _savedKeyPairList = new ArrayList<>();
 
     private AddedServers _addedServers = null;
-
     private final PreferencesService _preferencesService;
 
     private final BackendService _backendService;
@@ -174,6 +174,10 @@ public class HistoryService {
 
             }
         }
+    }
+
+    public CurrentServer getCurrentServer() {
+        return _backendService.getCurrentServer();
     }
 
     /**

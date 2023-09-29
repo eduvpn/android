@@ -21,6 +21,7 @@ import static kotlinx.serialization.builtins.BuiltinSerializersKt.ListSerializer
 
 import androidx.annotation.NonNull;
 
+import org.jetbrains.annotations.NotNull;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -42,6 +43,7 @@ import kotlinx.serialization.json.JsonKt;
 import nl.eduvpn.app.entity.AddedServers;
 import nl.eduvpn.app.entity.CookieAndProfileMapData;
 import nl.eduvpn.app.entity.CookieAndStringData;
+import nl.eduvpn.app.entity.CurrentServer;
 import nl.eduvpn.app.entity.DiscoveredAPIs;
 import nl.eduvpn.app.entity.Instance;
 import nl.eduvpn.app.entity.KeyPair;
@@ -504,6 +506,14 @@ public class SerializerService {
     public SerializedVpnConfig deserializeSerializedVpnConfig(String json) throws UnknownFormatException {
         try {
             return jsonSerializer.decodeFromString(SerializedVpnConfig.Companion.serializer(), json);
+        } catch (SerializationException ex) {
+            throw new UnknownFormatException(ex);
+        }
+    }
+
+    public CurrentServer deserializeCurrentServer(@NotNull String json) throws UnknownFormatException {
+        try {
+            return jsonSerializer.decodeFromString(CurrentServer.Companion.serializer(), json);
         } catch (SerializationException ex) {
             throw new UnknownFormatException(ex);
         }

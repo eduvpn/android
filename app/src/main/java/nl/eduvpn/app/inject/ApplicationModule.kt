@@ -69,11 +69,15 @@ class ApplicationModule(private val application: EduVPNApplication) {
 
     @Provides
     @Singleton
-    fun provideBackendService(context: Context,
-                              serializerService: SerializerService) : BackendService {
+    fun provideBackendService(
+        context: Context,
+        serializerService: SerializerService,
+        preferencesService: PreferencesService
+    ) : BackendService {
         return BackendService(
             context,
-            serializerService
+            serializerService,
+            preferencesService
         )
     }
 

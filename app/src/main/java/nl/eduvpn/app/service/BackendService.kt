@@ -5,6 +5,7 @@ import android.net.Uri
 import nl.eduvpn.app.BuildConfig
 import nl.eduvpn.app.entity.AddedServers
 import nl.eduvpn.app.entity.AuthorizationType
+import nl.eduvpn.app.entity.CurrentServer
 import nl.eduvpn.app.entity.Instance
 import nl.eduvpn.app.entity.Profile
 import nl.eduvpn.app.entity.SerializedVpnConfig
@@ -25,7 +26,8 @@ import kotlin.coroutines.suspendCoroutine
 
 class BackendService(
     private val context: Context,
-    private val serializerService: SerializerService
+    private val serializerService: SerializerService,
+    private val preferencesService: PreferencesService
 ) {
 
     companion object {
@@ -51,34 +53,52 @@ class BackendService(
         selectProfiles: (List<ProfileV3API>) -> Unit,
         showError: (Throwable) -> Unit
     ): String? {
-        GoBackend.callbackFunction = Callback { newState, data ->
-            return@Callback if (newState == State.OAUTH_STARTED.nativeValue) {
-                if (data.isNullOrEmpty()) {
-                    showError(CommonException(ERROR_EMPTY_RESPONSE))
-                    return@Callback true
+        GoBackend.callbackFunction = object : Callback {
+
+            // The library wants to get a token from our internal storage
+            override fun getToken(serverJson: String): String? {
+                // Find out the serverId
+                val parsedServer = serializerService.deserializeCurrentServer(serverJson)
+                return preferencesService.getToken(parsedServer.getUniqueId())
+            }
+
+            // The library wants to save a token in our internal storage
+            override fun setToken(serverJson: String, token: String?) {
+                // Find out the serverId
+                val parsedServer = serializerService.deserializeCurrentServer(serverJson)
+                preferencesService.setToken(parsedServer.getUniqueId(), token)
+            }
+            // Called when the native state machine changes
+            override fun onNewState(newState: Int, data: String?): Boolean {
+                return if (newState == State.OAUTH_STARTED.nativeValue) {
+                    if (data.isNullOrEmpty()) {
+                        showError(CommonException(ERROR_EMPTY_RESPONSE))
+                        return true
+                    }
+                    val cookieAndData = serializerService.deserializeCookieAndStringData(data)
+                    pendingOAuthCookie = cookieAndData.cookie
+                    startOAuth(cookieAndData.data)
+                    true
+                } else if (newState == State.ASK_PROFILE.nativeValue) {
+                    if (data.isNullOrEmpty()) {
+                        showError(CommonException(ERROR_EMPTY_RESPONSE))
+                        return true
+                    }
+                    val cookieAndData =
+                        serializerService.deserializeCookieAndCookieAndProfileListData(data)
+                    pendingProfileSelectionCookie = cookieAndData.cookie
+                    selectProfiles(cookieAndData.getProfileList())
+                    true
+                } else if (newState == State.OAUTH_STARTED.nativeValue) {
+                    if (data.isNullOrEmpty()) {
+                        showError(CommonException(ERROR_EMPTY_RESPONSE))
+                        return true
+                    }
+                    startOAuth(data)
+                    true
+                } else {
+                    false
                 }
-                val cookieAndData = serializerService.deserializeCookieAndStringData(data)
-                pendingOAuthCookie = cookieAndData.cookie
-                startOAuth(cookieAndData.data)
-                true
-            } else if (newState == State.ASK_PROFILE.nativeValue) {
-                if (data.isNullOrEmpty()) {
-                    showError(CommonException(ERROR_EMPTY_RESPONSE))
-                    return@Callback true
-                }
-                val cookieAndData = serializerService.deserializeCookieAndCookieAndProfileListData(data)
-                pendingProfileSelectionCookie = cookieAndData.cookie
-                selectProfiles(cookieAndData.getProfileList())
-                true
-            } else if (newState == State.OAUTH_STARTED.nativeValue) {
-                if (data.isNullOrEmpty()) {
-                    showError(CommonException(ERROR_EMPTY_RESPONSE))
-                    return@Callback true
-                }
-                startOAuth(data)
-                true
-            } else {
-                false
             }
         }
         val version = "${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})"
@@ -203,6 +223,18 @@ class BackendService(
         val cookie = pendingProfileSelectionCookie ?: throw CommonException("Can't select profile without cookie!")
         goBackend.selectProfile(cookie, profile.profileId)
         pendingProfileSelectionCookie = null
+    }
+    fun getCurrentServer() : CurrentServer? {
+        val dataErrorTuple = goBackend.currentServer
+        if (dataErrorTuple.isError) {
+            Log.e(TAG, "Unable to determine current server!", CommonException(dataErrorTuple.error))
+            return null
+        }
+        return if (dataErrorTuple.data.isNullOrEmpty()) {
+            null
+        } else {
+            serializerService.deserializeCurrentServer(dataErrorTuple.data!!)
+        }
     }
 }
 

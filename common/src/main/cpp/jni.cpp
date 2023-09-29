@@ -28,14 +28,6 @@ bool GetJniEnv(JavaVM *vm, JNIEnv **env) {
     return did_attach_thread;
 }
 
-
-void throwJavaException(JNIEnv *env, const char *msg)
-{
-    // You can put your own exception here
-    jclass c = env->FindClass("java/lang/NullPointerException");
-    env->ThrowNew(c, msg);
-}
-
 jstring NativeStringToJString(JNIEnv *env, char *nativeString) {
     if (nativeString == nullptr) {
         return nullptr;
@@ -88,6 +80,52 @@ int createStateCallback(int oldstate, int newstate, void *data) {
     return callGlobalCallback(newstate, data);
 }
 
+void getToken(const char* server, char* out, size_t len) {
+    // TODO remove before release
+    __android_log_print(ANDROID_LOG_ERROR, "NATIVECOMMON", "GET TOKEN FOR SERVER: %s", server);
+    if (!globalVM) {
+        return;
+    }
+    JNIEnv *env;
+    bool didAttach = GetJniEnv(globalVM, &env);
+    jfieldID callbackFieldId = env->GetStaticFieldID(globalBackendClass, "callbackFunction","Lorg/eduvpn/common/GoBackend$Callback;");
+    jobject callbackField = env->GetStaticObjectField(globalBackendClass, callbackFieldId);
+    jmethodID getTokenFunction = env->GetMethodID(globalCallbackClass, "getToken", "(Ljava/lang/String;)Ljava/lang/String;");
+    jstring server_jstring = env->NewStringUTF(server);
+     jobject result = env->CallObjectMethod(callbackField, getTokenFunction, server_jstring);
+    env->DeleteLocalRef(server_jstring);
+    if (result != nullptr) {
+        char *result_str = (char *)env->GetStringUTFChars((jstring)result, nullptr);
+        strncpy(out, result_str, len);
+        env->ReleaseStringUTFChars((jstring)result, result_str);
+    }
+    if (didAttach) {
+        globalVM->DetachCurrentThread();
+    }
+    __android_log_print(ANDROID_LOG_ERROR, "NATIVECOMMON", "end of method");
+}
+void setToken(const char* server, const char* tokens) {
+    // TODO remove before release
+    __android_log_print(ANDROID_LOG_ERROR, "NATIVECOMMON", "SET TOKEN FOR SERVER: %s token: %s", server, tokens);
+    if (!globalVM) {
+        return;
+    }
+    JNIEnv *env;
+    bool didAttach = GetJniEnv(globalVM, &env);
+    jfieldID callbackFieldId = env->GetStaticFieldID(globalBackendClass, "callbackFunction","Lorg/eduvpn/common/GoBackend$Callback;");
+    jobject callbackField = env->GetStaticObjectField(globalBackendClass, callbackFieldId);
+    jmethodID getTokenFunction = env->GetMethodID(globalCallbackClass, "setToken", "(Ljava/lang/String;Ljava/lang/String;)V");
+    jstring server_jstring = env->NewStringUTF(server);
+    jstring tokens_jstring = env->NewStringUTF(tokens);
+    env->CallVoidMethod(callbackField, getTokenFunction, server_jstring, tokens_jstring);
+    env->DeleteLocalRef(server_jstring);
+    env->DeleteLocalRef(tokens_jstring);
+    if (didAttach) {
+        globalVM->DetachCurrentThread();
+    }
+}
+
+
 extern "C" JNIEXPORT jstring JNICALL
 Java_org_eduvpn_common_GoBackend_register(JNIEnv *env, jobject /* this */, jstring name, jstring version, jstring configDirectory, jboolean debug) {
     env->GetJavaVM(&globalVM);
@@ -99,9 +137,7 @@ Java_org_eduvpn_common_GoBackend_register(JNIEnv *env, jobject /* this */, jstri
             configDirectory_str = env->GetStringUTFChars(configDirectory, nullptr);
     }
     // Set up callbacks
-
     jclass backendCls = env->FindClass("org/eduvpn/common/GoBackend");
-
     jclass callbackClass = env->FindClass("org/eduvpn/common/GoBackend$Callback");
 
     globalCallbackClass = (jclass)env->NewGlobalRef(callbackClass);
@@ -109,18 +145,18 @@ Java_org_eduvpn_common_GoBackend_register(JNIEnv *env, jobject /* this */, jstri
 
     StateCB callbackFunction = createStateCallback;
     int debug_int = (int) debug;
-    char *nativeResult;
-    try {
-        nativeResult = Register(
-                (char *) name_str,
-                (char *) version_str,
-                (char *) configDirectory_str,
-                callbackFunction,
-                debug_int
+    char *nativeResult = Register(
+            (char *) name_str,
+            (char *) version_str,
+            (char *) configDirectory_str,
+            callbackFunction,
+            debug_int
+    );
+    if (nativeResult == nullptr) {
+        nativeResult = SetTokenHandler(
+        getToken,
+        setToken
         );
-    } catch (const std::exception& ex)
-    {
-        throwJavaException(env, ex.what());
     }
     env->ReleaseStringUTFChars(name, name_str);
     env->ReleaseStringUTFChars(version, version_str);
@@ -199,4 +235,10 @@ Java_org_eduvpn_common_GoBackend_selectProfile(JNIEnv *env, jobject /* this */, 
     char *error = CookieReply((uintptr_t)cookie, (char *)profileId_str);
     env->ReleaseStringUTFChars(profileId, profileId_str);
     return NativeStringToJString(env, error);
+}
+extern "C"
+JNIEXPORT jobject JNICALL
+Java_org_eduvpn_common_GoBackend_getCurrentServer(JNIEnv *env, jobject thiz) {
+    CurrentServer_return result = CurrentServer();
+    return CreateDataErrorTuple(env, result.r0, result.r1);
 }

@@ -23,6 +23,8 @@ import android.content.Context
 import android.content.SharedPreferences
 import android.os.Build
 import androidx.annotation.VisibleForTesting
+import androidx.security.crypto.EncryptedSharedPreferences
+import androidx.security.crypto.MasterKey
 import nl.eduvpn.app.BuildConfig
 import nl.eduvpn.app.Constants
 import nl.eduvpn.app.entity.*
@@ -32,6 +34,7 @@ import org.json.JSONException
 import org.json.JSONObject
 import java.io.File
 import java.io.IOException
+
 
 /**
  * This service is used to save temporary data
@@ -48,16 +51,16 @@ class PreferencesService(
     companion object {
         private val TAG = PreferencesService::class.simpleName
 
-        private const val STORAGE_VERSION = 4
+        private const val STORAGE_VERSION = 5
 
-        private const val KEY_PREFERENCES_NAME = "app_preferences"
+        private const val KEY_OLD_PREFERENCES_NAME = "app_preferences"
+        private const val KEY_SECURE_PREFERENCES_NAME = "secure_app_preferences"
 
-        private const val KEY_AUTH_STATE = "auth_state"
         private const val KEY_APP_SETTINGS = "app_settings"
+        private const val KEY_PREFIX_SERVER_TOKEN = "server_token_"
 
         const val KEY_ORGANIZATION = "organization"
         const val KEY_INSTANCE = "instance"
-        const val KEY_PROFILE = "profile"
         const val KEY_VPN_PROTOCOL = "vpn_protocol"
         const val KEY_PROFILE_LIST = "profile_list"
         const val KEY_DISCOVERED_API = "discovered_api"
@@ -86,22 +89,36 @@ class PreferencesService(
     }
 
     private val _serializerService: SerializerService = serializerService
-    private val _sharedPreferences: SharedPreferences =
-        applicationContext.getSharedPreferences(KEY_PREFERENCES_NAME, Context.MODE_PRIVATE)
+
+    private val securePreferences: SharedPreferences
 
     init {
-        migrateIfNeeded(_sharedPreferences, applicationContext)
+        val insecurePreferences: SharedPreferences =
+            applicationContext.getSharedPreferences(KEY_OLD_PREFERENCES_NAME, Context.MODE_PRIVATE)
+        val masterKey = MasterKey.Builder(applicationContext)
+            .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+            .build()
+
+        securePreferences = EncryptedSharedPreferences.create(
+            applicationContext,
+            KEY_SECURE_PREFERENCES_NAME,
+            masterKey,
+            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+        )
+        migrateIfNeeded(insecurePreferences, securePreferences, applicationContext)
     }
 
     @SuppressLint("ApplySharedPref")
     @VisibleForTesting
     fun migrateIfNeeded(
-        newPreferences: SharedPreferences,
+        insecurePreferences: SharedPreferences,
+        securePreferences: SharedPreferences,
         applicationContext: Context,
     ) {
-        val version = newPreferences.getInt(KEY_STORAGE_VERSION, 1)
+        val version = insecurePreferences.getInt(KEY_STORAGE_VERSION, 1)
         if (version < 3) {
-            val editor = newPreferences.edit()
+            val editor = insecurePreferences.edit()
             @Suppress("DEPRECATION")
             editor.remove(KEY_INSTANCE_LIST_SECURE_INTERNET)
             @Suppress("DEPRECATION")
@@ -128,16 +145,26 @@ class PreferencesService(
                     try {
                         file.delete()
                     } catch (e: IOException) {
-
                     }
                 }
             }
 
-            val editor = newPreferences.edit()
+            val editor = insecurePreferences.edit()
             editor.putInt(KEY_STORAGE_VERSION, STORAGE_VERSION)
             editor.commit()
             if (Constants.DEBUG) {
                 Log.d(TAG, "Migrated over to storage version v4.")
+            }
+        }
+        if (version < 5) {
+            securePreferences.edit()
+                .putInt(KEY_STORAGE_VERSION, 5)
+                .putString(KEY_APP_SETTINGS, insecurePreferences.getString(KEY_APP_SETTINGS, null))
+                .apply()
+            // Remove everything else
+            insecurePreferences.edit().clear().commit()
+            if (Constants.DEBUG) {
+                Log.d(TAG, "Migrated over to storage version v5.")
             }
         }
     }
@@ -149,7 +176,7 @@ class PreferencesService(
      */
     @VisibleForTesting
     fun getSharedPreferences(): SharedPreferences {
-        return _sharedPreferences
+        return securePreferences
     }
 
     /**
@@ -159,7 +186,10 @@ class PreferencesService(
     @SuppressLint("ApplySharedPref")
     @VisibleForTesting
     fun clearPreferences() {
-        _sharedPreferences.edit().clear().putInt(KEY_STORAGE_VERSION, 2).commit()
+        securePreferences.edit()
+            .clear()
+            .putInt(KEY_STORAGE_VERSION, STORAGE_VERSION)
+            .commit()
     }
 
     /**
@@ -547,5 +577,17 @@ class PreferencesService(
 
     fun getCurrentProtocol(): Int {
         return getSharedPreferences().getInt(KEY_VPN_PROTOCOL, Protocol.Unknown.nativeValue)
+    }
+
+    fun getToken(serverId: String): String? {
+        return getSharedPreferences().getString(KEY_PREFIX_SERVER_TOKEN + serverId, null)
+    }
+
+    fun setToken(serverId: String, token: String?) {
+        if (token.isNullOrEmpty()) {
+            getSharedPreferences().edit().remove(KEY_PREFIX_SERVER_TOKEN + serverId).apply()
+        } else {
+            getSharedPreferences().edit().putString(KEY_PREFIX_SERVER_TOKEN + serverId, token).apply()
+        }
     }
 }

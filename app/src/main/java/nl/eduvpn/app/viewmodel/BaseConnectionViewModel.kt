@@ -79,6 +79,7 @@ abstract class BaseConnectionViewModel(
         // Discover the API
         viewModelScope.launch(Dispatchers.IO) {
             runCatchingCoroutine {
+                preferencesService.setCurrentInstance(instance)
                 backendService.addServer(instance)
             }.onSuccess {
                 getProfiles(instance)
@@ -100,6 +101,7 @@ abstract class BaseConnectionViewModel(
     fun getProfiles(instance: Instance) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
+                preferencesService.setCurrentInstance(instance)
                 val result = backendService.getConfig(instance, false)
                 val vpnConfig = parseConfig(instance, backendService.lastSelectedProfile, result)
                 preferencesService.setCurrentProtocol(result.protocol)

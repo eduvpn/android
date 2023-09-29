@@ -9,6 +9,9 @@ public class GoBackend {
 
     public interface Callback {
         boolean onNewState(int newState, @Nullable String data);
+
+        @Nullable String getToken(@NonNull String serverId);
+        void setToken(@NonNull String serverId, @Nullable String token);
     }
 
     public static Callback callbackFunction = null;
@@ -39,5 +42,7 @@ public class GoBackend {
     public native @Nullable String handleRedirection(int cookie, @NotNull String url);
 
     public native @Nullable String selectProfile(int cookie, @NotNull String profileId);
+
+    public native DataErrorTuple getCurrentServer();
 
 }
