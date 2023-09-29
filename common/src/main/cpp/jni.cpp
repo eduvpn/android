@@ -4,7 +4,7 @@
 #include <jni.h>
 #include <string>
 #include <android/log.h>
-#include "../../../libs/eduvpn-common/exports/lib/android/eduvpn_common.h"
+#include "eduvpn_common.h"
 
 static JavaVM *globalVM;
 static jclass globalBackendClass;

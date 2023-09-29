@@ -10,11 +10,15 @@ set(NDK_GO_ARCH_MAP_arm64   "arm64")
 set(NDK_GO_ARCH_MAP_mips    "mipsx")
 set(NDK_GO_ARCH_MAP_mips64  "mips64x")
 
-set(GOARCH "${NDK_GO_ARCH_MAP_${ANDROID_ARCH_NAME}}")
+set(GO_OS    "android")
+set(GO_ARCH  "${NDK_GO_ARCH_MAP_${ANDROID_ARCH_NAME}}")
 
 # The env var COMMON_VERSION comes from the build.gradle
-set(INTERMEDIARY_FILE "${CMAKE_CURRENT_SOURCE_DIR}/eduvpn-common/exports/lib/android/${GOARCH}/libeduvpn_common-${COMMON_VERSION}.so")
+set(INTERMEDIARY_DIR "${CMAKE_CURRENT_SOURCE_DIR}/eduvpn-common/exports/lib/${GO_OS}/${GO_ARCH}")
+set(INTERMEDIARY_HEADER "${INTERMEDIARY_DIR}/eduvpn_common.h")
+set(INTERMEDIARY_FILE "${INTERMEDIARY_DIR}/libeduvpn_common-${COMMON_VERSION}.so")
 set(OUTPUT_FILE "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libeduvpn_common-${COMMON_VERSION}.so")
+set(OUTPUT_HEADER "${CMAKE_CURRENT_SOURCE_DIR}/../src/main/cpp/eduvpn_common.h")
 
 find_program(MAKE_EXECUTABLE
     NAMES gmake mingw32-make make
@@ -30,7 +34,7 @@ add_custom_command(
         COMMENT "Building shared library for ${ANDROID_LLVM_TRIPLE}"
         VERBATIM
         COMMAND ${MAKE_EXECUTABLE}
-        GOOS=android GOARCH=${GOARCH}
+        GOOS=${GO_OS} GOARCH=${GO_ARCH}
         CC=${ANDROID_C_COMPILER} CXX=${ANDROID_CXX_COMPILER}
         CGO_CPPFLAGS=--target=${ANDROID_LLVM_TRIPLE} CGO_CFLAGS=${CMAKE_C_FLAGS} CGO_CXXFLAGS=${CMAKE_CXX_FLAGS}
         CGO_LDFLAGS=${CMAKE_SHARED_LINKER_FLAGS}\ --target=${ANDROID_LLVM_TRIPLE}
@@ -40,6 +44,7 @@ add_custom_command(
         OUTPUT ${OUTPUT_FILE}
         DEPENDS ${INTERMEDIARY_FILE}
         COMMAND cp ${INTERMEDIARY_FILE} ${OUTPUT_FILE}
+        COMMAND cp ${INTERMEDIARY_HEADER} ${OUTPUT_HEADER}
 )
 # Set the output file on the target
 add_custom_target(libeduvpn_common DEPENDS ${OUTPUT_FILE})

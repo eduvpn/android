@@ -6,3 +6,4 @@
 /.idea
 /captures
 *.apk
+common/src/main/cpp/eduvpn_common.h
