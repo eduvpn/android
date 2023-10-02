@@ -63,10 +63,6 @@ class AddServerFragment : BaseFragment<FragmentAddServerBinding>() {
         }
         viewModel.parentAction.observe(viewLifecycleOwner) { parentAction ->
             when (parentAction) {
-                is BaseConnectionViewModel.ParentAction.ConnectWithConfig -> {
-                    viewModel.connectionToConfig(requireActivity(), parentAction.vpnConfig)
-                    (activity as? MainActivity)?.openFragment(ConnectionStatusFragment(), false)
-                }
                 is BaseConnectionViewModel.ParentAction.DisplayError -> {
                     ErrorDialog.show(requireContext(), parentAction.title, parentAction.message)
                 }

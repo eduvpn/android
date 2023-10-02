@@ -60,7 +60,6 @@ abstract class BaseConnectionViewModel(
     sealed class ParentAction {
         data class DisplayError(@StringRes val title: Int, val message: String) : ParentAction()
         data class OpenProfileSelector(val profiles: List<ProfileV3API>) : ParentAction()
-        data class ConnectWithConfig(val vpnConfig: VPNConfig) : ParentAction()
     }
 
     val connectionState =
@@ -68,7 +67,7 @@ abstract class BaseConnectionViewModel(
 
     val warning = MutableLiveData<String>()
 
-    protected val _parentAction = MutableLiveData<ParentAction?>()
+    public val _parentAction = MutableLiveData<ParentAction?>()
     val parentAction = _parentAction.toSingleEvent()
 
     fun discoverApi(instance: Instance) {
@@ -98,36 +97,8 @@ abstract class BaseConnectionViewModel(
 
     fun getProfiles(instance: Instance) {
         viewModelScope.launch(Dispatchers.IO) {
-            try {
-                preferencesService.setCurrentInstance(instance)
-                val result = backendService.getConfig(instance, false)
-                val vpnConfig = parseConfig(instance, backendService.lastSelectedProfile, result)
-                preferencesService.setCurrentProtocol(result.protocol)
-                _parentAction.postValue(ParentAction.ConnectWithConfig(vpnConfig))
-            } catch (ex: Exception) {
-                _parentAction.postValue(ParentAction.DisplayError(R.string.error_downloading_vpn_config, ex.toString()))
-            }
-        }
-    }
-
-    @Throws(IllegalArgumentException::class)
-    private fun parseConfig(instance: Instance, lastSelectedProfileId: String?, result: SerializedVpnConfig): VPNConfig {
-        return if (result.protocol == Protocol.OpenVPN.nativeValue) {
-            val configName = FormattingUtils.formatProfileName(
-                context,
-                instance,
-                lastSelectedProfileId
-            )
-            eduVpnOpenVpnService.importConfig(
-                result.config,
-                configName,
-            )?.let {
-                VPNConfig.OpenVPN(it)
-            } ?:  throw IllegalArgumentException("Unable to parse profile")
-        } else if (result.protocol == Protocol.WireGuard.nativeValue) {
-            return VPNConfig.WireGuard(Config.parse(BufferedReader(StringReader(result.config))))
-        } else {
-            throw IllegalArgumentException("Unexpected protocol type: ${result.protocol}")
+            preferencesService.setCurrentInstance(instance)
+            backendService.getConfig(instance, false)
         }
     }
 
@@ -179,11 +150,6 @@ abstract class BaseConnectionViewModel(
 
     fun getProfileInstance(): Instance {
         return preferencesService.getCurrentInstance()!!
-    }
-
-    fun connectionToConfig(activity: Activity, vpnConfig: VPNConfig): VPNService {
-        connectionState.value = ConnectionState.Ready
-        return vpnConnectionService.connectionToConfig(viewModelScope, activity, vpnConfig)
     }
 
     companion object {

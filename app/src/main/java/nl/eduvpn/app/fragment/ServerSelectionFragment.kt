@@ -50,7 +50,6 @@ class ServerSelectionFragment : BaseFragment<FragmentServerSelectionBinding>() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        viewModel.refreshAddedServers()
         val adapter = OrganizationAdapter {
             val countryList = viewModel.requestCountryList()
             if (countryList == null) {
@@ -66,11 +65,11 @@ class ServerSelectionFragment : BaseFragment<FragmentServerSelectionBinding>() {
         binding.viewModel = viewModel
         binding.serverList.adapter = adapter
         binding.serverList.layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
-        viewModel.adapterItems.observe(viewLifecycleOwner, Observer {
+        viewModel.adapterItems.observe(viewLifecycleOwner) {
             adapter.submitList(it)
-        })
+        }
 
-        viewModel.parentAction.observe(viewLifecycleOwner, Observer { parentAction ->
+        viewModel.parentAction.observe(viewLifecycleOwner) { parentAction ->
             when (parentAction) {
                 is BaseConnectionViewModel.ParentAction.OpenProfileSelector -> {
                     (activity as? MainActivity)?.openFragment(
@@ -79,10 +78,6 @@ class ServerSelectionFragment : BaseFragment<FragmentServerSelectionBinding>() {
                         ), true
                     )
                 }
-                is BaseConnectionViewModel.ParentAction.ConnectWithConfig -> {
-                    viewModel.connectionToConfig(requireActivity(), parentAction.vpnConfig)
-                    (activity as? MainActivity)?.openFragment(ConnectionStatusFragment(), false)
-                }
                 is BaseConnectionViewModel.ParentAction.DisplayError -> {
                     ErrorDialog.show(requireContext(), parentAction.title, parentAction.message)
                 }
@@ -90,7 +85,7 @@ class ServerSelectionFragment : BaseFragment<FragmentServerSelectionBinding>() {
                     // Do nothing.
                 }
             }
-        })
+        }
 
         ItemClickSupport.addTo(binding.serverList).setOnItemClickListener { _, position, _ ->
             val item = adapter.getItem(position)

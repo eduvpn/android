@@ -70,12 +70,10 @@ class ProfileSelectionFragment : BaseFragment<FragmentProfileSelectionBinding>()
 
         profileAdapter.submitList(profiles)
 
-        viewModel.parentAction.observe(viewLifecycleOwner, Observer { parentAction ->
+        println("Connected to ${viewModel.parentAction}")
+        viewModel.parentAction.observe(viewLifecycleOwner) { parentAction ->
+            println("PARENTACTION: $parentAction")
             when (parentAction) {
-                is BaseConnectionViewModel.ParentAction.ConnectWithConfig -> {
-                    viewModel.connectionToConfig(requireActivity(), parentAction.vpnConfig)
-                    (activity as? MainActivity)?.openFragment(ConnectionStatusFragment(), false)
-                }
                 is BaseConnectionViewModel.ParentAction.DisplayError -> {
                     ErrorDialog.show(requireContext(), parentAction.title, parentAction.message)
                 }
@@ -83,11 +81,12 @@ class ProfileSelectionFragment : BaseFragment<FragmentProfileSelectionBinding>()
                     // Do nothing.
                 }
             }
-        })
+        }
 
         // Add click listeners
         ItemClickSupport.addTo(binding.profileList).setOnItemClickListener { _, position, _ ->
             val profile = profileAdapter.getItem(position)
+            println("Connect to profile: ${profile.profileId}")
             selectProfileToConnectTo(profile)
         }
 

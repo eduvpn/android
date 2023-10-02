@@ -121,7 +121,7 @@ class ServerSelectionViewModel @Inject constructor(
     private fun refreshInstances(serverList: ServerList) {
         val savedInstances = historyService.addedServers?.asInstances() ?: emptyList()
         val distributedInstance = savedInstances.firstOrNull { it.authorizationType == AuthorizationType.Distributed }
-        val customServers = savedInstances.filter { it.authorizationType == AuthorizationType.Local && it.isCustom }.sortedBy { it.sanitizedBaseURI }
+        val customServers = savedInstances.filter { it.authorizationType == AuthorizationType.Organization && it.isCustom }.sortedBy { it.sanitizedBaseURI }
         val instituteAccessItems = savedInstances.filter { it.authorizationType == AuthorizationType.Local && !it.isCustom }.sortedBy {
             it.displayName.bestTranslation ?: it.countryCode
         }
@@ -171,10 +171,6 @@ class ServerSelectionViewModel @Inject constructor(
 
     fun hasNoMoreServers(): Boolean {
         return historyService.addedServers?.hasServers() != true
-    }
-
-    fun refreshAddedServers() {
-        historyService.load()
     }
 
     companion object {

@@ -57,4 +57,8 @@ interface ViewModelModule {
     @ViewModelKey(AddServerViewModel::class)
     fun bindAddServerViewModel(addServerViewModel: AddServerViewModel) : ViewModel
 
+    @Binds
+    @IntoMap
+    @ViewModelKey(MainViewModel::class)
+    fun bindMainViewModel(mainViewModel: MainViewModel) : ViewModel
 }

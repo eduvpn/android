@@ -25,8 +25,11 @@ import android.os.Bundle
 import android.view.MenuItem
 import android.view.View
 import android.widget.Toast
+import androidx.activity.viewModels
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.viewModelFactory
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -42,6 +45,8 @@ import nl.eduvpn.app.service.EduVPNOpenVPNService
 import nl.eduvpn.app.service.HistoryService
 import nl.eduvpn.app.service.VPNService
 import nl.eduvpn.app.utils.ErrorDialog.show
+import nl.eduvpn.app.viewmodel.MainViewModel
+import nl.eduvpn.app.viewmodel.ViewModelFactory
 import org.eduvpn.common.CommonException
 import java.util.*
 import javax.inject.Inject
@@ -65,6 +70,11 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
 
     @Inject
     protected lateinit var backendService: BackendService
+
+    @Inject
+    protected lateinit var viewModelFactory : ViewModelFactory
+
+    protected val viewModel by viewModels<MainViewModel> { viewModelFactory }
 
     private var _backNavigationEnabled = false
     private var _parseIntentOnStart = true
@@ -106,6 +116,12 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             },
             selectProfiles = {
                 openFragment(ProfileSelectionFragment.newInstance(it), false)
+            },
+            connectWithConfig = { config ->
+                runOnUiThread {
+                    viewModel.parseConfigAndStartConnection(this, config)
+                    openFragment(ConnectionStatusFragment(), false)
+                }
             },
             showError = { throwable ->
                 show(this, throwable)

@@ -9,7 +9,6 @@ public class GoBackend {
 
     public interface Callback {
         boolean onNewState(int newState, @Nullable String data);
-
         @Nullable String getToken(@NonNull String serverId);
         void setToken(@NonNull String serverId, @Nullable String token);
     }

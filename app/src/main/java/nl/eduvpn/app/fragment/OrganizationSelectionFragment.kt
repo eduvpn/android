@@ -21,6 +21,7 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.view.View
+import androidx.appcompat.app.AppCompatActivity
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
@@ -90,7 +91,7 @@ class OrganizationSelectionFragment : BaseFragment<FragmentOrganizationSelection
                     TranslatableString(getString(R.string.custom_provider_display_name)),
                     TranslatableString(),
                     null,
-                    AuthorizationType.Local,
+                    AuthorizationType.Organization,
                     null,
                     true,
                     null,
@@ -118,15 +119,11 @@ class OrganizationSelectionFragment : BaseFragment<FragmentOrganizationSelection
             // Trigger initial status
             it.onChanged()
         }
-        viewModel.adapterItems.observe(viewLifecycleOwner, Observer {
+        viewModel.adapterItems.observe(viewLifecycleOwner) {
             adapter.submitList(it)
-        })
-        viewModel.parentAction.observe(viewLifecycleOwner, Observer { parentAction ->
+        }
+        viewModel.parentAction.observe(viewLifecycleOwner) { parentAction ->
             when (parentAction) {
-                is BaseConnectionViewModel.ParentAction.ConnectWithConfig -> {
-                    viewModel.connectionToConfig(requireActivity(), parentAction.vpnConfig)
-                    (activity as? MainActivity)?.openFragment(ConnectionStatusFragment(), false)
-                }
                 is BaseConnectionViewModel.ParentAction.DisplayError -> {
                     ErrorDialog.show(requireContext(), parentAction.title, parentAction.message)
                 }
@@ -134,7 +131,7 @@ class OrganizationSelectionFragment : BaseFragment<FragmentOrganizationSelection
                     // Do nothing.
                 }
             }
-        })
+        }
         binding.search.setOnFocusChangeListener { _, hasFocus ->
             if (hasFocus) {
                 viewModel.artworkVisible.value = false

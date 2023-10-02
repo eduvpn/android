@@ -9,6 +9,7 @@ import nl.eduvpn.app.entity.CurrentServer
 import nl.eduvpn.app.entity.Instance
 import nl.eduvpn.app.entity.Profile
 import nl.eduvpn.app.entity.SerializedVpnConfig
+import nl.eduvpn.app.entity.VPNConfig
 import nl.eduvpn.app.entity.exception.SelectProfilesException
 import nl.eduvpn.app.entity.v3.ProfileV3API
 import nl.eduvpn.app.service.SerializerService.UnknownFormatException
@@ -48,11 +49,17 @@ class BackendService(
     var lastSelectedProfile: String? = null
     private set
 
+    private var onConfigReady: ((SerializedVpnConfig) -> Unit)? = null
+
     fun register(
         startOAuth: (String) -> Unit,
         selectProfiles: (List<ProfileV3API>) -> Unit,
+        connectWithConfig: (SerializedVpnConfig) -> Unit,
         showError: (Throwable) -> Unit
     ): String? {
+        onConfigReady = {
+            connectWithConfig(it)
+        }
         GoBackend.callbackFunction = object : Callback {
 
             // The library wants to get a token from our internal storage
@@ -213,20 +220,26 @@ class BackendService(
     }
 
     @kotlin.jvm.Throws(CommonException::class, UnknownFormatException::class, SelectProfilesException::class)
-    suspend fun getConfig(instance: Instance, preferTcp: Boolean): SerializedVpnConfig {
+    suspend fun getConfig(instance: Instance, preferTcp: Boolean) {
         val dataErrorTuple = goBackend.getProfiles(instance.authorizationType.toNativeServerType().nativeValue, instance.baseURI, preferTcp, false)
 
         if (dataErrorTuple.isError) {
             throw CommonException(dataErrorTuple.error)
         }
-        return serializerService.deserializeSerializedVpnConfig(dataErrorTuple.data)
+        val config = serializerService.deserializeSerializedVpnConfig(dataErrorTuple.data)
+        if (config != null) {
+            onConfigReady?.invoke(config)
+        }
     }
 
     @kotlin.jvm.Throws(CommonException::class)
     fun selectProfile(profile: ProfileV3API) {
         lastSelectedProfile = profile.profileId
         val cookie = pendingProfileSelectionCookie ?: throw CommonException("Can't select profile without cookie!")
-        goBackend.selectProfile(cookie, profile.profileId)
+        val result = goBackend.selectProfile(cookie, profile.profileId)
+        if (result != null) {
+            throw CommonException(result)
+        }
         pendingProfileSelectionCookie = null
     }
     fun getCurrentServer() : CurrentServer? {

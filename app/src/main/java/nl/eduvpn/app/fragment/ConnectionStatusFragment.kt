@@ -164,12 +164,6 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
         }
         viewModel.parentAction.observe(viewLifecycleOwner) { parentAction ->
             when (parentAction) {
-                is BaseConnectionViewModel.ParentAction.ConnectWithConfig -> {
-                    val newVPNService = viewModel.connectionToConfig(requireActivity(), parentAction.vpnConfig)
-                    if(vpnService != newVPNService) {
-                        (activity as? MainActivity)?.openFragment(ConnectionStatusFragment(), false)
-                    }
-                }
                 is BaseConnectionViewModel.ParentAction.DisplayError -> {
                     ErrorDialog.show(requireContext(), parentAction.title, parentAction.message)
                 }
