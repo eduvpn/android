@@ -23,6 +23,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Transformations
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
@@ -77,16 +78,16 @@ class OrganizationSelectionViewModel @Inject constructor(
     val searchText = MutableLiveData("")
 
     init {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             // We want to be able to handle async failures, so use supervisorScope
             // https://kotlinlang.org/docs/reference/coroutines/exception-handling.html#supervision
             supervisorScope {
                 val organizationListDeferred = if (historyService.savedOrganization == null) {
-                    state.value = ConnectionState.FetchingOrganizations
+                    state.postValue(ConnectionState.FetchingOrganizations)
                     async { organizationService.fetchOrganizations() }
                 } else {
                     // We can't show any organization servers, user needs to reset to switch.
-                    state.value = ConnectionState.FetchingServerList
+                    state.postValue(ConnectionState.FetchingServerList)
                     CompletableDeferred(OrganizationList(-1L, emptyList()))
                 }
                 val cachedServerList = preferencesService.getServerList()
@@ -101,7 +102,7 @@ class OrganizationSelectionViewModel @Inject constructor(
                 val lastKnownServerListVersion = preferencesService.getLastKnownServerListVersion()
 
                 val organizationList =
-                    runCatchingCoroutine { organizationListDeferred.await() }.getOrElse {
+                    runCatchingCoroutine() { organizationListDeferred.await() }.getOrElse {
                         Log.w(TAG, "Organizations call has failed!", it)
                         OrganizationList(-1L, emptyList())
                     }
@@ -158,10 +159,10 @@ class OrganizationSelectionViewModel @Inject constructor(
                     it.authorizationType == AuthorizationType.Distributed
                 }
 
-                organizations.value = sortedOrganizations
-                instituteAccessServers.value = sortedInstituteAccessServers
-                secureInternetServers.value = secureInternetServerList
-                state.value = ConnectionState.Ready
+                organizations.postValue(sortedOrganizations)
+                instituteAccessServers.postValue(sortedInstituteAccessServers)
+                secureInternetServers.postValue(secureInternetServerList)
+                state.postValue(ConnectionState.Ready)
             }
         }
     }
