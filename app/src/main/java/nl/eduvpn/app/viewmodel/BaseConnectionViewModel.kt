@@ -50,9 +50,7 @@ import kotlin.jvm.Throws
  */
 abstract class BaseConnectionViewModel(
     private val context: Context,
-    private val apiService: APIService,
     private val backendService: BackendService,
-    private val serializerService: SerializerService,
     private val historyService: HistoryService,
     private val preferencesService: PreferencesService,
     private val eduVpnOpenVpnService: EduVPNOpenVPNService,
@@ -70,7 +68,7 @@ abstract class BaseConnectionViewModel(
 
     val warning = MutableLiveData<String>()
 
-    val _parentAction = MutableLiveData<ParentAction?>()
+    protected val _parentAction = MutableLiveData<ParentAction?>()
     val parentAction = _parentAction.toSingleEvent()
 
     fun discoverApi(instance: Instance) {

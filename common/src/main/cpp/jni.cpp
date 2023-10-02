@@ -92,12 +92,12 @@ void getToken(const char* server, char* out, size_t len) {
     jobject callbackField = env->GetStaticObjectField(globalBackendClass, callbackFieldId);
     jmethodID getTokenFunction = env->GetMethodID(globalCallbackClass, "getToken", "(Ljava/lang/String;)Ljava/lang/String;");
     jstring server_jstring = env->NewStringUTF(server);
-     jobject result = env->CallObjectMethod(callbackField, getTokenFunction, server_jstring);
+    jobject result = env->CallObjectMethod(callbackField, getTokenFunction, server_jstring);
     env->DeleteLocalRef(server_jstring);
     if (result != nullptr) {
         char *result_str = (char *)env->GetStringUTFChars((jstring)result, nullptr);
         strncpy(out, result_str, len);
-        env->ReleaseStringUTFChars((jstring)result, result_str);
+        env->DeleteLocalRef(result);
     }
     if (didAttach) {
         globalVM->DetachCurrentThread();
@@ -186,10 +186,10 @@ extern "C" JNIEXPORT jstring JNICALL
 Java_org_eduvpn_common_GoBackend_addServer(JNIEnv *env, jobject /* this */, jint serverType, jstring id) {
     uintptr_t cookie = CookieNew();
     const char *id_str = env->GetStringUTFChars(id, nullptr);
+    __android_log_print(ANDROID_LOG_ERROR, "NATIVECOMMON", "Adding server %d %s", serverType, id_str);
     char *error = AddServer(cookie, (int)serverType, (char *)id_str, 0);
     CookieDelete(cookie);
     // Do not delete the cookie, because it might be reused later in the flow
-    env->ReleaseStringUTFChars(id, id_str);
     if (error != nullptr) {
         jstring nativeError = env->NewStringUTF(error);
         FreeString(error);
@@ -202,7 +202,6 @@ extern "C" JNIEXPORT jstring JNICALL
 Java_org_eduvpn_common_GoBackend_handleRedirection(JNIEnv *env, jobject /* this */, jint cookie, jstring url) {
     const char *url_str = env->GetStringUTFChars(url, nullptr);
     char *error = CookieReply((uintptr_t)cookie, (char *)url_str);
-    env->ReleaseStringUTFChars(url, url_str);
     __android_log_print(ANDROID_LOG_ERROR, "NATIVECOMMON", "Cookie reply: %d %s\n", cookie, url_str);
     return NativeStringToJString(env, error);
 }
@@ -216,7 +215,6 @@ extern "C" JNIEXPORT jstring JNICALL
 Java_org_eduvpn_common_GoBackend_removeServer(JNIEnv *env, jobject /* this */, jint serverType, jstring id) {
     const char *id_str = env->GetStringUTFChars(id, nullptr);
     char *error = RemoveServer((int)serverType, (char *)id_str);
-    env->ReleaseStringUTFChars(id, id_str);
     return NativeStringToJString(env, error);
 
 }
@@ -225,20 +223,27 @@ Java_org_eduvpn_common_GoBackend_getProfiles(JNIEnv *env, jobject /* this */, ji
     const char *id_str = env->GetStringUTFChars(id, nullptr);
     uintptr_t cookie = CookieNew();
     GetConfig_return result = GetConfig(cookie, (int)serverType, (char *)id_str, (int)preferTcp, (int)isStartUp);
-    env->ReleaseStringUTFChars(id, id_str);
     CookieDelete(cookie);
+    __android_log_print(ANDROID_LOG_ERROR, "NATIVECOMMON", "CONFIG %s", result.r0);
     return CreateDataErrorTuple(env, result.r0, result.r1);
 }
 extern "C" JNIEXPORT jstring JNICALL
 Java_org_eduvpn_common_GoBackend_selectProfile(JNIEnv *env, jobject /* this */, jint cookie, jstring profileId) {
     const char *profileId_str = env->GetStringUTFChars(profileId, nullptr);
+    __android_log_print(ANDROID_LOG_ERROR, "NATIVECOMMON", "SELECTPROFILE COOKIE %s", profileId_str);
     char *error = CookieReply((uintptr_t)cookie, (char *)profileId_str);
-    env->ReleaseStringUTFChars(profileId, profileId_str);
     return NativeStringToJString(env, error);
 }
 extern "C"
 JNIEXPORT jobject JNICALL
-Java_org_eduvpn_common_GoBackend_getCurrentServer(JNIEnv *env, jobject thiz) {
+Java_org_eduvpn_common_GoBackend_getCurrentServer(JNIEnv *env, jobject /* this */) {
     CurrentServer_return result = CurrentServer();
+    __android_log_print(ANDROID_LOG_ERROR, "NATIVECOMMON", "CURSER CU%s", result.r0);
     return CreateDataErrorTuple(env, result.r0, result.r1);
+}
+extern "C"
+JNIEXPORT jstring JNICALL
+Java_org_eduvpn_common_GoBackend_cancelCookie(JNIEnv *env, jobject /* this */, jint cookie) {
+    char *result = CookieCancel(cookie);
+    return NativeStringToJString(env, result);
 }

@@ -59,14 +59,19 @@ class BackendService(
             override fun getToken(serverJson: String): String? {
                 // Find out the serverId
                 val parsedServer = serializerService.deserializeCurrentServer(serverJson)
-                return preferencesService.getToken(parsedServer.getUniqueId())
+                parsedServer.getUniqueId()?.let { uniqueId ->
+                    return preferencesService.getToken(uniqueId)
+                }
+                return null
             }
 
             // The library wants to save a token in our internal storage
             override fun setToken(serverJson: String, token: String?) {
                 // Find out the serverId
                 val parsedServer = serializerService.deserializeCurrentServer(serverJson)
-                preferencesService.setToken(parsedServer.getUniqueId(), token)
+                parsedServer.getUniqueId()?.let { uniqueId ->
+                    preferencesService.setToken(uniqueId, token)
+                }
             }
             // Called when the native state machine changes
             override fun onNewState(newState: Int, data: String?): Boolean {
@@ -177,8 +182,8 @@ class BackendService(
     private fun AuthorizationType.toNativeServerType(): ServerType {
         return when (this) {
             AuthorizationType.Distributed ->  ServerType.SecureInternet
-            AuthorizationType.Local -> ServerType.Custom
-            AuthorizationType.Organization -> ServerType.InstituteAccess
+            AuthorizationType.Organization -> ServerType.Custom
+            AuthorizationType.Local -> ServerType.InstituteAccess
         }
     }
 
@@ -234,6 +239,13 @@ class BackendService(
             null
         } else {
             serializerService.deserializeCurrentServer(dataErrorTuple.data!!)
+        }
+    }
+
+    fun cancelPendingRedirect() {
+        pendingOAuthCookie?.let {
+            goBackend.cancelCookie(it)
+            pendingOAuthCookie = null
         }
     }
 }

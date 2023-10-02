@@ -34,7 +34,6 @@ import nl.eduvpn.app.entity.Organization
 import nl.eduvpn.app.entity.OrganizationList
 import nl.eduvpn.app.entity.ServerList
 import nl.eduvpn.app.entity.TranslatableString
-import nl.eduvpn.app.service.APIService
 import nl.eduvpn.app.service.BackendService
 import nl.eduvpn.app.service.EduVPNOpenVPNService
 import nl.eduvpn.app.service.HistoryService
@@ -52,17 +51,13 @@ class OrganizationSelectionViewModel @Inject constructor(
     organizationService: OrganizationService,
     private val preferencesService: PreferencesService,
     context: Context,
-    apiService: APIService,
     backendService: BackendService,
-    serializerService: SerializerService,
     historyService: HistoryService,
     eduVpnOpenVpnService: EduVPNOpenVPNService,
     vpnConnectionService: VPNConnectionService,
 ) : BaseConnectionViewModel(
     context,
-    apiService,
     backendService,
-    serializerService,
     historyService,
     preferencesService,
     eduVpnOpenVpnService,
@@ -115,7 +110,7 @@ class OrganizationSelectionViewModel @Inject constructor(
                     Log.w(TAG, "Server list call has failed!", it)
                     ServerList(-1L, emptyList())
                 }
-
+                println("SERVERLIST: " + serverList.serverList[0].authorizationType)
                 if (serverList.version > 0 && lastKnownServerListVersion != null && lastKnownServerListVersion > serverList.version) {
                     organizations.value = emptyList()
                     instituteAccessServers.value = emptyList()

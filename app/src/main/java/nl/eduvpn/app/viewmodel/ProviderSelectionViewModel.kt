@@ -26,8 +26,6 @@ import javax.inject.Inject
 
 class ProviderSelectionViewModel @Inject constructor(
     context: Context,
-    apiService: APIService,
-    serializerService: SerializerService,
     backendService: BackendService,
     historyService: HistoryService,
     private val preferencesService: PreferencesService,
@@ -35,9 +33,7 @@ class ProviderSelectionViewModel @Inject constructor(
     vpnConnectionService: VPNConnectionService,
 ) : BaseConnectionViewModel(
     context,
-    apiService,
     backendService,
-    serializerService,
     historyService,
     preferencesService,
     eduVpnOpenVpnService,

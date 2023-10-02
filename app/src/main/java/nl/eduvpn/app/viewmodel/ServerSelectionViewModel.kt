@@ -28,7 +28,6 @@ import nl.eduvpn.app.adapter.OrganizationAdapter
 import nl.eduvpn.app.entity.AuthorizationType
 import nl.eduvpn.app.entity.Instance
 import nl.eduvpn.app.entity.ServerList
-import nl.eduvpn.app.service.APIService
 import nl.eduvpn.app.service.BackendService
 import nl.eduvpn.app.service.EduVPNOpenVPNService
 import nl.eduvpn.app.service.HistoryService
@@ -44,8 +43,6 @@ import javax.inject.Inject
 
 class ServerSelectionViewModel @Inject constructor(
     context: Context,
-    apiService: APIService,
-    serializerService: SerializerService,
     backendService: BackendService,
     private val historyService: HistoryService,
     private val preferencesService: PreferencesService,
@@ -54,9 +51,7 @@ class ServerSelectionViewModel @Inject constructor(
     vpnConnectionService: VPNConnectionService,
 ) : BaseConnectionViewModel(
     context,
-    apiService,
     backendService,
-    serializerService,
     historyService,
     preferencesService,
     eduVpnOpenVpnService,

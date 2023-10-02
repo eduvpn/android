@@ -166,17 +166,6 @@
         <meta-data
             android:name="android.content.APP_RESTRICTIONS"
             android:resource="@xml/app_restrictions" />
-
-        <!-- todo: remove after updating WireGuard library,
-         necessary to target Android 12-->
-        <service
-            android:name="com.wireguard.android.backend.GoBackend$VpnService"
-            android:exported="true"
-            android:permission="android.permission.BIND_VPN_SERVICE">
-            <intent-filter>
-                <action android:name="android.net.VpnService" />
-            </intent-filter>
-        </service>
     </application>
 
 </manifest>

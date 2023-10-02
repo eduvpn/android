@@ -64,9 +64,8 @@ public class EduVPNOpenVPNService extends VPNService implements VpnStatus.StateL
 
     private static final String TAG = EduVPNOpenVPNService.class.getName();
 
-    private Context _context;
-
-    private PreferencesService _preferencesService;
+    private final Context _context;
+    private final PreferencesService _preferencesService;
 
     // Stores the current VPN status.
     private ConnectionStatus _connectionStatus = ConnectionStatus.LEVEL_NOTCONNECTED;

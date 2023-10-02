@@ -434,12 +434,13 @@ public class SerializerService {
     /**
      * Deserializes a list of organization servers.
      *
-     * @param jsonObject The json to deserialize from.
+     * @param json The json to deserialize from.
      * @return The list of organizations servers created from the JSON.
      * @throws UnknownFormatException Thrown if there was an error while deserializing.
      */
     public ServerList deserializeServerList(String json) throws UnknownFormatException {
         try {
+            System.out.println(json);
             return jsonSerializer.decodeFromString(ServerList.Companion.serializer(), json);
         } catch (SerializationException ex) {
             throw new UnknownFormatException(ex);
@@ -513,6 +514,7 @@ public class SerializerService {
 
     public CurrentServer deserializeCurrentServer(@NotNull String json) throws UnknownFormatException {
         try {
+            System.out.println("CURSER: " + json);
             return jsonSerializer.decodeFromString(CurrentServer.Companion.serializer(), json);
         } catch (SerializationException ex) {
             throw new UnknownFormatException(ex);

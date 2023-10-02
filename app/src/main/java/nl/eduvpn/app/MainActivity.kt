@@ -201,6 +201,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                     )
                 )
             }
+            backendService.cancelPendingRedirect()
         }
     }
 

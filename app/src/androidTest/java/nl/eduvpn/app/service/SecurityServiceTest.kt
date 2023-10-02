@@ -19,7 +19,6 @@ package nl.eduvpn.app.service
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
-import nl.eduvpn.app.service.SecurityService.Companion.loadMinisignPublicKeys
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Test

@@ -37,10 +37,8 @@ import nl.eduvpn.app.MainActivity
 import nl.eduvpn.app.R
 import nl.eduvpn.app.base.BaseFragment
 import nl.eduvpn.app.databinding.FragmentConnectionStatusBinding
-import nl.eduvpn.app.entity.Profile
 import nl.eduvpn.app.entity.v3.ProfileV3API
 import nl.eduvpn.app.fragment.ServerSelectionFragment.Companion.newInstance
-import nl.eduvpn.app.service.APIService
 import nl.eduvpn.app.service.VPNConnectionService
 import nl.eduvpn.app.service.VPNService
 import nl.eduvpn.app.service.VPNService.VPNStatus
@@ -294,11 +292,7 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
                 withContext(Dispatchers.Main) {
                     setToggleCheckedWithoutAction(false)
                     viewModel.isInDisconnectMode.value = true
-                    if (thr is APIService.UserNotAuthorizedException) {
-                        //initiateConnection()
-                    } else {
-                        ErrorDialog.show(requireContext(), thr)
-                    }
+                    ErrorDialog.show(requireContext(), thr)
                 }
             }
         }

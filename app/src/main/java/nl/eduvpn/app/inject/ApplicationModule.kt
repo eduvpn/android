@@ -90,15 +90,6 @@ class ApplicationModule(private val application: EduVPNApplication) {
         return PreferencesService(context, serializerService)
     }
 
-
-    @Provides
-    @Singleton
-    fun provideAPIService(
-        okHttpClient: OkHttpClient
-    ): APIService {
-        return APIService(okHttpClient)
-    }
-
     @Provides
     @Singleton
     fun provideSerializerService(): SerializerService {
@@ -181,24 +172,14 @@ class ApplicationModule(private val application: EduVPNApplication) {
 
     @Provides
     @Singleton
-    fun provideSecurityService(): SecurityService {
-        return SecurityService()
-    }
-
-    @Provides
-    @Singleton
     fun provideVPNConnectionService(
         preferencesService: PreferencesService,
-        historyService: HistoryService,
-        apiService: APIService,
         eduVPNOpenVPNService: EduVPNOpenVPNService,
         wireGuardService: WireGuardService,
         applicationContext: Context,
     ): VPNConnectionService {
         return VPNConnectionService(
             preferencesService,
-            historyService,
-            apiService,
             eduVPNOpenVPNService,
             wireGuardService,
             applicationContext,

@@ -25,8 +25,6 @@ import nl.eduvpn.app.utils.runCatchingCoroutine
 
 class VPNConnectionService(
     private val preferencesService: PreferencesService,
-    private val historyService: HistoryService,
-    private val apiService: APIService,
     private val eduVPNOpenVPNService: EduVPNOpenVPNService,
     private val wireGuardService: WireGuardService,
     private val applicationContext: Context

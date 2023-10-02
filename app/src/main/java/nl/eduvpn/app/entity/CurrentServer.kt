@@ -7,19 +7,27 @@ import nl.eduvpn.app.utils.serializer.TranslatableStringSerializer
 @Serializable
 data class CurrentServer(
     @SerialName("custom_server")
-    val customServer: CustomServer?
+    val customServer: CurrentServerInfo? = null,
+    @SerialName("institute_access_server")
+    val instituteAccessServer: CurrentServerInfo? = null,
+    @SerialName("secure_internet_server")
+    val secureInternetServer: CurrentServerInfo? = null,
+    @SerialName("server_type")
+    val serverType: Int?
 ) {
-    fun getUniqueId(): String {
-        return customServer?.identifier ?: ""
+
+    private val info : CurrentServerInfo? = customServer ?: instituteAccessServer ?: secureInternetServer
+    fun getUniqueId(): String? {
+        return info?.identifier
     }
 
-    fun getDisplayName(): TranslatableString {
-        return customServer?.displayName ?: TranslatableString()
+    fun getDisplayName(): TranslatableString? {
+        return info?.displayName
     }
 }
 
 @Serializable
-data class CustomServer(
+data class CurrentServerInfo (
     val identifier: String,
 
     @SerialName("display_name")

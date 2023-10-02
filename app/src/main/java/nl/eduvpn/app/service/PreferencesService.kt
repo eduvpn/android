@@ -80,9 +80,7 @@ class PreferencesService(
         const val KEY_SERVER_LIST_DATA = "server_list_data"
         const val KEY_SERVER_LIST_TIMESTAMP = "server_list_timestamp"
 
-        const val KEY_SAVED_AUTH_STATES = "saved_auth_state"
         const val KEY_SAVED_KEY_PAIRS = "saved_key_pairs"
-        const val KEY_SAVED_ORGANIZATION = "saved_organization"
         const val KEY_PREFERRED_COUNTRY = "preferred_country"
 
         const val KEY_STORAGE_VERSION = "storage_version"
@@ -272,26 +270,6 @@ class PreferencesService(
     }
 
     /**
-     * Sets the current profile list, which is all the profiles the user can connect to for the current server.
-     *
-     * @param currentProfileList All the profiles available on the current instance. Use null to delete all values.
-     */
-    fun setCurrentProfileList(currentProfileList: List<Profile>?) {
-        try {
-            if (currentProfileList == null) {
-                getSharedPreferences().edit().remove(KEY_PROFILE_LIST).apply()
-            } else {
-                val serializedList = _serializerService.serializeProfileList(currentProfileList)
-                getSharedPreferences().edit().putString(KEY_PROFILE_LIST, serializedList)
-                    .apply()
-            }
-        } catch (ex: SerializerService.UnknownFormatException) {
-            Log.w(TAG, "Unable to serialize profile list!", ex)
-        }
-    }
-
-
-    /**
      * Returns the saved app settings, or the default settings if none found.
      *
      * @return True if the user does not want to use Custom Tabs. Otherwise false.
@@ -396,43 +374,6 @@ class PreferencesService(
                 .apply()
         } catch (ex: SerializerService.UnknownFormatException) {
             Log.e(TAG, "Cannot store saved key pair list.", ex)
-        }
-    }
-
-    /**
-     * Stores an organization together with its servers.
-     *
-     * @param organization The organization.
-     */
-    fun storeSavedOrganization(organization: Organization?) {
-        try {
-            if (organization == null) {
-                getSharedPreferences().edit().remove(KEY_SAVED_ORGANIZATION).apply()
-            } else {
-                val serializedSavedOrganization =
-                    _serializerService.serializeOrganization(organization).toString()
-                getSharedPreferences().edit()
-                    .putString(KEY_SAVED_ORGANIZATION, serializedSavedOrganization).apply()
-            }
-        } catch (ex: SerializerService.UnknownFormatException) {
-            Log.e(TAG, "Cannot store saved organization.", ex)
-        }
-    }
-
-    /**
-     * Retrieves a previously stored saved organization.
-     *
-     * @return The previously stored saved organization. Null if deserialization failed or no stored one found.
-     */
-    fun getSavedOrganization(): Organization? {
-        return try {
-            val savedOrganizationJson =
-                getSharedPreferences().getString(KEY_SAVED_ORGANIZATION, null)
-                    ?: return null
-            _serializerService.deserializeOrganization(JSONObject(savedOrganizationJson))
-        } catch (ex: Exception) {
-            Log.e(TAG, "Cannot deserialize saved organization.", ex)
-            null
         }
     }
 

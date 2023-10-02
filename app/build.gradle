@@ -114,12 +114,12 @@ android {
         // Support Java 8+ on sdk < 24, also necessary for WireGuard
         coreLibraryDesugaringEnabled true
 
-        sourceCompatibility 1.8
-        targetCompatibility 1.8
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
     }
 
     kotlinOptions {
-        jvmTarget = '1.8'
+        jvmTarget = JavaVersion.VERSION_11
     }
 
     kapt {
@@ -139,7 +139,7 @@ android {
     }
 }
 
-def daggerVersion = "2.39.1"
+def daggerVersion = "2.44"
 def okHttpVersion = "4.10.0"
 def lifecycleVersion = "2.2.0"
 
@@ -147,7 +147,7 @@ dependencies {
     // OpenVPN library
     implementation project(path: ':ics-openvpn-main')
     // WireGuard VPN library
-    implementation 'com.wireguard.android:tunnel:1.0.20211029'
+    implementation 'com.wireguard.android:tunnel:1.0.20230427'
     // eduVPN common library written in Go, stores all data and does the communication with the servers
     implementation project(path: ':common')
     // Please try to stay in sync with the versions used in the ics-openvpn module
