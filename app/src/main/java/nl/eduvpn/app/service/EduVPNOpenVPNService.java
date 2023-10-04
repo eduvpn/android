@@ -29,6 +29,7 @@ import android.os.RemoteException;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.lifecycle.FlowLiveDataConversions;
 import androidx.lifecycle.LiveData;
 
 import org.jetbrains.annotations.NotNull;
@@ -47,6 +48,7 @@ import de.blinkt.openvpn.core.IOpenVPNServiceInternal;
 import de.blinkt.openvpn.core.OpenVPNService;
 import de.blinkt.openvpn.core.ProfileManager;
 import de.blinkt.openvpn.core.VpnStatus;
+import kotlinx.coroutines.flow.Flow;
 import nl.eduvpn.app.R;
 import nl.eduvpn.app.entity.SavedKeyPair;
 import nl.eduvpn.app.livedata.ByteCount;
@@ -138,14 +140,14 @@ public class EduVPNOpenVPNService extends VPNService implements VpnStatus.StateL
 
     @NonNull
     @Override
-    public LiveData<ByteCount> getByteCountLiveData() {
-        return _byteCountLiveData;
+    public Flow<ByteCount> getByteCountFlow() {
+        return FlowLiveDataConversions.asFlow(_byteCountLiveData);
     }
 
     @NonNull
     @Override
-    public LiveData<IPs> getIpLiveData() {
-        return _ipLiveData;
+    public Flow<IPs> getIpFlow() {
+        return FlowLiveDataConversions.asFlow(_ipLiveData);
     }
 
     /**

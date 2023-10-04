@@ -72,8 +72,8 @@ class ConnectionStatusViewModel @Inject constructor(
 
     val isInDisconnectMode = MutableLiveData(false)
     val serverProfiles = MutableLiveData<List<ProfileV3API>>()
-    val byteCountLiveData = vpnService.byteCountLiveData
-    val ipLiveData = vpnService.ipLiveData
+    val byteCountFlow = vpnService.byteCountFlow
+    val ipFLow = vpnService.ipFlow
     val canRenew: LiveData<Boolean>
 
     private val _connectionParentAction = MutableLiveData<ParentAction>()

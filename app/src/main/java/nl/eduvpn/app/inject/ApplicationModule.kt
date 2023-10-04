@@ -19,13 +19,14 @@ package nl.eduvpn.app.inject
 import android.content.Context
 import android.os.Build
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.asFlow
 import androidx.lifecycle.liveData
 import dagger.Module
 import dagger.Provides
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
 import nl.eduvpn.app.BuildConfig
 import nl.eduvpn.app.EduVPNApplication
-import nl.eduvpn.app.entity.v3.Protocol
 import nl.eduvpn.app.livedata.ConnectionTimeLiveData
 import nl.eduvpn.app.livedata.openvpn.IPLiveData
 import nl.eduvpn.app.service.*
@@ -136,9 +137,10 @@ class ApplicationModule(private val application: EduVPNApplication) {
     @Provides
     @Singleton
     fun provideWireGuardService(
-        context: Context, @Named("timer") timer: LiveData<Unit>
+        context: Context,
+        @Named("timer") timer: LiveData<Unit>
     ): WireGuardService {
-        return WireGuardService(context, timer)
+        return WireGuardService(context, timer.asFlow())
     }
 
     @Provides

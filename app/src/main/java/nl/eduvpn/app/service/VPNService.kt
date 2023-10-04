@@ -2,6 +2,7 @@ package nl.eduvpn.app.service
 
 import android.app.Notification
 import androidx.lifecycle.LiveData
+import kotlinx.coroutines.flow.Flow
 import nl.eduvpn.app.livedata.ByteCount
 import nl.eduvpn.app.livedata.IPs
 
@@ -11,9 +12,9 @@ abstract class VPNService : LiveData<VPNService.VPNStatus>() {
         DISCONNECTED, CONNECTING, CONNECTED, PAUSED, FAILED
     }
 
-    abstract val byteCountLiveData: LiveData<ByteCount?>
+    abstract val byteCountFlow: Flow<ByteCount?>
 
-    abstract val ipLiveData: LiveData<IPs>
+    abstract val ipFlow: Flow<IPs?>
 
     /**
      *  User should call this after showing a notification.

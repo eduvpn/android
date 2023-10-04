@@ -26,9 +26,11 @@ import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
+import androidx.lifecycle.asLiveData
 import androidx.lifecycle.map
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import nl.eduvpn.app.Constants
@@ -77,19 +79,19 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
                 secondsConnected
             )
         }
-        binding.bytesDownloaded = viewModel.byteCountLiveData.map { bc ->
+        binding.bytesDownloaded = viewModel.byteCountFlow.map { bc ->
             FormattingUtils.formatBytesTraffic(
                 requireContext(),
                 bc?.bytesIn
             )
-        }
-        binding.bytesUploaded = viewModel.byteCountLiveData.map { bc ->
+        }.asLiveData()
+        binding.bytesUploaded = viewModel.byteCountFlow.map { bc ->
             FormattingUtils.formatBytesTraffic(
                 requireContext(),
                 bc?.bytesOut
             )
-        }
-        binding.ips = viewModel.ipLiveData
+        }.asLiveData()
+        binding.ips = viewModel.ipFLow.asLiveData()
         binding.connectionSwitch.setOnCheckedChangeListener { _, isChecked ->
             if (isAutomaticCheckChange) {
                 return@setOnCheckedChangeListener
