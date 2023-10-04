@@ -30,10 +30,8 @@ import androidx.lifecycle.liveData
 import kotlinx.coroutines.delay
 import nl.eduvpn.app.CertExpiredBroadcastReceiver
 import nl.eduvpn.app.R
-import nl.eduvpn.app.entity.Profile
 import nl.eduvpn.app.entity.v3.ProfileV3API
 import nl.eduvpn.app.service.*
-import nl.eduvpn.app.utils.getCountryText
 import nl.eduvpn.app.utils.pendingIntentImmutableFlag
 import nl.eduvpn.app.utils.toSingleEvent
 import java.util.*
@@ -166,7 +164,6 @@ class ConnectionStatusViewModel @Inject constructor(
     }
 
     fun reconnectToInstance() {
-        historyService.removeSavedKeyPairs(preferencesService.getCurrentInstance())
         discoverApi(preferencesService.getCurrentInstance()!!)
     }
 

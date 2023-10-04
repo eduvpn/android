@@ -43,9 +43,6 @@ import nl.eduvpn.app.utils.Log;
  */
 public class HistoryService {
     private static final String TAG = HistoryService.class.getName();
-
-    private List<SavedKeyPair> _savedKeyPairList = new ArrayList<>();
-
     private AddedServers _addedServers = null;
     private final PreferencesService _preferencesService;
 
@@ -73,11 +70,6 @@ public class HistoryService {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-        _savedKeyPairList = _preferencesService.getSavedKeyPairList();
-        if (_savedKeyPairList == null) {
-            Log.i(TAG, "No saved key pair found.");
-            _savedKeyPairList = new ArrayList<>();
-        }
     }
 
     public void addListener(Listener listener) {
@@ -99,81 +91,12 @@ public class HistoryService {
         return _addedServers;
     }
 
-    /**
-     * Returns a saved key pair for an instance.
-     *
-     * @param instance The instance the key pair was created for.
-     * @return The saved key pair if there was a previously generated one. Null if none created yet.
-     */
-    public SavedKeyPair getSavedKeyPairForInstance(Instance instance) {
-        for (SavedKeyPair savedKeyPair : _savedKeyPairList) {
-            if (savedKeyPair.getInstance().getSanitizedBaseURI().equals(instance.getSanitizedBaseURI())) {
-                return savedKeyPair;
-            }
-        }
-        return null;
-    }
-
     @Nullable
     public Organization getSavedOrganization() {
         if (_addedServers == null) {
             return null;
         }
         return _addedServers.getSecureInternetServer();
-    }
-
-    /**
-     * Stores a saved key pair so it can be retrieved next time.
-     *
-     * @param savedKeyPair The saved key pair to store.
-     */
-    public void storeSavedKeyPair(@NonNull SavedKeyPair savedKeyPair) {
-        // Check if it is not a duplicate
-        boolean wasDuplicate = false;
-        ListIterator<SavedKeyPair> savedKeyPairIterator = _savedKeyPairList.listIterator();
-        while (savedKeyPairIterator.hasNext()) {
-            SavedKeyPair current = savedKeyPairIterator.next();
-            if (current.getInstance().getSanitizedBaseURI().equals(savedKeyPair.getInstance().getSanitizedBaseURI())) {
-                if (!wasDuplicate) {
-                    savedKeyPairIterator.set(savedKeyPair);
-                } else {
-                    // We already replaced one. So this one is a duplicate.
-                    Log.w(TAG, "Found a duplicate key pair entry! Removing second one.");
-                    savedKeyPairIterator.remove();
-                }
-                wasDuplicate = true;
-            }
-        }
-        if (!wasDuplicate) {
-            _savedKeyPairList.add(savedKeyPair);
-        }
-        _preferencesService.storeSavedKeyPairList(_savedKeyPairList);
-    }
-
-    /**
-     * Removes the saved key pairs for the instance and all connecting instances.
-     *
-     * @param instance The instance to remove.
-     */
-    public void removeSavedKeyPairs(Instance instance) {
-        if (_savedKeyPairList == null) {
-            Log.i(TAG, "No saved key pairs found to remove.");
-            return;
-        }
-        ListIterator<SavedKeyPair> keyPairListIterator = _savedKeyPairList.listIterator();
-        while (keyPairListIterator.hasNext()) {
-            SavedKeyPair current = keyPairListIterator.next();
-            if (instance.getAuthorizationType() == AuthorizationType.Distributed &&
-                    current.getInstance().getAuthorizationType() == AuthorizationType.Distributed) {
-                keyPairListIterator.remove();
-                Log.i(TAG, "Deleted saved key pair for distributed auth instance " + current.getInstance().getSanitizedBaseURI());
-            } else if (instance.getAuthorizationType() == AuthorizationType.Local &&
-                    instance.getSanitizedBaseURI().equals(current.getInstance().getSanitizedBaseURI())) {
-                keyPairListIterator.remove();
-                Log.i(TAG, "Deleted saved key pair for local auth instance " + current.getInstance().getSanitizedBaseURI());
-
-            }
-        }
     }
 
     public CurrentServer getCurrentServer() {
