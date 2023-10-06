@@ -71,25 +71,26 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        println("XXX Created: $this")
         EduVPNApplication.get(view.context).component().inject(this)
         binding.viewModel = viewModel
         binding.secondsConnected = viewModel.connectionTimeLiveData.map { secondsConnected ->
-            println("XXX received: ${this@ConnectionStatusFragment}")
+            val context = this@ConnectionStatusFragment.context ?: return@map null
             FormattingUtils.formatDurationSeconds(
-                requireContext(),
+                context,
                 secondsConnected
             )
         }
         binding.bytesDownloaded = viewModel.byteCountFlow.map { bc ->
+            val context = this@ConnectionStatusFragment.context ?: return@map null
             FormattingUtils.formatBytesTraffic(
-                requireContext(),
+                context,
                 bc?.bytesIn
             )
         }.asLiveData()
         binding.bytesUploaded = viewModel.byteCountFlow.map { bc ->
+            val context = this@ConnectionStatusFragment.context ?: return@map null
             FormattingUtils.formatBytesTraffic(
-                requireContext(),
+                context,
                 bc?.bytesOut
             )
         }.asLiveData()

@@ -32,7 +32,7 @@ import nl.eduvpn.app.utils.FormattingUtils
  * View holder for the provider instance list.
  * Created by Daniel Zolnai on 2016-10-07.
  */
-class ProfileViewHolder(private val binding: ListItemProfileBinding) : RecyclerView.ViewHolder(binding.getRoot()) {
+class ProfileViewHolder(private val binding: ListItemProfileBinding) : RecyclerView.ViewHolder(binding.root) {
 
     fun bind(instance: Instance, profile: ProfileV3API) {
         binding.profileName.text = profile.displayName.bestTranslation
