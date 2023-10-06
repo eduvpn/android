@@ -98,12 +98,12 @@ abstract class BaseConnectionViewModel(
     fun getProfiles(instance: Instance) {
         viewModelScope.launch(Dispatchers.IO) {
             preferencesService.setCurrentInstance(instance)
-            backendService.getConfig(instance, false)
+            backendService.getConfig(instance, preferencesService.getAppSettings().forceTcp())
         }
     }
 
-    public fun selectProfileToConnectTo(profile: ProfileV3API) : Result<Unit> {
-        backendService.selectProfile(profile)
+    public suspend fun selectProfileToConnectTo(profile: ProfileV3API) : Result<Unit> {
+        backendService.selectProfile(profile, preferencesService.getAppSettings().forceTcp())
         return Result.success(Unit)
     }
 

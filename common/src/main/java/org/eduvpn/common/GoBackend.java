@@ -41,6 +41,7 @@ public class GoBackend {
     public native @Nullable String handleRedirection(int cookie, @NotNull String url);
 
     public native @Nullable String selectProfile(int cookie, @NotNull String profileId);
+    public native @Nullable String switchProfile(@NotNull String profileId);
     public native DataErrorTuple getCurrentServer();
     public native @Nullable String cancelCookie(int cookie);
 

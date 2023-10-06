@@ -280,13 +280,15 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
         skipNextDisconnect = true
         viewModel.isInDisconnectMode.value = false
         setToggleCheckedWithoutAction(true)
-        viewModel.viewModelScope.launch {
+        viewModel.viewModelScope.launch(Dispatchers.IO) {
             viewModel.selectProfileToConnectTo(profile).onFailure { thr ->
                 withContext(Dispatchers.Main) {
                     setToggleCheckedWithoutAction(false)
                     viewModel.isInDisconnectMode.value = true
                     ErrorDialog.show(requireContext(), thr)
                 }
+            }.onSuccess {
+                viewModel.onProfileChanged(profile)
             }
         }
     }

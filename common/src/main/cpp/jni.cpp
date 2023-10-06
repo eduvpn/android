@@ -234,15 +234,22 @@ Java_org_eduvpn_common_GoBackend_selectProfile(JNIEnv *env, jobject /* this */, 
     char *error = CookieReply((uintptr_t)cookie, (char *)profileId_str);
     return NativeStringToJString(env, error);
 }
+
 extern "C"
-JNIEXPORT jobject JNICALL
+JNIEXPORT jstring JNICALL
+Java_org_eduvpn_common_GoBackend_switchProfile(JNIEnv *env, jobject /* this */, jstring profileId) {
+    const char *profileId_str = env->GetStringUTFChars(profileId, nullptr);
+    char *error = SetProfileID((char *)profileId_str);
+    return NativeStringToJString(env, error);
+}
+
+extern "C" JNIEXPORT jobject JNICALL
 Java_org_eduvpn_common_GoBackend_getCurrentServer(JNIEnv *env, jobject /* this */) {
     CurrentServer_return result = CurrentServer();
     __android_log_print(ANDROID_LOG_ERROR, "NATIVECOMMON", "CURSER CU%s", result.r0);
     return CreateDataErrorTuple(env, result.r0, result.r1);
 }
-extern "C"
-JNIEXPORT jstring JNICALL
+extern "C" JNIEXPORT jstring JNICALL
 Java_org_eduvpn_common_GoBackend_cancelCookie(JNIEnv *env, jobject /* this */, jint cookie) {
     char *result = CookieCancel(cookie);
     return NativeStringToJString(env, result);

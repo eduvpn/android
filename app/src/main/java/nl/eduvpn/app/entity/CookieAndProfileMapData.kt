@@ -13,11 +13,18 @@ import nl.eduvpn.app.utils.serializer.TranslatableStringSerializer
 
 @Serializable
 data class CookieAndProfileMapData(
-    private val data: ProfileWithoutIdMap,
+    val data: ProfileWithoutIdMap,
     val cookie: Int
+)
+
+@Serializable
+data class ProfileWithoutIdMap(
+    internal val map: Map<String, ProfileWithoutId>,
+    @SerialName("current")
+    internal val currentProfileId: String?
 ) {
-    fun getProfileList() : List<ProfileV3API> {
-        return data.map.map {
+    fun getProfileList(): List<ProfileV3API> {
+        return map.map {
             ProfileV3API(
                 profileId = it.key,
                 displayName = it.value.displayName,
@@ -25,12 +32,10 @@ data class CookieAndProfileMapData(
             )
         }
     }
+
+    val currentProfile: ProfileV3API? = getProfileList().firstOrNull { it.profileId == currentProfileId }
 }
 
-@Serializable
-data class ProfileWithoutIdMap(
-    internal val map: Map<String, ProfileWithoutId>
-)
 @Serializable
 data class ProfileWithoutId(
     @SerialName("display_name")

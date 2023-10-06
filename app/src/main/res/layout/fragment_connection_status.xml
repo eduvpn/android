@@ -140,8 +140,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="?attr/selectableItemBackground"
-                android:paddingLeft="24dp"
                 android:visibility="@{viewModel.serverProfiles.size() > 1 ? View.VISIBLE : View.GONE}"
+                android:paddingLeft="24dp"
                 android:paddingRight="24dp">
 
                 <View
@@ -185,7 +185,7 @@
                     android:alpha="@{viewModel.isInDisconnectMode ? 1f : 0.5f}"
                     android:layout_gravity="right|center_vertical"
                     android:src="@drawable/ic_arrow_drop_down"
-                    android:tint="@color/textColor" />
+                    app:tint="@color/textColor" />
 
             </FrameLayout>
 

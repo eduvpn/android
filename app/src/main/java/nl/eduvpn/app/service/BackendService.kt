@@ -99,7 +99,7 @@ class BackendService(
                     val cookieAndData =
                         serializerService.deserializeCookieAndCookieAndProfileListData(data)
                     pendingProfileSelectionCookie = cookieAndData.cookie
-                    selectProfiles(cookieAndData.getProfileList())
+                    selectProfiles(cookieAndData.data.getProfileList())
                     true
                 } else if (newState == State.OAUTH_STARTED.nativeValue) {
                     if (data.isNullOrEmpty()) {
@@ -233,14 +233,25 @@ class BackendService(
     }
 
     @kotlin.jvm.Throws(CommonException::class)
-    fun selectProfile(profile: ProfileV3API) {
+    suspend fun selectProfile(profile: ProfileV3API, preferTcp: Boolean) {
         lastSelectedProfile = profile.profileId
-        val cookie = pendingProfileSelectionCookie ?: throw CommonException("Can't select profile without cookie!")
-        val result = goBackend.selectProfile(cookie, profile.profileId)
-        if (result != null) {
-            throw CommonException(result)
+        val cookie = pendingProfileSelectionCookie
+        if (cookie != null) {
+            val result = goBackend.selectProfile(cookie, profile.profileId)
+            if (result != null) {
+                throw CommonException(result)
+            }
+            pendingProfileSelectionCookie = null
+        } else {
+            val result = goBackend.switchProfile(profile.profileId)
+            if (result != null) {
+                throw CommonException(result)
+            }
+            val instance = getCurrentServer()?.asInstance()
+                ?: throw CommonException("Current server should not be null when switching profiles!")
+            getConfig(instance, preferTcp)
         }
-        pendingProfileSelectionCookie = null
+
     }
     fun getCurrentServer() : CurrentServer? {
         val dataErrorTuple = goBackend.currentServer

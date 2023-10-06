@@ -77,7 +77,7 @@ class ConnectionStatusViewModel @Inject constructor(
     val serverProfiles = MutableLiveData<List<ProfileV3API>>()
     val byteCountFlow = vpnService.byteCountFlow
     val ipFLow = vpnService.ipFlow
-    val canRenew: LiveData<Boolean>
+    val canRenew = MutableLiveData(false)
 
     private val _connectionParentAction = MutableLiveData<ParentAction>()
     val connectionParentAction = _connectionParentAction.toSingleEvent()
@@ -89,47 +89,46 @@ class ConnectionStatusViewModel @Inject constructor(
         PendingIntent.getBroadcast(context, 0, intent, pendingIntentImmutableFlag)
 
     init {
-        val connectionInstance = preferencesService.getCurrentInstance()
-        // TODO serverProfiles.value =  preferencesService.getCurrentProfileList()
+        val currentServer = historyService.currentServer
+        val connectionInstance = currentServer.asInstance()
         if (connectionInstance != null && connectionInstance.supportContact.isNotEmpty()) {
-            val supportContacts = StringBuilder()
-            for (contact in connectionInstance.supportContact) {
-                if (contact.startsWith("mailto:")) {
-                    supportContacts.append(contact.replace("mailto:", ""))
-                } else if (contact.startsWith("tel:")) {
-                    supportContacts.append(contact.replace("tel:", ""))
-                } else {
-                    supportContacts.append(contact)
+                val supportContacts = StringBuilder()
+                for (contact in connectionInstance.supportContact) {
+                    if (contact.startsWith("mailto:")) {
+                        supportContacts.append(contact.replace("mailto:", ""))
+                    } else if (contact.startsWith("tel:")) {
+                        supportContacts.append(contact.replace("tel:", ""))
+                    } else {
+                        supportContacts.append(contact)
+                    }
+                    supportContacts.append(", ")
                 }
-                supportContacts.append(", ")
+                // Remove the last separator
+                supportContacts.delete(supportContacts.length - 2, supportContacts.length)
+                serverSupport.postValue(context.getString(R.string.connection_info_support, supportContacts))
+            } else {
+                serverSupport.postValue(null)
             }
-            // Remove the last separator
-            supportContacts.delete(supportContacts.length - 2, supportContacts.length)
-            serverSupport.value =
-                context.getString(R.string.connection_info_support, supportContacts)
-        } else {
-            serverSupport.value = null
-        }
 
-        val authenticationDate =
-            historyService.getAuthenticationDateForCurrentInstance()
-        canRenew = if (authenticationDate == null) {
-            MutableLiveData(true)
+        val authenticationDate = historyService.getAuthenticationDateForCurrentInstance()
+        if (authenticationDate == null) {
+            canRenew.postValue(true)
         } else {
             val now = Date().time
             val millisecondAmountOf30Minutes = 30 * 60 * 1000
             val canRenewAt = authenticationDate.time + millisecondAmountOf30Minutes
             val remaining = canRenewAt - now
             if (remaining > 0) {
-                liveData {
-                    emit(false)
+                viewModelScope.launch(Dispatchers.IO) {
                     delay(remaining)
-                    emit(true)
+                    canRenew.postValue(true)
                 }
             } else {
-                MutableLiveData(true)
+                canRenew.postValue(true)
             }
         }
+        serverProfiles.value = currentServer.getProfiles()
+        profileName.value = currentServer.currentProfile?.displayName?.bestTranslation
     }
 
     override fun onResume() {
@@ -219,5 +218,9 @@ class ConnectionStatusViewModel @Inject constructor(
             certValidity.value = HtmlCompat.fromHtml(context.getString(R.string.connection_certificate_status_valid_for_one_part, days), HtmlCompat.FROM_HTML_MODE_COMPACT)
         }
         return true
+    }
+
+    fun onProfileChanged(profile: ProfileV3API) {
+        profileName.postValue(profile.displayName.bestTranslation)
     }
 }
