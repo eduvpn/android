@@ -71,9 +71,11 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        println("XXX Created: $this")
         EduVPNApplication.get(view.context).component().inject(this)
         binding.viewModel = viewModel
         binding.secondsConnected = viewModel.connectionTimeLiveData.map { secondsConnected ->
+            println("XXX received: ${this@ConnectionStatusFragment}")
             FormattingUtils.formatDurationSeconds(
                 requireContext(),
                 secondsConnected
@@ -99,14 +101,8 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
             if (!isChecked) {
                 disconnect()
             } else {
-                /**
-                val currentProfile = viewModel.findCurrentProfile()
-                if (currentProfile != null) {
-                    connectToProfile(currentProfile)
-                } else {
-                    // Should not happen
-                    returnToHome()
-                }**/
+                // Get the config again, and connect again
+                viewModel.reconnectWithCurrentProfile()
             }
         }
         binding.connectionInfoDropdown.setOnClickListener {
@@ -276,7 +272,7 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
     }
 
     fun reconnectToInstance() {
-        viewModel.reconnectToInstance()
+        viewModel.reconnectWithCurrentProfile()
     }
 
     private fun connectToProfile(profile: ProfileV3API) {

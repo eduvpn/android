@@ -39,32 +39,6 @@ class VPNConnectionService(
     fun disconnect(context: Context, vpnService: VPNService) {
         vpnService.disconnect()
         removeVPNNotification(context, vpnService)
-        disconnectCall()
-    }
-
-    @OptIn(DelicateCoroutinesApi::class) // Necessary for GlobalScope.launch
-    private fun disconnectCall() {
-        val discoveredAPI = preferencesService.getCurrentDiscoveredAPI()
-        if (discoveredAPI == null) {
-            Log.e(TAG, "No discovered API available when trying to disconnect.")
-            return
-        }
-        val instance = preferencesService.getCurrentInstance()
-        if (instance == null) {
-            Log.e(TAG, "No instance available when trying to disconnect.")
-            return
-        }
-        // We do not wait for the disconnect request to finish when disconnecting,
-        // but when connecting again, a call to the API will wait for the disconnect to finish.
-        GlobalScope.launch {
-            runCatchingCoroutine {
-                throw RuntimeException("Should be removed!")
-            }.onSuccess {
-                Log.d(TAG, "Successfully send disconnect to server.")
-            }.onFailure { thr ->
-                Log.d(TAG, "Failed sending disconnect to server: $thr")
-            }
-        }
     }
 
     fun connectionToConfig(
@@ -102,7 +76,7 @@ class VPNConnectionService(
         val configName = FormattingUtils.formatProfileName(
             context,
             preferencesService.getCurrentInstance()!!,
-            "TODO"
+            null
         )
         val channelID = Constants.VPN_CONNECTION_NOTIFICATION_CHANNEL_ID
 

@@ -120,7 +120,10 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             connectWithConfig = { config ->
                 runOnUiThread {
                     viewModel.parseConfigAndStartConnection(this, config)
-                    openFragment(ConnectionStatusFragment(), false)
+                    val currentFragment = supportFragmentManager.findFragmentById(R.id.content_frame)
+                    if (currentFragment !is ConnectionStatusFragment) {
+                        openFragment(ConnectionStatusFragment(), false)
+                    }
                 }
             },
             showError = { throwable ->

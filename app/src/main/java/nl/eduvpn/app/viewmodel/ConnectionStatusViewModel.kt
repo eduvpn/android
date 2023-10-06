@@ -27,7 +27,10 @@ import androidx.core.text.HtmlCompat
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.liveData
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import nl.eduvpn.app.CertExpiredBroadcastReceiver
 import nl.eduvpn.app.R
 import nl.eduvpn.app.entity.v3.ProfileV3API
@@ -48,7 +51,7 @@ class ConnectionStatusViewModel @Inject constructor(
     val timer: LiveData<Unit>,
     @Named("connectionTimeLiveData")
     val connectionTimeLiveData: LiveData<Long?>,
-    backendService: BackendService,
+    private val backendService: BackendService,
     vpnConnectionService: VPNConnectionService,
 ) : BaseConnectionViewModel(
     context,
@@ -163,8 +166,14 @@ class ConnectionStatusViewModel @Inject constructor(
         discoverApi(preferencesService.getCurrentInstance()!!)
     }
 
-    fun reconnectToInstance() {
-        discoverApi(preferencesService.getCurrentInstance()!!)
+    fun reconnectWithCurrentProfile() {
+        viewModelScope.launch(Dispatchers.IO) {
+            backendService.getCurrentServer()?.asInstance()?.let { currentServer ->
+                getProfiles(currentServer)
+                return@launch
+            }
+            // TODO show error message
+        }
     }
 
     /**

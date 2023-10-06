@@ -3,6 +3,7 @@ package nl.eduvpn.app.entity
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import nl.eduvpn.app.utils.serializer.TranslatableStringSerializer
+import org.eduvpn.common.ServerType
 
 @Serializable
 data class CurrentServer(
@@ -23,6 +24,20 @@ data class CurrentServer(
 
     fun getDisplayName(): TranslatableString? {
         return info?.displayName
+    }
+
+    fun asInstance() : Instance? {
+        val authorizationType = when (serverType) {
+            ServerType.Custom.nativeValue -> AuthorizationType.Organization
+            ServerType.SecureInternet.nativeValue  -> AuthorizationType.Distributed
+            ServerType.InstituteAccess.nativeValue  -> AuthorizationType.Local
+            else -> return null
+        }
+        return Instance(
+            baseURI = getUniqueId() ?: return null,
+            displayName = getDisplayName() ?: TranslatableString(),
+            authorizationType = authorizationType
+        )
     }
 }
 
