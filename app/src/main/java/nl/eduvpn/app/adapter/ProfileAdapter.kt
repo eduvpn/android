@@ -25,18 +25,17 @@ import nl.eduvpn.app.adapter.viewholder.ProfileViewHolder
 import nl.eduvpn.app.databinding.ListItemProfileBinding
 import nl.eduvpn.app.entity.Instance
 import nl.eduvpn.app.entity.Profile
-import nl.eduvpn.app.entity.v3.ProfileV3API
 
 /**
  * Adapter for the profile list.
  * Created by Daniel Zolnai on 2016-10-11.
  */
-class ProfileAdapter(private val instance: Instance) : ListAdapter<ProfileV3API, ProfileViewHolder>(object : DiffUtil.ItemCallback<ProfileV3API>() {
-    override fun areItemsTheSame(oldItem: ProfileV3API, newItem: ProfileV3API): Boolean {
+class ProfileAdapter(private val instance: Instance) : ListAdapter<Profile, ProfileViewHolder>(object : DiffUtil.ItemCallback<Profile>() {
+    override fun areItemsTheSame(oldItem: Profile, newItem: Profile): Boolean {
         return oldItem.profileId == newItem.profileId
     }
 
-    override fun areContentsTheSame(oldItem: ProfileV3API, newItem: ProfileV3API): Boolean {
+    override fun areContentsTheSame(oldItem: Profile, newItem: Profile): Boolean {
         return oldItem == newItem
     }
 }) {
@@ -46,7 +45,7 @@ class ProfileAdapter(private val instance: Instance) : ListAdapter<ProfileV3API,
         return ProfileViewHolder(ListItemProfileBinding.inflate(LayoutInflater.from(parent.context), parent, false))
     }
 
-    public override fun getItem(position: Int): ProfileV3API {
+    public override fun getItem(position: Int): Profile {
         return super.getItem(position)
     }
 

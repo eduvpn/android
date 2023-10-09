@@ -18,32 +18,23 @@
 
 package nl.eduvpn.app.viewmodel
 
-import android.app.Activity
 import android.content.Context
 import androidx.annotation.StringRes
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.wireguard.config.Config
-import de.blinkt.openvpn.VpnProfile
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import nl.eduvpn.app.R
 import nl.eduvpn.app.entity.*
-import nl.eduvpn.app.entity.v3.ProfileV3API
+import nl.eduvpn.app.entity.Profile
 import nl.eduvpn.app.livedata.toSingleEvent
 import nl.eduvpn.app.service.*
-import nl.eduvpn.app.service.SerializerService.UnknownFormatException
-import nl.eduvpn.app.utils.FormattingUtils
 import nl.eduvpn.app.utils.Log
 import nl.eduvpn.app.utils.runCatchingCoroutine
-import org.eduvpn.common.Protocol
-import java.io.BufferedReader
-import java.io.StringReader
 import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.util.*
-import kotlin.jvm.Throws
 
 /**
  * This viewmodel takes care of the entire flow, from connecting to the servers to fetching profiles.
@@ -59,7 +50,7 @@ abstract class BaseConnectionViewModel(
 
     sealed class ParentAction {
         data class DisplayError(@StringRes val title: Int, val message: String) : ParentAction()
-        data class OpenProfileSelector(val profiles: List<ProfileV3API>) : ParentAction()
+        data class OpenProfileSelector(val profiles: List<Profile>) : ParentAction()
     }
 
     val connectionState =
@@ -97,12 +88,22 @@ abstract class BaseConnectionViewModel(
 
     fun getProfiles(instance: Instance) {
         viewModelScope.launch(Dispatchers.IO) {
-            preferencesService.setCurrentInstance(instance)
-            backendService.getConfig(instance, preferencesService.getAppSettings().forceTcp())
+            try {
+                preferencesService.setCurrentInstance(instance)
+                backendService.getConfig(instance, preferencesService.getAppSettings().forceTcp())
+            } catch (ex: Exception) {
+                _parentAction.postValue(ParentAction.DisplayError(
+                    R.string.error_dialog_title,
+                    context.getString(
+                        R.string.error_fetching_profile,
+                        ex.toString()
+                    )
+                ))
+            }
         }
     }
 
-    public suspend fun selectProfileToConnectTo(profile: ProfileV3API) : Result<Unit> {
+    public suspend fun selectProfileToConnectTo(profile: Profile) : Result<Unit> {
         backendService.selectProfile(profile, preferencesService.getAppSettings().forceTcp())
         return Result.success(Unit)
     }

@@ -7,11 +7,8 @@ import nl.eduvpn.app.entity.AddedServers
 import nl.eduvpn.app.entity.AuthorizationType
 import nl.eduvpn.app.entity.CurrentServer
 import nl.eduvpn.app.entity.Instance
-import nl.eduvpn.app.entity.Profile
 import nl.eduvpn.app.entity.SerializedVpnConfig
-import nl.eduvpn.app.entity.VPNConfig
-import nl.eduvpn.app.entity.exception.SelectProfilesException
-import nl.eduvpn.app.entity.v3.ProfileV3API
+import nl.eduvpn.app.entity.Profile
 import nl.eduvpn.app.service.SerializerService.UnknownFormatException
 import nl.eduvpn.app.utils.Log
 import org.eduvpn.common.CommonException
@@ -19,11 +16,6 @@ import org.eduvpn.common.GoBackend
 import org.eduvpn.common.GoBackend.Callback
 import org.eduvpn.common.ServerType
 import java.io.File
-import kotlin.coroutines.Continuation
-import kotlin.coroutines.coroutineContext
-import kotlin.coroutines.resume
-import kotlin.coroutines.resumeWithException
-import kotlin.coroutines.suspendCoroutine
 
 class BackendService(
     private val context: Context,
@@ -53,7 +45,7 @@ class BackendService(
 
     fun register(
         startOAuth: (String) -> Unit,
-        selectProfiles: (List<ProfileV3API>) -> Unit,
+        selectProfiles: (List<Profile>) -> Unit,
         connectWithConfig: (SerializedVpnConfig) -> Unit,
         showError: (Throwable) -> Unit
     ): String? {
@@ -219,7 +211,7 @@ class BackendService(
         return serializerService.deserializeAddedServers(dataErrorTuple.data)
     }
 
-    @kotlin.jvm.Throws(CommonException::class, UnknownFormatException::class, SelectProfilesException::class)
+    @kotlin.jvm.Throws(CommonException::class, UnknownFormatException::class)
     suspend fun getConfig(instance: Instance, preferTcp: Boolean) {
         val dataErrorTuple = goBackend.getProfiles(instance.authorizationType.toNativeServerType().nativeValue, instance.baseURI, preferTcp, false)
 
@@ -233,7 +225,7 @@ class BackendService(
     }
 
     @kotlin.jvm.Throws(CommonException::class)
-    suspend fun selectProfile(profile: ProfileV3API, preferTcp: Boolean) {
+    suspend fun selectProfile(profile: Profile, preferTcp: Boolean) {
         lastSelectedProfile = profile.profileId
         val cookie = pendingProfileSelectionCookie
         if (cookie != null) {

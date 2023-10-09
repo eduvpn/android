@@ -25,16 +25,12 @@ import org.eduvpn.common.CommonException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.ListIterator;
 
 import nl.eduvpn.app.entity.AddedServers;
-import nl.eduvpn.app.entity.AuthorizationType;
 import nl.eduvpn.app.entity.CurrentServer;
 import nl.eduvpn.app.entity.Instance;
-import nl.eduvpn.app.entity.Organization;
-import nl.eduvpn.app.entity.SavedKeyPair;
+import nl.eduvpn.app.entity.OrganizationList;
 import nl.eduvpn.app.utils.Listener;
-import nl.eduvpn.app.utils.Log;
 
 /**
  * Service which stores previously used access token and profile names.
@@ -49,6 +45,8 @@ public class HistoryService {
     private final BackendService _backendService;
 
     private List<Listener> _listeners = new ArrayList<>();
+
+    private @Nullable OrganizationList _memoryCachedOrganizationList = null;
 
     /**
      * Constructor.
@@ -91,16 +89,16 @@ public class HistoryService {
         return _addedServers;
     }
 
-    @Nullable
-    public Organization getSavedOrganization() {
-        if (_addedServers == null) {
-            return null;
-        }
-        return _addedServers.getSecureInternetServer();
-    }
-
     public CurrentServer getCurrentServer() {
         return _backendService.getCurrentServer();
+    }
+
+    public @Nullable OrganizationList getOrganizationList() {
+        return _memoryCachedOrganizationList;
+    }
+
+    public void setOrganizationList(@Nullable OrganizationList organizationList) {
+        _memoryCachedOrganizationList = organizationList;
     }
 
     /**

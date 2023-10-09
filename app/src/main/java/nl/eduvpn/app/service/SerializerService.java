@@ -19,8 +19,6 @@ package nl.eduvpn.app.service;
 
 import static kotlinx.serialization.builtins.BuiltinSerializersKt.ListSerializer;
 
-import androidx.annotation.NonNull;
-
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -44,23 +42,14 @@ import nl.eduvpn.app.entity.AddedServers;
 import nl.eduvpn.app.entity.CookieAndProfileMapData;
 import nl.eduvpn.app.entity.CookieAndStringData;
 import nl.eduvpn.app.entity.CurrentServer;
-import nl.eduvpn.app.entity.DiscoveredAPIs;
 import nl.eduvpn.app.entity.Instance;
-import nl.eduvpn.app.entity.KeyPair;
 import nl.eduvpn.app.entity.Organization;
 import nl.eduvpn.app.entity.OrganizationList;
-import nl.eduvpn.app.entity.Profile;
-import nl.eduvpn.app.entity.SavedKeyPair;
-import nl.eduvpn.app.entity.SavedKeyPairList;
 import nl.eduvpn.app.entity.SerializedVpnConfig;
 import nl.eduvpn.app.entity.ServerList;
 import nl.eduvpn.app.entity.Settings;
 import nl.eduvpn.app.entity.TranslatableString;
-import nl.eduvpn.app.entity.WellKnown;
-import nl.eduvpn.app.entity.v3.Info;
-import nl.eduvpn.app.entity.v3.ProfileV3API;
-import nl.eduvpn.app.entity.v3.Protocol;
-import nl.eduvpn.app.utils.serializer.KeyPairSerializer;
+import nl.eduvpn.app.entity.Profile;
 
 /**
  * This service is responsible for (de)serializing objects used in the app.
@@ -86,57 +75,15 @@ public class SerializerService {
         API_DATE_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
     }
 
-    /**
-     * Serialized a list of profiles to JSON Stirng
-     *
-     * @param profileList The list of profiles to serialize.
-     * @return The list of profiles in a JSON array.
-     * @throws UnknownFormatException Thrown if there was a problem while creating the JSON.
-     */
-    public String serializeProfileList(@NonNull List<Profile> profileList) throws UnknownFormatException {
+
+    public List<Profile> deserializeProfileList(String json) throws UnknownFormatException {
         try {
-            return jsonSerializer.encodeToString(ListSerializer(Profile.Companion.serializer()), profileList);
+            return jsonSerializer.decodeFromString(ListSerializer(Profile.Companion.serializer()), json);
         } catch (SerializationException ex) {
             throw new UnknownFormatException(ex);
         }
     }
 
-    public List<ProfileV3API> deserializeProfileList(String json) throws UnknownFormatException {
-        try {
-            return jsonSerializer.decodeFromString(ListSerializer(ProfileV3API.Companion.serializer()), json);
-        } catch (SerializationException ex) {
-            throw new UnknownFormatException(ex);
-        }
-    }
-
-    /**
-     * Serializes a profile to JSON.
-     *
-     * @param profile The profile to serialize.
-     * @return The profile in a JSON format.
-     */
-    public String serializeProfile(Profile profile) throws UnknownFormatException {
-        try {
-            return jsonSerializer.encodeToString(Profile.Companion.serializer(), profile);
-        } catch (SerializationException ex) {
-            throw new UnknownFormatException(ex);
-        }
-    }
-
-    /**
-     * Deserializes a profile JSON to an object instance.
-     *
-     * @param json The JSON to deserialize.
-     * @return The profile as a POJO
-     * @throws UnknownFormatException Thrown if the format was unknown.
-     */
-    public Profile deserializeProfile(String json) throws UnknownFormatException {
-        try {
-            return jsonSerializer.decodeFromString(Profile.Companion.serializer(), json);
-        } catch (SerializationException ex) {
-            throw new UnknownFormatException(ex);
-        }
-    }
 
     /**
      * Serializes an instance to a JSON format.
@@ -168,45 +115,6 @@ public class SerializerService {
         }
     }
 
-    public Info deserializeInfo(String json) throws UnknownFormatException {
-        try {
-            return jsonSerializer.decodeFromString(Info.Companion.serializer(), json);
-        } catch (SerializationException ex) {
-            throw new UnknownFormatException(ex);
-        }
-    }
-
-    /**
-     * Deserializes a JSON object containing the discovered APIs endpoints.
-     *
-     * @param result The JSON object to deserialize
-     * @return The discovered APIs object.
-     * @throws UnknownFormatException Thrown if the JSON had an unknown format.
-     */
-    @NonNull
-    public DiscoveredAPIs deserializeDiscoveredAPIs(String result) throws UnknownFormatException {
-        try {
-            return jsonSerializer.decodeFromString(WellKnown.Companion.serializer(), result)
-                    .getApi();
-        } catch (SerializationException ex) {
-            throw new UnknownFormatException(ex);
-        }
-    }
-
-    /**
-     * Serializes a discovered APIs object.
-     *
-     * @param discoveredAPI The object to serialize to JSON.
-     * @return The object as a JSON string.
-     * @throws UnknownFormatException Thrown if there was an error while parsing.
-     */
-    public String serializeDiscoveredAPIs(DiscoveredAPIs discoveredAPI) throws UnknownFormatException {
-        try {
-            return jsonSerializer.encodeToString(WellKnown.Companion.serializer(), new WellKnown(discoveredAPI));
-        } catch (SerializationException ex) {
-            throw new UnknownFormatException(ex);
-        }
-    }
 
     /**
      * Deserializes the app settings from JSON to POJO.
@@ -245,67 +153,6 @@ public class SerializerService {
             result.put("force_tcp", settings.forceTcp());
             return result;
         } catch (JSONException ex) {
-            throw new UnknownFormatException(ex);
-        }
-    }
-
-    /**
-     * Deserializes a key pair object from a JSON.
-     *
-     * @param json The json representation of the key pair.
-     * @return The keypair instance if succeeded.
-     * @throws UnknownFormatException Thrown when the format of the JSON does not match the app format.
-     */
-    public KeyPair deserializeKeyPair(String json) throws UnknownFormatException {
-        try {
-            return jsonSerializer.decodeFromString(KeyPairSerializer.INSTANCE, json);
-        } catch (SerializationException ex) {
-            throw new UnknownFormatException(ex);
-        }
-    }
-
-    /**
-     * Serializes a key pair into json.
-     *
-     * @param keyPair The key pair to serialize.
-     * @return The JSON representation of the key pair.
-     * @throws UnknownFormatException Thrown if there was an error while deserializing.
-     */
-    public String serializeKeyPair(KeyPair keyPair) throws UnknownFormatException {
-        try {
-            return jsonSerializer.encodeToString(KeyPairSerializer.INSTANCE, keyPair);
-        } catch (SerializationException ex) {
-            throw new UnknownFormatException(ex);
-        }
-    }
-
-    /**
-     * Serializes a list of saved key pairs.
-     *
-     * @param savedKeyPairList The key pair list to serialize.
-     * @return The key pair list serialized to JSON format.
-     * @throws UnknownFormatException Thrown if there was an error while serializing.
-     */
-    public String serializeSavedKeyPairList(List<SavedKeyPair> savedKeyPairList) throws UnknownFormatException {
-        try {
-            return jsonSerializer.encodeToString(SavedKeyPairList.Companion.serializer(), new SavedKeyPairList(savedKeyPairList));
-        } catch (SerializationException ex) {
-            throw new UnknownFormatException(ex);
-        }
-    }
-
-    /**
-     * Deserializes a list of saved key pairs.
-     *
-     * @param json The json to deserialize from.
-     * @return The list of saved key pairs created from the JSON.
-     * @throws UnknownFormatException Thrown if there was an error while deserializing.
-     */
-    public List<SavedKeyPair> deserializeSavedKeyPairList(String json) throws UnknownFormatException {
-        try {
-            return jsonSerializer.decodeFromString(SavedKeyPairList.Companion.serializer(), json)
-                    .getItems();
-        } catch (SerializationException ex) {
             throw new UnknownFormatException(ex);
         }
     }

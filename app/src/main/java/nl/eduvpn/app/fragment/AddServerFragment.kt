@@ -90,7 +90,7 @@ class AddServerFragment : BaseFragment<FragmentAddServerBinding>() {
             TranslatableString(getString(R.string.custom_provider_display_name)),
             TranslatableString(),
             null,
-            AuthorizationType.Local,
+            AuthorizationType.Organization,
             null,
             true,
             null,

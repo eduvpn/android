@@ -164,6 +164,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     override fun onResume() {
         super.onResume()
         historyService.load()
+        backendService.cancelPendingRedirect()
     }
 
     override fun onStart() {

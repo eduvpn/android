@@ -9,7 +9,7 @@ data class AddedServers(
     @SerialName("custom_servers")
     val customServers: List<AddedServer>? = emptyList(),
     @SerialName("secure_internet_server")
-    val secureInternetServer: Organization? = null,
+    val secureInternetServer: AddedServer? = null,
     @SerialName("institute_access_servers")
     val instituteAccessServers: List<AddedServer>? = emptyList()
 ) {
@@ -35,6 +35,14 @@ data class AddedServers(
                 isCustom = false
             )
         } ?: emptyList()
+        secureInternetServer?.let {
+            result +=  listOf(Instance(
+                baseURI = it.identifier,
+                displayName = it.displayName,
+                authorizationType = AuthorizationType.Distributed,
+                isCustom = false
+            ))
+        }
         return result
     }
 }

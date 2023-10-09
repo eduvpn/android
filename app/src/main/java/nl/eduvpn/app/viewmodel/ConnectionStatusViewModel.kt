@@ -26,14 +26,13 @@ import android.text.Spanned
 import androidx.core.text.HtmlCompat
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.liveData
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import nl.eduvpn.app.CertExpiredBroadcastReceiver
 import nl.eduvpn.app.R
-import nl.eduvpn.app.entity.v3.ProfileV3API
+import nl.eduvpn.app.entity.Profile
 import nl.eduvpn.app.service.*
 import nl.eduvpn.app.utils.pendingIntentImmutableFlag
 import nl.eduvpn.app.utils.toSingleEvent
@@ -74,7 +73,7 @@ class ConnectionStatusViewModel @Inject constructor(
     val profileName = MutableLiveData<String>()
 
     val isInDisconnectMode = MutableLiveData(false)
-    val serverProfiles = MutableLiveData<List<ProfileV3API>>()
+    val serverProfiles = MutableLiveData<List<Profile>>()
     val byteCountFlow = vpnService.byteCountFlow
     val ipFLow = vpnService.ipFlow
     val canRenew = MutableLiveData(false)
@@ -220,7 +219,9 @@ class ConnectionStatusViewModel @Inject constructor(
         return true
     }
 
-    fun onProfileChanged(profile: ProfileV3API) {
-        profileName.postValue(profile.displayName.bestTranslation)
+    suspend fun onProfileChanged(profile: Profile) {
+        viewModelScope.launch(Dispatchers.Main) {
+            profileName.value = profile.displayName.bestTranslation
+        }
     }
 }

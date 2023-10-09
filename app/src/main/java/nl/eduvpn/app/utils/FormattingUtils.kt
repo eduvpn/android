@@ -20,8 +20,6 @@ import android.content.Context
 import nl.eduvpn.app.Constants
 import nl.eduvpn.app.R
 import nl.eduvpn.app.entity.Instance
-import nl.eduvpn.app.entity.Profile
-import nl.eduvpn.app.entity.v3.ProfileV3API
 import java.net.URI
 import java.text.DecimalFormat
 import java.util.*

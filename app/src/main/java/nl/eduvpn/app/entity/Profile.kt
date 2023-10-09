@@ -6,9 +6,10 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import nl.eduvpn.app.utils.serializer.TranslatableStringSerializer
 
-@Parcelize
+// V3 Profile as retrieved from the API
 @Serializable
-data class Profile(
+@Parcelize
+data class Profile (
 
     @SerialName("profile_id")
     val profileId: String,
@@ -17,6 +18,6 @@ data class Profile(
     @Serializable(with = TranslatableStringSerializer::class)
     val displayName: TranslatableString,
 
-    @SerialName("expiry")
-    val expiry: Long?,
+    @SerialName("vpn_proto_list")
+    val vpnProtocolList: List<Int>,
 ) : Parcelable

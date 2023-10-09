@@ -2,7 +2,6 @@ package nl.eduvpn.app.entity
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import nl.eduvpn.app.entity.v3.ProfileV3API
 import nl.eduvpn.app.utils.serializer.TranslatableStringSerializer
 import org.eduvpn.common.ServerType
 
@@ -27,11 +26,11 @@ data class CurrentServer(
         return info?.displayName
     }
 
-    fun getProfiles(): List<ProfileV3API>? {
+    fun getProfiles(): List<Profile>? {
         return info?.profiles?.getProfileList()
     }
 
-    val currentProfile: ProfileV3API? = info?.profiles?.currentProfile
+    val currentProfile: Profile? = info?.profiles?.currentProfile
 
     fun asInstance() : Instance? {
         val authorizationType = when (serverType) {

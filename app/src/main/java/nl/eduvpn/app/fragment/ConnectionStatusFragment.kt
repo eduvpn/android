@@ -39,7 +39,7 @@ import nl.eduvpn.app.MainActivity
 import nl.eduvpn.app.R
 import nl.eduvpn.app.base.BaseFragment
 import nl.eduvpn.app.databinding.FragmentConnectionStatusBinding
-import nl.eduvpn.app.entity.v3.ProfileV3API
+import nl.eduvpn.app.entity.Profile
 import nl.eduvpn.app.fragment.ServerSelectionFragment.Companion.newInstance
 import nl.eduvpn.app.service.VPNConnectionService
 import nl.eduvpn.app.service.VPNService
@@ -276,7 +276,7 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
         viewModel.reconnectWithCurrentProfile()
     }
 
-    private fun connectToProfile(profile: ProfileV3API) {
+    private fun connectToProfile(profile: Profile) {
         skipNextDisconnect = true
         viewModel.isInDisconnectMode.value = false
         setToggleCheckedWithoutAction(true)

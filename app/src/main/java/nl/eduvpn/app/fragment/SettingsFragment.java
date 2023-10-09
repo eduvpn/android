@@ -83,7 +83,7 @@ public class SettingsFragment extends BaseFragment<FragmentSettingsBinding> {
     }
 
     private void onResetDataClicked() {
-        if (_historyService.getSavedOrganization() != null) {
+        if (_historyService.getOrganizationList() != null) {
             AlertDialog resetDataDialog = new AlertDialog.Builder(requireContext())
                     .setTitle(R.string.reset_data_dialog_title)
                     .setMessage(R.string.reset_data_dialog_message)

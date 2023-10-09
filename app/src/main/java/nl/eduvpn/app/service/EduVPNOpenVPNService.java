@@ -50,7 +50,6 @@ import de.blinkt.openvpn.core.ProfileManager;
 import de.blinkt.openvpn.core.VpnStatus;
 import kotlinx.coroutines.flow.Flow;
 import nl.eduvpn.app.R;
-import nl.eduvpn.app.entity.SavedKeyPair;
 import nl.eduvpn.app.livedata.ByteCount;
 import nl.eduvpn.app.livedata.IPs;
 import nl.eduvpn.app.livedata.UnlessDisconnectedLiveData;

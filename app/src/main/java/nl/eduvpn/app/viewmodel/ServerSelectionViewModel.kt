@@ -103,7 +103,7 @@ class ServerSelectionViewModel @Inject constructor(
                 organizationService.fetchServerList()
             }.onSuccess { serverList ->
                 Log.v(TAG, "Updated server list with latest entries.")
-                serverListCache.value = Pair(System.currentTimeMillis(), serverList)
+                serverListCache.postValue(Pair(System.currentTimeMillis(), serverList))
                 preferencesService.setServerList(serverList)
                 refreshInstances(serverList)
             }.onFailure { throwable ->

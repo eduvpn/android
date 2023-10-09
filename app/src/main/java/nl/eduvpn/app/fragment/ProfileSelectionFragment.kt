@@ -20,20 +20,17 @@ package nl.eduvpn.app.fragment
 import android.os.Bundle
 import android.view.View
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.Observer
 import androidx.lifecycle.viewModelScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import nl.eduvpn.app.EduVPNApplication
-import nl.eduvpn.app.MainActivity
 import nl.eduvpn.app.R
 import nl.eduvpn.app.adapter.ProfileAdapter
 import nl.eduvpn.app.base.BaseFragment
 import nl.eduvpn.app.databinding.FragmentProfileSelectionBinding
 import nl.eduvpn.app.entity.Profile
-import nl.eduvpn.app.entity.v3.ProfileV3API
 import nl.eduvpn.app.utils.ErrorDialog
 import nl.eduvpn.app.utils.ItemClickSupport
 import nl.eduvpn.app.viewmodel.BaseConnectionViewModel
@@ -65,7 +62,7 @@ class ProfileSelectionFragment : BaseFragment<FragmentProfileSelectionBinding>()
         binding.profileList.adapter = profileAdapter
 
         //todo: fix deprecation when new compat library released https://issuetracker.google.com/issues/242048899
-        @Suppress("DEPRECATION") val profiles: ArrayList<ProfileV3API> =
+        @Suppress("DEPRECATION") val profiles: ArrayList<Profile> =
             arguments?.getParcelableArrayList(KEY_PROFILES)!!
 
         profileAdapter.submitList(profiles)
@@ -95,7 +92,7 @@ class ProfileSelectionFragment : BaseFragment<FragmentProfileSelectionBinding>()
         }
     }
 
-    private fun selectProfileToConnectTo(profile: ProfileV3API) {
+    private fun selectProfileToConnectTo(profile: Profile) {
         viewModel.viewModelScope.launch {
             viewModel.selectProfileToConnectTo(profile).onFailure { thr ->
                 withContext(Dispatchers.Main) {
@@ -114,7 +111,7 @@ class ProfileSelectionFragment : BaseFragment<FragmentProfileSelectionBinding>()
 
         private const val KEY_PROFILES = "profiles"
 
-        fun newInstance(profileList: List<ProfileV3API>): ProfileSelectionFragment {
+        fun newInstance(profileList: List<Profile>): ProfileSelectionFragment {
             val fragment = ProfileSelectionFragment()
             val arguments = Bundle()
             arguments.putParcelableArrayList(KEY_PROFILES, ArrayList(profileList))
