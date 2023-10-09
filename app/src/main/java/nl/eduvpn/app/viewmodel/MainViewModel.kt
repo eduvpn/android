@@ -19,7 +19,7 @@ import javax.inject.Inject
 class MainViewModel @Inject constructor(
     context: Context,
     backendService: BackendService,
-    historyService: HistoryService,
+    private val historyService: HistoryService,
     private val preferencesService: PreferencesService,
     private val eduVpnOpenVpnService: EduVPNOpenVPNService,
     private val vpnConnectionService: VPNConnectionService
@@ -48,4 +48,9 @@ class MainViewModel @Inject constructor(
     }
 
     fun useCustomTabs() = preferencesService.getAppSettings().useCustomTabs()
+    fun getCountryList(): List<String> {
+        historyService.load()
+        historyService.addedServers
+        return emptyList()
+    }
 }

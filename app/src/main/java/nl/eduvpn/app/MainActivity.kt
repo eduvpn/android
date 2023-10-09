@@ -109,6 +109,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             startOAuth = { oAuthUrl ->
                 openLink(oAuthUrl)
             },
+            selectCountry = {
+                selectCountry()
+            },
             selectProfiles = {
                 openFragment(ProfileSelectionFragment.newInstance(it), false)
             },
@@ -154,6 +157,10 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         }
         createCertExpiryNotificationChannel()
         createVPNConnectionNotificationChannel()
+    }
+
+    private fun selectCountry() {
+        val availableCountries = viewModel.getCountryList()
     }
 
     private fun openLink(oAuthUrl: String) {

@@ -31,6 +31,7 @@ class BackendService(
     }
 
     enum class State(val nativeValue: Int) {
+        ASK_LOCATION(2),
         OAUTH_STARTED(6),
         ASK_PROFILE(9)
     }
@@ -46,6 +47,7 @@ class BackendService(
     fun register(
         startOAuth: (String) -> Unit,
         selectProfiles: (List<Profile>) -> Unit,
+        selectCountry: () -> Unit,
         connectWithConfig: (SerializedVpnConfig) -> Unit,
         showError: (Throwable) -> Unit
     ): String? {
@@ -92,6 +94,16 @@ class BackendService(
                         serializerService.deserializeCookieAndCookieAndProfileListData(data)
                     pendingProfileSelectionCookie = cookieAndData.cookie
                     selectProfiles(cookieAndData.data.getProfileList())
+                    true
+                } else if (newState == State.ASK_LOCATION.nativeValue) {
+                    if (data.isNullOrEmpty()) {
+                        showError(CommonException(ERROR_EMPTY_RESPONSE))
+                        return true
+                    }
+                    val cookieAndData =
+                        serializerService.deserializeCookieAndCookieAndProfileListData(data)
+                    pendingProfileSelectionCookie = cookieAndData.cookie
+                    selectCountry()
                     true
                 } else if (newState == State.OAUTH_STARTED.nativeValue) {
                     if (data.isNullOrEmpty()) {
