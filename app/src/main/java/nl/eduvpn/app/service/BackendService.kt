@@ -132,7 +132,11 @@ class BackendService(
 
     fun deregister() {
         GoBackend.callbackFunction = null
-        // TODO call native deregister
+        onConfigReady = null
+        val errorString = goBackend.deregister()
+        if (errorString != null) {
+            Log.w(TAG, "Unable to deregister Go backend: $errorString")
+        }
     }
 
     @Throws(CommonException::class)

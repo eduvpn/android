@@ -54,7 +54,6 @@ import javax.inject.Inject
 class MainActivity : BaseActivity<ActivityMainBinding>() {
 
     companion object {
-        private val TAG = MainActivity::class.java.name
         private const val REQUEST_CODE_SETTINGS = 1001
         private const val KEY_BACK_NAVIGATION_ENABLED = "back_navigation_enabled"
     }
@@ -228,6 +227,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     override fun onDestroy() {
         super.onDestroy()
         eduVPNOpenVPNService.onDestroy(this)
+        backendService.deregister()
     }
 
     fun openFragment(fragment: Fragment?, openOnTop: Boolean) {

@@ -23,9 +23,6 @@ class VPNConnectionService(
     private val wireGuardService: WireGuardService,
     private val applicationContext: Context
 ) {
-
-    private val TAG = this::class.qualifiedName
-
     private val notificationID = Constants.VPN_CONNECTION_NOTIFICATION_ID
 
     private var statusObserver: Observer<VPNService.VPNStatus>? = null

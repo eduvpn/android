@@ -254,3 +254,9 @@ Java_org_eduvpn_common_GoBackend_cancelCookie(JNIEnv *env, jobject /* this */, j
     char *result = CookieCancel(cookie);
     return NativeStringToJString(env, result);
 }
+
+extern "C" JNIEXPORT jstring JNICALL
+Java_org_eduvpn_common_GoBackend_deregister(JNIEnv *env, jobject /* this */) {
+    char *result = Deregister();
+    return NativeStringToJString(env, result);
+}

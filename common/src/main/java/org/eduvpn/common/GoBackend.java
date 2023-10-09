@@ -45,4 +45,6 @@ public class GoBackend {
     public native DataErrorTuple getCurrentServer();
     public native @Nullable String cancelCookie(int cookie);
 
+    public native @Nullable String deregister();
+
 }
