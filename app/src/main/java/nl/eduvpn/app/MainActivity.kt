@@ -26,10 +26,9 @@ import android.view.MenuItem
 import android.view.View
 import android.widget.Toast
 import androidx.activity.viewModels
+import androidx.browser.customtabs.CustomTabsIntent
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.viewModelFactory
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -50,6 +49,7 @@ import nl.eduvpn.app.viewmodel.ViewModelFactory
 import org.eduvpn.common.CommonException
 import java.util.*
 import javax.inject.Inject
+
 
 class MainActivity : BaseActivity<ActivityMainBinding>() {
 
@@ -107,11 +107,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         EduVPNApplication.get(this).component().inject(this)
         backendService.register(
             startOAuth = { oAuthUrl ->
-                if (!isFinishing) {
-                    // TODO make it work with custom tabs
-                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(oAuthUrl))
-                    startActivity(intent)
-                }
+                openLink(oAuthUrl)
             },
             selectProfiles = {
                 openFragment(ProfileSelectionFragment.newInstance(it), false)
@@ -158,6 +154,26 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         }
         createCertExpiryNotificationChannel()
         createVPNConnectionNotificationChannel()
+    }
+
+    private fun openLink(oAuthUrl: String) {
+        if (isFinishing) {
+            return
+        }
+        val oAuthUri: Uri
+        try {
+            oAuthUri = Uri.parse(oAuthUrl)
+        } catch (ex: Exception) {
+            show(this, ex)
+            return
+        }
+        if (viewModel.useCustomTabs()) {
+            val intent = CustomTabsIntent.Builder().build()
+            intent.launchUrl(this@MainActivity, oAuthUri)
+        } else {
+            val intent = Intent(Intent.ACTION_VIEW, oAuthUri)
+            startActivity(intent)
+        }
     }
 
     override fun onResume() {

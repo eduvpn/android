@@ -28,7 +28,6 @@ class MainViewModel @Inject constructor(
     backendService,
     historyService,
     preferencesService,
-    eduVpnOpenVpnService,
     vpnConnectionService
 ) {
     fun parseConfigAndStartConnection(activity: MainActivity, config: SerializedVpnConfig) {
@@ -47,4 +46,6 @@ class MainViewModel @Inject constructor(
         }
         vpnConnectionService.connectionToConfig(viewModelScope, activity, parsedConfig)
     }
+
+    fun useCustomTabs() = preferencesService.getAppSettings().useCustomTabs()
 }

@@ -43,7 +43,6 @@ import javax.inject.Named
 class ConnectionStatusViewModel @Inject constructor(
     private val context: Context,
     private val preferencesService: PreferencesService,
-    private val eduVPNOpenVPNService: EduVPNOpenVPNService,
     private val vpnService: VPNService,
     private val historyService: HistoryService,
     @Named("timer")
@@ -57,7 +56,6 @@ class ConnectionStatusViewModel @Inject constructor(
     backendService,
     historyService,
     preferencesService,
-    eduVPNOpenVPNService,
     vpnConnectionService,
 ) {
 

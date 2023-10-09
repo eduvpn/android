@@ -46,7 +46,6 @@ class ServerSelectionViewModel @Inject constructor(
     backendService: BackendService,
     private val historyService: HistoryService,
     private val preferencesService: PreferencesService,
-    eduVpnOpenVpnService: EduVPNOpenVPNService,
     private val organizationService: OrganizationService,
     vpnConnectionService: VPNConnectionService,
 ) : BaseConnectionViewModel(
@@ -54,7 +53,6 @@ class ServerSelectionViewModel @Inject constructor(
     backendService,
     historyService,
     preferencesService,
-    eduVpnOpenVpnService,
     vpnConnectionService,
 ), Listener {
 
@@ -83,6 +81,7 @@ class ServerSelectionViewModel @Inject constructor(
     }
 
     private fun refresh() {
+        historyService.load()
         val needsServerList = historyService.addedServers?.secureInternetServer != null
         if (needsServerList && (serverListCache.value == null || System.currentTimeMillis() - serverListCache.value!!.first > SERVER_LIST_CACHE_TTL)) {
             refreshServerList()

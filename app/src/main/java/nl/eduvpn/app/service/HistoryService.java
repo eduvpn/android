@@ -108,6 +108,7 @@ public class HistoryService {
      */
     public void removeAllDataForInstance(Instance instance) throws CommonException {
         _backendService.removeServer(instance);
+        load();
         notifyListeners();
     }
 

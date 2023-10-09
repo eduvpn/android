@@ -44,7 +44,6 @@ abstract class BaseConnectionViewModel(
     private val backendService: BackendService,
     private val historyService: HistoryService,
     private val preferencesService: PreferencesService,
-    private val eduVpnOpenVpnService: EduVPNOpenVPNService,
     private val vpnConnectionService: VPNConnectionService,
 ) : ViewModel() {
 
@@ -53,8 +52,7 @@ abstract class BaseConnectionViewModel(
         data class OpenProfileSelector(val profiles: List<Profile>) : ParentAction()
     }
 
-    val connectionState =
-        MutableLiveData<ConnectionState>().also { it.value = ConnectionState.Ready }
+    val connectionState = MutableLiveData(ConnectionState.Ready)
 
     val warning = MutableLiveData<String>()
 
