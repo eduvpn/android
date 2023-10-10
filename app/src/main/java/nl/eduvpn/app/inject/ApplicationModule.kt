@@ -24,8 +24,6 @@ import androidx.lifecycle.liveData
 import dagger.Module
 import dagger.Provides
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.Flow
-import nl.eduvpn.app.BuildConfig
 import nl.eduvpn.app.EduVPNApplication
 import nl.eduvpn.app.livedata.ConnectionTimeLiveData
 import nl.eduvpn.app.livedata.openvpn.IPLiveData
@@ -34,7 +32,6 @@ import nl.eduvpn.app.utils.Log
 import okhttp3.Cache
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
-import okhttp3.logging.HttpLoggingInterceptor
 import java.io.IOException
 import java.net.ConnectException
 import java.net.SocketTimeoutException
@@ -253,11 +250,6 @@ class ApplicationModule(private val application: EduVPNApplication) {
                     return@addInterceptor chain.proceed(chain.request())
                 }
             }
-        if (BuildConfig.DEBUG) {
-            val logging = HttpLoggingInterceptor()
-            logging.setLevel(HttpLoggingInterceptor.Level.BODY)
-            clientBuilder.addInterceptor(logging)
-        }
         return clientBuilder.build()
     }
 }
