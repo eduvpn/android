@@ -24,6 +24,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import androidx.test.InstrumentationRegistry;
+import androidx.test.core.app.ApplicationProvider;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.filters.LargeTest;
 
@@ -41,7 +42,7 @@ public class FormattingUtilsTest {
 
     @Before
     public void before() {
-        _context = InstrumentationRegistry.getTargetContext();
+        _context = ApplicationProvider.getApplicationContext();
     }
 
     @Test
