@@ -20,8 +20,6 @@ package nl.eduvpn.app.service;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import org.eduvpn.common.CommonException;
-
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.LinkedList;
@@ -31,6 +29,7 @@ import nl.eduvpn.app.entity.AddedServers;
 import nl.eduvpn.app.entity.CurrentServer;
 import nl.eduvpn.app.entity.Instance;
 import nl.eduvpn.app.entity.OrganizationList;
+import nl.eduvpn.app.entity.exception.CommonException;
 import nl.eduvpn.app.utils.Listener;
 
 /**

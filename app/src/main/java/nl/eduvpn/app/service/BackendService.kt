@@ -9,9 +9,9 @@ import nl.eduvpn.app.entity.CurrentServer
 import nl.eduvpn.app.entity.Instance
 import nl.eduvpn.app.entity.SerializedVpnConfig
 import nl.eduvpn.app.entity.Profile
+import nl.eduvpn.app.entity.exception.CommonException
 import nl.eduvpn.app.service.SerializerService.UnknownFormatException
 import nl.eduvpn.app.utils.Log
-import org.eduvpn.common.CommonException
 import org.eduvpn.common.GoBackend
 import org.eduvpn.common.GoBackend.Callback
 import org.eduvpn.common.ServerType

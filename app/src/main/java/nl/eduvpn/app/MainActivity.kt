@@ -26,16 +26,15 @@ import android.view.MenuItem
 import android.view.View
 import android.widget.Toast
 import androidx.activity.viewModels
-import androidx.appcompat.app.AlertDialog
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import nl.eduvpn.app.base.BaseActivity
 import nl.eduvpn.app.databinding.ActivityMainBinding
+import nl.eduvpn.app.entity.exception.CommonException
 import nl.eduvpn.app.fragment.AddServerFragment
 import nl.eduvpn.app.fragment.ConnectionStatusFragment
 import nl.eduvpn.app.fragment.OrganizationSelectionFragment
@@ -45,11 +44,9 @@ import nl.eduvpn.app.service.BackendService
 import nl.eduvpn.app.service.EduVPNOpenVPNService
 import nl.eduvpn.app.service.HistoryService
 import nl.eduvpn.app.service.VPNService
-import nl.eduvpn.app.utils.ErrorDialog
 import nl.eduvpn.app.utils.ErrorDialog.show
 import nl.eduvpn.app.viewmodel.MainViewModel
 import nl.eduvpn.app.viewmodel.ViewModelFactory
-import org.eduvpn.common.CommonException
 import java.util.*
 import javax.inject.Inject
 

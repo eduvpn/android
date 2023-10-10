@@ -28,6 +28,7 @@ import kotlinx.coroutines.launch
 import nl.eduvpn.app.R
 import nl.eduvpn.app.entity.*
 import nl.eduvpn.app.entity.Profile
+import nl.eduvpn.app.entity.exception.CommonException
 import nl.eduvpn.app.livedata.toSingleEvent
 import nl.eduvpn.app.service.*
 import nl.eduvpn.app.utils.Log
@@ -72,12 +73,17 @@ abstract class BaseConnectionViewModel(
             }.onFailure { throwable ->
                 Log.e(TAG, "Error while fetching discovered API.", throwable)
                 connectionState.postValue(ConnectionState.Ready)
+                val errorString = if (throwable is CommonException) {
+                    throwable.translatedMessage()
+                } else {
+                    throwable.toString()
+                }
                 _parentAction.postValue(ParentAction.DisplayError(
                     R.string.error_dialog_title,
                     context.getString(
                         R.string.error_discover_api,
                         instance.sanitizedBaseURI,
-                        throwable.toString()
+                        errorString
                     )
                 ))
             }
