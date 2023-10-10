@@ -25,6 +25,7 @@ data class AddedServers(
                 displayName = it.displayName,
                 authorizationType = AuthorizationType.Organization,
                 countryCode = it.countryCode,
+                supportContact = it.supportContacts,
                 isCustom = true
             )
         } ?: emptyList()
@@ -34,6 +35,7 @@ data class AddedServers(
                 displayName = it.displayName,
                 authorizationType = AuthorizationType.Local,
                 countryCode = it.countryCode,
+                supportContact = it.supportContacts,
                 isCustom = false
             )
         } ?: emptyList()
@@ -43,6 +45,7 @@ data class AddedServers(
                 displayName = it.displayName,
                 authorizationType = AuthorizationType.Distributed,
                 countryCode = it.countryCode,
+                supportContact = it.supportContacts,
                 isCustom = false
             ))
         }
@@ -58,5 +61,7 @@ data class AddedServer(
     @SerialName("identifier")
     val identifier: String,
     @SerialName("country_code")
-    val countryCode: String? = null
+    val countryCode: String? = null,
+    @SerialName("support_contacts")
+    val supportContacts: List<String> = emptyList()
 )

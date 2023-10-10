@@ -33,6 +33,9 @@ data class CurrentServer(
     val currentProfile: Profile? = info?.profiles?.currentProfile
 
     fun asInstance() : Instance? {
+        if (info == null) {
+            return null
+        }
         val authorizationType = when (serverType) {
             ServerType.Custom.nativeValue -> AuthorizationType.Organization
             ServerType.SecureInternet.nativeValue  -> AuthorizationType.Distributed
@@ -42,7 +45,8 @@ data class CurrentServer(
         return Instance(
             baseURI = getUniqueId() ?: return null,
             displayName = getDisplayName() ?: TranslatableString(),
-            authorizationType = authorizationType
+            authorizationType = authorizationType,
+            supportContact = info.supportContacts
         )
     }
 }
@@ -55,7 +59,10 @@ data class CurrentServerInfo (
     @Serializable(with = TranslatableStringSerializer::class)
     val displayName: TranslatableString,
 
-    val profiles: ProfileWithoutIdMap? = null
+    val profiles: ProfileWithoutIdMap? = null,
+
+    @SerialName("support_contacts")
+    val supportContacts: List<String> = emptyList()
 )
 
 
