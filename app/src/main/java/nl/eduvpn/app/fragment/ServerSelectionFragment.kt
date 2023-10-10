@@ -51,16 +51,8 @@ class ServerSelectionFragment : BaseFragment<FragmentServerSelectionBinding>() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         val adapter = OrganizationAdapter {
-            val countryList = viewModel.requestCountryList()
-            if (countryList == null) {
-                ErrorDialog.show(requireContext(), R.string.unexpected_error, R.string.error_countries_are_not_available)
-            } else {
-                AlertDialog.Builder(requireContext())
-                        .setItems(countryList.map { it.second }.toTypedArray()) { _, which ->
-                            val selectedInstance = countryList[which]
-                            viewModel.changePreferredCountry(selectedInstance.first)
-                        }.show()
-            }
+            val activity = activity as? MainActivity ?: return@OrganizationAdapter
+            activity.selectCountry()
         }
         binding.viewModel = viewModel
         binding.serverList.adapter = adapter

@@ -26,10 +26,12 @@ import android.view.MenuItem
 import android.view.View
 import android.widget.Toast
 import androidx.activity.viewModels
+import androidx.appcompat.app.AlertDialog
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import nl.eduvpn.app.base.BaseActivity
@@ -43,6 +45,7 @@ import nl.eduvpn.app.service.BackendService
 import nl.eduvpn.app.service.EduVPNOpenVPNService
 import nl.eduvpn.app.service.HistoryService
 import nl.eduvpn.app.service.VPNService
+import nl.eduvpn.app.utils.ErrorDialog
 import nl.eduvpn.app.utils.ErrorDialog.show
 import nl.eduvpn.app.viewmodel.MainViewModel
 import nl.eduvpn.app.viewmodel.ViewModelFactory
@@ -109,8 +112,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             startOAuth = { oAuthUrl ->
                 openLink(oAuthUrl)
             },
-            selectCountry = {
-                selectCountry()
+            selectCountry = { cookie ->
+                selectCountry(cookie)
             },
             selectProfiles = {
                 openFragment(ProfileSelectionFragment.newInstance(it), false)
@@ -159,8 +162,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         createVPNConnectionNotificationChannel()
     }
 
-    private fun selectCountry() {
-        val availableCountries = viewModel.getCountryList()
+    fun selectCountry(cookie: Int? = null) {
+        viewModel.getCountryList(this, cookie)
     }
 
     private fun openLink(oAuthUrl: String) {

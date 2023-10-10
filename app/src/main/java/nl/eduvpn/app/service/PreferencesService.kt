@@ -191,47 +191,6 @@ class PreferencesService(
     }
 
     /**
-     * Saves the organization the app is connecting to.
-     *
-     * @param organization The organization to save.
-     */
-    fun setCurrentOrganization(organization: Organization?) {
-        try {
-            if (organization == null) {
-                getSharedPreferences().edit().remove(KEY_ORGANIZATION).apply()
-            } else {
-                getSharedPreferences().edit()
-                    .putString(
-                        KEY_ORGANIZATION,
-                        _serializerService.serializeOrganization(organization).toString()
-                    )
-                    .apply()
-            }
-        } catch (ex: SerializerService.UnknownFormatException) {
-            Log.e(TAG, "Cannot save organization!", ex)
-        }
-    }
-
-    /**
-     * Returns a saved organization.
-     *
-     * @return The organization to connect to. Null if none found.
-     */
-    fun getCurrentOrganization(): Organization? {
-        val serializedOrganization = getSharedPreferences().getString(KEY_ORGANIZATION, null)
-            ?: return null
-        return try {
-            _serializerService.deserializeOrganization(JSONObject(serializedOrganization))
-        } catch (ex: SerializerService.UnknownFormatException) {
-            Log.e(TAG, "Unable to deserialize instance!", ex)
-            null
-        } catch (ex: JSONException) {
-            Log.e(TAG, "Unable to deserialize instance!", ex)
-            null
-        }
-    }
-
-    /**
      * Saves the instance the app will connect to.
      *
      * @param instance The instance to save.
@@ -370,29 +329,6 @@ class PreferencesService(
             )
         } else {
             return null
-        }
-    }
-
-    /**
-     * Returns the previously stored preferred country.
-     *
-     * @return The preferred country, if saved previously. Null if no saved one yet.
-     */
-    fun getPreferredCountry(): String? {
-        return getSharedPreferences().getString(KEY_PREFERRED_COUNTRY, null)
-    }
-
-    /**
-     * Saves the preferred country selected by the user.
-     *
-     * @param preferredCountry The country selected by the user.
-     */
-    fun setPreferredCountry(preferredCountry: String?) {
-        if (preferredCountry == null) {
-            getSharedPreferences().edit().remove(KEY_PREFERRED_COUNTRY).apply()
-        } else {
-            getSharedPreferences().edit().putString(KEY_PREFERRED_COUNTRY, preferredCountry)
-                .apply()
         }
     }
 

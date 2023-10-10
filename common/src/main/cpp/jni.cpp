@@ -199,10 +199,9 @@ Java_org_eduvpn_common_GoBackend_addServer(JNIEnv *env, jobject /* this */, jint
 }
 
 extern "C" JNIEXPORT jstring JNICALL
-Java_org_eduvpn_common_GoBackend_handleRedirection(JNIEnv *env, jobject /* this */, jint cookie, jstring url) {
-    const char *url_str = env->GetStringUTFChars(url, nullptr);
-    char *error = CookieReply((uintptr_t)cookie, (char *)url_str);
-    __android_log_print(ANDROID_LOG_ERROR, "NATIVECOMMON", "Cookie reply: %d %s\n", cookie, url_str);
+Java_org_eduvpn_common_GoBackend_cookieReply(JNIEnv *env, jobject /* this */, jint cookie, jstring data) {
+    const char *data_str = env->GetStringUTFChars(data, nullptr);
+    char *error = CookieReply((uintptr_t)cookie, (char *)data_str);
     return NativeStringToJString(env, error);
 }
 
@@ -258,5 +257,13 @@ Java_org_eduvpn_common_GoBackend_cancelCookie(JNIEnv *env, jobject /* this */, j
 extern "C" JNIEXPORT jstring JNICALL
 Java_org_eduvpn_common_GoBackend_deregister(JNIEnv *env, jobject /* this */) {
     char *result = Deregister();
+    return NativeStringToJString(env, result);
+}
+extern "C" JNIEXPORT jstring JNICALL
+Java_org_eduvpn_common_GoBackend_selectCountry(JNIEnv *env, jobject /* this */, jstring countryCode) {
+    uintptr_t cookie = CookieNew();
+    const char *countryCode_str = env->GetStringUTFChars(countryCode, nullptr);
+    char *result = SetSecureLocation(cookie, (char *)countryCode_str);
+    CookieCancel(cookie);
     return NativeStringToJString(env, result);
 }

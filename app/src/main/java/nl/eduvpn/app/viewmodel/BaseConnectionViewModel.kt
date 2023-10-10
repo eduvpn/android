@@ -56,7 +56,7 @@ abstract class BaseConnectionViewModel(
 
     val warning = MutableLiveData<String>()
 
-    public val _parentAction = MutableLiveData<ParentAction?>()
+    protected val _parentAction = MutableLiveData<ParentAction?>()
     val parentAction = _parentAction.toSingleEvent()
 
     fun discoverApi(instance: Instance) {

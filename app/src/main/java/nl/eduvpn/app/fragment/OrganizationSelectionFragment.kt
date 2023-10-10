@@ -104,7 +104,7 @@ class OrganizationSelectionFragment : BaseFragment<FragmentOrganizationSelection
             override fun onChanged() {
                 when {
                     adapter.itemCount > 0 -> binding.organizationDiscoveryStatus.visibility = View.GONE
-                    viewModel.state.value != ConnectionState.Ready -> {
+                    viewModel.connectionState.value != ConnectionState.Ready -> {
                         binding.organizationDiscoveryStatus.visibility = View.GONE
                     }
                     else -> {

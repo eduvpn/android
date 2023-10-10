@@ -62,9 +62,6 @@ class OrganizationSelectionViewModel @Inject constructor(
     preferencesService,
     vpnConnectionService,
 ) {
-
-    val state = MutableLiveData<ConnectionState>().also { it.value = ConnectionState.Ready }
-
     private val organizations = MutableLiveData<List<Organization>>()
     private val instituteAccessServers =
         MutableLiveData<List<OrganizationAdapter.OrganizationAdapterItem.InstituteAccess>>()
@@ -81,7 +78,7 @@ class OrganizationSelectionViewModel @Inject constructor(
             // https://kotlinlang.org/docs/reference/coroutines/exception-handling.html#supervision
             supervisorScope {
                 val organizationListDeferred = if (historyService.organizationList == null) {
-                    state.postValue(ConnectionState.FetchingOrganizations)
+                    connectionState.postValue(ConnectionState.FetchingOrganizations)
                     async {
                         val organizationList = organizationService.fetchOrganizations()
                         historyService.organizationList = organizationList
@@ -89,7 +86,7 @@ class OrganizationSelectionViewModel @Inject constructor(
                     }
                 } else {
                     // We can't show any organization servers, user needs to reset to switch.
-                    state.postValue(ConnectionState.FetchingServerList)
+                    connectionState.postValue(ConnectionState.FetchingServerList)
                     CompletableDeferred(OrganizationList(-1L, emptyList()))
                 }
                 val cachedServerList = preferencesService.getServerList()
@@ -118,7 +115,7 @@ class OrganizationSelectionViewModel @Inject constructor(
                     organizations.value = emptyList()
                     instituteAccessServers.value = emptyList()
                     secureInternetServers.value = emptyList()
-                    state.value = ConnectionState.Ready
+                    connectionState.value = ConnectionState.Ready
                     _parentAction.value = ParentAction.DisplayError(
                         R.string.error_server_list_version_check_title,
                         context.getString(R.string.error_server_list_version_check_message)
@@ -127,7 +124,7 @@ class OrganizationSelectionViewModel @Inject constructor(
                     organizations.value = emptyList()
                     instituteAccessServers.value = emptyList()
                     secureInternetServers.value = emptyList()
-                    state.value = ConnectionState.Ready
+                    connectionState.value = ConnectionState.Ready
                     _parentAction.value = ParentAction.DisplayError(
                         R.string.error_organization_list_version_check_title,
                         context.getString(R.string.error_organization_list_version_check_message)
@@ -164,7 +161,7 @@ class OrganizationSelectionViewModel @Inject constructor(
                 organizations.postValue(sortedOrganizations)
                 instituteAccessServers.postValue(sortedInstituteAccessServers)
                 secureInternetServers.postValue(secureInternetServerList)
-                state.postValue(ConnectionState.Ready)
+                connectionState.postValue(ConnectionState.Ready)
             }
         }
     }
@@ -236,14 +233,13 @@ class OrganizationSelectionViewModel @Inject constructor(
         }
     }
 
-    val noItemsFound = Transformations.switchMap(state) { state ->
+    val noItemsFound = Transformations.switchMap(connectionState) { state ->
         Transformations.map(adapterItems) { items ->
             items.isEmpty() && state == ConnectionState.Ready
         }
     }
 
     fun selectOrganizationAndInstance(organization: Organization?, instance: Instance) {
-        preferencesService.setCurrentOrganization(organization)
         if (organization == null) {
             discoverApi(instance)
         } else {

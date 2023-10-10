@@ -24,6 +24,7 @@ import org.eduvpn.common.CommonException;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.LinkedList;
 import java.util.List;
 
 import nl.eduvpn.app.entity.AddedServers;
@@ -44,7 +45,7 @@ public class HistoryService {
 
     private final BackendService _backendService;
 
-    private List<Listener> _listeners = new ArrayList<>();
+    private List<Listener> _listeners = new LinkedList<>();
 
     private @Nullable OrganizationList _memoryCachedOrganizationList = null;
 
@@ -65,6 +66,7 @@ public class HistoryService {
     public void load() {
         try {
             _addedServers = _backendService.getAddedServers();
+            notifyListeners();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -116,7 +118,6 @@ public class HistoryService {
      * Removes all saved data in this app.
      ***/
     public void removeOrganizationData() {
-        _preferencesService.setCurrentOrganization(null);
         List<Instance> instancesToRemove = new ArrayList<>();
         CommonException errorThrown = null;
         for (Instance instance : instancesToRemove) {

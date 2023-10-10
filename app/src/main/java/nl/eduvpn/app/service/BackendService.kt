@@ -40,14 +40,14 @@ class BackendService(
     private var pendingOAuthCookie: Int? = null
     private var pendingProfileSelectionCookie: Int? = null
     var lastSelectedProfile: String? = null
-    private set
+        private set
 
     private var onConfigReady: ((SerializedVpnConfig) -> Unit)? = null
 
     fun register(
         startOAuth: (String) -> Unit,
         selectProfiles: (List<Profile>) -> Unit,
-        selectCountry: () -> Unit,
+        selectCountry: (Int?) -> Unit,
         connectWithConfig: (SerializedVpnConfig) -> Unit,
         showError: (Throwable) -> Unit
     ): String? {
@@ -74,6 +74,7 @@ class BackendService(
                     preferencesService.setToken(uniqueId, token)
                 }
             }
+
             // Called when the native state machine changes
             override fun onNewState(newState: Int, data: String?): Boolean {
                 return if (newState == State.OAUTH_STARTED.nativeValue) {
@@ -100,10 +101,8 @@ class BackendService(
                         showError(CommonException(ERROR_EMPTY_RESPONSE))
                         return true
                     }
-                    val cookieAndData =
-                        serializerService.deserializeCookieAndCookieAndProfileListData(data)
-                    pendingProfileSelectionCookie = cookieAndData.cookie
-                    selectCountry()
+                    val cookieAndData = serializerService.deserializeCookieAndStringData(data)
+                    selectCountry(cookieAndData.cookie)
                     true
                 } else if (newState == State.OAUTH_STARTED.nativeValue) {
                     if (data.isNullOrEmpty()) {
@@ -152,7 +151,7 @@ class BackendService(
     }
 
     @Throws(CommonException::class)
-    fun discoverOrganizations() : String {
+    fun discoverOrganizations(): String {
         val dataWithError = goBackend.discoverOrganizations()
         if (dataWithError.isError) {
             throw CommonException(dataWithError.error)
@@ -164,7 +163,7 @@ class BackendService(
     }
 
     @Throws(CommonException::class)
-    fun discoverServers() : String {
+    fun discoverServers(): String {
         val dataWithError = goBackend.discoverServers()
         if (dataWithError.isError) {
             throw CommonException(dataWithError.error)
@@ -188,7 +187,10 @@ class BackendService(
 
     @kotlin.jvm.Throws(CommonException::class)
     fun removeServer(instance: Instance) {
-        val error = goBackend.removeServer(instance.authorizationType.toNativeServerType().nativeValue, instance.baseURI)
+        val error = goBackend.removeServer(
+            instance.authorizationType.toNativeServerType().nativeValue,
+            instance.baseURI
+        )
         if (!error.isNullOrEmpty()) {
             throw CommonException(error)
         }
@@ -196,20 +198,20 @@ class BackendService(
 
     private fun AuthorizationType.toNativeServerType(): ServerType {
         return when (this) {
-            AuthorizationType.Distributed ->  ServerType.SecureInternet
+            AuthorizationType.Distributed -> ServerType.SecureInternet
             AuthorizationType.Organization -> ServerType.Custom
             AuthorizationType.Local -> ServerType.InstituteAccess
         }
     }
 
     @kotlin.jvm.Throws(CommonException::class)
-    suspend fun handleRedirection(redirectUri: Uri?) : Boolean {
+    suspend fun handleRedirection(redirectUri: Uri?): Boolean {
         val cookie = pendingOAuthCookie
         val urlString = redirectUri?.toString()
         if (cookie == null || redirectUri == null || urlString.isNullOrEmpty()) {
             return false
         }
-        val error = goBackend.handleRedirection(cookie, urlString)
+        val error = goBackend.cookieReply(cookie, urlString)
         pendingOAuthCookie = null
         if (!error.isNullOrEmpty()) {
             throw CommonException(error)
@@ -218,7 +220,7 @@ class BackendService(
     }
 
     @kotlin.jvm.Throws(CommonException::class, UnknownFormatException::class)
-    fun getAddedServers() : AddedServers {
+    fun getAddedServers(): AddedServers {
         val dataErrorTuple = goBackend.addedServers
         if (dataErrorTuple.isError) {
             throw CommonException(dataErrorTuple.error)
@@ -229,7 +231,12 @@ class BackendService(
 
     @kotlin.jvm.Throws(CommonException::class, UnknownFormatException::class)
     suspend fun getConfig(instance: Instance, preferTcp: Boolean) {
-        val dataErrorTuple = goBackend.getProfiles(instance.authorizationType.toNativeServerType().nativeValue, instance.baseURI, preferTcp, false)
+        val dataErrorTuple = goBackend.getProfiles(
+            instance.authorizationType.toNativeServerType().nativeValue,
+            instance.baseURI,
+            preferTcp,
+            false
+        )
 
         if (dataErrorTuple.isError) {
             throw CommonException(dataErrorTuple.error)
@@ -259,9 +266,20 @@ class BackendService(
                 ?: throw CommonException("Current server should not be null when switching profiles!")
             getConfig(instance, preferTcp)
         }
-
     }
-    fun getCurrentServer() : CurrentServer? {
+
+    fun selectCountry(cookie: Int?, countryCode: String) {
+        val errorString = if (cookie != null) {
+            goBackend.cookieReply(cookie, countryCode)
+        } else {
+            goBackend.selectCountry(countryCode)
+        }
+        if (errorString != null) {
+            throw CommonException(errorString)
+        }
+    }
+
+    fun getCurrentServer(): CurrentServer? {
         val dataErrorTuple = goBackend.currentServer
         if (dataErrorTuple.isError) {
             Log.e(TAG, "Unable to determine current server!", CommonException(dataErrorTuple.error))
