@@ -110,7 +110,6 @@ class WireGuardService(private val context: Context, timer: Flow<Unit>): VPNServ
             try {
                 backend.setState(tunnel, Tunnel.State.UP, config)
             } catch (ex: BackendException) {
-                println("Unable to set state: $ex")
                 if (ex.reason == BackendException.Reason.VPN_NOT_AUTHORIZED) {
                     withContext(Dispatchers.Main) {
                         authorizeVPN(activity)

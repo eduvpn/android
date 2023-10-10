@@ -42,7 +42,7 @@ data class Instance(
     val logoUri: String? = null,
 
     @SerialName("server_type")
-    val authorizationType: AuthorizationType = AuthorizationType.Local, //todo: do not crash if unknown authorization type but use default one
+    val authorizationType: AuthorizationType = AuthorizationType.Local,
 
     @SerialName("country_code")
     val countryCode: String? = null,

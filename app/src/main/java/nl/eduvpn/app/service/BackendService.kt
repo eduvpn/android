@@ -238,7 +238,6 @@ class BackendService(
         if (dataErrorTuple.isError) {
             throw CommonException(dataErrorTuple.error)
         }
-        println("ADDEDSERVERS: " + dataErrorTuple.data)
         return serializerService.deserializeAddedServers(dataErrorTuple.data)
     }
 

@@ -164,11 +164,12 @@ class ConnectionStatusViewModel @Inject constructor(
 
     fun reconnectWithCurrentProfile() {
         viewModelScope.launch(Dispatchers.IO) {
-            backendService.getCurrentServer()?.asInstance()?.let { currentServer ->
-                getProfiles(currentServer)
+            val currentServer = backendService.getCurrentServer()?.asInstance()
+            if (currentServer == null) {
+                _parentAction.postValue(BaseConnectionViewModel.ParentAction.DisplayError(R.string.error_fetching_profile, context.getString(R.string.error_no_profiles_from_server)))
                 return@launch
             }
-            // TODO show error message
+            getProfiles(currentServer)
         }
     }
 

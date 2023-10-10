@@ -233,7 +233,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                     }
                 }
             } catch (ex: CommonException) {
-                // TODO improve errors
                 show(
                     this@MainActivity, R.string.authorization_error_title, getString(
                         R.string.authorization_error_message,
@@ -308,7 +307,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                 openFragment(OrganizationSelectionFragment(), false)
             }
         } else {
-            @Suppress("DEPRECATION") //todo
+            @Suppress("DEPRECATION")
             super.onActivityResult(requestCode, resultCode, data)
         }
     }

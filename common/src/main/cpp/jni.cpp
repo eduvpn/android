@@ -62,8 +62,6 @@ int callGlobalCallback(int newstate, void *data) {
     if (!data) {
         didHandle = env->CallBooleanMethod(callbackField, callbackFunction, newstate, nullptr);
     } else {
-        __android_log_print(ANDROID_LOG_ERROR, "NATIVECOMMON", "ERRORCallback: %d, data: %s\n",
-                            newstate, (char *) data);
         jstring dataString = env->NewStringUTF((char *) data);
         // We do not call FreeString(...) here on data, because it is already done by the Common library.
         didHandle = env->CallBooleanMethod(callbackField, callbackFunction, newstate, dataString);
@@ -76,13 +74,10 @@ int callGlobalCallback(int newstate, void *data) {
 
 // Implement a function that matches the StateCB signature
 int createStateCallback(int oldstate, int newstate, void *data) {
-    __android_log_print(ANDROID_LOG_ERROR, "NATIVECOMMON", "Callback called with oldstate: %d, newstate: %d, data: %s\n", oldstate, newstate, (char *)data);
     return callGlobalCallback(newstate, data);
 }
 
 void getToken(const char* server, char* out, size_t len) {
-    // TODO remove before release
-    __android_log_print(ANDROID_LOG_ERROR, "NATIVECOMMON", "GET TOKEN FOR SERVER: %s", server);
     if (!globalVM) {
         return;
     }
@@ -102,11 +97,8 @@ void getToken(const char* server, char* out, size_t len) {
     if (didAttach) {
         globalVM->DetachCurrentThread();
     }
-    __android_log_print(ANDROID_LOG_ERROR, "NATIVECOMMON", "end of method");
 }
 void setToken(const char* server, const char* tokens) {
-    // TODO remove before release
-    __android_log_print(ANDROID_LOG_ERROR, "NATIVECOMMON", "SET TOKEN FOR SERVER: %s token: %s", server, tokens);
     if (!globalVM) {
         return;
     }
@@ -186,7 +178,6 @@ extern "C" JNIEXPORT jstring JNICALL
 Java_org_eduvpn_common_GoBackend_addServer(JNIEnv *env, jobject /* this */, jint serverType, jstring id) {
     uintptr_t cookie = CookieNew();
     const char *id_str = env->GetStringUTFChars(id, nullptr);
-    __android_log_print(ANDROID_LOG_ERROR, "NATIVECOMMON", "Adding server %d %s", serverType, id_str);
     char *error = AddServer(cookie, (int)serverType, (char *)id_str, 0);
     CookieDelete(cookie);
     // Do not delete the cookie, because it might be reused later in the flow
@@ -243,7 +234,6 @@ Java_org_eduvpn_common_GoBackend_switchProfile(JNIEnv *env, jobject /* this */, 
 extern "C" JNIEXPORT jobject JNICALL
 Java_org_eduvpn_common_GoBackend_getCurrentServer(JNIEnv *env, jobject /* this */) {
     CurrentServer_return result = CurrentServer();
-    __android_log_print(ANDROID_LOG_ERROR, "NATIVECOMMON", "CURSER CU%s", result.r0);
     return CreateDataErrorTuple(env, result.r0, result.r1);
 }
 extern "C" JNIEXPORT jstring JNICALL

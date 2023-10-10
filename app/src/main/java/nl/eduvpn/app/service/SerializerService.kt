@@ -266,7 +266,6 @@ class SerializerService {
     @Throws(UnknownFormatException::class)
     fun deserializeServerList(json: String?): ServerList {
         return try {
-            println(json)
             jsonSerializer.decodeFromString(ServerList.serializer(), json!!)
         } catch (ex: SerializationException) {
             throw UnknownFormatException(ex)
@@ -356,7 +355,6 @@ class SerializerService {
     @Throws(UnknownFormatException::class)
     fun deserializeCertExpiryTimes(json: String): CertExpiryTimes {
         return try {
-            println("CERT EXPIRY TIMES: $json")
             jsonSerializer.decodeFromString(CertExpiryTimes.serializer(), json)
         } catch (ex: SerializationException) {
             throw UnknownFormatException(ex)

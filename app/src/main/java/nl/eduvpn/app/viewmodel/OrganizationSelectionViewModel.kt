@@ -110,7 +110,6 @@ class OrganizationSelectionViewModel @Inject constructor(
                     Log.w(TAG, "Server list call has failed!", it)
                     ServerList(-1L, emptyList())
                 }
-                println("SERVERLIST: " + serverList.serverList[0].authorizationType)
                 if (serverList.version > 0 && lastKnownServerListVersion != null && lastKnownServerListVersion > serverList.version) {
                     organizations.value = emptyList()
                     instituteAccessServers.value = emptyList()

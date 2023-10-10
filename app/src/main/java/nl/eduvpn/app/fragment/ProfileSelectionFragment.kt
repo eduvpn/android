@@ -61,15 +61,12 @@ class ProfileSelectionFragment : BaseFragment<FragmentProfileSelectionBinding>()
         val profileAdapter = ProfileAdapter(viewModel.getProfileInstance())
         binding.profileList.adapter = profileAdapter
 
-        //todo: fix deprecation when new compat library released https://issuetracker.google.com/issues/242048899
+        // TODO: fix deprecation when new compat library released https://issuetracker.google.com/issues/242048899
         @Suppress("DEPRECATION") val profiles: ArrayList<Profile> =
             arguments?.getParcelableArrayList(KEY_PROFILES)!!
 
         profileAdapter.submitList(profiles)
-
-        println("Connected to ${viewModel.parentAction}")
         viewModel.parentAction.observe(viewLifecycleOwner) { parentAction ->
-            println("PARENTACTION: $parentAction")
             when (parentAction) {
                 is BaseConnectionViewModel.ParentAction.DisplayError -> {
                     ErrorDialog.show(requireContext(), parentAction.title, parentAction.message)
@@ -83,7 +80,6 @@ class ProfileSelectionFragment : BaseFragment<FragmentProfileSelectionBinding>()
         // Add click listeners
         ItemClickSupport.addTo(binding.profileList).setOnItemClickListener { _, position, _ ->
             val profile = profileAdapter.getItem(position)
-            println("Connect to profile: ${profile.profileId}")
             selectProfileToConnectTo(profile)
         }
 

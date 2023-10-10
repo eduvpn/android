@@ -122,8 +122,8 @@ public class HistoryService {
     /***
      * Removes all saved data in this app.
      ***/
-    public void removeOrganizationData() {
-        List<Instance> instancesToRemove = new ArrayList<>();
+    public void removeOrganizationData() throws CommonException, SerializerService.UnknownFormatException {
+        List<Instance> instancesToRemove = _backendService.getAddedServers().asInstances();
         CommonException errorThrown = null;
         for (Instance instance : instancesToRemove) {
             try {
@@ -133,12 +133,7 @@ public class HistoryService {
             }
         }
         if (errorThrown != null) {
-            // TODO handle
+            throw errorThrown;
         }
-    }
-
-    public Date getAuthenticationDateForCurrentInstance() {
-        // TODO
-        return new Date();
     }
 }
