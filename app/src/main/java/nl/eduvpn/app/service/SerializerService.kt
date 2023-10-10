@@ -20,6 +20,7 @@ import kotlinx.serialization.SerializationException
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.Json
 import nl.eduvpn.app.entity.AddedServers
+import nl.eduvpn.app.entity.CertExpiryTimes
 import nl.eduvpn.app.entity.CookieAndProfileMapData
 import nl.eduvpn.app.entity.CookieAndStringData
 import nl.eduvpn.app.entity.CurrentServer
@@ -346,8 +347,17 @@ class SerializerService {
     @Throws(UnknownFormatException::class)
     fun deserializeCurrentServer(json: String): CurrentServer {
         return try {
-            println("CURSER: $json")
             jsonSerializer.decodeFromString(CurrentServer.serializer(), json)
+        } catch (ex: SerializationException) {
+            throw UnknownFormatException(ex)
+        }
+    }
+
+    @Throws(UnknownFormatException::class)
+    fun deserializeCertExpiryTimes(json: String): CertExpiryTimes {
+        return try {
+            println("CERT EXPIRY TIMES: $json")
+            jsonSerializer.decodeFromString(CertExpiryTimes.serializer(), json)
         } catch (ex: SerializationException) {
             throw UnknownFormatException(ex)
         }

@@ -163,10 +163,9 @@ class ApplicationModule(private val application: EduVPNApplication) {
     @Provides
     @Singleton
     fun provideHistoryService(
-        preferencesService: PreferencesService,
         backendService: BackendService
     ): HistoryService {
-        return HistoryService(preferencesService, backendService)
+        return HistoryService(backendService)
     }
 
     @Provides

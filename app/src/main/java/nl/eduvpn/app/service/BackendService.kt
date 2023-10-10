@@ -5,6 +5,7 @@ import android.net.Uri
 import nl.eduvpn.app.BuildConfig
 import nl.eduvpn.app.entity.AddedServers
 import nl.eduvpn.app.entity.AuthorizationType
+import nl.eduvpn.app.entity.CertExpiryTimes
 import nl.eduvpn.app.entity.CurrentServer
 import nl.eduvpn.app.entity.Instance
 import nl.eduvpn.app.entity.SerializedVpnConfig
@@ -183,6 +184,18 @@ class BackendService(
         if (!errorString.isNullOrEmpty()) {
             throw CommonException(errorString)
         }
+    }
+
+    @kotlin.jvm.Throws(CommonException::class)
+    fun getCertExpiryTimes():  CertExpiryTimes {
+        val dataWithError = goBackend.certExpiryTimes
+        if (dataWithError.isError) {
+            throw CommonException(dataWithError.error)
+        }
+        if (dataWithError.data.isNullOrEmpty()) {
+            throw CommonException(ERROR_EMPTY_RESPONSE)
+        }
+        return serializerService.deserializeCertExpiryTimes(dataWithError.data!!)
     }
 
     @kotlin.jvm.Throws(CommonException::class)

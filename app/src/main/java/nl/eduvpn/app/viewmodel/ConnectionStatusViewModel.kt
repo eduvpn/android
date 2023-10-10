@@ -32,8 +32,10 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import nl.eduvpn.app.CertExpiredBroadcastReceiver
 import nl.eduvpn.app.R
+import nl.eduvpn.app.entity.CertExpiryTimes
 import nl.eduvpn.app.entity.Profile
 import nl.eduvpn.app.service.*
+import nl.eduvpn.app.utils.Log
 import nl.eduvpn.app.utils.pendingIntentImmutableFlag
 import nl.eduvpn.app.utils.toSingleEvent
 import java.util.*
@@ -63,7 +65,7 @@ class ConnectionStatusViewModel @Inject constructor(
         object SessionExpired : ParentAction()
     }
 
-    private var certExpiryTime: Long? = null
+    private var certExpiryTimes: CertExpiryTimes? = null
 
     val serverName = MutableLiveData<String>()
     val serverSupport = MutableLiveData<String?>()
@@ -87,6 +89,7 @@ class ConnectionStatusViewModel @Inject constructor(
 
     init {
         val currentServer = historyService.currentServer
+        certExpiryTimes = historyService.certExpiryTimes
         val connectionInstance = currentServer.asInstance()
         if (connectionInstance != null && connectionInstance.supportContact.isNotEmpty()) {
                 val supportContacts = StringBuilder()
@@ -107,14 +110,12 @@ class ConnectionStatusViewModel @Inject constructor(
                 serverSupport.postValue(null)
             }
 
-        val authenticationDate = historyService.getAuthenticationDateForCurrentInstance()
-        if (authenticationDate == null) {
+        val buttonTime = certExpiryTimes?.buttonTime
+        if (buttonTime == null) {
             canRenew.postValue(true)
         } else {
-            val now = Date().time
-            val millisecondAmountOf30Minutes = 30 * 60 * 1000
-            val canRenewAt = authenticationDate.time + millisecondAmountOf30Minutes
-            val remaining = canRenewAt - now
+            val now = System.currentTimeMillis() / 1000
+            val remaining = buttonTime - now
             if (remaining > 0) {
                 viewModelScope.launch(Dispatchers.IO) {
                     delay(remaining)
@@ -138,16 +139,15 @@ class ConnectionStatusViewModel @Inject constructor(
     }
 
     private fun planExpiryNotification() {
-        val certExpiryTime = this.certExpiryTime
-        if (certExpiryTime != null && vpnService.getStatus() != VPNService.VPNStatus.DISCONNECTED) {
-            val maxMillisecondsBeforeNotification: Long = 30 * 60 * 1000L
-            val now = System.currentTimeMillis()
-            val millisecondsUntilExpiry = now - certExpiryTime
-            val startMilliseconds = maxOf(certExpiryTime - maxMillisecondsBeforeNotification, now)
-            val notificationWindowLength = minOf(millisecondsUntilExpiry, 15 * 60 * 1000L)
+        val certExpiryTimes = this.certExpiryTimes ?: return
+        val endTime = certExpiryTimes.endTime ?: return
+        val timeNow = System.currentTimeMillis() / 1000
+        val notificationTime = certExpiryTimes.notificationTimes.firstOrNull { it > timeNow }
+        if (notificationTime != null && vpnService.getStatus() != VPNService.VPNStatus.DISCONNECTED) {
+            val notificationWindowLength = minOf(endTime - System.currentTimeMillis(), 15 * 60 * 1000L)
             alarmManager.setWindow(
                 AlarmManager.RTC,
-                startMilliseconds,
+                notificationTime,
                 notificationWindowLength,
                 pendingIntent
             )
@@ -176,14 +176,14 @@ class ConnectionStatusViewModel @Inject constructor(
      * @return If the cert expiry time should continue to be updated.
      */
     fun updateCertExpiry(): Boolean {
-        val currentTime = System.currentTimeMillis()
-        val certExpiryTime = this.certExpiryTime
+        val currentTime = System.currentTimeMillis() / 1000
+        val certExpiryTime = this.certExpiryTimes?.endTime
         if (certExpiryTime == null) {
             // No cert or time, nothing to display
             certValidity.value = null
             return false
         }
-        val timeDifferenceInSeconds = (certExpiryTime - currentTime) / 1000
+        val timeDifferenceInSeconds = (certExpiryTime - currentTime)
         if (timeDifferenceInSeconds < 0) {
             // Cert expired
             certValidity.value = HtmlCompat.fromHtml(context.getString(R.string.connection_certificate_status_expired), HtmlCompat.FROM_HTML_MODE_COMPACT)

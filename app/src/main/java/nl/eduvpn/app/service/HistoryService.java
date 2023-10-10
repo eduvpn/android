@@ -26,11 +26,13 @@ import java.util.LinkedList;
 import java.util.List;
 
 import nl.eduvpn.app.entity.AddedServers;
+import nl.eduvpn.app.entity.CertExpiryTimes;
 import nl.eduvpn.app.entity.CurrentServer;
 import nl.eduvpn.app.entity.Instance;
 import nl.eduvpn.app.entity.OrganizationList;
 import nl.eduvpn.app.entity.exception.CommonException;
 import nl.eduvpn.app.utils.Listener;
+import nl.eduvpn.app.utils.Log;
 
 /**
  * Service which stores previously used access token and profile names.
@@ -40,7 +42,6 @@ import nl.eduvpn.app.utils.Listener;
 public class HistoryService {
     private static final String TAG = HistoryService.class.getName();
     private AddedServers _addedServers = null;
-    private final PreferencesService _preferencesService;
 
     private final BackendService _backendService;
 
@@ -50,12 +51,8 @@ public class HistoryService {
 
     /**
      * Constructor.
-     *
-     * @param preferencesService The preferences service which stores the app state.
      */
-    public HistoryService(@NonNull PreferencesService preferencesService,
-                          @NonNull BackendService backendService) {
-        _preferencesService = preferencesService;
+    public HistoryService(@NonNull BackendService backendService) {
         _backendService = backendService;
     }
 
@@ -92,6 +89,15 @@ public class HistoryService {
 
     public CurrentServer getCurrentServer() {
         return _backendService.getCurrentServer();
+    }
+
+    public @Nullable CertExpiryTimes getCertExpiryTimes() {
+        try {
+            return _backendService.getCertExpiryTimes();
+        } catch (Exception ex) {
+            Log.w(TAG, "Could not determine cert expiry times!", ex);
+            return null;
+        }
     }
 
     public @Nullable OrganizationList getOrganizationList() {

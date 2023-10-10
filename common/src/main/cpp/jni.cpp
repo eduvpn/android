@@ -223,13 +223,11 @@ Java_org_eduvpn_common_GoBackend_getProfiles(JNIEnv *env, jobject /* this */, ji
     uintptr_t cookie = CookieNew();
     GetConfig_return result = GetConfig(cookie, (int)serverType, (char *)id_str, (int)preferTcp, (int)isStartUp);
     CookieDelete(cookie);
-    __android_log_print(ANDROID_LOG_ERROR, "NATIVECOMMON", "CONFIG %s", result.r0);
     return CreateDataErrorTuple(env, result.r0, result.r1);
 }
 extern "C" JNIEXPORT jstring JNICALL
 Java_org_eduvpn_common_GoBackend_selectProfile(JNIEnv *env, jobject /* this */, jint cookie, jstring profileId) {
     const char *profileId_str = env->GetStringUTFChars(profileId, nullptr);
-    __android_log_print(ANDROID_LOG_ERROR, "NATIVECOMMON", "SELECTPROFILE COOKIE %s", profileId_str);
     char *error = CookieReply((uintptr_t)cookie, (char *)profileId_str);
     return NativeStringToJString(env, error);
 }
@@ -266,4 +264,10 @@ Java_org_eduvpn_common_GoBackend_selectCountry(JNIEnv *env, jobject /* this */, 
     char *result = SetSecureLocation(cookie, (char *)countryCode_str);
     CookieCancel(cookie);
     return NativeStringToJString(env, result);
+}
+
+extern "C" JNIEXPORT jobject JNICALL
+Java_org_eduvpn_common_GoBackend_getCertExpiryTimes(JNIEnv *env, jobject /* this */) {
+    ExpiryTimes_return result = ExpiryTimes();
+    return CreateDataErrorTuple(env, result.r0, result.r1);
 }
