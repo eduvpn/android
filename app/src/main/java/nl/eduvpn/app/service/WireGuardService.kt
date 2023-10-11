@@ -31,7 +31,7 @@ class WireGuardService(private val context: Context, timer: Flow<Unit>): VPNServ
 
     private lateinit var backend : GoBackend
 
-    // If we don't run the Wireguard backend always on the same thread, it will crash randomly in native code.
+    // If we don't run the WireGuard backend always on the same thread, it will crash randomly in native code.
     // So we confine it to the same background thread, and communicate with it via Coroutines.
     private val backendDispatcher = Executors.newSingleThreadExecutor().asCoroutineDispatcher()
 

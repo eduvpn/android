@@ -33,7 +33,7 @@ string(REPLACE " -mthumb" "" CMAKE_CXX_FLAGS_NO_THUMB ${CMAKE_CXX_FLAGS})
 
 # Compile from Go to C
 add_custom_command(
-        OUTPUT ${INTERMEDIARY_FILE}
+        OUTPUT ${INTERMEDIARY_FILE} ${INTERMEDIARY_HEADER}
         WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/eduvpn-common/exports"
         COMMENT "Building shared library for ${ANDROID_LLVM_TRIPLE}"
         VERBATIM
@@ -54,7 +54,7 @@ add_custom_command(
         COMMAND cp ${INTERMEDIARY_FILE} ${OUTPUT_FILE}
 )
 # Set the output file on the target
-add_custom_target(libeduvpn_common DEPENDS ${OUTPUT_FILE})
+add_custom_target(libeduvpn_common DEPENDS ${OUTPUT_FILE} ${INTERMEDIARY_HEADER})
 # Build the JNI code which will interface the common library to the shared code
 add_library(eduvpn_common-wrapper SHARED
         ../src/main/cpp/jni.cpp ${INTERMEDIARY_HEADER}
