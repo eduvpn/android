@@ -18,8 +18,7 @@ set(INTERMEDIARY_DIR "${CMAKE_CURRENT_SOURCE_DIR}/eduvpn-common/exports/lib/${GO
 set(INTERMEDIARY_HEADER "${INTERMEDIARY_DIR}/eduvpn_common.h")
 set(INTERMEDIARY_FILE "${INTERMEDIARY_DIR}/libeduvpn_common-${COMMON_VERSION}.so")
 set(OUTPUT_FILE "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libeduvpn_common-${COMMON_VERSION}.so")
-set(OUTPUT_HEADER "${CMAKE_CURRENT_SOURCE_DIR}/../src/main/cpp/eduvpn_common.h")
-set(CLANG_FLAGS "--target=${ANDROID_LLVM_TRIPLE} --gcc-toolchain=${ANDROID_TOOLCHAIN_ROOT} --sysroot=${ANDROID_SYSROOT}")
+set(CLANG_FLAGS "-arch ${GO_ARCH} --target=${ANDROID_LLVM_TRIPLE} --gcc-toolchain=${ANDROID_TOOLCHAIN_ROOT} --sysroot=${ANDROID_SYSROOT}")
 
 find_program(MAKE_EXECUTABLE
     NAMES gmake mingw32-make make
@@ -43,25 +42,24 @@ add_custom_command(
         GOARCH=${GO_ARCH}
         CC=${ANDROID_C_COMPILER}
         CXX=${ANDROID_CXX_COMPILER}
-        CGO_CPPFLAGS=--target=${ANDROID_LLVM_TRIPLE}\ -arch\ ${GO_ARCH}
-        CGO_CFLAGS=${CLANG_FLAGS}\ ${CMAKE_C_FLAGS_NO_THUMB}\ -Wno-unused-command-line-argument\ -arch\ ${GO_ARCH}
-        CGO_CXXFLAGS=${CLANG_FLAGS}\ ${CMAKE_CXX_FLAGS_NO_THUMB}\ -arch\ ${GO_ARCH}
-        CGO_LDFLAGS=${CLANG_FLAGS}\ ${CMAKE_SHARED_LINKER_FLAGS}\ -arch\ ${GO_ARCH}
+        CGO_CPPFLAGS=${CLANG_FLAGS}\ --target=${ANDROID_LLVM_TRIPLE}
+        CGO_CFLAGS=${CLANG_FLAGS}\ ${CMAKE_C_FLAGS_NO_THUMB}\ -Wno-unused-command-line-argument
+        CGO_CXXFLAGS=${CLANG_FLAGS}\ ${CMAKE_CXX_FLAGS_NO_THUMB}
+        CGO_LDFLAGS=${CLANG_FLAGS}\ ${CMAKE_SHARED_LINKER_FLAGS}
 )
 # Copy from intermediary to output file
 add_custom_command(
         OUTPUT ${OUTPUT_FILE}
         DEPENDS ${INTERMEDIARY_FILE}
         COMMAND cp ${INTERMEDIARY_FILE} ${OUTPUT_FILE}
-        COMMAND cp ${INTERMEDIARY_HEADER} ${OUTPUT_HEADER}
 )
 # Set the output file on the target
 add_custom_target(libeduvpn_common DEPENDS ${OUTPUT_FILE})
-
 # Build the JNI code which will interface the common library to the shared code
 add_library(eduvpn_common-wrapper SHARED
-        ../src/main/cpp/jni.cpp
+        ../src/main/cpp/jni.cpp ${INTERMEDIARY_HEADER}
         )
+target_include_directories(eduvpn_common-wrapper PUBLIC ${INTERMEDIARY_DIR})
 add_dependencies(eduvpn_common-wrapper libeduvpn_common)
 
 # The wrapper library needs to be linked to the common library and also Android
