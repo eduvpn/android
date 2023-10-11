@@ -20,12 +20,8 @@ package nl.eduvpn.app;
 import android.content.Context;
 import android.os.StrictMode;
 
-import org.eduvpn.common.GoBackend;
-import org.eduvpn.common.StateCB;
-
 import de.blinkt.openvpn.core.ICSOpenVPNApplication;
 import nl.eduvpn.app.inject.EduVPNComponent;
-import nl.eduvpn.app.service.BackendService;
 
 /**
  * Application object which keeps track of the app lifecycle.

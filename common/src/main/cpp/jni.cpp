@@ -20,10 +20,10 @@ bool GetJniEnv(JavaVM *vm, JNIEnv **env) {
         if (vm->AttachCurrentThread(env, nullptr) == JNI_OK) {
             did_attach_thread = true;
         } else {
-            // Failed to attach thread. Throw an exception if you want to.
+            // Failed to attach thread
         }
     } else if (get_env_result == JNI_EVERSION) {
-        // Unsupported JNI version. Throw an exception if you want to.
+        // Unsupported JNI version
     }
     return did_attach_thread;
 }
