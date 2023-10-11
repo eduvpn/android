@@ -3,9 +3,6 @@ package nl.eduvpn.app.service
 import android.app.Activity
 import android.app.Notification
 import android.content.Context
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.map
 import com.wireguard.android.backend.BackendException
 import com.wireguard.android.backend.GoBackend
 import com.wireguard.android.backend.Tunnel
@@ -13,9 +10,9 @@ import com.wireguard.config.Config
 import com.wireguard.config.Interface
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -23,6 +20,7 @@ import nl.eduvpn.app.livedata.ByteCount
 import nl.eduvpn.app.livedata.IPs
 import nl.eduvpn.app.utils.Log
 import nl.eduvpn.app.utils.WireGuardTunnel
+import java.util.concurrent.Executors
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
@@ -32,7 +30,10 @@ import kotlin.coroutines.suspendCoroutine
 class WireGuardService(private val context: Context, timer: Flow<Unit>): VPNService() {
 
     private lateinit var backend : GoBackend
-    private val backendDispatcher = Dispatchers.IO.limitedParallelism(1)
+
+    // If we don't run the Wireguard backend always on the same thread, it will crash randomly in native code.
+    // So we confine it to the same background thread, and communicate with it via Coroutines.
+    private val backendDispatcher = Executors.newSingleThreadExecutor().asCoroutineDispatcher()
 
     private var errorString: String? = null
 
@@ -130,7 +131,6 @@ class WireGuardService(private val context: Context, timer: Flow<Unit>): VPNServ
     override fun disconnect() {
         GlobalScope.launch(backendDispatcher) {
             try {
-
                 backend.setState(tunnel, Tunnel.State.DOWN, null)
             } catch (ex: Exception) {
                 Log.e(

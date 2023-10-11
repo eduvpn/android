@@ -10,7 +10,6 @@ import kotlinx.coroutines.withContext
 import nl.eduvpn.app.MainActivity
 import nl.eduvpn.app.R
 import nl.eduvpn.app.entity.AuthorizationType
-import nl.eduvpn.app.entity.Instance
 import nl.eduvpn.app.entity.SerializedVpnConfig
 import nl.eduvpn.app.entity.VPNConfig
 import nl.eduvpn.app.service.BackendService
@@ -19,7 +18,6 @@ import nl.eduvpn.app.service.HistoryService
 import nl.eduvpn.app.service.OrganizationService
 import nl.eduvpn.app.service.PreferencesService
 import nl.eduvpn.app.service.VPNConnectionService
-import nl.eduvpn.app.utils.ErrorDialog
 import nl.eduvpn.app.utils.getCountryText
 import org.eduvpn.common.Protocol
 import java.io.BufferedReader
