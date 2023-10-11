@@ -43,10 +43,10 @@ add_custom_command(
         GOARCH=${GO_ARCH}
         CC=${ANDROID_C_COMPILER}
         CXX=${ANDROID_CXX_COMPILER}
-        CGO_CPPFLAGS=--target=${ANDROID_LLVM_TRIPLE}
-        CGO_CFLAGS=${CLANG_FLAGS}\ ${CMAKE_C_FLAGS_NO_THUMB}\ -Wno-unused-command-line-argument
-        CGO_CXXFLAGS=${CLANG_FLAGS}\ ${CMAKE_CXX_FLAGS_NO_THUMB}
-        CGO_LDFLAGS=${CLANG_FLAGS}\ ${CMAKE_SHARED_LINKER_FLAGS}
+        CGO_CPPFLAGS=--target=${ANDROID_LLVM_TRIPLE}\ -arch\ ${GO_ARCH}
+        CGO_CFLAGS=${CLANG_FLAGS}\ ${CMAKE_C_FLAGS_NO_THUMB}\ -Wno-unused-command-line-argument\ -arch\ ${GO_ARCH}
+        CGO_CXXFLAGS=${CLANG_FLAGS}\ ${CMAKE_CXX_FLAGS_NO_THUMB}\ -arch\ ${GO_ARCH}
+        CGO_LDFLAGS=${CLANG_FLAGS}\ ${CMAKE_SHARED_LINKER_FLAGS}\ -arch\ ${GO_ARCH}
 )
 # Copy from intermediary to output file
 add_custom_command(
