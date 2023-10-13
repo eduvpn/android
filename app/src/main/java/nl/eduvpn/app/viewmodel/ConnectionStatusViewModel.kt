@@ -26,13 +26,16 @@ import android.text.Spanned
 import androidx.core.text.HtmlCompat
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.liveData
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import nl.eduvpn.app.CertExpiredBroadcastReceiver
 import nl.eduvpn.app.R
+import nl.eduvpn.app.entity.CertExpiryTimes
 import nl.eduvpn.app.entity.Profile
 import nl.eduvpn.app.service.*
-import nl.eduvpn.app.utils.getCountryText
+import nl.eduvpn.app.utils.Log
 import nl.eduvpn.app.utils.pendingIntentImmutableFlag
 import nl.eduvpn.app.utils.toSingleEvent
 import java.util.*
@@ -42,20 +45,19 @@ import javax.inject.Named
 class ConnectionStatusViewModel @Inject constructor(
     private val context: Context,
     private val preferencesService: PreferencesService,
-    private val eduVPNOpenVPNService: EduVPNOpenVPNService,
     private val vpnService: VPNService,
     private val historyService: HistoryService,
     @Named("timer")
     val timer: LiveData<Unit>,
     @Named("connectionTimeLiveData")
     val connectionTimeLiveData: LiveData<Long?>,
-    apiService: APIService,
-    serializerService: SerializerService,
-    connectionService: ConnectionService,
+    private val backendService: BackendService,
     vpnConnectionService: VPNConnectionService,
 ) : BaseConnectionViewModel(
-    context, apiService, serializerService, historyService,
-    preferencesService, connectionService, eduVPNOpenVPNService,
+    context,
+    backendService,
+    historyService,
+    preferencesService,
     vpnConnectionService,
 ) {
 
@@ -63,7 +65,7 @@ class ConnectionStatusViewModel @Inject constructor(
         object SessionExpired : ParentAction()
     }
 
-    private var certExpiryTime: Long? = null
+    private var certExpiryTimes: CertExpiryTimes? = null
 
     val serverName = MutableLiveData<String>()
     val serverSupport = MutableLiveData<String?>()
@@ -72,9 +74,9 @@ class ConnectionStatusViewModel @Inject constructor(
 
     val isInDisconnectMode = MutableLiveData(false)
     val serverProfiles = MutableLiveData<List<Profile>>()
-    val byteCountLiveData = vpnService.byteCountLiveData
-    val ipLiveData = vpnService.ipLiveData
-    val canRenew: LiveData<Boolean>
+    val byteCountFlow = vpnService.byteCountFlow
+    val ipFLow = vpnService.ipFlow
+    val canRenew = MutableLiveData(false)
 
     private val _connectionParentAction = MutableLiveData<ParentAction>()
     val connectionParentAction = _connectionParentAction.toSingleEvent()
@@ -86,48 +88,45 @@ class ConnectionStatusViewModel @Inject constructor(
         PendingIntent.getBroadcast(context, 0, intent, pendingIntentImmutableFlag)
 
     init {
-        refreshProfile()
-        val connectionInstance = preferencesService.getCurrentInstance()
-        serverProfiles.value = preferencesService.getCurrentProfileList()
+        val currentServer = historyService.currentServer
+        certExpiryTimes = historyService.certExpiryTimes
+        val connectionInstance = currentServer.asInstance()
         if (connectionInstance != null && connectionInstance.supportContact.isNotEmpty()) {
-            val supportContacts = StringBuilder()
-            for (contact in connectionInstance.supportContact) {
-                if (contact.startsWith("mailto:")) {
-                    supportContacts.append(contact.replace("mailto:", ""))
-                } else if (contact.startsWith("tel:")) {
-                    supportContacts.append(contact.replace("tel:", ""))
-                } else {
-                    supportContacts.append(contact)
+                val supportContacts = StringBuilder()
+                for (contact in connectionInstance.supportContact) {
+                    if (contact.startsWith("mailto:")) {
+                        supportContacts.append(contact.replace("mailto:", ""))
+                    } else if (contact.startsWith("tel:")) {
+                        supportContacts.append(contact.replace("tel:", ""))
+                    } else {
+                        supportContacts.append(contact)
+                    }
+                    supportContacts.append(", ")
                 }
-                supportContacts.append(", ")
+                // Remove the last separator
+                supportContacts.delete(supportContacts.length - 2, supportContacts.length)
+                serverSupport.postValue(context.getString(R.string.connection_info_support, supportContacts))
+            } else {
+                serverSupport.postValue(null)
             }
-            // Remove the last separator
-            supportContacts.delete(supportContacts.length - 2, supportContacts.length)
-            serverSupport.value =
-                context.getString(R.string.connection_info_support, supportContacts)
-        } else {
-            serverSupport.value = null
-        }
 
-        val authenticationDate =
-            historyService.getCachedAuthState(preferencesService.getCurrentInstance()!!)?.second
-        canRenew = if (authenticationDate == null) {
-            MutableLiveData(true)
+        val buttonTime = certExpiryTimes?.buttonTime
+        if (buttonTime == null) {
+            canRenew.postValue(true)
         } else {
-            val now = Date().time
-            val millisecondAmountOf30Minutes = 30 * 60 * 1000
-            val canRenewAt = authenticationDate.time + millisecondAmountOf30Minutes
-            val remaining = canRenewAt - now
+            val now = System.currentTimeMillis() / 1000
+            val remaining = buttonTime - now
             if (remaining > 0) {
-                liveData {
-                    emit(false)
+                viewModelScope.launch(Dispatchers.IO) {
                     delay(remaining)
-                    emit(true)
+                    canRenew.postValue(true)
                 }
             } else {
-                MutableLiveData(true)
+                canRenew.postValue(true)
             }
         }
+        serverProfiles.value = currentServer.getProfiles()
+        profileName.value = currentServer.currentProfile?.displayName?.bestTranslation
     }
 
     override fun onResume() {
@@ -140,16 +139,15 @@ class ConnectionStatusViewModel @Inject constructor(
     }
 
     private fun planExpiryNotification() {
-        val certExpiryTime = this.certExpiryTime
-        if (certExpiryTime != null && vpnService.getStatus() != VPNService.VPNStatus.DISCONNECTED) {
-            val maxMillisecondsBeforeNotification: Long = 30 * 60 * 1000L
-            val now = System.currentTimeMillis()
-            val millisecondsUntilExpiry = now - certExpiryTime
-            val startMilliseconds = maxOf(certExpiryTime - maxMillisecondsBeforeNotification, now)
-            val notificationWindowLength = minOf(millisecondsUntilExpiry, 15 * 60 * 1000L)
+        val certExpiryTimes = this.certExpiryTimes ?: return
+        val endTime = certExpiryTimes.endTime ?: return
+        val timeNow = System.currentTimeMillis() / 1000
+        val notificationTime = certExpiryTimes.notificationTimes.firstOrNull { it > timeNow }
+        if (notificationTime != null && vpnService.getStatus() != VPNService.VPNStatus.DISCONNECTED) {
+            val notificationWindowLength = minOf(endTime - System.currentTimeMillis(), 15 * 60 * 1000L)
             alarmManager.setWindow(
                 AlarmManager.RTC,
-                startMilliseconds,
+                notificationTime,
                 notificationWindowLength,
                 pendingIntent
             )
@@ -161,26 +159,32 @@ class ConnectionStatusViewModel @Inject constructor(
     }
 
     fun renewSession() {
-        discoverApi(preferencesService.getCurrentInstance()!!, true)
+        discoverApi(preferencesService.getCurrentInstance()!!)
     }
 
-    fun reconnectToInstance() {
-        historyService.removeSavedKeyPairs(preferencesService.getCurrentInstance())
-        discoverApi(preferencesService.getCurrentInstance()!!)
+    fun reconnectWithCurrentProfile() {
+        viewModelScope.launch(Dispatchers.IO) {
+            val currentServer = backendService.getCurrentServer()?.asInstance()
+            if (currentServer == null) {
+                _parentAction.postValue(BaseConnectionViewModel.ParentAction.DisplayError(R.string.error_fetching_profile, context.getString(R.string.error_no_profiles_from_server)))
+                return@launch
+            }
+            getProfiles(currentServer)
+        }
     }
 
     /**
      * @return If the cert expiry time should continue to be updated.
      */
     fun updateCertExpiry(): Boolean {
-        val currentTime = System.currentTimeMillis()
-        val certExpiryTime = this.certExpiryTime
+        val currentTime = System.currentTimeMillis() / 1000
+        val certExpiryTime = this.certExpiryTimes?.endTime
         if (certExpiryTime == null) {
             // No cert or time, nothing to display
             certValidity.value = null
             return false
         }
-        val timeDifferenceInSeconds = (certExpiryTime - currentTime) / 1000
+        val timeDifferenceInSeconds = (certExpiryTime - currentTime)
         if (timeDifferenceInSeconds < 0) {
             // Cert expired
             certValidity.value = HtmlCompat.fromHtml(context.getString(R.string.connection_certificate_status_expired), HtmlCompat.FROM_HTML_MODE_COMPACT)
@@ -212,24 +216,5 @@ class ConnectionStatusViewModel @Inject constructor(
             certValidity.value = HtmlCompat.fromHtml(context.getString(R.string.connection_certificate_status_valid_for_one_part, days), HtmlCompat.FROM_HTML_MODE_COMPACT)
         }
         return true
-    }
-
-    fun findCurrentProfile(): Profile? {
-        return preferencesService.getCurrentProfile()
-    }
-
-    fun refreshProfile() {
-        val savedProfile = preferencesService.getCurrentProfile()
-        val connectionInstance = preferencesService.getCurrentInstance()
-        if (connectionInstance?.countryCode != null) {
-            serverName.value = connectionInstance.getCountryText()
-        } else if (savedProfile != null) {
-            serverName.value = savedProfile.displayName.bestTranslation
-        } else {
-            serverName.value = context.getString(R.string.profile_name_not_found)
-        }
-        profileName.value = savedProfile?.displayName?.bestTranslation
-        certExpiryTime = savedProfile?.expiry
-        updateCertExpiry()
     }
 }

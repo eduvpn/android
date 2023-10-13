@@ -26,9 +26,11 @@ import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
+import androidx.lifecycle.asLiveData
 import androidx.lifecycle.map
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import nl.eduvpn.app.Constants
@@ -39,7 +41,6 @@ import nl.eduvpn.app.base.BaseFragment
 import nl.eduvpn.app.databinding.FragmentConnectionStatusBinding
 import nl.eduvpn.app.entity.Profile
 import nl.eduvpn.app.fragment.ServerSelectionFragment.Companion.newInstance
-import nl.eduvpn.app.service.APIService
 import nl.eduvpn.app.service.VPNConnectionService
 import nl.eduvpn.app.service.VPNService
 import nl.eduvpn.app.service.VPNService.VPNStatus
@@ -73,24 +74,27 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
         EduVPNApplication.get(view.context).component().inject(this)
         binding.viewModel = viewModel
         binding.secondsConnected = viewModel.connectionTimeLiveData.map { secondsConnected ->
+            val context = this@ConnectionStatusFragment.context ?: return@map null
             FormattingUtils.formatDurationSeconds(
-                requireContext(),
+                context,
                 secondsConnected
             )
         }
-        binding.bytesDownloaded = viewModel.byteCountLiveData.map { bc ->
+        binding.bytesDownloaded = viewModel.byteCountFlow.map { bc ->
+            val context = this@ConnectionStatusFragment.context ?: return@map null
             FormattingUtils.formatBytesTraffic(
-                requireContext(),
+                context,
                 bc?.bytesIn
             )
-        }
-        binding.bytesUploaded = viewModel.byteCountLiveData.map { bc ->
+        }.asLiveData()
+        binding.bytesUploaded = viewModel.byteCountFlow.map { bc ->
+            val context = this@ConnectionStatusFragment.context ?: return@map null
             FormattingUtils.formatBytesTraffic(
-                requireContext(),
+                context,
                 bc?.bytesOut
             )
-        }
-        binding.ips = viewModel.ipLiveData
+        }.asLiveData()
+        binding.ips = viewModel.ipFLow.asLiveData()
         binding.connectionSwitch.setOnCheckedChangeListener { _, isChecked ->
             if (isAutomaticCheckChange) {
                 return@setOnCheckedChangeListener
@@ -98,13 +102,8 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
             if (!isChecked) {
                 disconnect()
             } else {
-                val currentProfile = viewModel.findCurrentProfile()
-                if (currentProfile != null) {
-                    connectToProfile(currentProfile)
-                } else {
-                    // Should not happen
-                    returnToHome()
-                }
+                // Get the config again, and connect again
+                viewModel.reconnectWithCurrentProfile()
             }
         }
         binding.connectionInfoDropdown.setOnClickListener {
@@ -164,41 +163,15 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
         }
         viewModel.parentAction.observe(viewLifecycleOwner) { parentAction ->
             when (parentAction) {
-                is BaseConnectionViewModel.ParentAction.InitiateConnection -> {
-                    activity?.let { activity ->
-                        if (!activity.isFinishing) {
-                            viewModel.initiateConnection(
-                                activity,
-                                parentAction.instance,
-                                parentAction.discoveredAPI
-                            )
-                        }
-                    }
-                }
-                is BaseConnectionViewModel.ParentAction.ConnectWithConfig -> {
-                    viewModel.refreshProfile()
-                    val newVPNService = viewModel.connectionToConfig(requireActivity(), parentAction.vpnConfig)
-                    if(vpnService != newVPNService) {
-                        (activity as? MainActivity)?.openFragment(ConnectionStatusFragment(), false)
-                    }
-                }
                 is BaseConnectionViewModel.ParentAction.DisplayError -> {
                     ErrorDialog.show(requireContext(), parentAction.title, parentAction.message)
                 }
                 is BaseConnectionViewModel.ParentAction.OpenProfileSelector -> {
-                    val profile = viewModel.findCurrentProfile()
-                        ?.let { currentProfile ->
-                            parentAction.profiles.find { p -> p.profileId == currentProfile.profileId }
-                        }
-                    if (profile != null) {
-                        connectToProfile(profile)
-                    } else {
-                        (activity as? MainActivity)?.openFragment(
-                            ProfileSelectionFragment.newInstance(
-                                parentAction.profiles
-                            ), true
-                        )
-                    }
+                    (activity as? MainActivity)?.openFragment(
+                        ProfileSelectionFragment.newInstance(
+                            parentAction.profiles
+                        ), true
+                    )
                 }
                 else -> {
                     // Do nothing.
@@ -280,14 +253,6 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
         isAutomaticCheckChange = false
     }
 
-    private fun initiateConnection() {
-        activity?.let { activity ->
-            if (!activity.isFinishing) {
-                viewModel.initiateConnection(activity)
-            }
-        }
-    }
-
     fun returnToHome() {
         disconnect()
         val activity = activity as MainActivity?
@@ -308,24 +273,25 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
     }
 
     fun reconnectToInstance() {
-        viewModel.reconnectToInstance()
+        viewModel.reconnectWithCurrentProfile()
     }
 
     private fun connectToProfile(profile: Profile) {
         skipNextDisconnect = true
         viewModel.isInDisconnectMode.value = false
         setToggleCheckedWithoutAction(true)
-        viewModel.viewModelScope.launch {
+        viewModel.viewModelScope.launch(Dispatchers.IO) {
             viewModel.selectProfileToConnectTo(profile).onFailure { thr ->
                 withContext(Dispatchers.Main) {
                     setToggleCheckedWithoutAction(false)
                     viewModel.isInDisconnectMode.value = true
-                    if (thr is APIService.UserNotAuthorizedException) {
-                        initiateConnection()
-                    } else {
-                        ErrorDialog.show(requireContext(), thr)
-                    }
+                    ErrorDialog.show(requireContext(), thr)
                 }
+            }.onSuccess {
+                // Relaunch this fragment. This is required, because in some cases, the backend
+                // implementation (WireGuard vs OpenVPN) might be different, and we would be connected
+                // to the incorrect one.
+                (activity as? MainActivity)?.openFragment(ConnectionStatusFragment(), openOnTop = false)
             }
         }
     }

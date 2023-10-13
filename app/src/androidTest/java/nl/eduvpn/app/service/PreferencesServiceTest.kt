@@ -75,26 +75,6 @@ class PreferencesServiceTest {
     }
 
     @Test
-    fun testDiscoveredAPISave() {
-        val discoveredAPIV3 = DiscoveredAPIV3(
-            "http://example.com/",
-            "http://example.com/auth_endpoint",
-            "http://example.com/token_endpoint"
-        )
-        _preferencesService.setCurrentDiscoveredAPI(discoveredAPIV3)
-        val retrievedDiscoveredAPI = _preferencesService.getCurrentDiscoveredAPI()
-        Assert.assertEquals(
-            discoveredAPIV3.authorizationEndpoint,
-            retrievedDiscoveredAPI!!.authorizationEndpoint
-        )
-        Assert.assertEquals(
-            discoveredAPIV3.apiEndpoint,
-            retrievedDiscoveredAPI.toDiscoveredAPIs().v3!!.apiEndpoint
-        )
-        Assert.assertEquals(discoveredAPIV3.tokenEndpoint, retrievedDiscoveredAPI.tokenEndpoint)
-    }
-
-    @Test
     fun testLastKnownOrganizationListVersionSave() {
         val version = 121_323L
         _preferencesService.setLastKnownOrganizationListVersion(version)

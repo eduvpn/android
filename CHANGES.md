@@ -1,5 +1,8 @@
 # Changelog
 
+## 3.2 (2023-09-27)
+- Use common Go library to discover the instances and to communicate with them. This simplifies the app code, but should have no visible changes to the end user.
+
 ## 3.1.1 (2023-05-24)
 - Only sort when retrieving lists, not on every keypress 
   ([#394](https://github.com/eduvpn/android/pull/394))

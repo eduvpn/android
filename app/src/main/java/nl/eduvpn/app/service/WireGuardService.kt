@@ -3,28 +3,37 @@ package nl.eduvpn.app.service
 import android.app.Activity
 import android.app.Notification
 import android.content.Context
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.map
 import com.wireguard.android.backend.BackendException
 import com.wireguard.android.backend.GoBackend
 import com.wireguard.android.backend.Tunnel
 import com.wireguard.config.Config
 import com.wireguard.config.Interface
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import nl.eduvpn.app.livedata.ByteCount
 import nl.eduvpn.app.livedata.IPs
 import nl.eduvpn.app.utils.Log
 import nl.eduvpn.app.utils.WireGuardTunnel
+import java.util.concurrent.Executors
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 
 /**
  * Service responsible for managing the WireGuard profiles and the connection.
  */
-class WireGuardService(private val context: Context, timer: LiveData<Unit>) :
-    VPNService() {
+class WireGuardService(private val context: Context, timer: Flow<Unit>): VPNService() {
 
-    private val backend = GoBackend(context)
+    private lateinit var backend : GoBackend
+
+    // If we don't run the WireGuard backend always on the same thread, it will crash randomly in native code.
+    // So we confine it to the same background thread, and communicate with it via Coroutines.
+    private val backendDispatcher = Executors.newSingleThreadExecutor().asCoroutineDispatcher()
 
     private var errorString: String? = null
 
@@ -33,8 +42,22 @@ class WireGuardService(private val context: Context, timer: LiveData<Unit>) :
 
     private val TAG = this::class.java.name
 
+    override val byteCountFlow: Flow<ByteCount?> = timer.map {
+        getByteCount()
+    }
+
+    private val _ipFlow = MutableStateFlow<IPs?>(null)
+    override val ipFlow: Flow<IPs?> = _ipFlow
+
+
     private val tunnel = WireGuardTunnel("eduVPN WireGuard tunnel") { newTunnelState ->
         setConnectionStatus(tunnelStateToStatus(newTunnelState))
+    }
+
+    init {
+        GlobalScope.launch(backendDispatcher) {
+            backend = GoBackend(context)
+        }
     }
 
     override fun getStatus(): VPNStatus {
@@ -60,15 +83,19 @@ class WireGuardService(private val context: Context, timer: LiveData<Unit>) :
         }
     }
 
-    override val byteCountLiveData: LiveData<ByteCount?> = timer.map { getByteCount() }
-
-    override val ipLiveData: MutableLiveData<IPs> = MutableLiveData()
-
-    private fun getByteCount(): ByteCount {
-        val statistics = backend.getStatistics(tunnel)
-        val bytesIn = statistics.totalRx()
-        val bytesOut = statistics.totalTx()
-        return ByteCount(bytesIn, bytesOut)
+    private suspend fun getByteCount(): ByteCount? {
+        return suspendCoroutine{ continuation ->
+            GlobalScope.launch(backendDispatcher) {
+                if (!backend.runningTunnelNames.contains(tunnel.name)) {
+                    continuation.resume(null)
+                    return@launch
+                }
+                val statistics = backend.getStatistics(tunnel)
+                val bytesIn = statistics.totalRx()
+                val bytesOut = statistics.totalTx()
+                continuation.resume(ByteCount(bytesIn, bytesOut))
+            }
+        }
     }
 
     /**
@@ -78,19 +105,17 @@ class WireGuardService(private val context: Context, timer: LiveData<Unit>) :
      * @param config  The config to use for connecting.
      */
     suspend fun connect(activity: Activity, config: Config) {
-        setConnectionStatus(VPNStatus.CONNECTING)
-
-        ipLiveData.postValue(getIPs(config.`interface`))
-
-        withContext(Dispatchers.IO) {
+        withContext(backendDispatcher) {
+            setConnectionStatus(VPNStatus.CONNECTING)
+            _ipFlow.emit(getIPs(config.`interface`))
             try {
                 backend.setState(tunnel, Tunnel.State.UP, config)
             } catch (ex: BackendException) {
                 if (ex.reason == BackendException.Reason.VPN_NOT_AUTHORIZED) {
                     withContext(Dispatchers.Main) {
                         authorizeVPN(activity)
+                        setConnectionStatus(VPNStatus.DISCONNECTED)
                     }
-                    setConnectionStatus(VPNStatus.DISCONNECTED)
                 } else {
                     fail(ex.toString())
                 }
@@ -104,14 +129,16 @@ class WireGuardService(private val context: Context, timer: LiveData<Unit>) :
     }
 
     override fun disconnect() {
-        try {
-            backend.setState(tunnel, Tunnel.State.DOWN, null)
-        } catch (ex: Exception) {
-            Log.e(
-                TAG,
-                "Exception when trying to stop WireGuard connection. Connection might not be closed!",
-                ex
-            )
+        GlobalScope.launch(backendDispatcher) {
+            try {
+                backend.setState(tunnel, Tunnel.State.DOWN, null)
+            } catch (ex: Exception) {
+                Log.e(
+                    TAG,
+                    "Exception when trying to stop WireGuard connection. Connection might not be closed!",
+                    ex
+                )
+            }
         }
     }
 

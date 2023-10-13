@@ -18,6 +18,9 @@
 
 package nl.eduvpn.app.entity
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class Organization(
         val orgId: String,
         val displayName: TranslatableString,

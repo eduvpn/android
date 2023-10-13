@@ -23,16 +23,18 @@ import android.content.Context
 import android.content.SharedPreferences
 import android.os.Build
 import androidx.annotation.VisibleForTesting
-import net.openid.appauth.AuthState
+import androidx.security.crypto.EncryptedSharedPreferences
+import androidx.security.crypto.MasterKey
 import nl.eduvpn.app.BuildConfig
 import nl.eduvpn.app.Constants
 import nl.eduvpn.app.entity.*
-import nl.eduvpn.app.entity.v3.Protocol
 import nl.eduvpn.app.utils.Log
+import org.eduvpn.common.Protocol
 import org.json.JSONException
 import org.json.JSONObject
 import java.io.File
 import java.io.IOException
+
 
 /**
  * This service is used to save temporary data
@@ -49,16 +51,16 @@ class PreferencesService(
     companion object {
         private val TAG = PreferencesService::class.simpleName
 
-        private const val STORAGE_VERSION = 4
+        private const val STORAGE_VERSION = 5
 
-        private const val KEY_PREFERENCES_NAME = "app_preferences"
+        private const val KEY_OLD_PREFERENCES_NAME = "app_preferences"
+        private const val KEY_SECURE_PREFERENCES_NAME = "secure_app_preferences"
 
-        private const val KEY_AUTH_STATE = "auth_state"
         private const val KEY_APP_SETTINGS = "app_settings"
+        private const val KEY_PREFIX_SERVER_TOKEN = "server_token_"
 
         const val KEY_ORGANIZATION = "organization"
         const val KEY_INSTANCE = "instance"
-        const val KEY_PROFILE = "profile"
         const val KEY_VPN_PROTOCOL = "vpn_protocol"
         const val KEY_PROFILE_LIST = "profile_list"
         const val KEY_DISCOVERED_API = "discovered_api"
@@ -78,31 +80,43 @@ class PreferencesService(
         const val KEY_SERVER_LIST_DATA = "server_list_data"
         const val KEY_SERVER_LIST_TIMESTAMP = "server_list_timestamp"
 
-        const val KEY_SAVED_AUTH_STATES = "saved_auth_state"
         const val KEY_SAVED_KEY_PAIRS = "saved_key_pairs"
-        const val KEY_SAVED_ORGANIZATION = "saved_organization"
         const val KEY_PREFERRED_COUNTRY = "preferred_country"
 
         const val KEY_STORAGE_VERSION = "storage_version"
     }
 
     private val _serializerService: SerializerService = serializerService
-    private val _sharedPreferences: SharedPreferences =
-        applicationContext.getSharedPreferences(KEY_PREFERENCES_NAME, Context.MODE_PRIVATE)
+
+    private val securePreferences: SharedPreferences
 
     init {
-        migrateIfNeeded(_sharedPreferences, applicationContext)
+        val insecurePreferences: SharedPreferences =
+            applicationContext.getSharedPreferences(KEY_OLD_PREFERENCES_NAME, Context.MODE_PRIVATE)
+        val masterKey = MasterKey.Builder(applicationContext)
+            .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+            .build()
+
+        securePreferences = EncryptedSharedPreferences.create(
+            applicationContext,
+            KEY_SECURE_PREFERENCES_NAME,
+            masterKey,
+            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+        )
+        migrateIfNeeded(insecurePreferences, securePreferences, applicationContext)
     }
 
     @SuppressLint("ApplySharedPref")
     @VisibleForTesting
     fun migrateIfNeeded(
-        newPreferences: SharedPreferences,
+        insecurePreferences: SharedPreferences,
+        securePreferences: SharedPreferences,
         applicationContext: Context,
     ) {
-        val version = newPreferences.getInt(KEY_STORAGE_VERSION, 1)
+        val version = insecurePreferences.getInt(KEY_STORAGE_VERSION, 1)
         if (version < 3) {
-            val editor = newPreferences.edit()
+            val editor = insecurePreferences.edit()
             @Suppress("DEPRECATION")
             editor.remove(KEY_INSTANCE_LIST_SECURE_INTERNET)
             @Suppress("DEPRECATION")
@@ -129,16 +143,26 @@ class PreferencesService(
                     try {
                         file.delete()
                     } catch (e: IOException) {
-
                     }
                 }
             }
 
-            val editor = newPreferences.edit()
+            val editor = insecurePreferences.edit()
             editor.putInt(KEY_STORAGE_VERSION, STORAGE_VERSION)
             editor.commit()
             if (Constants.DEBUG) {
                 Log.d(TAG, "Migrated over to storage version v4.")
+            }
+        }
+        if (version < 5) {
+            securePreferences.edit()
+                .putInt(KEY_STORAGE_VERSION, 5)
+                .putString(KEY_APP_SETTINGS, insecurePreferences.getString(KEY_APP_SETTINGS, null))
+                .apply()
+            // Remove everything else
+            insecurePreferences.edit().clear().commit()
+            if (Constants.DEBUG) {
+                Log.d(TAG, "Migrated over to storage version v5.")
             }
         }
     }
@@ -150,7 +174,7 @@ class PreferencesService(
      */
     @VisibleForTesting
     fun getSharedPreferences(): SharedPreferences {
-        return _sharedPreferences
+        return securePreferences
     }
 
     /**
@@ -160,48 +184,10 @@ class PreferencesService(
     @SuppressLint("ApplySharedPref")
     @VisibleForTesting
     fun clearPreferences() {
-        _sharedPreferences.edit().clear().putInt(KEY_STORAGE_VERSION, 2).commit()
-    }
-
-    /**
-     * Saves the organization the app is connecting to.
-     *
-     * @param organization The organization to save.
-     */
-    fun setCurrentOrganization(organization: Organization?) {
-        try {
-            if (organization == null) {
-                getSharedPreferences().edit().remove(KEY_ORGANIZATION).apply()
-            } else {
-                getSharedPreferences().edit()
-                    .putString(
-                        KEY_ORGANIZATION,
-                        _serializerService.serializeOrganization(organization).toString()
-                    )
-                    .apply()
-            }
-        } catch (ex: SerializerService.UnknownFormatException) {
-            Log.e(TAG, "Cannot save organization!", ex)
-        }
-    }
-
-    /**
-     * Returns a saved organization.
-     *
-     * @return The organization to connect to. Null if none found.
-     */
-    fun getCurrentOrganization(): Organization? {
-        val serializedOrganization = getSharedPreferences().getString(KEY_ORGANIZATION, null)
-            ?: return null
-        return try {
-            _serializerService.deserializeOrganization(JSONObject(serializedOrganization))
-        } catch (ex: SerializerService.UnknownFormatException) {
-            Log.e(TAG, "Unable to deserialize instance!", ex)
-            null
-        } catch (ex: JSONException) {
-            Log.e(TAG, "Unable to deserialize instance!", ex)
-            null
-        }
+        securePreferences.edit()
+            .clear()
+            .putInt(KEY_STORAGE_VERSION, STORAGE_VERSION)
+            .commit()
     }
 
     /**
@@ -240,94 +226,6 @@ class PreferencesService(
             Log.e(TAG, "Unable to deserialize instance!", ex)
             null
         }
-    }
-
-    /**
-     * Saves the current profile as the selected one.
-     *
-     * @param profile  The profile to save.
-     * @param protocol Protocol used by the profile, null if not known yet.
-     */
-    fun setCurrentProfile(profile: Profile?, protocol: Protocol?) {
-        setCurrentProtocol(protocol)
-        try {
-            if (profile == null) {
-                getSharedPreferences().edit().remove(KEY_PROFILE).apply()
-            } else {
-                getSharedPreferences().edit()
-                    .putString(KEY_PROFILE, _serializerService.serializeProfile(profile))
-                    .apply()
-            }
-        } catch (ex: SerializerService.UnknownFormatException) {
-            Log.e(TAG, "Unable to serialize profile!", ex)
-        }
-    }
-
-    /**
-     * Returns the previously saved profile.
-     *
-     * @return The lastly saved profile with {@link #setCurrentProfile(Profile)}.
-     */
-    fun getCurrentProfile(): Profile? {
-        val serializedProfile = getSharedPreferences().getString(KEY_PROFILE, null)
-            ?: return null
-        return try {
-            _serializerService.deserializeProfile(serializedProfile)
-        } catch (ex: SerializerService.UnknownFormatException) {
-            Log.e(TAG, "Unable to deserialize saved profile!", ex)
-            null
-        }
-    }
-
-
-    /**
-     * Sets the current profile list, which is all the profiles the user can connect to for the current server.
-     *
-     * @param currentProfileList All the profiles available on the current instance. Use null to delete all values.
-     */
-    fun setCurrentProfileList(currentProfileList: List<Profile>?) {
-        try {
-            if (currentProfileList == null) {
-                getSharedPreferences().edit().remove(KEY_PROFILE_LIST).apply()
-            } else {
-                val serializedList = _serializerService.serializeProfileList(currentProfileList)
-                getSharedPreferences().edit().putString(KEY_PROFILE_LIST, serializedList)
-                    .apply()
-            }
-        } catch (ex: SerializerService.UnknownFormatException) {
-            Log.w(TAG, "Unable to serialize profile list!", ex)
-        }
-    }
-
-    /**
-     * Returns the list of profiles for the current instance.
-     *
-     * @return The available profiles on the currently selected server. Null if none.
-     */
-    fun getCurrentProfileList(): List<Profile>? {
-        val serializedProfileList = getSharedPreferences().getString(KEY_PROFILE_LIST, null)
-            ?: return null
-        return try {
-            _serializerService.deserializeProfileList(serializedProfileList)
-        } catch (ex: SerializerService.UnknownFormatException) {
-            Log.e(TAG, "Unable to deserialize profile list!", ex)
-            null
-        }
-    }
-
-    /**
-     * Saves the authorization state for further usage.
-     *
-     * @param authState The access token and refresh token to use for the VPN provider API.
-     */
-    fun setCurrentAuthState(authState: AuthState?) {
-        val editor = getSharedPreferences().edit()
-        if (authState == null) {
-            editor.remove(KEY_AUTH_STATE)
-        } else {
-            editor.putString(KEY_AUTH_STATE, authState.jsonSerializeString())
-        }
-        editor.apply()
     }
 
     /**
@@ -370,142 +268,6 @@ class PreferencesService(
             getSharedPreferences().edit().putString(KEY_APP_SETTINGS, serializedSettings).apply()
         } catch (ex: SerializerService.UnknownFormatException) {
             Log.e(TAG, "Unable to serialize and save app settings!")
-        }
-    }
-
-    /**
-     * Saves a discovered API object for future usage.
-     *
-     * @param discoveredAPI The discovered API.
-     */
-    fun setCurrentDiscoveredAPI(discoveredAPI: DiscoveredAPI?) {
-        try {
-            val editor = getSharedPreferences().edit()
-            if (discoveredAPI == null) {
-                editor.remove(KEY_DISCOVERED_API)
-            } else {
-                editor.putString(
-                    KEY_DISCOVERED_API,
-                    _serializerService.serializeDiscoveredAPIs(discoveredAPI.toDiscoveredAPIs())
-                )
-            }
-            editor.apply()
-        } catch (ex: SerializerService.UnknownFormatException) {
-            Log.e(TAG, "Can not save discovered API!", ex)
-        }
-    }
-
-    /**
-     * Returns a previously saved discovered API.
-     *
-     * @return A discovered API if saved, otherwise null.
-     */
-    fun getCurrentDiscoveredAPI(): DiscoveredAPIV3? {
-        val serializedDiscoveredAPI =
-            getSharedPreferences().getString(KEY_DISCOVERED_API, null)
-                ?: return null
-        return try {
-            _serializerService.deserializeDiscoveredAPIs(serializedDiscoveredAPI).v3
-        } catch (ex: SerializerService.UnknownFormatException) {
-            Log.e(TAG, "Unable to deserialize saved discovered API", ex)
-            null
-        }
-    }
-
-    /**
-     * Returns a previously saved list of saved authorization states.
-     *
-     * @return The saved list, or null if not exists.
-     */
-    fun getSavedAuthStateList(): List<SavedAuthState>? {
-        val serializedSavedAuthStateList = getSharedPreferences().getString(
-            KEY_SAVED_AUTH_STATES, null
-        )
-            ?: return null
-        return try {
-            _serializerService.deserializeSavedAuthStateList(serializedSavedAuthStateList)
-        } catch (ex: SerializerService.UnknownFormatException) {
-            Log.e(TAG, "Unable to deserialize saved auth state list", ex)
-            null
-        }
-    }
-
-    /**
-     * Stores a saved token list.
-     *
-     * @param savedAuthStateList The list to save.
-     */
-    fun storeSavedAuthStateList(savedAuthStateList: List<SavedAuthState>) {
-        try {
-            val serializedSavedAuthStateList =
-                _serializerService.serializeSavedAuthStateList(savedAuthStateList)
-            getSharedPreferences().edit()
-                .putString(KEY_SAVED_AUTH_STATES, serializedSavedAuthStateList).apply()
-        } catch (ex: SerializerService.UnknownFormatException) {
-            Log.e(TAG, "Can not save saved token list.", ex)
-        }
-    }
-
-    fun getSavedKeyPairList(): List<SavedKeyPair>? {
-        return try {
-            val serializedKeyPairList = getSharedPreferences().getString(KEY_SAVED_KEY_PAIRS, null)
-                ?: return null
-            _serializerService.deserializeSavedKeyPairList(serializedKeyPairList)
-        } catch (ex: SerializerService.UnknownFormatException) {
-            Log.e(TAG, "Cannot retrieve saved key pair list.", ex)
-            null
-        }
-    }
-
-    /***
-     * Stores the list of saved key pairs.
-     * @param savedKeyPairs The list of saved key pairs to store.
-     */
-    fun storeSavedKeyPairList(savedKeyPairs: List<SavedKeyPair?>) {
-        try {
-            val serializedKeyPairList =
-                _serializerService.serializeSavedKeyPairList(savedKeyPairs).toString()
-            getSharedPreferences().edit().putString(KEY_SAVED_KEY_PAIRS, serializedKeyPairList)
-                .apply()
-        } catch (ex: SerializerService.UnknownFormatException) {
-            Log.e(TAG, "Cannot store saved key pair list.", ex)
-        }
-    }
-
-    /**
-     * Stores an organization together with its servers.
-     *
-     * @param organization The organization.
-     */
-    fun storeSavedOrganization(organization: Organization?) {
-        try {
-            if (organization == null) {
-                getSharedPreferences().edit().remove(KEY_SAVED_ORGANIZATION).apply()
-            } else {
-                val serializedSavedOrganization =
-                    _serializerService.serializeOrganization(organization).toString()
-                getSharedPreferences().edit()
-                    .putString(KEY_SAVED_ORGANIZATION, serializedSavedOrganization).apply()
-            }
-        } catch (ex: SerializerService.UnknownFormatException) {
-            Log.e(TAG, "Cannot store saved organization.", ex)
-        }
-    }
-
-    /**
-     * Retrieves a previously stored saved organization.
-     *
-     * @return The previously stored saved organization. Null if deserialization failed or no stored one found.
-     */
-    fun getSavedOrganization(): Organization? {
-        return try {
-            val savedOrganizationJson =
-                getSharedPreferences().getString(KEY_SAVED_ORGANIZATION, null)
-                    ?: return null
-            _serializerService.deserializeOrganization(JSONObject(savedOrganizationJson))
-        } catch (ex: Exception) {
-            Log.e(TAG, "Cannot deserialize saved organization.", ex)
-            null
         }
     }
 
@@ -571,29 +333,6 @@ class PreferencesService(
     }
 
     /**
-     * Returns the previously stored preferred country.
-     *
-     * @return The preferred country, if saved previously. Null if no saved one yet.
-     */
-    fun getPreferredCountry(): String? {
-        return getSharedPreferences().getString(KEY_PREFERRED_COUNTRY, null)
-    }
-
-    /**
-     * Saves the preferred country selected by the user.
-     *
-     * @param preferredCountry The country selected by the user.
-     */
-    fun setPreferredCountry(preferredCountry: String?) {
-        if (preferredCountry == null) {
-            getSharedPreferences().edit().remove(KEY_PREFERRED_COUNTRY).apply()
-        } else {
-            getSharedPreferences().edit().putString(KEY_PREFERRED_COUNTRY, preferredCountry)
-                .apply()
-        }
-    }
-
-    /**
      * Returns the server list if it is recent (see constants for exact TTL).
      *
      * @return The server list if it is recent, otherwise null.
@@ -642,28 +381,25 @@ class PreferencesService(
         }
     }
 
-    private fun setCurrentProtocol(protocol: Protocol?) {
-        try {
-            if (protocol == null) {
-                getSharedPreferences().edit().remove(KEY_VPN_PROTOCOL).apply()
-            } else {
-                getSharedPreferences().edit()
-                    .putString(KEY_VPN_PROTOCOL, _serializerService.serializeProtocol(protocol))
-                    .apply()
-            }
-        } catch (ex: SerializerService.UnknownFormatException) {
-            Log.e(TAG, "Unable to serialize protocol!", ex)
-        }
+    fun setCurrentProtocol(protocol: Int) {
+        getSharedPreferences().edit()
+            .putInt(KEY_VPN_PROTOCOL, protocol)
+            .apply()
     }
 
-    fun getCurrentProtocol(): Protocol? {
-        val serializedProtocol = getSharedPreferences().getString(KEY_VPN_PROTOCOL, null)
-            ?: return null
-        return try {
-            _serializerService.deserializeProtocol(serializedProtocol)
-        } catch (ex: SerializerService.UnknownFormatException) {
-            Log.e(TAG, "Unable to deserialize saved protocol!", ex)
-            null
+    fun getCurrentProtocol(): Int {
+        return getSharedPreferences().getInt(KEY_VPN_PROTOCOL, Protocol.Unknown.nativeValue)
+    }
+
+    fun getToken(serverId: String): String? {
+        return getSharedPreferences().getString(KEY_PREFIX_SERVER_TOKEN + serverId, null)
+    }
+
+    fun setToken(serverId: String, token: String?) {
+        if (token.isNullOrEmpty()) {
+            getSharedPreferences().edit().remove(KEY_PREFIX_SERVER_TOKEN + serverId).apply()
+        } else {
+            getSharedPreferences().edit().putString(KEY_PREFIX_SERVER_TOKEN + serverId, token).apply()
         }
     }
 }

@@ -20,7 +20,6 @@ import android.content.Context
 import nl.eduvpn.app.Constants
 import nl.eduvpn.app.R
 import nl.eduvpn.app.entity.Instance
-import nl.eduvpn.app.entity.Profile
 import java.net.URI
 import java.text.DecimalFormat
 import java.util.*
@@ -100,15 +99,18 @@ object FormattingUtils {
      *
      * @param context  The application or activity context.
      * @param instance The provider which gives the first part of the name
-     * @param profile  The profile which gives the second part of the name.
+     * @param profile  The profile ID which gives the second part of the name.
      * @return The name to display.
      */
-    fun formatProfileName(context: Context, instance: Instance, profile: Profile): String {
+    fun formatProfileName(context: Context, instance: Instance, profileId: String?): String {
         val instanceName = formatDisplayName(instance)
+        if (profileId == null) {
+            return instanceName ?: "Default"
+        }
         return context.getString(
             R.string.saved_profile_display_name,
             instanceName,
-            profile.displayName.bestTranslation
+            profileId
         )
     }
 

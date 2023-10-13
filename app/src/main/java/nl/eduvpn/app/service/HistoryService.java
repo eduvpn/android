@@ -20,22 +20,17 @@ package nl.eduvpn.app.service;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import net.openid.appauth.AuthState;
-import net.openid.appauth.AuthorizationServiceConfiguration;
-
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
-import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
-import java.util.ListIterator;
 
-import kotlin.Pair;
-import nl.eduvpn.app.entity.AuthorizationType;
+import nl.eduvpn.app.entity.AddedServers;
+import nl.eduvpn.app.entity.CertExpiryTimes;
+import nl.eduvpn.app.entity.CurrentServer;
 import nl.eduvpn.app.entity.Instance;
-import nl.eduvpn.app.entity.Organization;
-import nl.eduvpn.app.entity.SavedAuthState;
-import nl.eduvpn.app.entity.SavedKeyPair;
+import nl.eduvpn.app.entity.OrganizationList;
+import nl.eduvpn.app.entity.exception.CommonException;
 import nl.eduvpn.app.utils.Listener;
 import nl.eduvpn.app.utils.Log;
 
@@ -46,49 +41,31 @@ import nl.eduvpn.app.utils.Log;
  */
 public class HistoryService {
     private static final String TAG = HistoryService.class.getName();
+    private AddedServers _addedServers = null;
 
-    private List<SavedAuthState> _savedAuthStateList;
-    private List<SavedKeyPair> _savedKeyPairList;
+    private final BackendService _backendService;
 
-    private Organization _savedOrganization;
+    private List<Listener> _listeners = new LinkedList<>();
 
-    private final PreferencesService _preferencesService;
-
-    private List<Listener> _listeners = new ArrayList<>();
+    private @Nullable OrganizationList _memoryCachedOrganizationList = null;
 
     /**
      * Constructor.
-     *
-     * @param preferencesService The preferences service which stores the app state.
      */
-    public HistoryService(@NonNull PreferencesService preferencesService) {
-        _preferencesService = preferencesService;
-        _load();
+    public HistoryService(@NonNull BackendService backendService) {
+        _backendService = backendService;
     }
 
     /**
      * Loads the state of the service.
      */
-    private void _load() {
-        _savedAuthStateList = _preferencesService.getSavedAuthStateList();
-        if (_savedAuthStateList == null) {
-            _savedAuthStateList = new ArrayList<>();
-            Log.i(TAG, "No saved tokens found.");
+    public void load() {
+        try {
+            _addedServers = _backendService.getAddedServers();
+            notifyListeners();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
-        _savedKeyPairList = _preferencesService.getSavedKeyPairList();
-        if (_savedKeyPairList == null) {
-            Log.i(TAG, "No saved key pair found.");
-            _savedKeyPairList = new ArrayList<>();
-        }
-        _savedOrganization = _preferencesService.getSavedOrganization();
-    }
-
-    /**
-     * Saves the state of the service.
-     */
-    private void _save() {
-        _preferencesService.storeSavedAuthStateList(_savedAuthStateList);
-        _preferencesService.storeSavedOrganization(_savedOrganization);
     }
 
     public void addListener(Listener listener) {
@@ -105,230 +82,30 @@ public class HistoryService {
         _listeners.forEach(l -> l.update(this, null));
     }
 
-    /**
-     * Returns a cached authorization state for an API.
-     *
-     * @param instance The instance to get the access token for.
-     * @return The authorization state if found. Null if not found.
-     */
-    @Nullable
-    public Pair<AuthState, Date> getCachedAuthState(@NonNull Instance instance) {
-        for (SavedAuthState savedAuthState : _savedAuthStateList) {
-            if (savedAuthState.getInstance()
-                    .getSanitizedBaseURI()
-                    .equals(instance.getSanitizedBaseURI())) {
-                return new Pair(savedAuthState.getAuthState(), savedAuthState.getAuthenticationDate());
-            } else if (instance.getAuthorizationType() == AuthorizationType.Distributed && savedAuthState
-                    .getInstance()
-                    .getAuthorizationType() == AuthorizationType.Distributed) {
-                return new Pair(savedAuthState.getAuthState(), savedAuthState.getAuthenticationDate());
-            }
-        }
-        return null;
+
+    public @Nullable AddedServers getAddedServers() {
+        return _addedServers;
     }
 
-    /**
-     * Caches an access token for an API.
-     *
-     * @param instance  The VPN provider the token is stored for.
-     * @param authState The authorization state which contains the access and refresh tokens.
-     */
-    public void cacheAuthorizationState(@NonNull Instance instance, @NonNull AuthState authState, @Nullable Date authenticationDate) {
-        List<Instance> existingInstances = new ArrayList<>();
-        if (instance.getAuthorizationType() == AuthorizationType.Distributed) {
-            for (SavedAuthState savedAuthState : _savedAuthStateList) {
-                if (savedAuthState.getInstance()
-                        .getAuthorizationType() == AuthorizationType.Distributed && !savedAuthState.getInstance()
-                        .getSanitizedBaseURI()
-                        .equals(instance.getSanitizedBaseURI())) {
-                    existingInstances.add(savedAuthState.getInstance());
-                }
-            }
-        }
-        // Remove all previous entries
-        _removeAuthorizations(instance);
-        _savedAuthStateList.add(new SavedAuthState(instance, authState, authenticationDate));
-        for (Instance existingSharedInstance : existingInstances) {
-            _savedAuthStateList.add(new SavedAuthState(existingSharedInstance, authState, authenticationDate));
-        }
-        _save();
-        notifyListeners();
+    public CurrentServer getCurrentServer() {
+        return _backendService.getCurrentServer();
     }
 
-    /**
-     * Removes the access token(s) which have the given base URI.
-     *
-     * @param instance The instance the access token will be saved for.
-     */
-    private void _removeAuthorizations(@NonNull Instance instance) {
-        Iterator<SavedAuthState> savedTokenIterator = _savedAuthStateList.iterator();
-        while (savedTokenIterator.hasNext()) {
-            SavedAuthState savedAuthState = savedTokenIterator.next();
-            if (instance.getAuthorizationType() == AuthorizationType.Distributed &&
-                    savedAuthState.getInstance().getAuthorizationType() == AuthorizationType.Distributed) {
-                savedTokenIterator.remove();
-                Log.i(TAG, "Deleted saved token for distributed auth instance " + savedAuthState.getInstance().getSanitizedBaseURI());
-            } else if (instance.getAuthorizationType() == AuthorizationType.Local &&
-                    savedAuthState.getInstance().getSanitizedBaseURI().equals(instance.getSanitizedBaseURI())) {
-                savedTokenIterator.remove();
-                Log.i(TAG, "Deleted saved token for local auth instance " + savedAuthState.getInstance().getSanitizedBaseURI());
-            } else if (instance.getAuthorizationType() == AuthorizationType.Organization &&
-                    savedAuthState.getInstance().getSanitizedBaseURI().equals(instance.getSanitizedBaseURI())) {
-                savedTokenIterator.remove();
-                Log.i(TAG, "Deleted saved token for organization auth instance " + savedAuthState.getInstance().getSanitizedBaseURI());
-            }
+    public @Nullable CertExpiryTimes getCertExpiryTimes() {
+        try {
+            return _backendService.getCertExpiryTimes();
+        } catch (Exception ex) {
+            Log.w(TAG, "Could not determine cert expiry times!", ex);
+            return null;
         }
-        _save();
     }
 
-    /**
-     * Returns the list of all saved tokens.
-     *
-     * @return The list of all saved access tokens and instances.
-     */
-    public List<SavedAuthState> getSavedAuthStateList() {
-        return Collections.unmodifiableList(_savedAuthStateList);
+    public @Nullable OrganizationList getOrganizationList() {
+        return _memoryCachedOrganizationList;
     }
 
-    /**
-     * Returns a saved token for a given sanitized base URI.
-     *
-     * @param instance The instance to get the token for.
-     * @return The token if available, otherwise null.
-     */
-    @Nullable
-    public SavedAuthState getSavedToken(Instance instance) {
-        // First we prioritize tokens which belong to the same instance
-        for (SavedAuthState savedAuthState : _savedAuthStateList) {
-            if (instance.getSanitizedBaseURI().equals(savedAuthState.getInstance().getSanitizedBaseURI())) {
-                return savedAuthState;
-            }
-        }
-        // Second pass: if distributed auth instance, any other instance with distributed auth is fine as well
-        if (instance.getAuthorizationType() == AuthorizationType.Distributed) {
-            for (SavedAuthState savedAuthState : _savedAuthStateList) {
-                if (savedAuthState.getInstance().getAuthorizationType() == AuthorizationType.Distributed) {
-                    return savedAuthState;
-                }
-            }
-        }
-        return null;
-    }
-
-    /**
-     * Returns a saved key pair for an instance.
-     *
-     * @param instance The instance the key pair was created for.
-     * @return The saved key pair if there was a previously generated one. Null if none created yet.
-     */
-    public SavedKeyPair getSavedKeyPairForInstance(Instance instance) {
-        for (SavedKeyPair savedKeyPair : _savedKeyPairList) {
-            if (savedKeyPair.getInstance().getSanitizedBaseURI().equals(instance.getSanitizedBaseURI())) {
-                return savedKeyPair;
-            }
-        }
-        return null;
-    }
-
-    @Nullable
-    public Organization getSavedOrganization() {
-        return _savedOrganization;
-    }
-
-    public void storeSavedOrganization(@NonNull Organization organization) {
-        _savedOrganization = organization;
-        _preferencesService.storeSavedOrganization(organization);
-        notifyListeners();
-    }
-
-    /**
-     * Stores a saved key pair so it can be retrieved next time.
-     *
-     * @param savedKeyPair The saved key pair to store.
-     */
-    public void storeSavedKeyPair(@NonNull SavedKeyPair savedKeyPair) {
-        // Check if it is not a duplicate
-        boolean wasDuplicate = false;
-        ListIterator<SavedKeyPair> savedKeyPairIterator = _savedKeyPairList.listIterator();
-        while (savedKeyPairIterator.hasNext()) {
-            SavedKeyPair current = savedKeyPairIterator.next();
-            if (current.getInstance().getSanitizedBaseURI().equals(savedKeyPair.getInstance().getSanitizedBaseURI())) {
-                if (!wasDuplicate) {
-                    savedKeyPairIterator.set(savedKeyPair);
-                } else {
-                    // We already replaced one. So this one is a duplicate.
-                    Log.w(TAG, "Found a duplicate key pair entry! Removing second one.");
-                    savedKeyPairIterator.remove();
-                }
-                wasDuplicate = true;
-            }
-        }
-        if (!wasDuplicate) {
-            _savedKeyPairList.add(savedKeyPair);
-        }
-        _preferencesService.storeSavedKeyPairList(_savedKeyPairList);
-    }
-
-    /**
-     * Refreshes an auth state in the list.
-     *
-     * @param authState The auth state to refresh.
-     */
-    public void refreshAuthState(AuthState authState) {
-        if (_savedAuthStateList == null) {
-            Log.w(TAG, "No saved auth states found. Nothing to refresh?");
-            return;
-        }
-        // Two auth states are for the same API if their configuration is the same.
-        AuthorizationServiceConfiguration currentConfig = authState.getAuthorizationServiceConfiguration();
-        for (SavedAuthState savedAuthState : _savedAuthStateList) {
-            if (_authConfigsEqual(currentConfig, savedAuthState.getAuthState().getAuthorizationServiceConfiguration())) {
-                savedAuthState.setAuthState(authState);
-                Log.d(TAG, "Auth state found and replaced for " + savedAuthState.getInstance().getBaseURI());
-                break;
-            }
-        }
-        _preferencesService.storeSavedAuthStateList(_savedAuthStateList);
-    }
-
-    /**
-     * Checks if two authorization service configs are equal
-     *
-     * @param left  The first operand.
-     * @param right The second operand.
-     * @return True if they have the same URLs, false if not.
-     */
-    private boolean _authConfigsEqual(AuthorizationServiceConfiguration left, AuthorizationServiceConfiguration right) {
-        return left.tokenEndpoint.toString().equals(right.tokenEndpoint.toString()) &&
-                left.authorizationEndpoint.toString().equals(right.authorizationEndpoint.toString());
-
-    }
-
-    /**
-     * Removes the saved key pairs for the instance and all connecting instances.
-     *
-     * @param instance The instance to remove.
-     */
-    public void removeSavedKeyPairs(Instance instance) {
-        if (_savedKeyPairList == null) {
-            Log.i(TAG, "No saved key pairs found to remove.");
-            return;
-        }
-        ListIterator<SavedKeyPair> keyPairListIterator = _savedKeyPairList.listIterator();
-        while (keyPairListIterator.hasNext()) {
-            SavedKeyPair current = keyPairListIterator.next();
-            if (instance.getAuthorizationType() == AuthorizationType.Distributed &&
-                    current.getInstance().getAuthorizationType() == AuthorizationType.Distributed) {
-                keyPairListIterator.remove();
-                Log.i(TAG, "Deleted saved key pair for distributed auth instance " + current.getInstance().getSanitizedBaseURI());
-            } else if (instance.getAuthorizationType() == AuthorizationType.Local &&
-                    instance.getSanitizedBaseURI().equals(current.getInstance().getSanitizedBaseURI())) {
-                keyPairListIterator.remove();
-                Log.i(TAG, "Deleted saved key pair for local auth instance " + current.getInstance().getSanitizedBaseURI());
-
-            }
-        }
-        _save();
+    public void setOrganizationList(@Nullable OrganizationList organizationList) {
+        _memoryCachedOrganizationList = organizationList;
     }
 
     /**
@@ -336,38 +113,27 @@ public class HistoryService {
      *
      * @param instance The instance to remove the data for.
      */
-    public void removeAllDataForInstance(Instance instance) {
-        if (instance.getAuthorizationType() == AuthorizationType.Distributed) {
-            // Remove all distributed instance related data
-            List<SavedAuthState> authStates = new ArrayList<>(getSavedAuthStateList());
-            for (SavedAuthState savedAuthState : authStates) {
-                if (savedAuthState.getInstance().getAuthorizationType() == AuthorizationType.Distributed) {
-                    removeSavedKeyPairs(savedAuthState.getInstance());
-                    _removeAuthorizations(savedAuthState.getInstance());
-                }
-            }
-        } else {
-            removeSavedKeyPairs(instance);
-            _removeAuthorizations(instance);
-        }
+    public void removeAllDataForInstance(Instance instance) throws CommonException {
+        _backendService.removeServer(instance);
+        load();
         notifyListeners();
     }
 
     /***
      * Removes all saved data in this app.
      ***/
-    public void removeOrganizationData() {
-        _savedOrganization = null;
-        _preferencesService.setCurrentOrganization(null);
-        List<Instance> instancesToRemove = new ArrayList<>();
-        for (SavedAuthState authState : _savedAuthStateList) {
-            if (authState.getInstance() != null && authState.getInstance().getAuthorizationType() == AuthorizationType.Distributed) {
-                instancesToRemove.add(authState.getInstance());
+    public void removeOrganizationData() throws CommonException, SerializerService.UnknownFormatException {
+        List<Instance> instancesToRemove = _backendService.getAddedServers().asInstances();
+        CommonException errorThrown = null;
+        for (Instance instance : instancesToRemove) {
+            try {
+                removeAllDataForInstance(instance);
+            } catch (CommonException ex) {
+                errorThrown = ex;
             }
         }
-        for (Instance instance : instancesToRemove) {
-            removeAllDataForInstance(instance);
+        if (errorThrown != null) {
+            throw errorThrown;
         }
-        _save();
     }
 }

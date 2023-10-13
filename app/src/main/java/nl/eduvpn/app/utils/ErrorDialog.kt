@@ -26,6 +26,7 @@ import android.widget.Button
 import android.widget.TextView
 import androidx.annotation.StringRes
 import nl.eduvpn.app.R
+import nl.eduvpn.app.entity.exception.CommonException
 import nl.eduvpn.app.entity.exception.EduVPNException
 
 
@@ -68,6 +69,8 @@ object ErrorDialog {
         }
         val message = if (thr is EduVPNException) {
             context.getString(thr.resourceIdMessage, *thr.formatArgs)
+        } else if (thr is CommonException) {
+            thr.translatedMessage()
         } else {
             thr.localizedMessage ?: thr.toString()
         }

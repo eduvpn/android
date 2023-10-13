@@ -18,7 +18,6 @@ package nl.eduvpn.app.entity
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import nl.eduvpn.app.utils.serializer.TranslatableStringSerializer
 
 /**
  * A configuration for an instance.
@@ -31,18 +30,16 @@ data class Instance(
     val baseURI: String,
 
     @SerialName("display_name")
-    @Serializable(with = TranslatableStringSerializer::class)
     val displayName: TranslatableString = TranslatableString(),
 
     @SerialName("keyword_list")
-    @Serializable(with = TranslatableStringSerializer::class)
     val keywords: TranslatableString? = TranslatableString(),
 
     @SerialName("logo")
     val logoUri: String? = null,
 
     @SerialName("server_type")
-    val authorizationType: AuthorizationType = AuthorizationType.Local, //todo: do not crash if unknown authorization type but use default one
+    val authorizationType: AuthorizationType = AuthorizationType.Local,
 
     @SerialName("country_code")
     val countryCode: String? = null,

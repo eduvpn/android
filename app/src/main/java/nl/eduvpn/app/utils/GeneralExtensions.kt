@@ -90,43 +90,6 @@ fun Instance.getCountryText(): String? {
 }
 
 /**
- * Extension method for OkHttp for integration with coroutines.
- */
-suspend fun Call.await(): Response {
-    return withContext(Dispatchers.IO) {
-        suspendCancellableCoroutine { cont ->
-            cont.invokeOnCancellation {
-                kotlin.runCatching {
-                    cancel()
-                }
-            }
-            enqueue(object : Callback {
-                override fun onFailure(call: Call, e: IOException) {
-                    cont.resumeWithException(e)
-                }
-
-                override fun onResponse(call: Call, response: Response) {
-                    cont.resume(response)
-                }
-            })
-        }
-    }
-}
-
-/**
- * Extension method for OkHttp ResponseBody to get the charset of the response
- * in the same way as [ResponseBody.string].
- */
-suspend fun ResponseBody.charset(): Charset {
-    val defaultCharset =
-        this.contentType()?.charset(Charsets.UTF_8) ?: Charsets.UTF_8
-    val responseBody = this
-    return withContext(Dispatchers.IO) {
-        responseBody.source().readBomAsCharset(defaultCharset)
-    }
-}
-
-/**
  * [kotlin.runCatching] that does not catch CancellationException.
  * See https://github.com/Kotlin/kotlinx.coroutines/issues/1814
  */

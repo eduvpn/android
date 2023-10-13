@@ -9,5 +9,11 @@ class WireGuardTunnel(
 
     override fun getName() = name
 
-    override fun onStateChange(newState: Tunnel.State) = onStateChangeFunction(newState)
+    var state: Tunnel.State = Tunnel.State.DOWN
+    private set
+
+    override fun onStateChange(newState: Tunnel.State) {
+        state = newState
+        onStateChangeFunction(newState)
+    }
 }

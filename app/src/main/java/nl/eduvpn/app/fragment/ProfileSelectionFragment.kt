@@ -20,14 +20,12 @@ package nl.eduvpn.app.fragment
 import android.os.Bundle
 import android.view.View
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.Observer
 import androidx.lifecycle.viewModelScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import nl.eduvpn.app.EduVPNApplication
-import nl.eduvpn.app.MainActivity
 import nl.eduvpn.app.R
 import nl.eduvpn.app.adapter.ProfileAdapter
 import nl.eduvpn.app.base.BaseFragment
@@ -63,29 +61,13 @@ class ProfileSelectionFragment : BaseFragment<FragmentProfileSelectionBinding>()
         val profileAdapter = ProfileAdapter(viewModel.getProfileInstance())
         binding.profileList.adapter = profileAdapter
 
-        //todo: fix deprecation when new compat library released https://issuetracker.google.com/issues/242048899
+        // TODO: fix deprecation when new compat library released https://issuetracker.google.com/issues/242048899
         @Suppress("DEPRECATION") val profiles: ArrayList<Profile> =
             arguments?.getParcelableArrayList(KEY_PROFILES)!!
 
         profileAdapter.submitList(profiles)
-
-        viewModel.parentAction.observe(viewLifecycleOwner, Observer { parentAction ->
+        viewModel.parentAction.observe(viewLifecycleOwner) { parentAction ->
             when (parentAction) {
-                is BaseConnectionViewModel.ParentAction.InitiateConnection -> {
-                    activity?.let { activity ->
-                        if (!activity.isFinishing) {
-                            viewModel.initiateConnection(
-                                activity,
-                                parentAction.instance,
-                                parentAction.discoveredAPI
-                            )
-                        }
-                    }
-                }
-                is BaseConnectionViewModel.ParentAction.ConnectWithConfig -> {
-                    viewModel.connectionToConfig(requireActivity(), parentAction.vpnConfig)
-                    (activity as? MainActivity)?.openFragment(ConnectionStatusFragment(), false)
-                }
                 is BaseConnectionViewModel.ParentAction.DisplayError -> {
                     ErrorDialog.show(requireContext(), parentAction.title, parentAction.message)
                 }
@@ -93,7 +75,7 @@ class ProfileSelectionFragment : BaseFragment<FragmentProfileSelectionBinding>()
                     // Do nothing.
                 }
             }
-        })
+        }
 
         // Add click listeners
         ItemClickSupport.addTo(binding.profileList).setOnItemClickListener { _, position, _ ->

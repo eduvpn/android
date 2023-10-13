@@ -19,44 +19,46 @@ package nl.eduvpn.app
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Intent
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.view.MenuItem
 import android.view.View
 import android.widget.Toast
+import androidx.activity.viewModels
+import androidx.appcompat.app.AlertDialog
+import androidx.browser.customtabs.CustomTabsIntent
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import net.openid.appauth.AuthorizationException
-import net.openid.appauth.AuthorizationResponse
 import nl.eduvpn.app.base.BaseActivity
 import nl.eduvpn.app.databinding.ActivityMainBinding
+import nl.eduvpn.app.entity.Instance
+import nl.eduvpn.app.entity.exception.CommonException
 import nl.eduvpn.app.fragment.AddServerFragment
 import nl.eduvpn.app.fragment.ConnectionStatusFragment
 import nl.eduvpn.app.fragment.OrganizationSelectionFragment
+import nl.eduvpn.app.fragment.ProfileSelectionFragment
 import nl.eduvpn.app.fragment.ServerSelectionFragment
-import nl.eduvpn.app.fragment.ServerSelectionFragment.Companion.newInstance
-import nl.eduvpn.app.service.ConnectionService
+import nl.eduvpn.app.service.BackendService
 import nl.eduvpn.app.service.EduVPNOpenVPNService
 import nl.eduvpn.app.service.HistoryService
 import nl.eduvpn.app.service.VPNService
 import nl.eduvpn.app.utils.ErrorDialog.show
-import nl.eduvpn.app.utils.Log
+import nl.eduvpn.app.viewmodel.MainViewModel
+import nl.eduvpn.app.viewmodel.ViewModelFactory
 import java.util.*
 import javax.inject.Inject
+
 
 class MainActivity : BaseActivity<ActivityMainBinding>() {
 
     companion object {
-        private val TAG = MainActivity::class.java.name
         private const val REQUEST_CODE_SETTINGS = 1001
         private const val KEY_BACK_NAVIGATION_ENABLED = "back_navigation_enabled"
     }
-
-    @Inject
-    protected lateinit var historyService: HistoryService
 
     @Inject
     protected lateinit var vpnService: Optional<VPNService>
@@ -65,7 +67,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     protected lateinit var eduVPNOpenVPNService: EduVPNOpenVPNService
 
     @Inject
-    protected lateinit var connectionService: ConnectionService
+    protected lateinit var viewModelFactory: ViewModelFactory
+
+    protected val viewModel by viewModels<MainViewModel> { viewModelFactory }
 
     private var _backNavigationEnabled = false
     private var _parseIntentOnStart = true
@@ -98,15 +102,50 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         super.onCreate(savedInstanceState)
         EduVPNApplication.get(this).component().inject(this)
         setSupportActionBar(binding.toolbar.toolbar)
+        viewModel.mainParentAction.observe(this) { parentAction ->
+            when (parentAction) {
+                is MainViewModel.MainParentAction.OpenLink -> {
+                    openLink(parentAction.oAuthUrl)
+                }
+
+                is MainViewModel.MainParentAction.SelectCountry -> {
+                    selectCountry(parentAction.cookie)
+                }
+
+                is MainViewModel.MainParentAction.SelectProfiles -> {
+                    openFragment(
+                        ProfileSelectionFragment.newInstance(parentAction.profileList),
+                        false
+                    )
+                }
+
+                is MainViewModel.MainParentAction.ConnectWithConfig -> {
+                    viewModel.parseConfigAndStartConnection(this, parentAction.config)
+                    val currentFragment =
+                        supportFragmentManager.findFragmentById(R.id.content_frame)
+                    if (currentFragment !is ConnectionStatusFragment) {
+                        openFragment(ConnectionStatusFragment(), false)
+                    }
+                }
+
+                is MainViewModel.MainParentAction.ShowCountriesDialog -> {
+                    showCountriesDialog(parentAction.instancesWithNames, parentAction.cookie)
+                }
+
+                is MainViewModel.MainParentAction.ShowError -> {
+                    show(this, parentAction.throwable)
+                }
+            }
+        }
         eduVPNOpenVPNService.onCreate(this)
         if (savedInstanceState == null) {
             // If there's an ongoing VPN connection, open the status screen.
-            if (vpnService.isPresent
-                && vpnService.get().getStatus() != VPNService.VPNStatus.DISCONNECTED
+            if (vpnService.isPresent && vpnService.get()
+                    .getStatus() != VPNService.VPNStatus.DISCONNECTED
             ) {
                 openFragment(ConnectionStatusFragment(), false)
-            } else if (historyService.savedAuthStateList.isNotEmpty()) {
-                openFragment(newInstance(false), false)
+            } else if (viewModel.hasServers()) {
+                openFragment(ServerSelectionFragment.newInstance(false), false)
             } else if (BuildConfig.API_DISCOVERY_ENABLED) {
                 openFragment(OrganizationSelectionFragment(), false)
             } else {
@@ -129,19 +168,55 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         createVPNConnectionNotificationChannel()
     }
 
+    private fun showCountriesDialog(
+        instancesWithNames: List<Pair<Instance, String>>,
+        cookie: Int?
+    ) {
+        AlertDialog.Builder(this)
+            .setItems(instancesWithNames.map { it.second }.toTypedArray()) { _, which ->
+                val selectedInstance = instancesWithNames[which]
+                selectedInstance.first.countryCode?.let { countryCode ->
+                    viewModel.onCountrySelected(cookie, countryCode)
+                }
+            }.show()
+    }
+
+    fun selectCountry(cookie: Int? = null) {
+        viewModel.getCountryList(this, cookie)
+    }
+
+    private fun openLink(oAuthUrl: String) {
+        if (isFinishing) {
+            return
+        }
+        val oAuthUri: Uri
+        try {
+            oAuthUri = Uri.parse(oAuthUrl)
+        } catch (ex: Exception) {
+            show(this, ex)
+            return
+        }
+        if (viewModel.useCustomTabs()) {
+            val intent = CustomTabsIntent.Builder().build()
+            intent.launchUrl(this@MainActivity, oAuthUri)
+        } else {
+            val intent = Intent(Intent.ACTION_VIEW, oAuthUri)
+            startActivity(intent)
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        viewModel.onResume()
+    }
+
     override fun onStart() {
-        connectionService.onStart(this)
         super.onStart()
         if (_parseIntentOnStart) {
             // The app might have been reopened from a URL.
             _parseIntentOnStart = false
             onNewIntent(intent)
         }
-    }
-
-    override fun onStop() {
-        super.onStop()
-        connectionService.onStop()
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -151,40 +226,14 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        val authorizationResponse = AuthorizationResponse.fromIntent(intent)
-        val authorizationException = AuthorizationException.fromIntent(intent)
-        if (authorizationResponse == null && authorizationException == null) {
-            // Not a callback intent.
-            return
-        } else {
-            // Although this is sensitive info, we only log in this in debug builds.
-            Log.i(TAG, "Activity opened with URL: " + intent.data)
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP_MR1) {
-                if (referrer != null) {
-                    Log.i(TAG, "Opened from: " + referrer.toString())
-                }
-            }
-        }
-        if (authorizationException != null) {
-            show(
-                this, R.string.authorization_error_title, getString(
-                    R.string.authorization_error_message,
-                    authorizationException.error,
-                    authorizationException.code,
-                    authorizationException.message
-                )
-            )
-        } else {
-            val authenticationDate = Date()
-            val currentFragment = supportFragmentManager.findFragmentById(R.id.content_frame)
-
-            this.lifecycleScope.launch {
-                val parseResult = connectionService.parseAuthorizationResponse(
-                    authorizationResponse!!,
-                    authenticationDate
-                )
-                withContext(Dispatchers.Main) {
-                    parseResult.onSuccess {
+        this.lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                if (viewModel.handleRedirection(intent.data)) {
+                    // Remove it so we don't parse it again.
+                    intent.data = null
+                    val currentFragment =
+                        supportFragmentManager.findFragmentById(R.id.content_frame)
+                    withContext(Dispatchers.Main) {
                         when (currentFragment) {
                             is ServerSelectionFragment -> currentFragment.connectToSelectedInstance()
                             is OrganizationSelectionFragment -> {
@@ -194,20 +243,27 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                                     Toast.LENGTH_LONG
                                 ).show()
                             }
+
                             is ConnectionStatusFragment -> currentFragment.reconnectToInstance()
                         }
-                    }.onFailure { thr ->
-                        show(this@MainActivity, thr)
+                    }
+                    if (currentFragment !is ConnectionStatusFragment
+                        && currentFragment !is ServerSelectionFragment
+                    ) {
+                        openFragment(ServerSelectionFragment.newInstance(true), false)
                     }
                 }
-            }
-
-            // Remove it so we don't parse it again.
-            intent.data = null
-            if (currentFragment !is ConnectionStatusFragment
-                && currentFragment !is ServerSelectionFragment
-            ) {
-                openFragment(newInstance(true), false)
+            } catch (ex: CommonException) {
+                withContext(Dispatchers.Main) {
+                    show(
+                        this@MainActivity, R.string.authorization_error_title, getString(
+                            R.string.authorization_error_message,
+                            ex.javaClass.simpleName,
+                            0,
+                            ex.message
+                        )
+                    )
+                }
             }
         }
     }
@@ -272,7 +328,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                 openFragment(OrganizationSelectionFragment(), false)
             }
         } else {
-            @Suppress("DEPRECATION") //todo
+            @Suppress("DEPRECATION")
             super.onActivityResult(requestCode, resultCode, data)
         }
     }

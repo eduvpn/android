@@ -63,21 +63,6 @@ class AddServerFragment : BaseFragment<FragmentAddServerBinding>() {
         }
         viewModel.parentAction.observe(viewLifecycleOwner) { parentAction ->
             when (parentAction) {
-                is BaseConnectionViewModel.ParentAction.InitiateConnection -> {
-                    activity?.let { activity ->
-                        if (!activity.isFinishing) {
-                            viewModel.initiateConnection(
-                                activity,
-                                parentAction.instance,
-                                parentAction.discoveredAPI
-                            )
-                        }
-                    }
-                }
-                is BaseConnectionViewModel.ParentAction.ConnectWithConfig -> {
-                    viewModel.connectionToConfig(requireActivity(), parentAction.vpnConfig)
-                    (activity as? MainActivity)?.openFragment(ConnectionStatusFragment(), false)
-                }
                 is BaseConnectionViewModel.ParentAction.DisplayError -> {
                     ErrorDialog.show(requireContext(), parentAction.title, parentAction.message)
                 }
@@ -105,7 +90,7 @@ class AddServerFragment : BaseFragment<FragmentAddServerBinding>() {
             TranslatableString(getString(R.string.custom_provider_display_name)),
             TranslatableString(),
             null,
-            AuthorizationType.Local,
+            AuthorizationType.Organization,
             null,
             true,
             null,

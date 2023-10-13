@@ -21,8 +21,11 @@ package nl.eduvpn.app.viewmodel
 import android.content.Context
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Transformations
+import androidx.lifecycle.map
+import androidx.lifecycle.switchMap
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
@@ -34,8 +37,7 @@ import nl.eduvpn.app.entity.Organization
 import nl.eduvpn.app.entity.OrganizationList
 import nl.eduvpn.app.entity.ServerList
 import nl.eduvpn.app.entity.TranslatableString
-import nl.eduvpn.app.service.APIService
-import nl.eduvpn.app.service.ConnectionService
+import nl.eduvpn.app.service.BackendService
 import nl.eduvpn.app.service.EduVPNOpenVPNService
 import nl.eduvpn.app.service.HistoryService
 import nl.eduvpn.app.service.OrganizationService
@@ -52,25 +54,16 @@ class OrganizationSelectionViewModel @Inject constructor(
     organizationService: OrganizationService,
     private val preferencesService: PreferencesService,
     context: Context,
-    apiService: APIService,
-    serializerService: SerializerService,
+    backendService: BackendService,
     historyService: HistoryService,
-    connectionService: ConnectionService,
-    eduVpnOpenVpnService: EduVPNOpenVPNService,
     vpnConnectionService: VPNConnectionService,
 ) : BaseConnectionViewModel(
     context,
-    apiService,
-    serializerService,
+    backendService,
     historyService,
     preferencesService,
-    connectionService,
-    eduVpnOpenVpnService,
     vpnConnectionService,
 ) {
-
-    val state = MutableLiveData<ConnectionState>().also { it.value = ConnectionState.Ready }
-
     private val organizations = MutableLiveData<List<Organization>>()
     private val instituteAccessServers =
         MutableLiveData<List<OrganizationAdapter.OrganizationAdapterItem.InstituteAccess>>()
@@ -82,16 +75,20 @@ class OrganizationSelectionViewModel @Inject constructor(
     val searchText = MutableLiveData("")
 
     init {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             // We want to be able to handle async failures, so use supervisorScope
             // https://kotlinlang.org/docs/reference/coroutines/exception-handling.html#supervision
             supervisorScope {
-                val organizationListDeferred = if (historyService.savedOrganization == null) {
-                    state.value = ConnectionState.FetchingOrganizations
-                    async { organizationService.fetchOrganizations() }
+                val organizationListDeferred = if (historyService.organizationList == null) {
+                    connectionState.postValue(ConnectionState.FetchingOrganizations)
+                    async {
+                        val organizationList = organizationService.fetchOrganizations()
+                        historyService.organizationList = organizationList
+                        organizationList
+                    }
                 } else {
                     // We can't show any organization servers, user needs to reset to switch.
-                    state.value = ConnectionState.FetchingServerList
+                    connectionState.postValue(ConnectionState.FetchingServerList)
                     CompletableDeferred(OrganizationList(-1L, emptyList()))
                 }
                 val cachedServerList = preferencesService.getServerList()
@@ -115,13 +112,12 @@ class OrganizationSelectionViewModel @Inject constructor(
                     Log.w(TAG, "Server list call has failed!", it)
                     ServerList(-1L, emptyList())
                 }
-
                 if (serverList.version > 0 && lastKnownServerListVersion != null && lastKnownServerListVersion > serverList.version) {
                     organizations.value = emptyList()
                     instituteAccessServers.value = emptyList()
                     secureInternetServers.value = emptyList()
-                    state.value = ConnectionState.Ready
-                    parentAction.value = ParentAction.DisplayError(
+                    connectionState.value = ConnectionState.Ready
+                    _parentAction.value = ParentAction.DisplayError(
                         R.string.error_server_list_version_check_title,
                         context.getString(R.string.error_server_list_version_check_message)
                     )
@@ -129,8 +125,8 @@ class OrganizationSelectionViewModel @Inject constructor(
                     organizations.value = emptyList()
                     instituteAccessServers.value = emptyList()
                     secureInternetServers.value = emptyList()
-                    state.value = ConnectionState.Ready
-                    parentAction.value = ParentAction.DisplayError(
+                    connectionState.value = ConnectionState.Ready
+                    _parentAction.value = ParentAction.DisplayError(
                         R.string.error_organization_list_version_check_title,
                         context.getString(R.string.error_organization_list_version_check_message)
                     )
@@ -163,10 +159,10 @@ class OrganizationSelectionViewModel @Inject constructor(
                     it.authorizationType == AuthorizationType.Distributed
                 }
 
-                organizations.value = sortedOrganizations
-                instituteAccessServers.value = sortedInstituteAccessServers
-                secureInternetServers.value = secureInternetServerList
-                state.value = ConnectionState.Ready
+                organizations.postValue(sortedOrganizations)
+                instituteAccessServers.postValue(sortedInstituteAccessServers)
+                secureInternetServers.postValue(secureInternetServerList)
+                connectionState.postValue(ConnectionState.Ready)
             }
         }
     }
@@ -183,10 +179,10 @@ class OrganizationSelectionViewModel @Inject constructor(
         })
     }
 
-    val adapterItems = Transformations.switchMap(organizations) { organizations ->
-        Transformations.switchMap(instituteAccessServers) { instituteAccessServers ->
-            Transformations.switchMap(secureInternetServers) { secureInternetServers ->
-                Transformations.map(searchText) { searchText ->
+    val adapterItems = organizations.switchMap { organizations ->
+        instituteAccessServers.switchMap { instituteAccessServers ->
+            secureInternetServers.switchMap { secureInternetServers ->
+                searchText.map { searchText ->
                     val resultList = mutableListOf<OrganizationAdapter.OrganizationAdapterItem>()
                     // Search contains at least two dots
                     if (searchText.count { ".".contains(it) } > 1) {
@@ -238,15 +234,18 @@ class OrganizationSelectionViewModel @Inject constructor(
         }
     }
 
-    val noItemsFound = Transformations.switchMap(state) { state ->
+    val noItemsFound = Transformations.switchMap(connectionState) { state ->
         Transformations.map(adapterItems) { items ->
             items.isEmpty() && state == ConnectionState.Ready
         }
     }
 
     fun selectOrganizationAndInstance(organization: Organization?, instance: Instance) {
-        preferencesService.setCurrentOrganization(organization)
-        discoverApi(instance)
+        if (organization == null) {
+            discoverApi(instance)
+        } else {
+            discoverApi(Instance(baseURI = organization.orgId, displayName = organization.displayName, authorizationType = AuthorizationType.Distributed))
+        }
     }
 
     companion object {

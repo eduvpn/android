@@ -51,43 +51,24 @@ class ServerSelectionFragment : BaseFragment<FragmentServerSelectionBinding>() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         val adapter = OrganizationAdapter {
-            val countryList = viewModel.requestCountryList()
-            if (countryList == null) {
-                ErrorDialog.show(requireContext(), R.string.unexpected_error, R.string.error_countries_are_not_available)
-            } else {
-                AlertDialog.Builder(requireContext())
-                        .setItems(countryList.map { it.second }.toTypedArray()) { _, which ->
-                            val selectedInstance = countryList[which]
-                            viewModel.changePreferredCountry(selectedInstance.first)
-                        }.show()
-            }
+            val activity = activity as? MainActivity ?: return@OrganizationAdapter
+            activity.selectCountry()
         }
         binding.viewModel = viewModel
         binding.serverList.adapter = adapter
         binding.serverList.layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
-        viewModel.adapterItems.observe(viewLifecycleOwner, Observer {
+        viewModel.adapterItems.observe(viewLifecycleOwner) {
             adapter.submitList(it)
-        })
+        }
 
-        viewModel.parentAction.observe(viewLifecycleOwner, Observer { parentAction ->
+        viewModel.parentAction.observe(viewLifecycleOwner) { parentAction ->
             when (parentAction) {
-                is BaseConnectionViewModel.ParentAction.InitiateConnection -> {
-                    activity?.let { activity ->
-                        if (!activity.isFinishing) {
-                            viewModel.initiateConnection(activity, parentAction.instance, parentAction.discoveredAPI)
-                        }
-                    }
-                }
                 is BaseConnectionViewModel.ParentAction.OpenProfileSelector -> {
                     (activity as? MainActivity)?.openFragment(
                         ProfileSelectionFragment.newInstance(
                             parentAction.profiles
                         ), true
                     )
-                }
-                is BaseConnectionViewModel.ParentAction.ConnectWithConfig -> {
-                    viewModel.connectionToConfig(requireActivity(), parentAction.vpnConfig)
-                    (activity as? MainActivity)?.openFragment(ConnectionStatusFragment(), false)
                 }
                 is BaseConnectionViewModel.ParentAction.DisplayError -> {
                     ErrorDialog.show(requireContext(), parentAction.title, parentAction.message)
@@ -96,16 +77,16 @@ class ServerSelectionFragment : BaseFragment<FragmentServerSelectionBinding>() {
                     // Do nothing.
                 }
             }
-        })
+        }
 
         ItemClickSupport.addTo(binding.serverList).setOnItemClickListener { _, position, _ ->
             val item = adapter.getItem(position)
             if (item is OrganizationAdapter.OrganizationAdapterItem.SecureInternet) {
                 viewModel.connectingTo.value = item.server
-                viewModel.discoverApi(item.server)
+                viewModel.getProfiles(item.server)
             } else if (item is OrganizationAdapter.OrganizationAdapterItem.InstituteAccess) {
                 viewModel.connectingTo.value = item.server
-                viewModel.discoverApi(item.server)
+                viewModel.getProfiles(item.server)
             }
         }.setOnItemLongClickListener { _, position, _ ->
             val item = adapter.getItem(position)

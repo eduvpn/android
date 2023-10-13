@@ -42,6 +42,7 @@ public class EduVPNApplication extends ICSOpenVPNApplication {
         // For now, the best solution seems to be disabling strict mode
         StrictMode.VmPolicy policy = new StrictMode.VmPolicy.Builder().build();
         StrictMode.setVmPolicy(policy);
+
     }
 
     public EduVPNComponent component() {

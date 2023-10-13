@@ -24,20 +24,14 @@ import javax.inject.Inject
 
 class ProfileSelectionViewModel @Inject constructor(
     context: Context,
-    apiService: APIService,
-    serializerService: SerializerService,
     historyService: HistoryService,
     preferencesService: PreferencesService,
-    connectionService: ConnectionService,
-    eduVpnOpenVpnService: EduVPNOpenVPNService,
+    backendService: BackendService,
     vpnConnectionService: VPNConnectionService,
 ) : BaseConnectionViewModel(
     context,
-    apiService,
-    serializerService,
+    backendService,
     historyService,
     preferencesService,
-    connectionService,
-    eduVpnOpenVpnService,
     vpnConnectionService,
 )

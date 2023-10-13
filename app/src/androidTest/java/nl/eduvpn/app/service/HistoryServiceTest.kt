@@ -22,8 +22,6 @@ import android.net.Uri
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
-import net.openid.appauth.AuthState
-import net.openid.appauth.AuthorizationServiceConfiguration
 import nl.eduvpn.app.entity.*
 import org.junit.*
 import org.junit.runner.RunWith
@@ -66,123 +64,6 @@ class HistoryServiceTest {
                 .putInt("DUMMY_KEY", Random().nextInt())
                 .commit()
         }
-        _historyService = HistoryService(preferencesService)
-    }
-
-    @Test(timeout = 1500) // The timeout should be lower, but the CI is too slow.
-    fun testSerializationSpeed() {
-        // We create, save and restore 10 discovered APIs and 10 access tokens.
-        // Should be still fast.
-        val baseURI = "http://example.com/baseURI"
-        for (i in 0..9) {
-            val instance = Instance(
-                baseURI + i,
-                TranslatableString("displayName"),
-                TranslatableString("konijn"),
-                null,
-                AuthorizationType.Distributed,
-                "NL",
-                true,
-                "https://example.com/template",
-                ArrayList()
-            )
-            _historyService!!.cacheAuthorizationState(instance, AuthState(), Date())
-        }
-        reloadHistoryService(false)
-        for (i in 0..9) {
-            Assert.assertNotNull(
-                _historyService!!.getCachedAuthState(
-                    Instance(
-                        baseURI + i,
-                        TranslatableString("displayName"),
-                        TranslatableString("konijn"),
-                        null,
-                        AuthorizationType.Distributed,
-                        "NL",
-                        true,
-                        null,
-                        ArrayList()
-                    )
-                )
-            )
-        }
-    }
-
-    @Test
-    fun testCacheAccessToken() {
-        val baseURI = "http://example.com"
-        val exampleAuthState = AuthState(
-            AuthorizationServiceConfiguration(
-                Uri.parse("http://example.com/auth"), Uri
-                    .parse("http://example.com/token"), null
-            )
-        )
-        val instance = Instance(
-            baseURI,
-            TranslatableString("displayName"),
-            TranslatableString("konijn"),
-            null,
-            AuthorizationType.Distributed,
-            "HU",
-            true,
-            "https://eduvpn.org/template",
-            ArrayList()
-        )
-        val now = Date()
-        _historyService!!.cacheAuthorizationState(instance, exampleAuthState, now)
-        reloadHistoryService(false)
-        val (restoredAuthState, _) = _historyService!!.getCachedAuthState(instance)!!
-        Assert.assertEquals(
-            exampleAuthState.authorizationServiceConfiguration!!.authorizationEndpoint,
-            restoredAuthState
-                .authorizationServiceConfiguration!!.authorizationEndpoint
-        )
-        Assert.assertEquals(
-            exampleAuthState.authorizationServiceConfiguration!!.tokenEndpoint, restoredAuthState
-                .authorizationServiceConfiguration!!.tokenEndpoint
-        )
-    }
-
-    @Test
-    fun testStoreSavedKeyPair() {
-        val keyPair1 = KeyPair(false, "cert1", "pk1")
-        val instance1 = Instance(
-            "http://example.com/",
-            TranslatableString("example.com"),
-            TranslatableString("konijn"),
-            null,
-            AuthorizationType.Distributed,
-            "DK",
-            false,
-            "https://eduvpn.org/template",
-            ArrayList()
-        )
-        val savedKeyPair1 = SavedKeyPair(instance1, keyPair1)
-        val instance2 = Instance(
-            "http://something.else/",
-            TranslatableString("something.else"),
-            TranslatableString("konijn"),
-            null,
-            AuthorizationType.Distributed,
-            "DK",
-            false,
-            null,
-            ArrayList()
-        )
-        val keyPair2 = KeyPair(true, "example certificate", "example private key")
-        val savedKeyPair2 = SavedKeyPair(instance2, keyPair2)
-        _historyService!!.storeSavedKeyPair(savedKeyPair1)
-        _historyService!!.storeSavedKeyPair(savedKeyPair2)
-        reloadHistoryService(false)
-        val retrieved1 = _historyService!!.getSavedKeyPairForInstance(instance1)
-        val retrieved2 = _historyService!!.getSavedKeyPairForInstance(instance2)
-        Assert.assertNotNull(retrieved1)
-        Assert.assertNotNull(retrieved2)
-        Assert.assertEquals(keyPair1.isOK, retrieved1.keyPair.isOK)
-        Assert.assertEquals(keyPair1.certificate, retrieved1.keyPair.certificate)
-        Assert.assertEquals(keyPair1.privateKey, retrieved1.keyPair.privateKey)
-        Assert.assertEquals(keyPair2.isOK, retrieved2.keyPair.isOK)
-        Assert.assertEquals(keyPair2.certificate, retrieved2.keyPair.certificate)
-        Assert.assertEquals(keyPair2.privateKey, retrieved2.keyPair.privateKey)
+        _historyService = HistoryService(BackendService(context, serializerService, preferencesService))
     }
 }

@@ -30,15 +30,6 @@ object Constants {
     @JvmField
     val HELP_URI = Uri.parse("https://www.eduvpn.org/faq.html")
 
-    const val API_DISCOVERY_POSTFIX = "/.well-known/vpn-user-portal"
-
-    // V3 API
-    const val API_V3_INFO_PATH = "info"
-    const val API_V3_CONNECT_PATH = "connect"
-    const val API_V3_DISCONNECT_PATH = "disconnect"
-
-    val GONE_HTTP_CODES = intArrayOf(404, 410)
-
     @JvmField
     val LOCALE = Locale.getDefault()
     val ENGLISH_LOCALE = Locale.ENGLISH

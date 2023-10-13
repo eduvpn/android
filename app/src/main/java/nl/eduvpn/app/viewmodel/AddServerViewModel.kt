@@ -27,20 +27,14 @@ import javax.inject.Inject
 class AddServerViewModel @Inject constructor(
     preferencesService: PreferencesService,
     context: Context,
-    apiService: APIService,
-    serializerService: SerializerService,
     historyService: HistoryService,
-    connectionService: ConnectionService,
-    eduVpnOpenVpnService: EduVPNOpenVPNService,
+    backendService: BackendService,
     vpnConnectionService: VPNConnectionService,
 ) : BaseConnectionViewModel(
     context,
-    apiService,
-    serializerService,
+    backendService,
     historyService,
     preferencesService,
-    connectionService,
-    eduVpnOpenVpnService,
     vpnConnectionService,
 ) {
 

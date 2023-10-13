@@ -34,11 +34,6 @@ interface ViewModelModule {
 
     @Binds
     @IntoMap
-    @ViewModelKey(ProviderSelectionViewModel::class)
-    fun bindProviderSelectionViewModel(providerSelectionViewModel: ProviderSelectionViewModel): ViewModel
-
-    @Binds
-    @IntoMap
     @ViewModelKey(ServerSelectionViewModel::class)
     fun bindServerSelectionViewModel(serverSelectionViewModel: ServerSelectionViewModel): ViewModel
 
@@ -57,4 +52,8 @@ interface ViewModelModule {
     @ViewModelKey(AddServerViewModel::class)
     fun bindAddServerViewModel(addServerViewModel: AddServerViewModel) : ViewModel
 
+    @Binds
+    @IntoMap
+    @ViewModelKey(MainViewModel::class)
+    fun bindMainViewModel(mainViewModel: MainViewModel) : ViewModel
 }

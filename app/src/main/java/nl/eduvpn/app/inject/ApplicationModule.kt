@@ -19,13 +19,12 @@ package nl.eduvpn.app.inject
 import android.content.Context
 import android.os.Build
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.asFlow
 import androidx.lifecycle.liveData
 import dagger.Module
 import dagger.Provides
 import kotlinx.coroutines.delay
-import nl.eduvpn.app.BuildConfig
 import nl.eduvpn.app.EduVPNApplication
-import nl.eduvpn.app.entity.v3.Protocol
 import nl.eduvpn.app.livedata.ConnectionTimeLiveData
 import nl.eduvpn.app.livedata.openvpn.IPLiveData
 import nl.eduvpn.app.service.*
@@ -33,7 +32,6 @@ import nl.eduvpn.app.utils.Log
 import okhttp3.Cache
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
-import okhttp3.logging.HttpLoggingInterceptor
 import java.io.IOException
 import java.net.ConnectException
 import java.net.SocketTimeoutException
@@ -60,10 +58,25 @@ class ApplicationModule(private val application: EduVPNApplication) {
     @Provides
     @Singleton
     fun provideOrganizationService(
-        serializerService: SerializerService?,
-        securityService: SecurityService?, okHttpClient: OkHttpClient?
+        serializerService: SerializerService,
+        backendService: BackendService
     ): OrganizationService {
-        return OrganizationService(serializerService!!, securityService!!, okHttpClient!!)
+        return OrganizationService(serializerService, backendService)
+    }
+
+
+    @Provides
+    @Singleton
+    fun provideBackendService(
+        context: Context,
+        serializerService: SerializerService,
+        preferencesService: PreferencesService
+    ) : BackendService {
+        return BackendService(
+            context,
+            serializerService,
+            preferencesService
+        )
     }
 
     @Provides
@@ -73,24 +86,6 @@ class ApplicationModule(private val application: EduVPNApplication) {
         serializerService: SerializerService,
     ): PreferencesService {
         return PreferencesService(context, serializerService)
-    }
-
-    @Provides
-    @Singleton
-    fun provideConnectionService(
-        preferencesService: PreferencesService?, historyService: HistoryService?,
-        securityService: SecurityService?
-    ): ConnectionService {
-        return ConnectionService(preferencesService!!, historyService!!, securityService!!)
-    }
-
-    @Provides
-    @Singleton
-    fun provideAPIService(
-        connectionService: ConnectionService?,
-        okHttpClient: OkHttpClient?
-    ): APIService {
-        return APIService(connectionService!!, okHttpClient!!)
     }
 
     @Provides
@@ -139,9 +134,10 @@ class ApplicationModule(private val application: EduVPNApplication) {
     @Provides
     @Singleton
     fun provideWireGuardService(
-        context: Context, @Named("timer") timer: LiveData<Unit>
+        context: Context,
+        @Named("timer") timer: LiveData<Unit>
     ): WireGuardService {
-        return WireGuardService(context, timer)
+        return WireGuardService(context, timer.asFlow())
     }
 
     @Provides
@@ -151,9 +147,9 @@ class ApplicationModule(private val application: EduVPNApplication) {
         wireGuardServiceProvider: Provider<WireGuardService>
     ): Optional<VPNService> {
         return when (preferencesService.getCurrentProtocol()) {
-            is Protocol.OpenVPN -> Optional.of(eduOpenVPNServiceProvider.get())
-            is Protocol.WireGuard -> Optional.of(wireGuardServiceProvider.get())
-            null -> Optional.empty()
+            org.eduvpn.common.Protocol.OpenVPN.nativeValue -> Optional.of(eduOpenVPNServiceProvider.get())
+            org.eduvpn.common.Protocol.WireGuard.nativeValue -> Optional.of(wireGuardServiceProvider.get())
+            else -> Optional.empty()
         }
     }
 
@@ -166,30 +162,22 @@ class ApplicationModule(private val application: EduVPNApplication) {
 
     @Provides
     @Singleton
-    fun provideHistoryService(preferencesService: PreferencesService?): HistoryService {
-        return HistoryService(preferencesService!!)
-    }
-
-    @Provides
-    @Singleton
-    fun provideSecurityService(): SecurityService {
-        return SecurityService()
+    fun provideHistoryService(
+        backendService: BackendService
+    ): HistoryService {
+        return HistoryService(backendService)
     }
 
     @Provides
     @Singleton
     fun provideVPNConnectionService(
         preferencesService: PreferencesService,
-        historyService: HistoryService,
-        apiService: APIService,
         eduVPNOpenVPNService: EduVPNOpenVPNService,
         wireGuardService: WireGuardService,
         applicationContext: Context,
     ): VPNConnectionService {
         return VPNConnectionService(
             preferencesService,
-            historyService,
-            apiService,
             eduVPNOpenVPNService,
             wireGuardService,
             applicationContext,
@@ -261,11 +249,6 @@ class ApplicationModule(private val application: EduVPNApplication) {
                     return@addInterceptor chain.proceed(chain.request())
                 }
             }
-        if (BuildConfig.DEBUG) {
-            val logging = HttpLoggingInterceptor()
-            logging.setLevel(HttpLoggingInterceptor.Level.BODY)
-            clientBuilder.addInterceptor(logging)
-        }
         return clientBuilder.build()
     }
 }

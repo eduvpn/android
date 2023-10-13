@@ -29,6 +29,7 @@ import android.os.RemoteException;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.lifecycle.FlowLiveDataConversions;
 import androidx.lifecycle.LiveData;
 
 import org.jetbrains.annotations.NotNull;
@@ -47,8 +48,8 @@ import de.blinkt.openvpn.core.IOpenVPNServiceInternal;
 import de.blinkt.openvpn.core.OpenVPNService;
 import de.blinkt.openvpn.core.ProfileManager;
 import de.blinkt.openvpn.core.VpnStatus;
+import kotlinx.coroutines.flow.Flow;
 import nl.eduvpn.app.R;
-import nl.eduvpn.app.entity.SavedKeyPair;
 import nl.eduvpn.app.livedata.ByteCount;
 import nl.eduvpn.app.livedata.IPs;
 import nl.eduvpn.app.livedata.UnlessDisconnectedLiveData;
@@ -64,9 +65,8 @@ public class EduVPNOpenVPNService extends VPNService implements VpnStatus.StateL
 
     private static final String TAG = EduVPNOpenVPNService.class.getName();
 
-    private Context _context;
-
-    private PreferencesService _preferencesService;
+    private final Context _context;
+    private final PreferencesService _preferencesService;
 
     // Stores the current VPN status.
     private ConnectionStatus _connectionStatus = ConnectionStatus.LEVEL_NOTCONNECTED;
@@ -139,14 +139,14 @@ public class EduVPNOpenVPNService extends VPNService implements VpnStatus.StateL
 
     @NonNull
     @Override
-    public LiveData<ByteCount> getByteCountLiveData() {
-        return _byteCountLiveData;
+    public Flow<ByteCount> getByteCountFlow() {
+        return FlowLiveDataConversions.asFlow(_byteCountLiveData);
     }
 
     @NonNull
     @Override
-    public LiveData<IPs> getIpLiveData() {
-        return _ipLiveData;
+    public Flow<IPs> getIpFlow() {
+        return FlowLiveDataConversions.asFlow(_ipLiveData);
     }
 
     /**
@@ -157,12 +157,7 @@ public class EduVPNOpenVPNService extends VPNService implements VpnStatus.StateL
      * @return True if the import was successful, false if it failed.
      */
     @Nullable
-    public VpnProfile importConfig(String configString, String preferredName, @Nullable SavedKeyPair savedKeyPair) {
-        if (savedKeyPair != null) {
-            Log.d(TAG, "Adding info from saved key pair to the config...");
-            configString = configString + "\n<cert>\n" + savedKeyPair.getKeyPair().getCertificate() + "\n</cert>\n" +
-                    "\n<key>\n" + savedKeyPair.getKeyPair().getPrivateKey() + "\n</key>\n";
-        }
+    public VpnProfile importConfig(String configString, String preferredName) {
         ConfigParser configParser = new ConfigParser();
         try {
             configParser.parseConfig(new StringReader(configString));
