@@ -2,7 +2,6 @@ package nl.eduvpn.app.entity
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import nl.eduvpn.app.utils.serializer.TranslatableStringSerializer
 
 @Serializable
 data class AddedServers(
@@ -56,7 +55,6 @@ data class AddedServers(
 @Serializable
 data class AddedServer(
     @SerialName("display_name")
-    @Serializable(with = TranslatableStringSerializer::class)
     val displayName: TranslatableString,
     @SerialName("identifier")
     val identifier: String,

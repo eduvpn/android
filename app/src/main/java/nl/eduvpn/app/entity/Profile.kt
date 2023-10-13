@@ -4,9 +4,7 @@ import android.os.Parcelable
 import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import nl.eduvpn.app.utils.serializer.TranslatableStringSerializer
 
-// V3 Profile as retrieved from the API
 @Serializable
 @Parcelize
 data class Profile (
@@ -15,7 +13,6 @@ data class Profile (
     val profileId: String,
 
     @SerialName("display_name")
-    @Serializable(with = TranslatableStringSerializer::class)
     val displayName: TranslatableString,
 
     @SerialName("vpn_proto_list")

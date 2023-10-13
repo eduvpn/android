@@ -19,14 +19,11 @@
 package nl.eduvpn.app.entity
 
 import kotlinx.serialization.Serializable
-import nl.eduvpn.app.utils.serializer.TranslatableStringSerializer
 
 @Serializable
 data class Organization(
         val orgId: String,
-        @Serializable(with = TranslatableStringSerializer::class)
         val displayName: TranslatableString,
-        @Serializable(with = TranslatableStringSerializer::class)
         val keywordList: TranslatableString,
         val secureInternetHome: String?
 )

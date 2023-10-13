@@ -22,9 +22,12 @@ import android.os.Parcel
 import android.os.Parcelable
 import android.os.PersistableBundle
 import android.text.TextUtils
+import kotlinx.serialization.Serializable
 import nl.eduvpn.app.Constants
+import nl.eduvpn.app.utils.serializer.TranslatableStringSerializer
 import java.util.*
 
+@Serializable(with = TranslatableStringSerializer::class)
 data class TranslatableString(
     val translations: Map<String, String>
 ) : Parcelable {
