@@ -17,7 +17,6 @@
 package nl.eduvpn.app.service
 
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
 import nl.eduvpn.app.entity.OrganizationList
 import nl.eduvpn.app.entity.ServerList
@@ -27,8 +26,10 @@ import org.json.JSONObject
  * Service which provides the configurations for organization related data model.
  * Created by Daniel Zolnai on 2016-10-07.
  */
-class OrganizationService(private val serializerService: SerializerService,
-                          private val backendService: BackendService) {
+class OrganizationService(
+    private val serializerService: SerializerService,
+    private val backendService: BackendService
+) {
 
 
     suspend fun fetchServerList() : ServerList = withContext(Dispatchers.IO) {

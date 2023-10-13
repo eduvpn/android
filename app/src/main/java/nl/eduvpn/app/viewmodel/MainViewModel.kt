@@ -48,7 +48,6 @@ class MainViewModel @Inject constructor(
         data class SelectCountry(val cookie: Int?) : MainParentAction()
         data class SelectProfiles(val profileList: List<Profile>): MainParentAction()
         data class ConnectWithConfig(val config: SerializedVpnConfig) : MainParentAction()
-
         data class ShowError(val throwable: Throwable) : MainParentAction()
     }
 

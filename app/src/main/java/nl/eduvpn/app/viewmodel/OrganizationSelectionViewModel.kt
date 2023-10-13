@@ -21,6 +21,8 @@ package nl.eduvpn.app.viewmodel
 import android.content.Context
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Transformations
+import androidx.lifecycle.map
+import androidx.lifecycle.switchMap
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
@@ -101,7 +103,7 @@ class OrganizationSelectionViewModel @Inject constructor(
                 val lastKnownServerListVersion = preferencesService.getLastKnownServerListVersion()
 
                 val organizationList =
-                    runCatchingCoroutine() { organizationListDeferred.await() }.getOrElse {
+                    runCatchingCoroutine { organizationListDeferred.await() }.getOrElse {
                         Log.w(TAG, "Organizations call has failed!", it)
                         OrganizationList(-1L, emptyList())
                     }
@@ -177,10 +179,10 @@ class OrganizationSelectionViewModel @Inject constructor(
         })
     }
 
-    val adapterItems = Transformations.switchMap(organizations) { organizations ->
-        Transformations.switchMap(instituteAccessServers) { instituteAccessServers ->
-            Transformations.switchMap(secureInternetServers) { secureInternetServers ->
-                Transformations.map(searchText) { searchText ->
+    val adapterItems = organizations.switchMap { organizations ->
+        instituteAccessServers.switchMap { instituteAccessServers ->
+            secureInternetServers.switchMap { secureInternetServers ->
+                searchText.map { searchText ->
                     val resultList = mutableListOf<OrganizationAdapter.OrganizationAdapterItem>()
                     // Search contains at least two dots
                     if (searchText.count { ".".contains(it) } > 1) {
