@@ -59,16 +59,10 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     }
 
     @Inject
-    protected lateinit var historyService: HistoryService
-
-    @Inject
     protected lateinit var vpnService: Optional<VPNService>
 
     @Inject
     protected lateinit var eduVPNOpenVPNService: EduVPNOpenVPNService
-
-    @Inject
-    protected lateinit var backendService: BackendService
 
     @Inject
     protected lateinit var viewModelFactory : ViewModelFactory
@@ -105,37 +99,36 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         EduVPNApplication.get(this).component().inject(this)
-        backendService.register(
-            startOAuth = { oAuthUrl ->
-                openLink(oAuthUrl)
-            },
-            selectCountry = { cookie ->
-                selectCountry(cookie)
-            },
-            selectProfiles = {
-                openFragment(ProfileSelectionFragment.newInstance(it), false)
-            },
-            connectWithConfig = { config ->
-                runOnUiThread {
-                    viewModel.parseConfigAndStartConnection(this, config)
+        setSupportActionBar(binding.toolbar.toolbar)
+        viewModel.mainParentAction.observe(this) { parentAction ->
+            when (parentAction) {
+                is MainViewModel.MainParentAction.OpenLink -> {
+                    openLink(parentAction.oAuthUrl)
+                }
+                is MainViewModel.MainParentAction.SelectCountry -> {
+                    selectCountry(parentAction.cookie)
+                }
+                is MainViewModel.MainParentAction.SelectProfiles -> {
+                    openFragment(ProfileSelectionFragment.newInstance(parentAction.profileList), false)
+                }
+                is MainViewModel.MainParentAction.ConnectWithConfig -> {
+                    viewModel.parseConfigAndStartConnection(this, parentAction.config)
                     val currentFragment = supportFragmentManager.findFragmentById(R.id.content_frame)
                     if (currentFragment !is ConnectionStatusFragment) {
                         openFragment(ConnectionStatusFragment(), false)
                     }
                 }
-            },
-            showError = { throwable ->
-                show(this, throwable)
+                is MainViewModel.MainParentAction.ShowError -> {
+                    show(this, parentAction.throwable)
+                }
             }
-        )
-        setSupportActionBar(binding.toolbar.toolbar)
-        historyService.load()
+        }
         eduVPNOpenVPNService.onCreate(this)
         if (savedInstanceState == null) {
             // If there's an ongoing VPN connection, open the status screen.
             if (vpnService.isPresent  && vpnService.get().getStatus() != VPNService.VPNStatus.DISCONNECTED) {
                 openFragment(ConnectionStatusFragment(), false)
-            } else if (historyService.addedServers?.hasServers() == true) {
+            } else if (viewModel.hasServers()) {
                 openFragment(ServerSelectionFragment.newInstance(false), false)
             } else if (BuildConfig.API_DISCOVERY_ENABLED) {
                 openFragment(OrganizationSelectionFragment(), false)
@@ -185,8 +178,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
 
     override fun onResume() {
         super.onResume()
-        historyService.load()
-        backendService.cancelPendingRedirect()
+        viewModel.onResume()
     }
 
     override fun onStart() {
@@ -207,7 +199,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         super.onNewIntent(intent)
         this.lifecycleScope.launch(Dispatchers.IO) {
             try {
-                if (backendService.handleRedirection(intent.data)) {
+                if (viewModel.handleRedirection(intent.data)) {
                     // Remove it so we don't parse it again.
                     intent.data = null
                     val currentFragment =
@@ -242,14 +234,12 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                     )
                 )
             }
-            backendService.cancelPendingRedirect()
         }
     }
 
     override fun onDestroy() {
         super.onDestroy()
         eduVPNOpenVPNService.onDestroy(this)
-        backendService.deregister()
     }
 
     fun openFragment(fragment: Fragment?, openOnTop: Boolean) {
