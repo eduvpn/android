@@ -288,7 +288,10 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
                     ErrorDialog.show(requireContext(), thr)
                 }
             }.onSuccess {
-                viewModel.onProfileChanged(profile)
+                // Relaunch this fragment. This is required, because in some cases, the backend
+                // implementation (WireGuard vs OpenVPN) might be different, and we would be connected
+                // to the incorrect one.
+                (activity as? MainActivity)?.openFragment(ConnectionStatusFragment(), openOnTop = false)
             }
         }
     }

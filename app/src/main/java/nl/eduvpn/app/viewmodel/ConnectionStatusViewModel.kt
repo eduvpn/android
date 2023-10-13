@@ -217,10 +217,4 @@ class ConnectionStatusViewModel @Inject constructor(
         }
         return true
     }
-
-    suspend fun onProfileChanged(profile: Profile) {
-        viewModelScope.launch(Dispatchers.Main) {
-            profileName.value = profile.displayName.bestTranslation
-        }
-    }
 }

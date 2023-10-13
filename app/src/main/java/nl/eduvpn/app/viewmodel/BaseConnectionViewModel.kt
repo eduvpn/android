@@ -96,11 +96,16 @@ abstract class BaseConnectionViewModel(
                 preferencesService.setCurrentInstance(instance)
                 backendService.getConfig(instance, preferencesService.getAppSettings().forceTcp())
             } catch (ex: Exception) {
+                val errorString = if (ex is CommonException) {
+                    ex.translatedMessage()
+                } else {
+                    ex.toString()
+                }
                 _parentAction.postValue(ParentAction.DisplayError(
                     R.string.error_dialog_title,
                     context.getString(
                         R.string.error_fetching_profile,
-                        ex.toString()
+                        errorString
                     )
                 ))
             }

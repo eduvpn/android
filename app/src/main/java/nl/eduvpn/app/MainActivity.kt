@@ -225,14 +225,16 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                     }
                 }
             } catch (ex: CommonException) {
-                show(
-                    this@MainActivity, R.string.authorization_error_title, getString(
-                        R.string.authorization_error_message,
-                        ex.javaClass.simpleName,
-                        0,
-                        ex.message
+                withContext(Dispatchers.Main) {
+                    show(
+                        this@MainActivity, R.string.authorization_error_title, getString(
+                            R.string.authorization_error_message,
+                            ex.javaClass.simpleName,
+                            0,
+                            ex.message
+                        )
                     )
-                )
+                }
             }
         }
     }
