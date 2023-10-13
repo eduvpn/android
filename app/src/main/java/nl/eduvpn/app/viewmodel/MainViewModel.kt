@@ -12,6 +12,7 @@ import kotlinx.coroutines.withContext
 import nl.eduvpn.app.MainActivity
 import nl.eduvpn.app.R
 import nl.eduvpn.app.entity.AuthorizationType
+import nl.eduvpn.app.entity.Instance
 import nl.eduvpn.app.entity.Profile
 import nl.eduvpn.app.entity.SerializedVpnConfig
 import nl.eduvpn.app.entity.VPNConfig
@@ -48,6 +49,7 @@ class MainViewModel @Inject constructor(
         data class SelectCountry(val cookie: Int?) : MainParentAction()
         data class SelectProfiles(val profileList: List<Profile>): MainParentAction()
         data class ConnectWithConfig(val config: SerializedVpnConfig) : MainParentAction()
+        data class ShowCountriesDialog(val instancesWithNames: List<Pair<Instance, String>>, val cookie: Int?): MainParentAction()
         data class ShowError(val throwable: Throwable) : MainParentAction()
     }
 
@@ -121,20 +123,7 @@ class MainViewModel @Inject constructor(
                 }.map {
                     Pair(it, it.getCountryText() ?: "Unknown country")
                 }
-                withContext(Dispatchers.Main) {
-                    AlertDialog.Builder(activity)
-                        .setItems(countryList.map { it.second }.toTypedArray()) { _, which ->
-                            val selectedInstance = countryList[which]
-                            selectedInstance.first.countryCode?.let { countryCode ->
-                                viewModelScope.launch {
-                                    withContext(Dispatchers.IO) {
-                                        backendService.selectCountry(cookie, countryCode)
-                                        historyService.load()
-                                    }
-                                }
-                            }
-                        }.show()
-                }
+                _mainParentAction.postValue(MainParentAction.ShowCountriesDialog(instancesWithNames = countryList, cookie = cookie))
             } catch (ex: Exception) {
                 _parentAction.postValue(
                     ParentAction.DisplayError(
@@ -143,6 +132,13 @@ class MainViewModel @Inject constructor(
                     )
                 )
             }
+        }
+    }
+
+    fun onCountrySelected(cookie: Int?, countryCode: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            backendService.selectCountry(cookie, countryCode)
+            historyService.load()
         }
     }
 

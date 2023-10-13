@@ -26,6 +26,7 @@ import android.view.MenuItem
 import android.view.View
 import android.widget.Toast
 import androidx.activity.viewModels
+import androidx.appcompat.app.AlertDialog
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
@@ -34,6 +35,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import nl.eduvpn.app.base.BaseActivity
 import nl.eduvpn.app.databinding.ActivityMainBinding
+import nl.eduvpn.app.entity.Instance
 import nl.eduvpn.app.entity.exception.CommonException
 import nl.eduvpn.app.fragment.AddServerFragment
 import nl.eduvpn.app.fragment.ConnectionStatusFragment
@@ -65,7 +67,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     protected lateinit var eduVPNOpenVPNService: EduVPNOpenVPNService
 
     @Inject
-    protected lateinit var viewModelFactory : ViewModelFactory
+    protected lateinit var viewModelFactory: ViewModelFactory
 
     protected val viewModel by viewModels<MainViewModel> { viewModelFactory }
 
@@ -105,19 +107,31 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                 is MainViewModel.MainParentAction.OpenLink -> {
                     openLink(parentAction.oAuthUrl)
                 }
+
                 is MainViewModel.MainParentAction.SelectCountry -> {
                     selectCountry(parentAction.cookie)
                 }
+
                 is MainViewModel.MainParentAction.SelectProfiles -> {
-                    openFragment(ProfileSelectionFragment.newInstance(parentAction.profileList), false)
+                    openFragment(
+                        ProfileSelectionFragment.newInstance(parentAction.profileList),
+                        false
+                    )
                 }
+
                 is MainViewModel.MainParentAction.ConnectWithConfig -> {
                     viewModel.parseConfigAndStartConnection(this, parentAction.config)
-                    val currentFragment = supportFragmentManager.findFragmentById(R.id.content_frame)
+                    val currentFragment =
+                        supportFragmentManager.findFragmentById(R.id.content_frame)
                     if (currentFragment !is ConnectionStatusFragment) {
                         openFragment(ConnectionStatusFragment(), false)
                     }
                 }
+
+                is MainViewModel.MainParentAction.ShowCountriesDialog -> {
+                    showCountriesDialog(parentAction.instancesWithNames, parentAction.cookie)
+                }
+
                 is MainViewModel.MainParentAction.ShowError -> {
                     show(this, parentAction.throwable)
                 }
@@ -126,7 +140,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         eduVPNOpenVPNService.onCreate(this)
         if (savedInstanceState == null) {
             // If there's an ongoing VPN connection, open the status screen.
-            if (vpnService.isPresent  && vpnService.get().getStatus() != VPNService.VPNStatus.DISCONNECTED) {
+            if (vpnService.isPresent && vpnService.get()
+                    .getStatus() != VPNService.VPNStatus.DISCONNECTED
+            ) {
                 openFragment(ConnectionStatusFragment(), false)
             } else if (viewModel.hasServers()) {
                 openFragment(ServerSelectionFragment.newInstance(false), false)
@@ -150,6 +166,19 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         }
         createCertExpiryNotificationChannel()
         createVPNConnectionNotificationChannel()
+    }
+
+    private fun showCountriesDialog(
+        instancesWithNames: List<Pair<Instance, String>>,
+        cookie: Int?
+    ) {
+        AlertDialog.Builder(this)
+            .setItems(instancesWithNames.map { it.second }.toTypedArray()) { _, which ->
+                val selectedInstance = instancesWithNames[which]
+                selectedInstance.first.countryCode?.let { countryCode ->
+                    viewModel.onCountrySelected(cookie, countryCode)
+                }
+            }.show()
     }
 
     fun selectCountry(cookie: Int? = null) {
