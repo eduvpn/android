@@ -16,7 +16,9 @@
  */
 package nl.eduvpn.app.service
 
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.withContext
 import nl.eduvpn.app.entity.OrganizationList
 import nl.eduvpn.app.entity.ServerList
 import org.json.JSONObject
@@ -29,18 +31,14 @@ class OrganizationService(private val serializerService: SerializerService,
                           private val backendService: BackendService) {
 
 
-    suspend fun fetchServerList(): ServerList {
-        return coroutineScope {
-            val serverListString = backendService.discoverServers()
-            serializerService.deserializeServerList(serverListString)
-        }
+    suspend fun fetchServerList() : ServerList = withContext(Dispatchers.IO) {
+        val serverListString = backendService.discoverServers()
+        serializerService.deserializeServerList(serverListString)
     }
 
-    suspend fun fetchOrganizations(): OrganizationList {
-        return coroutineScope {
-            val organizationListString = backendService.discoverOrganizations()
-            val organizationListJson = JSONObject(organizationListString)
-            serializerService.deserializeOrganizationList(organizationListJson)
-        }
+    suspend fun fetchOrganizations(): OrganizationList = withContext(Dispatchers.IO) {
+        val organizationListString = backendService.discoverOrganizations()
+        val organizationListJson = JSONObject(organizationListString)
+        serializerService.deserializeOrganizationList(organizationListJson)
     }
 }
