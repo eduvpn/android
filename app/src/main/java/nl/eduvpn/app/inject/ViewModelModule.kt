@@ -18,6 +18,7 @@
 
 package nl.eduvpn.app.inject
 
+import android.view.View
 import androidx.lifecycle.ViewModel
 import dagger.Binds
 import dagger.Module
@@ -45,15 +46,25 @@ interface ViewModelModule {
     @Binds
     @IntoMap
     @ViewModelKey(ProfileSelectionViewModel::class)
-    fun bindProfileSelectionViewModel(profileSelectionViewModel: ProfileSelectionViewModel) : ViewModel
+    fun bindProfileSelectionViewModel(profileSelectionViewModel: ProfileSelectionViewModel): ViewModel
 
     @Binds
     @IntoMap
     @ViewModelKey(AddServerViewModel::class)
-    fun bindAddServerViewModel(addServerViewModel: AddServerViewModel) : ViewModel
+    fun bindAddServerViewModel(addServerViewModel: AddServerViewModel): ViewModel
 
     @Binds
     @IntoMap
     @ViewModelKey(MainViewModel::class)
-    fun bindMainViewModel(mainViewModel: MainViewModel) : ViewModel
+    fun bindMainViewModel(mainViewModel: MainViewModel): ViewModel
+
+    @Binds
+    @IntoMap
+    @ViewModelKey(SettingsViewModel::class)
+    fun bindSettingsViewModel(settingsViewModel: SettingsViewModel): ViewModel
+
+    @Binds
+    @IntoMap
+    @ViewModelKey(ApiLogsViewModel::class)
+    fun bindApiLogsViewModel(apiLogsViewModel: ApiLogsViewModel): ViewModel
 }

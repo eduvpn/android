@@ -178,7 +178,6 @@
     <string name="error_certificate_expired_title">Certificado expirado</string>
     <string name="error_certificate_expired_message">Fué desconectado porque el certificado expiró. Conéctese de nuevo para volver a autenticarse.</string>
     <string name="settings_view_log_button">Ver Registro</string>
-    <string name="settings_view_log_title">Registro de conexión</string>
     <string name="warning_no_organization_title">Sin organización</string>
     <string name="ok">OK</string>
     <string name="warning_no_organization_message">No tienes una organización conectada.</string>

@@ -84,6 +84,7 @@
             android:name="de.blinkt.openvpn.OpenVPNTileService"
             android:icon="@drawable/logo_black"
             android:label="@string/qs_title"
+            android:exported="true"
             android:permission="android.permission.BIND_QUICK_SETTINGS_TILE"
             android:value="true"
             tools:replace="android:icon">
@@ -152,6 +153,11 @@
                 android:value=".MainActivity" />
 
         </activity>
+
+        <activity android:name=".ApiLogsActivity"
+            android:launchMode="singleTask"
+            android:exported="false"
+            android:theme="@style/AppTheme.NoActionBar" />
 
         <activity
             android:name=".LicenseActivity"
