@@ -91,19 +91,19 @@
                     android:layout_below="@id/useCustomTabsSwitch" />
 
                 <FrameLayout
-                    android:id="@+id/view_log_container"
+                    android:id="@+id/view_openvpn_logs_container"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_below="@id/customTabsSeparator"
                     android:background="?attr/selectableItemBackground">
 
                     <TextView
-                        android:id="@+id/view_log_title"
+                        android:id="@+id/view_openvpn_logs_title"
                         style="@style/SettingsLabelTitle"
-                        android:text="@string/settings_view_log_title" />
+                        android:text="@string/settings_view_openvpn_logs_title" />
 
                     <Button
-                        android:id="@+id/view_log_button"
+                        android:id="@+id/view_openvpn_logs_button"
                         style="@style/SmallButton"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -113,15 +113,42 @@
                 </FrameLayout>
 
                 <View
-                    android:id="@+id/view_log_separator"
+                    android:id="@+id/view_openvpn_logs_separator"
                     style="@style/SettingsSeparator"
-                    android:layout_below="@id/view_log_container" />
+                    android:layout_below="@id/view_openvpn_logs_container" />
+
+                <FrameLayout
+                    android:id="@+id/view_api_logs_container"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@id/view_openvpn_logs_separator"
+                    android:background="?attr/selectableItemBackground">
+
+                    <TextView
+                        android:id="@+id/view_api_logs_title"
+                        style="@style/SettingsLabelTitle"
+                        android:text="@string/settings_view_api_logs_title" />
+
+                    <Button
+                        android:id="@+id/view_api_logs_button"
+                        style="@style/SmallButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="right|center_vertical"
+                        android:text="@string/settings_view_log_button" />
+
+                </FrameLayout>
+
+                <View
+                    android:id="@+id/view_api_logs_separator"
+                    style="@style/SettingsSeparator"
+                    android:layout_below="@id/view_api_logs_container" />
 
                 <FrameLayout
                     android:id="@+id/licenses_container"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_below="@id/view_log_separator"
+                    android:layout_below="@id/view_api_logs_separator"
                     android:background="?attr/selectableItemBackground">
 
                     <TextView

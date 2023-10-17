@@ -182,7 +182,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     }
 
     fun selectCountry(cookie: Int? = null) {
-        viewModel.getCountryList(this, cookie)
+        viewModel.getCountryList(cookie)
     }
 
     private fun openLink(oAuthUrl: String) {

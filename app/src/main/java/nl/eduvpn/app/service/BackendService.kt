@@ -310,5 +310,14 @@ class BackendService(
             pendingOAuthCookie = null
         }
     }
+
+    fun getLogFile() : File? {
+        val configDirectory = File(context.cacheDir, DIRECTORY_BACKEND_CONFIG_FILES)
+        val configFile = File(configDirectory, "log")
+        if (configFile.exists()) {
+            return configFile
+        }
+        return null
+    }
 }
 

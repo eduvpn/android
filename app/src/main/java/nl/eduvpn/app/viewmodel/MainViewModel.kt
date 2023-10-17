@@ -2,13 +2,11 @@ package nl.eduvpn.app.viewmodel
 
 import android.content.Context
 import android.net.Uri
-import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.wireguard.config.Config
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import nl.eduvpn.app.MainActivity
 import nl.eduvpn.app.R
 import nl.eduvpn.app.entity.AuthorizationType
@@ -114,7 +112,7 @@ class MainViewModel @Inject constructor(
     }
 
     fun useCustomTabs() = preferencesService.getAppSettings().useCustomTabs()
-    fun getCountryList(activity: MainActivity, cookie: Int? = null) {
+    fun getCountryList(cookie: Int? = null) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val allInstances = organizationService.fetchServerList().serverList

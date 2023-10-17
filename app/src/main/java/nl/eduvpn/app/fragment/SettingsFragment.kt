@@ -21,7 +21,10 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AlertDialog
+import androidx.core.view.isVisible
+import androidx.fragment.app.viewModels
 import de.blinkt.openvpn.activities.LogWindow
+import nl.eduvpn.app.ApiLogsActivity
 import nl.eduvpn.app.BuildConfig
 import nl.eduvpn.app.EduVPNApplication
 import nl.eduvpn.app.LicenseActivity
@@ -32,6 +35,7 @@ import nl.eduvpn.app.databinding.FragmentSettingsBinding
 import nl.eduvpn.app.entity.Settings
 import nl.eduvpn.app.service.HistoryService
 import nl.eduvpn.app.service.PreferencesService
+import nl.eduvpn.app.viewmodel.SettingsViewModel
 import javax.inject.Inject
 
 /**
@@ -39,18 +43,15 @@ import javax.inject.Inject
  * Created by Daniel Zolnai on 2016-10-22.
  */
 class SettingsFragment : BaseFragment<FragmentSettingsBinding>() {
-    @Inject
-    lateinit var preferencesService: PreferencesService
 
-    @Inject
-    lateinit var historyService: HistoryService
+    val viewModel by viewModels<SettingsViewModel>{ viewModelFactory }
 
     override val layout = R.layout.fragment_settings
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         EduVPNApplication.get(view.context).component().inject(this)
-        val originalSettings = preferencesService.getAppSettings()
+        val originalSettings = viewModel.appSettings
         binding.useCustomTabsSwitch.isChecked = originalSettings.useCustomTabs()
         binding.forceTcpSwitch.isChecked = originalSettings.forceTcp()
         binding.useCustomTabsSwitch.setOnClickListener { saveSettings() }
@@ -64,10 +65,15 @@ class SettingsFragment : BaseFragment<FragmentSettingsBinding>() {
             )
         }
         binding.resetDataButton.setOnClickListener { onResetDataClicked() }
-        binding.viewLogButton.setOnClickListener {
+        binding.viewOpenvpnLogsButton.setOnClickListener {
             val intent = Intent(activity, LogWindow::class.java)
             startActivity(intent)
         }
+        binding.viewApiLogsButton.setOnClickListener {
+            val intent = Intent(activity, ApiLogsActivity::class.java)
+            startActivity(intent)
+        }
+        binding.viewApiLogsContainer.isVisible = viewModel.apiLogFile != null
         if (!BuildConfig.API_DISCOVERY_ENABLED) {
             binding.resetDataSeparator.visibility = View.GONE
             binding.resetAppDataContainer.visibility = View.GONE
@@ -75,14 +81,14 @@ class SettingsFragment : BaseFragment<FragmentSettingsBinding>() {
     }
 
     private fun onResetDataClicked() {
-        if (historyService.addedServers?.hasServers() == true) {
+        if (viewModel.hasAddedServers) {
             val resetDataDialog = AlertDialog.Builder(requireContext())
                 .setTitle(R.string.reset_data_dialog_title)
                 .setMessage(R.string.reset_data_dialog_message)
                 .setPositiveButton(R.string.reset_data_dialog_yes) { dialog: DialogInterface, _: Int ->
                     dialog.dismiss()
                     try {
-                        historyService.removeOrganizationData()
+                        viewModel.removeOrganizationData()
                     } catch (ex: Exception) {
                         AlertDialog.Builder(requireContext())
                             .setTitle(R.string.unexpected_error)
@@ -109,6 +115,6 @@ class SettingsFragment : BaseFragment<FragmentSettingsBinding>() {
     private fun saveSettings() {
         val useCustomTabs = binding.useCustomTabsSwitch.isChecked
         val forceTcp = binding.forceTcpSwitch.isChecked
-        preferencesService.storeAppSettings(Settings(useCustomTabs, forceTcp))
+        viewModel.storeAppSettings(Settings(useCustomTabs, forceTcp))
     }
 }

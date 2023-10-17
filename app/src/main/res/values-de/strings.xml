@@ -178,8 +178,7 @@
     <string name="connection_certificate_status_valid_for_two_parts"><![CDATA[Gültig für <b>%1$s</b> and <b>%2$s</b>]]></string>
     <string name="error_certificate_expired_title">Zertifikat abgelaufen</string>
     <string name="error_certificate_expired_message">Die Verbindung wurde getrennt, weil das Zertifikat abgelaufen ist. Verbinden Sie sich neu, um sich wieder zu autorisieren.</string>
-    <string name="settings_view_log_button">Protokoll zeigen</string>
-    <string name="settings_view_log_title">Verbindungsprotokoll</string>
+    <string name="settings_view_log_button">Protokollen zeigen</string>
     <string name="warning_no_organization_title">Keine Organization</string>
     <string name="ok">OK</string>
     <string name="warning_no_organization_message">Sie haben keine verbundene Organisation.</string>
