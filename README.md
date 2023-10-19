@@ -32,7 +32,7 @@ Make sure that you have the following packages installed in the SDK Manager (Too
 * SDK Tools - CMake
 * SDK Tools - Android SDK Platform-Tools
 * SDK Tools - Android SDK Tools
-* SDK Tools - NDK - 25.1.x version (a later version might work, but is untested)
+* SDK Tools - NDK - 26.1.10909125 version (a later version might work, but is untested)
 
 To find a specific version of a package (for the NDK), check the option 'Show Package Details'
 in the bottom-lower corner of the SDK Manager.
@@ -65,8 +65,8 @@ $ sudo dnf -y install \
     git \
     swig \
     go \
-    java-11-openjdk \
-    java-11-openjdk-devel \
+    java-17-openjdk \
+    java-17-openjdk-devel \
     ncurses-compat-libs \
     ninja-build \
     cmake \
