@@ -5,7 +5,7 @@ plugins {
 android {
     namespace 'org.eduvpn.common'
     compileSdk 33
-    ndkVersion = "21.0.6113669"
+    ndkVersion = "25.1.8937393"
 
     def commonVersion = "2.0.0"
 
