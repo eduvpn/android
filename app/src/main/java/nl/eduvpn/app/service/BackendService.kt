@@ -2,14 +2,19 @@ package nl.eduvpn.app.service
 
 import android.content.Context
 import android.net.Uri
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import nl.eduvpn.app.BuildConfig
 import nl.eduvpn.app.entity.AddedServers
 import nl.eduvpn.app.entity.AuthorizationType
 import nl.eduvpn.app.entity.CertExpiryTimes
 import nl.eduvpn.app.entity.CurrentServer
 import nl.eduvpn.app.entity.Instance
-import nl.eduvpn.app.entity.SerializedVpnConfig
 import nl.eduvpn.app.entity.Profile
+import nl.eduvpn.app.entity.SerializedVpnConfig
 import nl.eduvpn.app.entity.exception.CommonException
 import nl.eduvpn.app.service.SerializerService.UnknownFormatException
 import nl.eduvpn.app.utils.Log
@@ -17,6 +22,11 @@ import org.eduvpn.common.GoBackend
 import org.eduvpn.common.GoBackend.Callback
 import org.eduvpn.common.ServerType
 import java.io.File
+import java.net.InetAddress
+import java.net.NetworkInterface
+import java.util.Collections
+import java.util.Locale
+
 
 class BackendService(
     private val context: Context,
@@ -43,17 +53,17 @@ class BackendService(
     var lastSelectedProfile: String? = null
         private set
 
-    private var onConfigReady: ((SerializedVpnConfig) -> Unit)? = null
+    private var onConfigReady: ((SerializedVpnConfig, Boolean) -> Unit)? = null
 
     fun register(
         startOAuth: (String) -> Unit,
         selectProfiles: (List<Profile>) -> Unit,
         selectCountry: (Int?) -> Unit,
-        connectWithConfig: (SerializedVpnConfig) -> Unit,
+        connectWithConfig: (SerializedVpnConfig, Boolean) -> Unit,
         showError: (Throwable) -> Unit
     ): String? {
-        onConfigReady = {
-            connectWithConfig(it)
+        onConfigReady = { config, forceTcp ->
+            connectWithConfig(config, forceTcp)
         }
         GoBackend.callbackFunction = object : Callback {
 
@@ -242,11 +252,11 @@ class BackendService(
     }
 
     @kotlin.jvm.Throws(CommonException::class, UnknownFormatException::class)
-    suspend fun getConfig(instance: Instance, preferTcp: Boolean) {
+    suspend fun getConfig(instance: Instance, forceTCP: Boolean) = withContext(Dispatchers.IO) {
         val dataErrorTuple = goBackend.getProfiles(
             instance.authorizationType.toNativeServerType().nativeValue,
             instance.baseURI,
-            preferTcp,
+            forceTCP,
             false
         )
 
@@ -254,9 +264,7 @@ class BackendService(
             throw CommonException(dataErrorTuple.error)
         }
         val config = serializerService.deserializeSerializedVpnConfig(dataErrorTuple.data)
-        if (config != null) {
-            onConfigReady?.invoke(config)
-        }
+        onConfigReady?.invoke(config, forceTCP)
     }
 
     @kotlin.jvm.Throws(CommonException::class)
@@ -318,6 +326,56 @@ class BackendService(
             return configFile
         }
         return null
+    }
+
+    /**
+     * Starts checking if there's a stable connection on the tunnel. Only works on WireGuard for now.
+     */
+    suspend fun startFailOver(service: VPNService, onFailOverNeeded: () -> Unit) {
+        goBackend.updateRxBytesRead(0)
+        val updateBytesJob = GlobalScope.launch {
+            service.byteCountFlow.collectLatest {
+                goBackend.updateRxBytesRead(it?.bytesIn ?: 0L)
+            }
+        }
+        service.ipFlow.collectLatest { ips ->
+            val tunnelIp = ips?.tunnelData?.tunnelIp
+            var mtu = ips?.tunnelData?.mtu
+            if (tunnelIp == null) {
+                throw CommonException("Could not start failover, because IP was missing!")
+            }
+            if (mtu == null) {
+                // We could try to get it from the actual network interface
+                try {
+                    val tunnelInterface = NetworkInterface.getNetworkInterfaces().toList().firstOrNull {
+                        it.inetAddresses.toList().any {
+                            if (it.hostAddress != null) {
+                                it.hostAddress!! in (ips.clientIpv4?.split(",") ?: emptyList()) ||
+                                        it.hostAddress!! in (ips.clientIpv6?.split(",") ?: emptyList())
+                            } else {
+                                false
+                            }
+                        }
+                    }
+                    mtu = tunnelInterface?.mtu
+                } catch (ex: Exception) {
+                    Log.e(TAG, "Could not determine MTU!", ex)
+                }
+            }
+            if (mtu == null) {
+                throw CommonException("Could not start failover, because MTU was missing!")
+            }
+            Log.v(TAG, "Failover started with tunnel IP: $tunnelIp and MTU: $mtu")
+            val result = goBackend.startFailOver(tunnelIp, mtu)
+            Log.v(TAG, "Failover ended with result: ${result.doesRequireFailover}")
+            updateBytesJob.cancel()
+            if (result.isError) {
+                throw CommonException(result.error)
+            }
+            if (result.doesRequireFailover) {
+                onFailOverNeeded()
+            }
+        }
     }
 }
 

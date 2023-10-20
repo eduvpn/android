@@ -47,13 +47,13 @@ class IPLiveData : LiveData<IPs>() {
             intent: Intent?
         ) {
             if (EduVPNOpenVPNService.connectionStatusToVPNStatus(level) == VPNService.VPNStatus.DISCONNECTED) {
-                postValue(IPs(null, null))
+                postValue(IPs(null, null, tunnelData = null))
                 return
             }
             // Try to get the address from a lookup
             var ips: Pair<String?, String?>? = lookupVpnIpAddresses()
             if (ips != null) {
-                postValue(IPs(ips.first, ips.second))
+                postValue(IPs(ips.first, ips.second, tunnelData = null))
             } else {
                 Log.i(
                     TAG,
@@ -61,7 +61,7 @@ class IPLiveData : LiveData<IPs>() {
                 )
                 ips = logmessage?.let { lm -> parseVpnIpAddressesFromLogMessage(lm) }
                 if (ips != null) {
-                    postValue(IPs(ips.first, ips.second))
+                    postValue(IPs(ips.first, ips.second, tunnelData = null))
                 }
             }
         }

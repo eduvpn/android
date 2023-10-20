@@ -10,6 +10,7 @@ static JavaVM *globalVM;
 static jclass globalBackendClass;
 static jclass globalCallbackClass;
 
+static jlong globalRxBytesRead = 0;
 
 bool GetJniEnv(JavaVM *vm, JNIEnv **env) {
     bool did_attach_thread = false;
@@ -46,6 +47,10 @@ jobject CreateDataErrorTuple(JNIEnv *env, char *data, char *error) {
     return object;
 }
 
+long long int getRxBytesRead() {
+    return globalRxBytesRead;
+}
+
 int callGlobalCallback(int newstate, void *data) {
     if (!globalVM) {
         return 0;
@@ -76,6 +81,8 @@ int callGlobalCallback(int newstate, void *data) {
 int createStateCallback(int oldstate, int newstate, void *data) {
     return callGlobalCallback(newstate, data);
 }
+
+
 
 void getToken(const char* server, char* out, size_t len) {
     if (!globalVM) {
@@ -252,7 +259,7 @@ Java_org_eduvpn_common_GoBackend_selectCountry(JNIEnv *env, jobject /* this */, 
     uintptr_t cookie = CookieNew();
     const char *countryCode_str = env->GetStringUTFChars(countryCode, nullptr);
     char *result = SetSecureLocation(cookie, (char *)countryCode_str);
-    CookieCancel(cookie);
+    CookieDelete(cookie);
     return NativeStringToJString(env, result);
 }
 
@@ -260,4 +267,23 @@ extern "C" JNIEXPORT jobject JNICALL
 Java_org_eduvpn_common_GoBackend_getCertExpiryTimes(JNIEnv *env, jobject /* this */) {
     ExpiryTimes_return result = ExpiryTimes();
     return CreateDataErrorTuple(env, result.r0, result.r1);
+}
+extern "C"
+JNIEXPORT jobject JNICALL
+Java_org_eduvpn_common_GoBackend_startFailOver(JNIEnv *env, jobject /* this */, jstring gatewayIp, jint mtu) {
+    uintptr_t cookie = CookieNew();
+    const char *gatewayIp_str = env->GetStringUTFChars(gatewayIp, nullptr);
+    StartFailover_return result = StartFailover(cookie, (char *)gatewayIp_str, (int)mtu, getRxBytesRead);
+    CookieDelete(cookie);
+    jboolean failOverNeeded = result.r0 != 0;
+    jstring errorString = NativeStringToJString(env, result.r1);
+    jclass failOverCls = env->FindClass("org/eduvpn/common/FailoverResult");
+    jmethodID constructor = env->GetMethodID(failOverCls, "<init>", "(ZLjava/lang/String;)V");
+    jobject object = env->NewObject( failOverCls, constructor, failOverNeeded, errorString);
+    return object;
+}
+extern "C"
+JNIEXPORT void JNICALL
+Java_org_eduvpn_common_GoBackend_updateRxBytesRead(JNIEnv *env, jobject /* this */, jlong rxBytesRead) {
+    globalRxBytesRead = rxBytesRead;
 }

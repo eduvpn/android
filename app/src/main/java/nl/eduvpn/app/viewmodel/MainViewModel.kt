@@ -6,6 +6,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.wireguard.config.Config
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import nl.eduvpn.app.MainActivity
 import nl.eduvpn.app.R
@@ -14,12 +15,14 @@ import nl.eduvpn.app.entity.Instance
 import nl.eduvpn.app.entity.Profile
 import nl.eduvpn.app.entity.SerializedVpnConfig
 import nl.eduvpn.app.entity.VPNConfig
+import nl.eduvpn.app.entity.exception.CommonException
 import nl.eduvpn.app.service.BackendService
 import nl.eduvpn.app.service.EduVPNOpenVPNService
 import nl.eduvpn.app.service.HistoryService
 import nl.eduvpn.app.service.OrganizationService
 import nl.eduvpn.app.service.PreferencesService
 import nl.eduvpn.app.service.VPNConnectionService
+import nl.eduvpn.app.utils.Log
 import nl.eduvpn.app.utils.getCountryText
 import nl.eduvpn.app.utils.toSingleEvent
 import org.eduvpn.common.Protocol
@@ -42,11 +45,16 @@ class MainViewModel @Inject constructor(
     preferencesService,
     vpnConnectionService
 ) {
+
+    companion object {
+        private val TAG = MainViewModel::class.simpleName
+    }
+
     sealed class MainParentAction {
         data class OpenLink(val oAuthUrl: String) : MainParentAction()
         data class SelectCountry(val cookie: Int?) : MainParentAction()
         data class SelectProfiles(val profileList: List<Profile>): MainParentAction()
-        data class ConnectWithConfig(val config: SerializedVpnConfig) : MainParentAction()
+        data class ConnectWithConfig(val config: SerializedVpnConfig, val forceTCP: Boolean) : MainParentAction()
         data class ShowCountriesDialog(val instancesWithNames: List<Pair<Instance, String>>, val cookie: Int?): MainParentAction()
         data class ShowError(val throwable: Throwable) : MainParentAction()
     }
@@ -65,8 +73,8 @@ class MainViewModel @Inject constructor(
             selectProfiles = { profileList ->
                 _mainParentAction.postValue(MainParentAction.SelectProfiles(profileList))
             },
-            connectWithConfig = { config ->
-                _mainParentAction.postValue(MainParentAction.ConnectWithConfig(config))
+            connectWithConfig = { config, forceTcp ->
+                _mainParentAction.postValue(MainParentAction.ConnectWithConfig(config, forceTcp))
             },
             showError = { throwable ->
                 _mainParentAction.postValue(MainParentAction.ShowError(throwable))
@@ -88,7 +96,11 @@ class MainViewModel @Inject constructor(
 
     fun hasServers() = historyService.addedServers?.hasServers() == true
 
-    fun parseConfigAndStartConnection(activity: MainActivity, config: SerializedVpnConfig) {
+    fun parseConfigAndStartConnection(
+        activity: MainActivity,
+        config: SerializedVpnConfig,
+        forceTCP: Boolean
+    ) {
         preferencesService.setCurrentProtocol(config.protocol)
         val parsedConfig = if (config.protocol == Protocol.OpenVPN.nativeValue) {
             eduVpnOpenVpnService.importConfig(
@@ -102,7 +114,31 @@ class MainViewModel @Inject constructor(
         } else {
             throw IllegalArgumentException("Unexpected protocol type: ${config.protocol}")
         }
-        vpnConnectionService.connectionToConfig(viewModelScope, activity, parsedConfig)
+        val service = vpnConnectionService.connectionToConfig(viewModelScope, activity, parsedConfig)
+        if (config.protocol == Protocol.WireGuard.nativeValue && !forceTCP) {
+            viewModelScope.launch(Dispatchers.IO) {
+                try {
+                    // Waits a bit so that the network interface has been surely set up
+                    delay(1_000L)
+                    backendService.startFailOver(service) {
+                        // Failover needed, request a new profile with TCP enforced.
+                        preferencesService.getCurrentInstance()?.let { currentInstance ->
+                            viewModelScope.launch {
+                                // Disconnect first, otherwise we don't have any internet :)
+                                service.disconnect()
+                                // Wait a bit for the disconnection to finish
+                                delay(500L)
+                                // Fetch a new profile, now with TCP forced
+                                backendService.getConfig(currentInstance, forceTCP = true)
+                            }
+                        }
+                    }
+                } catch (ex: CommonException) {
+                    // These are just warnings, so we log them, but don't display to the user
+                    Log.w( TAG, "Unable to start failover detection", ex)
+                }
+            }
+        }
     }
 
     suspend fun handleRedirection(data: Uri?) : Boolean {
