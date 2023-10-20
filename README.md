@@ -49,7 +49,7 @@ Anything lower was not tested, but 1GB of memory definitely does not work.
 The builder will spew a lot of backtraces/warnings, but does seem to complete 
 eventually.
 
-We last tested this on 2023-03-06 with Fedora 37.
+We last tested this on 2023-10-20 with Fedora 38.
 
 We removed the Debian instructions as building on Debian no longer works on 
 Debian 11 (as of 2023-03-06) and I have no desire to investigate fixing this.
