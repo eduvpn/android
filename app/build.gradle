@@ -140,7 +140,6 @@ android {
 }
 
 def daggerVersion = "2.44"
-def okHttpVersion = "4.10.0"
 def lifecycleVersion = "2.2.0"
 
 dependencies {
