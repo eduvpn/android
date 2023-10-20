@@ -20,7 +20,7 @@ package nl.eduvpn.app.viewmodel
 
 import android.content.Context
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.Transformations
+import androidx.lifecycle.map
 import nl.eduvpn.app.service.*
 import javax.inject.Inject
 
@@ -40,7 +40,7 @@ class AddServerViewModel @Inject constructor(
 
     val serverUrl = MutableLiveData("")
 
-    val addButtonEnabled = Transformations.map(serverUrl) { url ->
+    val addButtonEnabled = serverUrl.map { url ->
         url != null && url.contains(".") && url.length > 3
     }
 }

@@ -98,8 +98,8 @@ class VPNConnectionService(
             .setOngoing(true)
             .setPriority(NotificationCompat.PRIORITY_LOW) // Only used on Android <= 7.1
             .addAction(
-                R.drawable.ic_menu_close_clear_cancel,
-                context.getString(R.string.cancel_connection), disconnectVPNPendingIntent
+                de.blinkt.openvpn.R.drawable.ic_menu_close_clear_cancel,
+                context.getString(de.blinkt.openvpn.R.string.cancel_connection), disconnectVPNPendingIntent
             )
             .build()
 
@@ -107,11 +107,8 @@ class VPNConnectionService(
             context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
         // Prevent recreating the notification in case we just removed it
-        if(statusObserver != null) {
-            notificationManager.notify(notificationID, notification)
-
-            vpnService.startForeground(notificationID, notification)
-        }
+        notificationManager.notify(notificationID, notification)
+        vpnService.startForeground(notificationID, notification)
     }
 
     private fun removeVPNNotification(context: Context, vpnService: VPNService) {

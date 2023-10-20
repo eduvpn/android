@@ -9,12 +9,12 @@ plugins {
 }
 
 android {
-    compileSdk 33
+    compileSdk 34
 
     defaultConfig {
         applicationId "nl.eduvpn.app"
         minSdkVersion 21
-        targetSdkVersion 33
+        targetSdkVersion 34
         versionCode 23
         versionName "3.1.1"
         ndkVersion "26.1.10909125"
@@ -39,7 +39,8 @@ android {
         manifestPlaceholders = [
                 'redirectScheme': 'org.eduvpn.app'
         ]
-        missingDimensionStrategy 'implementation', 'ui' // Skeleton is no option for us because we need the log activity
+        missingDimensionStrategy 'implementation', 'ui'  // Skeleton is no option for us because we need the log activity
+        missingDimensionStrategy 'ovpnimpl', 'ovpn23'
 
         // This excludes some pretty old ABIs such armeabi or mips. LibSodium-JNI still includes binaries for these, which
         // leads to some devices selecting these as the app ABI, but the OpenVPN library did not include a binary for these,
@@ -77,7 +78,7 @@ android {
         }
     }
 
-    flavorDimensions "product"
+    flavorDimensions = ["product"]
 
     productFlavors {
         basic {
@@ -103,23 +104,17 @@ android {
         }
     }
 
-    lintOptions {
-        disable 'GradleDependency', // Gradle dependencies can be a bit outdated, since we prefer to use the same versions as in the VPN library
-                'UnsafeNativeCodeLocation', // The OpenVPN .so files are put to a different place, as per the documentation
-                'RtlSymmetry', 'RtlHardcoded', // No support for RTL as of now
-                'MissingTranslation' // The OpenVPN library contains translations for a lot off languages. This app only has english, so it complains that we are missing translations for the other languages
-    }
 
     compileOptions {
         // Support Java 8+ on sdk < 24, also necessary for WireGuard
         coreLibraryDesugaringEnabled true
 
-        sourceCompatibility JavaVersion.VERSION_11
-        targetCompatibility JavaVersion.VERSION_11
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
     }
 
     kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_11
+        jvmTarget = JavaVersion.VERSION_17
     }
 
     kapt {
@@ -132,21 +127,26 @@ android {
             option("-Werror")
         }
     }
-
     packagingOptions {
-        // Created by kotlinx-coroutines-core for debugging
-        exclude "DebugProbesKt.bin"
+        resources {
+            excludes += ['DebugProbesKt.bin']
+        }
+    }
+
+    namespace 'nl.eduvpn.app'
+    lint {
+        disable 'GradleDependency', 'UnsafeNativeCodeLocation', 'RtlSymmetry', 'RtlHardcoded', 'MissingTranslation'
     }
 }
 
-def daggerVersion = "2.44"
+def daggerVersion = "2.48"
 def lifecycleVersion = "2.2.0"
 
 dependencies {
     // OpenVPN library
     implementation project(path: ':ics-openvpn-main')
     // WireGuard VPN library
-    implementation 'com.wireguard.android:tunnel:1.0.20230427'
+    implementation 'com.wireguard.android:tunnel:1.0.20230706'
     // eduVPN common library written in Go, stores all data and does the communication with the servers
     implementation project(path: ':common')
     // Please try to stay in sync with the versions used in the ics-openvpn module

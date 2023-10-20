@@ -20,7 +20,6 @@ package nl.eduvpn.app.viewmodel
 
 import android.content.Context
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.Transformations
 import androidx.lifecycle.map
 import androidx.lifecycle.switchMap
 import androidx.lifecycle.viewModelScope
@@ -234,8 +233,8 @@ class OrganizationSelectionViewModel @Inject constructor(
         }
     }
 
-    val noItemsFound = Transformations.switchMap(connectionState) { state ->
-        Transformations.map(adapterItems) { items ->
+    val noItemsFound = connectionState.switchMap { state ->
+        adapterItems.map { items ->
             items.isEmpty() && state == ConnectionState.Ready
         }
     }
