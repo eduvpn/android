@@ -18,8 +18,8 @@ jobs:
         -x :ics-openvpn-main:configureCMakeRelWithDebInfo[x86_64]
         -x :ics-openvpn-main:buildCMakeRelWithDebInfo[x86_64]
         -x :ics-openvpn-main:externalNativeBuildUiOvpn23Release
-        -x :ics-openvpn-main:packageUiReleaseResources
-        -x :ics-openvpn-main:compileUiReleaseJavaWithJavac
+        -x :ics-openvpn-main:packageUiOvpn23ReleaseResources
+        -x :ics-openvpn-main:compileUiOvpn23ReleaseJavaWithJavac
         -x :ics-openvpn-main:configureCMakeDebug[x86_64]
         -x :ics-openvpn-main:buildCMakeDebug[x86_64]
         -x :ics-openvpn-main:buildCMakeDebug[arm64-v8a]

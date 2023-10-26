@@ -34,7 +34,6 @@ android {
         buildConfigField "String", "OAUTH_CLIENT_ID", "\"org.eduvpn.app.android\""
         buildConfigField "String", "OAUTH_REDIRECT_URI", "\"org.eduvpn.app:/api/callback\""
         buildConfigField "String", "OAUTH_SCOPE", "\"config\""
-        buildConfigField "String", "CERTIFICATE_DISPLAY_NAME", "\"eduVPN for Android\""
 
         manifestPlaceholders = [
                 'redirectScheme': 'org.eduvpn.app'
@@ -89,6 +88,18 @@ android {
             dimension "product"
             applicationId "nl.eduvpn.app.dev"
         }
+        gov {
+            dimension "product"
+            applicationId "org.govvpn.app"
+            // API discovery is disabled, and only custom URLs can be entered.
+            buildConfigField "boolean", "API_DISCOVERY_ENABLED", "false"
+            buildConfigField "String", "OAUTH_CLIENT_ID", "\"org.govvpn.app.android\""
+            buildConfigField "String", "OAUTH_REDIRECT_URI", "\"org.govvpn.app:/api/callback\""
+
+            manifestPlaceholders = [
+                    'redirectScheme': 'org.govvpn.app.android'
+            ]
+        }
         home {
             dimension "product"
             applicationId "org.letsconnect_vpn.app"
@@ -96,7 +107,6 @@ android {
             buildConfigField "boolean", "API_DISCOVERY_ENABLED", "false"
             buildConfigField "String", "OAUTH_CLIENT_ID", "\"org.letsconnect-vpn.app.android\""
             buildConfigField "String", "OAUTH_REDIRECT_URI", "\"org.letsconnect-vpn.app:/api/callback\""
-            buildConfigField "String", "CERTIFICATE_DISPLAY_NAME", "\"Let's Connect! for Android\""
 
             manifestPlaceholders = [
                     'redirectScheme': 'org.letsconnect-vpn.app'
