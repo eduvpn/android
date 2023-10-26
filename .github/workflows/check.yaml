@@ -29,11 +29,14 @@ jobs:
       matrix:
         api-level: [ 31 ]
     steps:
-      - name: Use Java 17
-        run: echo "JAVA_HOME=${!JAVA_HOME_17_X64}" >> $GITHUB_ENV
-
+      - name: Install Java 17
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          cache: 'gradle'
       - name: Checkout repository and submodules
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           submodules: recursive
 
