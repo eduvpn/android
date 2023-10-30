@@ -17,6 +17,7 @@
 package nl.eduvpn.app.inject
 
 import dagger.Component
+import nl.eduvpn.app.ApiLogsActivity
 import nl.eduvpn.app.CertExpiredBroadcastReceiver
 import nl.eduvpn.app.DisconnectVPNBroadcastReceiver
 import nl.eduvpn.app.EduVPNApplication
@@ -41,6 +42,7 @@ interface EduVPNComponent {
   
     fun inject(organizationSelectionFragment: OrganizationSelectionFragment)
     fun inject(mainActivity: MainActivity)
+    fun inject(apiLogsActivity: ApiLogsActivity)
     fun inject(connectionStatusFragment: ConnectionStatusFragment)
     fun inject(homeFragment: ProfileSelectionFragment)
     fun inject(settingsFragment: SettingsFragment)

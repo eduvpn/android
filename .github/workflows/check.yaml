@@ -1,6 +1,6 @@
 name: Run tests
 
-on: [ push, pull_request ]
+on: [ pull_request ]
 
 jobs:
   build:
@@ -17,9 +17,9 @@ jobs:
         -x :ics-openvpn-main:buildCMakeRelWithDebInfo[x86]
         -x :ics-openvpn-main:configureCMakeRelWithDebInfo[x86_64]
         -x :ics-openvpn-main:buildCMakeRelWithDebInfo[x86_64]
-        -x :ics-openvpn-main:externalNativeBuildUiRelease
-        -x :ics-openvpn-main:packageUiReleaseResources
-        -x :ics-openvpn-main:compileUiReleaseJavaWithJavac
+        -x :ics-openvpn-main:externalNativeBuildUiOvpn23Release
+        -x :ics-openvpn-main:packageUiOvpn23ReleaseResources
+        -x :ics-openvpn-main:compileUiOvpn23ReleaseJavaWithJavac
         -x :ics-openvpn-main:configureCMakeDebug[x86_64]
         -x :ics-openvpn-main:buildCMakeDebug[x86_64]
         -x :ics-openvpn-main:buildCMakeDebug[arm64-v8a]
@@ -29,14 +29,16 @@ jobs:
       matrix:
         api-level: [ 31 ]
     steps:
-      - name: Use Java 17
-        run: echo "JAVA_HOME=${!JAVA_HOME_17_X64}" >> $GITHUB_ENV
-
       - name: Checkout repository and submodules
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           submodules: recursive
-
+      - name: Install Java 17
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          cache: 'gradle'
       # Based on https://github.com/actions/cache/blob/main/examples.md#java---gradle
       - name: Cache Gradle caches and wrapper
         uses: actions/cache@v3

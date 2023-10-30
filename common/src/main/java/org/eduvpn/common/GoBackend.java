@@ -40,4 +40,6 @@ public class GoBackend {
     public native @Nullable String cancelCookie(int cookie);
     public native @Nullable String deregister();
     public native DataErrorTuple getCertExpiryTimes();
+    public native void updateRxBytesRead(long rxBytesRead);
+    public native FailoverResult startFailOver(@NotNull String gatewayIp, int mtu);
 }

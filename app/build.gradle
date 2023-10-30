@@ -9,15 +9,15 @@ plugins {
 }
 
 android {
-    compileSdk 33
+    compileSdk 34
 
     defaultConfig {
         applicationId "nl.eduvpn.app"
         minSdkVersion 21
-        targetSdkVersion 31
+        targetSdkVersion 34
         versionCode 23
         versionName "3.1.1"
-        ndkVersion "21.0.6113669"
+        ndkVersion "26.1.10909125"
 
         vectorDrawables.useSupportLibrary = true
 
@@ -34,12 +34,12 @@ android {
         buildConfigField "String", "OAUTH_CLIENT_ID", "\"org.eduvpn.app.android\""
         buildConfigField "String", "OAUTH_REDIRECT_URI", "\"org.eduvpn.app:/api/callback\""
         buildConfigField "String", "OAUTH_SCOPE", "\"config\""
-        buildConfigField "String", "CERTIFICATE_DISPLAY_NAME", "\"eduVPN for Android\""
 
         manifestPlaceholders = [
                 'redirectScheme': 'org.eduvpn.app'
         ]
-        missingDimensionStrategy 'implementation', 'ui' // Skeleton is no option for us because we need the log activity
+        missingDimensionStrategy 'implementation', 'ui'  // Skeleton is no option for us because we need the log activity
+        missingDimensionStrategy 'ovpnimpl', 'ovpn23'
 
         // This excludes some pretty old ABIs such armeabi or mips. LibSodium-JNI still includes binaries for these, which
         // leads to some devices selecting these as the app ABI, but the OpenVPN library did not include a binary for these,
@@ -77,7 +77,7 @@ android {
         }
     }
 
-    flavorDimensions "product"
+    flavorDimensions = ["product"]
 
     productFlavors {
         basic {
@@ -88,6 +88,18 @@ android {
             dimension "product"
             applicationId "nl.eduvpn.app.dev"
         }
+        gov {
+            dimension "product"
+            applicationId "org.govvpn.app"
+            // API discovery is disabled, and only custom URLs can be entered.
+            buildConfigField "boolean", "API_DISCOVERY_ENABLED", "false"
+            buildConfigField "String", "OAUTH_CLIENT_ID", "\"org.govvpn.app.android\""
+            buildConfigField "String", "OAUTH_REDIRECT_URI", "\"org.govvpn.app:/api/callback\""
+
+            manifestPlaceholders = [
+                    'redirectScheme': 'org.govvpn.app.android'
+            ]
+        }
         home {
             dimension "product"
             applicationId "org.letsconnect_vpn.app"
@@ -95,7 +107,6 @@ android {
             buildConfigField "boolean", "API_DISCOVERY_ENABLED", "false"
             buildConfigField "String", "OAUTH_CLIENT_ID", "\"org.letsconnect-vpn.app.android\""
             buildConfigField "String", "OAUTH_REDIRECT_URI", "\"org.letsconnect-vpn.app:/api/callback\""
-            buildConfigField "String", "CERTIFICATE_DISPLAY_NAME", "\"Let's Connect! for Android\""
 
             manifestPlaceholders = [
                     'redirectScheme': 'org.letsconnect-vpn.app'
@@ -103,23 +114,17 @@ android {
         }
     }
 
-    lintOptions {
-        disable 'GradleDependency', // Gradle dependencies can be a bit outdated, since we prefer to use the same versions as in the VPN library
-                'UnsafeNativeCodeLocation', // The OpenVPN .so files are put to a different place, as per the documentation
-                'RtlSymmetry', 'RtlHardcoded', // No support for RTL as of now
-                'MissingTranslation' // The OpenVPN library contains translations for a lot off languages. This app only has english, so it complains that we are missing translations for the other languages
-    }
 
     compileOptions {
         // Support Java 8+ on sdk < 24, also necessary for WireGuard
         coreLibraryDesugaringEnabled true
 
-        sourceCompatibility JavaVersion.VERSION_11
-        targetCompatibility JavaVersion.VERSION_11
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
     }
 
     kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_11
+        jvmTarget = JavaVersion.VERSION_17
     }
 
     kapt {
@@ -132,22 +137,26 @@ android {
             option("-Werror")
         }
     }
-
     packagingOptions {
-        // Created by kotlinx-coroutines-core for debugging
-        exclude "DebugProbesKt.bin"
+        resources {
+            excludes += ['DebugProbesKt.bin']
+        }
+    }
+
+    namespace 'nl.eduvpn.app'
+    lint {
+        disable 'GradleDependency', 'UnsafeNativeCodeLocation', 'RtlSymmetry', 'RtlHardcoded', 'MissingTranslation'
     }
 }
 
-def daggerVersion = "2.44"
-def okHttpVersion = "4.10.0"
+def daggerVersion = "2.48"
 def lifecycleVersion = "2.2.0"
 
 dependencies {
     // OpenVPN library
     implementation project(path: ':ics-openvpn-main')
     // WireGuard VPN library
-    implementation 'com.wireguard.android:tunnel:1.0.20230427'
+    implementation 'com.wireguard.android:tunnel:1.0.20230706'
     // eduVPN common library written in Go, stores all data and does the communication with the servers
     implementation project(path: ':common')
     // Please try to stay in sync with the versions used in the ics-openvpn module

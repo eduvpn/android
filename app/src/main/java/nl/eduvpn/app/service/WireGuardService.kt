@@ -11,6 +11,7 @@ import com.wireguard.config.Interface
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
@@ -18,11 +19,14 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import nl.eduvpn.app.livedata.ByteCount
 import nl.eduvpn.app.livedata.IPs
+import nl.eduvpn.app.livedata.TunnelData
 import nl.eduvpn.app.utils.Log
 import nl.eduvpn.app.utils.WireGuardTunnel
+import java.net.Inet4Address
 import java.util.concurrent.Executors
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
+import kotlin.jvm.optionals.getOrNull
 
 /**
  * Service responsible for managing the WireGuard profiles and the connection.
@@ -159,6 +163,33 @@ class WireGuardService(private val context: Context, timer: Flow<Unit>): VPNServ
     }
 
     companion object {
+        private fun calculateTunnelAddress(ipAddress: String?, subnetMask: Int): String? {
+            if (ipAddress == null) {
+                return null
+            }
+            try {
+                val ipParts = ipAddress.split(".")
+                if (ipParts.size != 4) {
+                    return null // Invalid IP address format
+                }
+
+                val subnetMaskParts = Array(4) { 0 }
+                for (i in 0 until subnetMask) {
+                    subnetMaskParts[i / 8] = subnetMaskParts[i / 8] or (1 shl (7 - i % 8))
+                }
+
+                val networkAddressParts = Array(4) { 0 }
+                for (i in 0 until 4) {
+                    networkAddressParts[i] = ipParts[i].toInt() and subnetMaskParts[i]
+                }
+                // Calculate the first valid IP address by adding 1 to the last part of the network address
+                networkAddressParts[3]++
+                return networkAddressParts.joinToString(".")
+            } catch (e: Exception) {
+                return null
+            }
+        }
+
         private fun getIPs(wgInterface: Interface): IPs {
             val ipv4Addresses = wgInterface.addresses
                 .filter { network -> network.address is java.net.Inet4Address }
@@ -168,10 +199,19 @@ class WireGuardService(private val context: Context, timer: Flow<Unit>): VPNServ
                 .filter { network -> network.address is java.net.Inet6Address }
                 .mapNotNull { ip -> ip.address.hostAddress }
 
+            val tunnelIp = wgInterface.addresses
+                .firstOrNull { network -> network.address is Inet4Address }
+                ?.let { ip ->
+                    calculateTunnelAddress(ip.address.hostAddress, ip.mask)
+                }
             fun ipListToString(ipList: List<String>): String? {
                 return ipList.reduceOrNull { s1, s2 -> "$s1, $s2" }
             }
-            return IPs(ipListToString(ipv4Addresses), ipListToString(ipv6Addresses))
+            return IPs(
+                ipListToString(ipv4Addresses),
+                ipListToString(ipv6Addresses),
+                TunnelData(tunnelIp, wgInterface.mtu.getOrNull())
+            )
         }
     }
 }

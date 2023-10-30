@@ -1,0 +1,1 @@
+-keep public class org.eduvpn.common.** { *; }

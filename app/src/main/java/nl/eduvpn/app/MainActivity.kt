@@ -120,12 +120,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                 }
 
                 is MainViewModel.MainParentAction.ConnectWithConfig -> {
-                    viewModel.parseConfigAndStartConnection(this, parentAction.config)
-                    val currentFragment =
-                        supportFragmentManager.findFragmentById(R.id.content_frame)
-                    if (currentFragment !is ConnectionStatusFragment) {
-                        openFragment(ConnectionStatusFragment(), false)
-                    }
+                    viewModel.parseConfigAndStartConnection(this, parentAction.config, parentAction.forceTCP)
+                    openFragment(ConnectionStatusFragment(), false)
                 }
 
                 is MainViewModel.MainParentAction.ShowCountriesDialog -> {
@@ -182,7 +178,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     }
 
     fun selectCountry(cookie: Int? = null) {
-        viewModel.getCountryList(this, cookie)
+        viewModel.getCountryList(cookie)
     }
 
     private fun openLink(oAuthUrl: String) {
