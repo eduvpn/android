@@ -7,6 +7,7 @@
 
         <import type="androidx.lifecycle.LiveData" />
         <import type="nl.eduvpn.app.livedata.IPs" />
+        <import type="org.eduvpn.common.Protocol" />
 
         <variable
             name="viewModel"
@@ -27,6 +28,11 @@
         <variable
             name="ips"
             type="LiveData&lt;IPs>" />
+
+        <variable
+            name="protocol"
+            type="org.eduvpn.common.Protocol"
+            />
 
         <import type="android.view.View" />
     </data>
@@ -344,12 +350,32 @@
                     app:layout_constraintTop_toBottomOf="@id/label_ipv6"
                     tools:text="2001:610:450:40::2:100b" />
 
+                <TextView
+                    android:id="@+id/label_protocol"
+                    style="@style/ConnectionInfoLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/connection_info_protocol"
+                    app:layout_constraintLeft_toLeftOf="@id/guide_vertical_divide"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintWidth_percent="0.5" />
+
+                <TextView
+                    android:id="@+id/value_protocol"
+                    style="@style/ConnectionInfoValue"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@{protocol == Protocol.OpenVPN ? @string/connection_info_protocol_name_openvpn : @string/connection_info_protocol_name_wireguard}"
+                    app:layout_constraintLeft_toLeftOf="@id/value_uploaded"
+                    app:layout_constraintTop_toTopOf="parent"
+                    tools:text="WireGuard" />
+
                 <androidx.constraintlayout.widget.Guideline
                     android:id="@+id/guide_vertical_divide"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    app:layout_constraintGuide_percent="0.55" />
+                    app:layout_constraintGuide_percent="0.52" />
 
 
             </androidx.constraintlayout.widget.ConstraintLayout>

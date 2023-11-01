@@ -28,9 +28,6 @@ object Constants {
     val DEBUG = BuildConfig.BUILD_TYPE.equals("debug", ignoreCase = true)
 
     @JvmField
-    val HELP_URI = Uri.parse("https://www.eduvpn.org/faq.html")
-
-    @JvmField
     val LOCALE = Locale.getDefault()
     val ENGLISH_LOCALE = Locale.ENGLISH
 

@@ -22,6 +22,7 @@ import nl.eduvpn.app.livedata.IPs
 import nl.eduvpn.app.livedata.TunnelData
 import nl.eduvpn.app.utils.Log
 import nl.eduvpn.app.utils.WireGuardTunnel
+import org.eduvpn.common.Protocol
 import java.net.Inet4Address
 import java.util.concurrent.Executors
 import kotlin.coroutines.resume
@@ -158,8 +159,8 @@ class WireGuardService(private val context: Context, timer: Flow<Unit>): VPNServ
         }
     }
 
-    override fun getProtocolName(): String {
-        return "WireGuard"
+    override fun getProtocol(): Protocol {
+        return Protocol.WireGuard
     }
 
     companion object {

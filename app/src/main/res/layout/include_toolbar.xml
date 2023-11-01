@@ -56,7 +56,7 @@
                 android:contentDescription="@string/content_description_settings_button"
                 android:padding="8dp"
                 android:src="@drawable/ic_settings"
-                android:tint="@color/iconColor"
+                app:tint="@color/iconColor"
                 app:layout_constraintRight_toRightOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 
@@ -68,7 +68,7 @@
                 android:contentDescription="@string/content_description_settings_button"
                 android:padding="8dp"
                 android:src="@drawable/ic_help"
-                android:tint="@color/iconColor"
+                app:tint="@color/iconColor"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintRight_toRightOf="parent" />
 

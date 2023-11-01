@@ -18,6 +18,7 @@ package nl.eduvpn.app
 
 import android.content.Intent
 import android.content.res.ColorStateList
+import android.net.Uri
 import android.os.Bundle
 import android.view.MenuItem
 import android.view.View
@@ -43,7 +44,7 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
         binding.toolbar.settingsButton.imageTintList =
             ColorStateList.valueOf(ContextCompat.getColor(this, R.color.buttonBackgroundColor))
         binding.toolbar.helpButton.setOnClickListener { _: View ->
-            startActivity(Intent(Intent.ACTION_VIEW, Constants.HELP_URI))
+            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(BuildConfig.HELP_URI)))
         }
     }
 

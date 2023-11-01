@@ -152,13 +152,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         }
         _parseIntentOnStart = true
         binding.toolbar.settingsButton.setOnClickListener { _: View? -> onSettingsButtonClicked() }
-        binding.toolbar.helpButton.setOnClickListener { _: View? ->
-            startActivity(
-                Intent(
-                    Intent.ACTION_VIEW,
-                    Constants.HELP_URI
-                )
-            )
+        binding.toolbar.helpButton.setOnClickListener {
+            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(BuildConfig.HELP_URI)))
         }
         createCertExpiryNotificationChannel()
         createVPNConnectionNotificationChannel()

@@ -32,6 +32,7 @@ import androidx.annotation.Nullable;
 import androidx.lifecycle.FlowLiveDataConversions;
 import androidx.lifecycle.LiveData;
 
+import org.eduvpn.common.Protocol;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
@@ -316,8 +317,9 @@ public class EduVPNOpenVPNService extends VPNService implements VpnStatus.StateL
         });
     }
 
-    @NotNull
-    public String getProtocolName() {
-        return "OpenVPN";
+    @NonNull
+    @Override
+    public Protocol getProtocol() {
+        return Protocol.OpenVPN;
     }
 }
