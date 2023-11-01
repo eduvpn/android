@@ -20,9 +20,9 @@ UNSIGNED_APK=${APP_DIR}/app/build/outputs/apk/gov/release/app-gov-release-unsign
 SIGNED_APK=${PROJECT_DIR}/govVPN-${GIT_TAG}.apk
 
 # govVPN
-GRADLE_TASK=app:assembleGovRelease
-UNSIGNED_APK=${APP_DIR}/app/build/outputs/apk/basic/release/app-basic-release-unsigned.apk 
-SIGNED_APK=${PROJECT_DIR}/eduVPN-${GIT_TAG}.apk
+#GRADLE_TASK=app:assembleGovRelease
+#UNSIGNED_APK=${APP_DIR}/app/build/outputs/apk/basic/release/app-basic-release-unsigned.apk 
+#SIGNED_APK=${PROJECT_DIR}/eduVPN-${GIT_TAG}.apk
 
 # Let's Connect!
 #GRADLE_TASK=app:assembleHomeRelease
