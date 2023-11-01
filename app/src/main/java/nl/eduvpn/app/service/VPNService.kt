@@ -5,6 +5,7 @@ import androidx.lifecycle.LiveData
 import kotlinx.coroutines.flow.Flow
 import nl.eduvpn.app.livedata.ByteCount
 import nl.eduvpn.app.livedata.IPs
+import org.eduvpn.common.Protocol
 
 abstract class VPNService : LiveData<VPNService.VPNStatus>() {
 
@@ -44,7 +45,7 @@ abstract class VPNService : LiveData<VPNService.VPNStatus>() {
     abstract fun getStatus(): VPNStatus
 
     /**
-     * Name of the VPN protocol.
+     * Type of the VPN protocol this service implements.
      */
-    abstract fun getProtocolName(): String
+    abstract fun getProtocol(): Protocol
 }

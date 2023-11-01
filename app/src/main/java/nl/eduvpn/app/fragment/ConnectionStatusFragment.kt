@@ -94,6 +94,7 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
                 bc?.bytesOut
             )
         }.asLiveData()
+        binding.protocol = vpnService.getProtocol()
         binding.ips = viewModel.ipFLow.asLiveData()
         binding.connectionSwitch.setOnCheckedChangeListener { _, isChecked ->
             if (isAutomaticCheckChange) {
