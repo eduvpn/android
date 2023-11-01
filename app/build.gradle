@@ -29,6 +29,7 @@ android {
                         "\"RWQKqtqvd0R7rUDp0rWzbtYPA3towPWcLDCl7eY9pBMMI/ohCmrS0WiM\"" + // RoSp
                         "}"
         buildConfigField "boolean", "API_DISCOVERY_ENABLED", "true" // If false, you can only enter server URLs manually.
+        buildConfigField "String", "HELP_URI", "\"https://www.eduvpn.org/faq.html\""
 
         // API
         buildConfigField "String", "OAUTH_CLIENT_ID", "\"org.eduvpn.app.android\""
@@ -95,6 +96,7 @@ android {
             buildConfigField "boolean", "API_DISCOVERY_ENABLED", "false"
             buildConfigField "String", "OAUTH_CLIENT_ID", "\"org.govvpn.app.android\""
             buildConfigField "String", "OAUTH_REDIRECT_URI", "\"org.govvpn.app:/api/callback\""
+            buildConfigField "String", "HELP_URI", "\"https://govroam.nl/govvpn\""
 
             manifestPlaceholders = [
                     'redirectScheme': 'org.govvpn.app.android'

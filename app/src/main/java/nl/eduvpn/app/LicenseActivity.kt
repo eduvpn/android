@@ -34,7 +34,7 @@ class LicenseActivity : BaseActivity<ActivityLicensesBinding>() {
         binding.webView.loadUrl("file:///android_asset/licenses.html");
         binding.toolbar.settingsButton.isVisible = false
         binding.toolbar.helpButton.setOnClickListener {
-            startActivity(Intent(Intent.ACTION_VIEW, Constants.HELP_URI))
+            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(BuildConfig.HELP_URI)))
         }
     }
 
