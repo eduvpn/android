@@ -8,14 +8,19 @@ SDK_DIR=${HOME}/android-rebuilds-sdk
 KEY_STORE=${HOME}/android.jks
 
 GIT_REPO=https://github.com/eduvpn/android
-GIT_TAG=2.0.5
-#GIT_TAG=master
+#GIT_TAG=2.0.5
+GIT_TAG=master
 
 PROJECT_DIR=${HOME}/Projects
 APP_DIR=${PROJECT_DIR}/eduvpn-android-$(date +%Y%m%d%H%M%S)
 
 # eduVPN
 GRADLE_TASK=app:assembleBasicRelease
+UNSIGNED_APK=${APP_DIR}/app/build/outputs/apk/gov/release/app-gov-release-unsigned.apk 
+SIGNED_APK=${PROJECT_DIR}/govVPN-${GIT_TAG}.apk
+
+# govVPN
+GRADLE_TASK=app:assembleGovRelease
 UNSIGNED_APK=${APP_DIR}/app/build/outputs/apk/basic/release/app-basic-release-unsigned.apk 
 SIGNED_APK=${PROJECT_DIR}/eduVPN-${GIT_TAG}.apk
 
