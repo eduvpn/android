@@ -8,6 +8,7 @@ import com.wireguard.android.backend.GoBackend
 import com.wireguard.android.backend.Tunnel
 import com.wireguard.config.Config
 import com.wireguard.config.Interface
+import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.asCoroutineDispatcher
@@ -32,6 +33,7 @@ import kotlin.jvm.optionals.getOrNull
 /**
  * Service responsible for managing the WireGuard profiles and the connection.
  */
+@OptIn(DelicateCoroutinesApi::class)
 class WireGuardService(private val context: Context, timer: Flow<Unit>): VPNService() {
 
     private lateinit var backend : GoBackend
@@ -59,6 +61,8 @@ class WireGuardService(private val context: Context, timer: Flow<Unit>): VPNServ
         setConnectionStatus(tunnelStateToStatus(newTunnelState))
     }
 
+    private var pendingConfig: Config? = null
+
     init {
         GlobalScope.launch(backendDispatcher) {
             backend = GoBackend(context)
@@ -82,7 +86,7 @@ class WireGuardService(private val context: Context, timer: Flow<Unit>): VPNServ
      * Ask user for VPN permission
      */
     private fun authorizeVPN(activity: Activity) {
-        val intent = GoBackend.VpnService.prepare(context)
+        val intent = GoBackend.VpnService.prepare(activity)
         if (intent != null) {
             activity.startActivityForResult(intent, 0)
         }
@@ -118,6 +122,7 @@ class WireGuardService(private val context: Context, timer: Flow<Unit>): VPNServ
             } catch (ex: BackendException) {
                 if (ex.reason == BackendException.Reason.VPN_NOT_AUTHORIZED) {
                     withContext(Dispatchers.Main) {
+                        pendingConfig = config
                         authorizeVPN(activity)
                         setConnectionStatus(VPNStatus.DISCONNECTED)
                     }
@@ -161,6 +166,15 @@ class WireGuardService(private val context: Context, timer: Flow<Unit>): VPNServ
 
     override fun getProtocol(): Protocol {
         return Protocol.WireGuard
+    }
+
+    fun tryResumeConnecting(activity: Activity) {
+        GlobalScope.launch(backendDispatcher) {
+            pendingConfig?.let {
+                connect(activity, it)
+            }
+            pendingConfig = null
+        }
     }
 
     companion object {
