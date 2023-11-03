@@ -214,6 +214,7 @@ class BackendService(
             instance.authorizationType.toNativeServerType().nativeValue,
             instance.baseURI
         )
+        preferencesService.setToken(instance.baseURI, null)
         if (!error.isNullOrEmpty()) {
             throw CommonException(error)
         }
