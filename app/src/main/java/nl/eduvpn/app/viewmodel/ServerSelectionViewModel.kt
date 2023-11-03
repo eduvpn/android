@@ -22,6 +22,7 @@ import android.content.Context
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import nl.eduvpn.app.R
 import nl.eduvpn.app.adapter.OrganizationAdapter
@@ -78,6 +79,16 @@ class ServerSelectionViewModel @Inject constructor(
     override fun onResume() {
         super.onResume()
         refresh()
+        // Might be a timing issue
+        viewModelScope.launch {
+            var retryCount = 0
+            while (hasNoMoreServers() && retryCount < 5) {
+                delay(5_00L)
+                Log.i(TAG, "No servers found, retrying once more just in case. [$retryCount]")
+                refresh()
+                retryCount++
+            }
+        }
     }
 
     private fun refresh() {
