@@ -42,10 +42,9 @@ import nl.eduvpn.app.fragment.ConnectionStatusFragment
 import nl.eduvpn.app.fragment.OrganizationSelectionFragment
 import nl.eduvpn.app.fragment.ProfileSelectionFragment
 import nl.eduvpn.app.fragment.ServerSelectionFragment
-import nl.eduvpn.app.service.BackendService
 import nl.eduvpn.app.service.EduVPNOpenVPNService
-import nl.eduvpn.app.service.HistoryService
 import nl.eduvpn.app.service.VPNService
+import nl.eduvpn.app.service.WireGuardService
 import nl.eduvpn.app.utils.ErrorDialog.show
 import nl.eduvpn.app.viewmodel.MainViewModel
 import nl.eduvpn.app.viewmodel.ViewModelFactory
@@ -65,6 +64,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
 
     @Inject
     protected lateinit var eduVPNOpenVPNService: EduVPNOpenVPNService
+
+    @Inject
+    protected lateinit var wireGuardService: WireGuardService
 
     @Inject
     protected lateinit var viewModelFactory: ViewModelFactory
@@ -308,6 +310,10 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         return super.onOptionsItemSelected(item)
     }
 
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+    }
+
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         if (requestCode == REQUEST_CODE_SETTINGS) {
             if (resultCode == SettingsActivity.RESULT_APP_DATA_CLEARED) {
@@ -318,9 +324,10 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                 }
                 openFragment(OrganizationSelectionFragment(), false)
             }
-        } else {
-            @Suppress("DEPRECATION")
-            super.onActivityResult(requestCode, resultCode, data)
+        } else if (requestCode == 0) {
+            // Probably VPN permission granted. Can't really check for it
+            wireGuardService.tryResumeConnecting(this)
         }
+        super.onActivityResult(requestCode, resultCode, data)
     }
 }

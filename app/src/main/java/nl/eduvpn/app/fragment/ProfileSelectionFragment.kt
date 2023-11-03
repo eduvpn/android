@@ -19,6 +19,7 @@ package nl.eduvpn.app.fragment
 
 import android.os.Bundle
 import android.view.View
+import androidx.core.os.BundleCompat
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.viewModelScope
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -61,9 +62,7 @@ class ProfileSelectionFragment : BaseFragment<FragmentProfileSelectionBinding>()
         val profileAdapter = ProfileAdapter(viewModel.getProfileInstance())
         binding.profileList.adapter = profileAdapter
 
-        // TODO: fix deprecation when new compat library released https://issuetracker.google.com/issues/242048899
-        @Suppress("DEPRECATION") val profiles: ArrayList<Profile> =
-            arguments?.getParcelableArrayList(KEY_PROFILES)!!
+        val profiles: ArrayList<Profile> =  BundleCompat.getParcelableArrayList(requireArguments(), KEY_PROFILES, Profile::class.java)!!
 
         profileAdapter.submitList(profiles)
         viewModel.parentAction.observe(viewLifecycleOwner) { parentAction ->
