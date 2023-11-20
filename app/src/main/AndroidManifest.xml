@@ -145,7 +145,7 @@
         </activity>
 
         <activity-alias
-            android:name=".activities.LogWindow"
+            android:name="${applicationId}.activities.LogWindow"
             android:targetActivity="de.blinkt.openvpn.activities.LogWindow" />
 
         <activity
