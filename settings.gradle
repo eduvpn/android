@@ -1,15 +1,31 @@
 // The following block is needed because of this issue: https://stackoverflow.com/a/76954759/1395437
 // Can be removed when upgrading to Android Studio Hedgehog
 pluginManagement {
-    buildscript {
-        repositories {
-            mavenCentral()
-            maven {
-                url = uri("https://storage.googleapis.com/r8-releases/raw")
-            }
+    repositories {
+        gradlePluginPortal()
+        google()
+        mavenCentral()
+
+    }
+}
+
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        gradlePluginPortal()
+        google()
+        mavenCentral()
+        jcenter()
+        maven {
+            url = uri("https://jitpack.io")
         }
-        dependencies {
-            classpath("com.android.tools:r8:8.2.24")
+    }
+    versionCatalogs {
+        libVersions {
+            from(files('ics-openvpn/gradle/libs.versions.toml'))
+        }
+        eduvpnVersions {
+            from(files('gradle/libs.versions.toml'))
         }
     }
 }

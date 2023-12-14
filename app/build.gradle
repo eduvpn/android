@@ -1,11 +1,11 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    id 'com.android.application'
-    id 'kotlin-android'
+    alias(libVersions.plugins.android.application)
+    alias(libVersions.plugins.kotlin.android)
     id 'kotlin-kapt'
     id 'kotlin-parcelize'
-    id 'org.jetbrains.kotlin.plugin.serialization' version "$kotlin_version"
+    id("org.jetbrains.kotlin.plugin.serialization") version libVersions.versions.kotlin
 }
 
 android {
@@ -157,44 +157,41 @@ def lifecycleVersion = "2.2.0"
 dependencies {
     // OpenVPN library
     implementation project(path: ':ics-openvpn-main')
-    // WireGuard VPN library
-    implementation 'com.wireguard.android:tunnel:1.0.20230706'
     // eduVPN common library written in Go, stores all data and does the communication with the servers
     implementation project(path: ':common')
+    // WireGuard VPN library
+    implementation(eduvpnVersions.wireguard)
+
     // Please try to stay in sync with the versions used in the ics-openvpn module
-    implementation "androidx.appcompat:appcompat:1.6.1"
-    implementation "androidx.activity:activity-ktx:1.1.0"
-    implementation "androidx.fragment:fragment-ktx:1.2.3"
-    implementation "androidx.recyclerview:recyclerview:1.0.0"
-    implementation 'com.google.android.material:material:1.0.0'
-    implementation "androidx.browser:browser:1.5.0" // Custom tabs
-    implementation "com.android.support.constraint:constraint-layout:1.0.2"
-    implementation "androidx.security:security-crypto:1.1.0-alpha06" // Secure preferences. Using alpha version for minSDK 21
-
-
-    implementation "androidx.lifecycle:lifecycle-extensions:$lifecycleVersion"
-    implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycleVersion"
-    implementation "androidx.lifecycle:lifecycle-livedata-ktx:$lifecycleVersion"
+    implementation(eduvpnVersions.android.appcompat)
+    implementation(eduvpnVersions.android.activity.ktx)
+    implementation(eduvpnVersions.android.fragment.ktx)
+    implementation(eduvpnVersions.android.recyclerview)
+    implementation(eduvpnVersions.android.material)
+    implementation(eduvpnVersions.android.browser)
+    implementation(eduvpnVersions.constraint.layout)
+    implementation(eduvpnVersions.security.crypto)
+    implementation(eduvpnVersions.lifecycle.extensions)
+    implementation(eduvpnVersions.lifecycle.viewmodel.ktx)
+    implementation(eduvpnVersions.lifecycle.livedata.ktx)
     // Dependency injection
-    implementation "com.google.dagger:dagger:$daggerVersion"
-    kapt "com.google.dagger:dagger-compiler:$daggerVersion"
+    implementation(eduvpnVersions.dagger)
+    kapt(eduvpnVersions.dagger.compiler)
     // Image loader
-    implementation 'com.squareup.picasso:picasso:2.71828'
+    implementation(eduvpnVersions.picasso)
     // Kotlin coroutines
-    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4"
-    implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0"
+    implementation(eduvpnVersions.coroutines)
+    implementation(eduvpnVersions.serialization)
 
     // All testing related libraries
-    testImplementation 'junit:junit:4.12'
-    androidTestImplementation 'androidx.test:runner:1.4.0'
-    androidTestImplementation 'androidx.test:rules:1.4.0'
-    androidTestImplementation 'androidx.test.ext:junit:1.1.3'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
-    androidTestImplementation 'androidx.test.uiautomator:uiautomator:2.2.0'
-    androidTestUtil 'androidx.test:orchestrator:1.4.1'
-
-    // Support Java 8+ on sdk < 24, also necessary for WireGuard
-    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:1.1.5'
+    testImplementation(eduvpnVersions.junit)
+    androidTestImplementation(eduvpnVersions.androidx.test.runner)
+    androidTestImplementation(eduvpnVersions.androidx.test.rules)
+    androidTestImplementation(eduvpnVersions.androidx.test.ext.junit)
+    androidTestImplementation(eduvpnVersions.androidx.test.orchestrator)
+    androidTestImplementation(eduvpnVersions.espresso)
+    androidTestImplementation(eduvpnVersions.uiautomator)
+    coreLibraryDesugaring(eduvpnVersions.desugar.jdk.libs)
 }
 
 // This will fail the build if there is a Kotlin compiler warning.
