@@ -28,6 +28,7 @@ import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.DefaultItemAnimator
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.snackbar.Snackbar
 import nl.eduvpn.app.EduVPNApplication
 import nl.eduvpn.app.MainActivity
 import nl.eduvpn.app.R
@@ -126,6 +127,9 @@ class OrganizationSelectionFragment : BaseFragment<FragmentOrganizationSelection
             when (parentAction) {
                 is BaseConnectionViewModel.ParentAction.DisplayError -> {
                     ErrorDialog.show(requireContext(), parentAction.title, parentAction.message)
+                }
+                is BaseConnectionViewModel.ParentAction.ShowContextCanceledToast -> {
+                    Snackbar.make(view, parentAction.message, Snackbar.LENGTH_LONG).show()
                 }
                 else -> {
                     // Do nothing.

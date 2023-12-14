@@ -23,6 +23,7 @@ import androidx.core.os.BundleCompat
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.viewModelScope
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -69,6 +70,9 @@ class ProfileSelectionFragment : BaseFragment<FragmentProfileSelectionBinding>()
             when (parentAction) {
                 is BaseConnectionViewModel.ParentAction.DisplayError -> {
                     ErrorDialog.show(requireContext(), parentAction.title, parentAction.message)
+                }
+                is BaseConnectionViewModel.ParentAction.ShowContextCanceledToast -> {
+                    Snackbar.make(view, parentAction.message, Snackbar.LENGTH_LONG).show()
                 }
                 else -> {
                     // Do nothing.
