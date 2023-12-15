@@ -64,7 +64,10 @@ int callGlobalCallback(int newstate, void *data) {
 
     jboolean didHandle;
 
-    if (!data) {
+    if (env->IsSameObject(callbackField, nullptr)) {
+        __android_log_print(ANDROID_LOG_WARN, "Common-JNI", "Could not send new state to callback, because the callback field has been cleared!");
+        didHandle = false;
+    } else if (!data) {
         didHandle = env->CallBooleanMethod(callbackField, callbackFunction, newstate, nullptr);
     } else {
         jstring dataString = env->NewStringUTF((char *) data);

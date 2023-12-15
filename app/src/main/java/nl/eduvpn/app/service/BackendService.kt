@@ -115,13 +115,6 @@ class BackendService(
                     val cookieAndData = serializerService.deserializeCookieAndStringData(data)
                     selectCountry(cookieAndData.cookie)
                     true
-                } else if (newState == State.OAUTH_STARTED.nativeValue) {
-                    if (data.isNullOrEmpty()) {
-                        showError(CommonException(ERROR_EMPTY_RESPONSE))
-                        return true
-                    }
-                    startOAuth(data)
-                    true
                 } else {
                     false
                 }
@@ -153,12 +146,12 @@ class BackendService(
     }
 
     fun deregister() {
-        GoBackend.callbackFunction = null
-        onConfigReady = null
         val errorString = goBackend.deregister()
         if (errorString != null) {
             Log.w(TAG, "Unable to deregister Go backend: $errorString")
         }
+        GoBackend.callbackFunction = null
+        onConfigReady = null
     }
 
     @Throws(CommonException::class)
