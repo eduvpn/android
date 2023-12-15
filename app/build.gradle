@@ -40,7 +40,7 @@ android {
                 'redirectScheme': 'org.eduvpn.app'
         ]
         missingDimensionStrategy 'implementation', 'ui'  // Skeleton is no option for us because we need the log activity
-        missingDimensionStrategy 'ovpnimpl', 'ovpn23'
+        missingDimensionStrategy 'ovpnimpl', 'ovpn2' // Only allow OpenVPN 2.x
 
         // This excludes some pretty old ABIs such armeabi or mips. LibSodium-JNI still includes binaries for these, which
         // leads to some devices selecting these as the app ABI, but the OpenVPN library did not include a binary for these,
