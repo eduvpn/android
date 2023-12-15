@@ -38,7 +38,9 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import de.blinkt.openvpn.LaunchVPN;
 import de.blinkt.openvpn.VpnProfile;
@@ -71,13 +73,15 @@ public class EduVPNOpenVPNService extends VPNService implements VpnStatus.StateL
 
     // Stores the current VPN status.
     private ConnectionStatus _connectionStatus = ConnectionStatus.LEVEL_NOTCONNECTED;
-    private Handler _updatesHandler = new Handler();
+    private final Handler _updatesHandler = new Handler();
 
     private Integer _errorResource;
 
     private IOpenVPNServiceInternal _openVPNService;
 
-    private ServiceConnection _serviceConnection = new ServiceConnection() {
+    private final Set<String> _configsCreatedInThisSession = new HashSet<>();
+
+    private final ServiceConnection _serviceConnection = new ServiceConnection() {
 
         @Override
         public void onServiceConnected(ComponentName className, IBinder binder) {
@@ -155,7 +159,6 @@ public class EduVPNOpenVPNService extends VPNService implements VpnStatus.StateL
      *
      * @param configString  The config as a string.
      * @param preferredName The preferred name for the config.
-     * @return True if the import was successful, false if it failed.
      */
     @Nullable
     public VpnProfile importConfig(String configString, String preferredName) {
@@ -163,18 +166,23 @@ public class EduVPNOpenVPNService extends VPNService implements VpnStatus.StateL
         try {
             configParser.parseConfig(new StringReader(configString));
             VpnProfile profile = configParser.convertProfile();
+            _configsCreatedInThisSession.add(profile.getUUIDString());
             profile.mAlias = _context.getString(R.string.app_name);
             if (preferredName != null) {
                 profile.mName = preferredName;
             }
             ProfileManager profileManager = ProfileManager.getInstance(_context);
-            // We only have one profile at a time saved.
+            // We remove old profiles
             List<VpnProfile> profiles = new ArrayList<>(profileManager.getProfiles());
             for (VpnProfile savedProfile : profiles) {
-                profileManager.removeProfile(_context, savedProfile);
+                // If the profile was created in this session, we do not remove it yet.
+                // This is because it is possible to be connected to an existing profile, but trying to connect to a new one.
+                if (!_configsCreatedInThisSession.contains(savedProfile.getUUIDString())) {
+                    profileManager.removeProfile(_context, savedProfile);
+                }
             }
             profileManager.addProfile(profile);
-            profileManager.saveProfile(_context, profile);
+            ProfileManager.saveProfile(_context, profile);
             profileManager.saveProfileList(_context);
             Log.i(TAG, "Added and saved profile with UUID: " + profile.getUUIDString());
             return profile;
