@@ -65,7 +65,7 @@ class ConnectionLogTest {
         // Open the connection log from settings
         onView(ViewMatchers.withId(R.id.settingsButton)).perform(ViewActions.click())
         onView(ViewMatchers.withId(R.id.settings_scroller)).perform(swipeUp())
-        onView(withText("View Log")).perform(ViewActions.click())
+        onView(ViewMatchers.withId(R.id.view_openvpn_logs_button)).perform(ViewActions.click())
         onView(withText("OpenVPN Log")).check(matches(isDisplayed()))
     }
 
