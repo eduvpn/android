@@ -1,0 +1,53 @@
+[versions]
+wireguard = "1.0.20230706"
+# Please try to stay in sync with the versions used in the ics-openvpn module
+activity-ktx = "1.1.0"
+appcompat = "1.6.1"
+fragment-ktx = "1.2.3"
+recyclerview = "1.0.0"
+material = "1.0.0"
+browser = "1.5.0"
+constraint-layout = "1.0.2"
+security-crypto = "1.1.0-alpha06" # Secure preferences. Using alpha version for minSDK 21
+lifecycle = "2.2.0"
+dagger = "2.48"
+picasso = "2.71828"
+coroutines = "1.6.4"
+serialization-json = "1.6.0"
+core-library-desugaring = "2.0.3"
+junit = "4.12"
+androidx-test = "1.4.0"
+androidx-test-ext-junit = "1.1.3"
+androidx-test-orchestrator = "1.4.1"
+espresso = "3.4.0"
+uiautomator = "2.2.0"
+
+[libraries]
+wireguard = { group = "com.wireguard.android", name = "tunnel", version.ref = "wireguard" }
+android-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
+android-activity-ktx = { group = "androidx.activity", name = "activity-ktx", version.ref = "activity-ktx" }
+android-fragment-ktx = { group = "androidx.fragment", name = "fragment-ktx", version.ref = "fragment-ktx" }
+android-recyclerview = { group = "androidx.recyclerview", name = "recyclerview", version.ref = "recyclerview" }
+android-material = { group = "com.google.android.material", name = "material", version.ref = "material" }
+android-browser = { group = "androidx.browser", name = "browser", version.ref = "browser" }
+constraint-layout = { group = "com.android.support.constraint", name = "constraint-layout", version.ref = "constraint-layout" }
+security-crypto = { group = "androidx.security", name = "security-crypto", version.ref = "security-crypto" }
+lifecycle-extensions = { group = "androidx.lifecycle", name = "lifecycle-extensions", version.ref = "lifecycle" }
+lifecycle-viewmodel-ktx = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-ktx", version.ref = "lifecycle" }
+lifecycle-livedata-ktx = { group = "androidx.lifecycle", name = "lifecycle-livedata-ktx", version.ref = "lifecycle" }
+dagger = { group = "com.google.dagger", name = "dagger", version.ref = "dagger" }
+dagger-compiler = { group = "com.google.dagger", name = "dagger-compiler", version.ref = "dagger" }
+picasso = { group = "com.squareup.picasso", name = "picasso", version.ref = "picasso" }
+coroutines = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "coroutines" }
+serialization = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "serialization-json" }
+desugar-jdk-libs = { group = "com.android.tools", name = "desugar_jdk_libs", version.ref = "core-library-desugaring" }
+# Unit and UI testing
+junit = { group = "junit", name = "junit", version.ref = "junit" }
+androidx-test-runner = { group = "androidx.test", name = "runner", version.ref = "androidx-test" }
+androidx-test-rules = { group = "androidx.test", name = "rules", version.ref = "androidx-test" }
+androidx-test-ext-junit = { group = "androidx.test.ext", name = "junit", version.ref = "androidx-test-ext-junit" }
+androidx-test-orchestrator = { group = "androidx.test", name = "orchestrator", version.ref = "androidx-test-orchestrator" }
+espresso = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espresso" }
+uiautomator = { group = "androidx.test.uiautomator", name = "uiautomator", version.ref = "uiautomator" }
+
+[plugins]

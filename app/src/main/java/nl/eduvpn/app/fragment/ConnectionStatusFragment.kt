@@ -22,6 +22,7 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.view.View
+import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.viewModels
@@ -29,6 +30,7 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.asLiveData
 import androidx.lifecycle.map
 import androidx.lifecycle.viewModelScope
+import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -166,6 +168,9 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
             when (parentAction) {
                 is BaseConnectionViewModel.ParentAction.DisplayError -> {
                     ErrorDialog.show(requireContext(), parentAction.title, parentAction.message)
+                }
+                is BaseConnectionViewModel.ParentAction.ShowContextCanceledToast -> {
+                    Snackbar.make(view, parentAction.message, Snackbar.LENGTH_LONG).show()
                 }
                 is BaseConnectionViewModel.ParentAction.OpenProfileSelector -> {
                     (activity as? MainActivity)?.openFragment(

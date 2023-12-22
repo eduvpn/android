@@ -50,6 +50,7 @@ abstract class BaseConnectionViewModel(
 
     sealed class ParentAction {
         data class DisplayError(@StringRes val title: Int, val message: String) : ParentAction()
+        data class ShowContextCanceledToast(val message: String) : ParentAction()
         data class OpenProfileSelector(val profiles: List<Profile>) : ParentAction()
     }
 
@@ -78,6 +79,10 @@ abstract class BaseConnectionViewModel(
                 } else {
                     throwable.toString()
                 }
+                if ((throwable as? CommonException)?.isAuthCancellationException() == true) {
+                    _parentAction.postValue(ParentAction.ShowContextCanceledToast(throwable.translatedMessage()))
+                    return@launch
+                }
                 _parentAction.postValue(ParentAction.DisplayError(
                     R.string.error_dialog_title,
                     context.getString(
@@ -101,6 +106,11 @@ abstract class BaseConnectionViewModel(
                 } else {
                     ex.toString()
                 }
+                if ((ex as? CommonException)?.isAuthCancellationException() == true) {
+                    _parentAction.postValue(ParentAction.ShowContextCanceledToast(ex.translatedMessage()))
+                    return@launch
+                }
+
                 _parentAction.postValue(ParentAction.DisplayError(
                     R.string.error_dialog_title,
                     context.getString(

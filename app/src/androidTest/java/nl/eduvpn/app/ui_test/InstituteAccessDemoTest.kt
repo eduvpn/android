@@ -110,7 +110,7 @@ class InstituteAccessDemoTest {
             val noThanksButton = device.findObject(UiSelector().text("No thanks"))
             noThanksButton.click()
         } catch (ex: UiObjectNotFoundException) {
-            Log.w(TAG, "No request for sign in, continung", ex)
+            Log.w(TAG, "No request for sign in, continuing", ex)
         }
         try {
             // Select eduID from the list

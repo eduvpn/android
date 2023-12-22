@@ -25,6 +25,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.google.android.material.snackbar.Snackbar
 import nl.eduvpn.app.BuildConfig
 import nl.eduvpn.app.EduVPNApplication
 import nl.eduvpn.app.MainActivity
@@ -69,6 +70,9 @@ class ServerSelectionFragment : BaseFragment<FragmentServerSelectionBinding>() {
                             parentAction.profiles
                         ), true
                     )
+                }
+                is BaseConnectionViewModel.ParentAction.ShowContextCanceledToast -> {
+                    Snackbar.make(view, parentAction.message, Snackbar.LENGTH_LONG).show()
                 }
                 is BaseConnectionViewModel.ParentAction.DisplayError -> {
                     ErrorDialog.show(requireContext(), parentAction.title, parentAction.message)
