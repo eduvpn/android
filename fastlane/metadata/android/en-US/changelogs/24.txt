@@ -1,0 +1,5 @@
+* Use common Go library for interfacing with VPN servers
+* Add govVPN flavor
+* Update dependencies
+* Added Catalan translation
+* Various bug fixes

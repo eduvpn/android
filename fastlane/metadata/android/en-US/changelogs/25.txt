@@ -1,0 +1,2 @@
+* update all build scripts for new release
+* create new tag to properly update CHANGES.md and fastlane files
