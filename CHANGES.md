@@ -1,5 +1,10 @@
 # Changelog
 
+## 3.2.2 (2024-02-05)
+- fix incorrect usage of seconds, should be ms 
+  ([GH#411](https://github.com/eduvpn/android/issues/411))
+- fix not being able to add secure internet servers ([GH#412](https://github.com/eduvpn/android/issues/411))
+
 ## 3.2.1 (2024-01-19)
 - update all build scripts for new release
 - create new tag to properly update CHANGES.md and fastlane files

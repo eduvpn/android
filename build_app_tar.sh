@@ -7,8 +7,8 @@
 SDK_DIR=${HOME}/android-sdk
 KEY_STORE=${HOME}/android.jks
 
-V=3.2.1
-DOWNLOAD_URL=https://github.com/eduvpn/android/releases/download/${V}/eduvpn-android-${V}.tar.xz
+V=3.2.2
+DOWNLOAD_URL=https://codeberg.org/eduVPN/android/releases/download/${V}/eduvpn-android-${V}.tar.xz
 
 PROJECT_DIR=${HOME}/Projects
 APP_DIR=${PROJECT_DIR}/eduvpn-android-${V}
@@ -17,6 +17,11 @@ APP_DIR=${PROJECT_DIR}/eduvpn-android-${V}
 GRADLE_TASK=app:assembleBasicRelease
 UNSIGNED_APK=${APP_DIR}/app/build/outputs/apk/basic/release/app-basic-release-unsigned.apk 
 SIGNED_APK=${PROJECT_DIR}/eduVPN-${V}.apk
+
+# govVPN
+#GRADLE_TASK=app:assembleGovRelease
+#UNSIGNED_APK=${APP_DIR}/app/build/outputs/apk/gov/release/app-gov-release-unsigned.apk 
+#SIGNED_APK=${PROJECT_DIR}/govVPN-${V}.apk
 
 # Let's Connect!
 #GRADLE_TASK=app:assembleHomeRelease

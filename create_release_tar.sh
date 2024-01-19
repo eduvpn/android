@@ -1,29 +1,26 @@
 #!/bin/sh
 
-GIT_REPO=https://github.com/eduvpn/android
-GIT_TAG=3.2.1
+GIT_REPO=https://codeberg.org/eduVPN/android
+GIT_TAG=3.2.2
 #GIT_TAG=master
-
-PROJECT_DIR=${HOME}/Projects
-APP_DIR=${PROJECT_DIR}/eduvpn-android-${GIT_TAG}
 
 ###############################################################################
 # CLONE
 ###############################################################################
 
 (
-    mkdir -p "${PROJECT_DIR}"
-    cd "${PROJECT_DIR}" || exit
+    mkdir -p release
+    cd release || exit
 
-    git clone --recursive -b ${GIT_TAG} ${GIT_REPO} "${APP_DIR}"
+    git clone --recursive -b ${GIT_TAG} ${GIT_REPO} eduvpn-android-${GIT_TAG}
 
     (
-        cd "${APP_DIR}" || exit
-
+        cd eduvpn-android-${GIT_TAG} || exit
         # remove all ".git" folders
         find . -type d -name ".git" | xargs rm -rf
     )
 
     tar -cJf eduvpn-android-${GIT_TAG}.tar.xz eduvpn-android-${GIT_TAG}
+    rm -rf eduvpn-android-${GIT_TAG}
     minisign -Sm eduvpn-android-${GIT_TAG}.tar.xz
 )

@@ -1,0 +1,2 @@
+- fix incorrect usage of seconds, should be ms 
+- fix not being able to add secure internet servers
