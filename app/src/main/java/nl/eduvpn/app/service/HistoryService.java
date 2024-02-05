@@ -29,6 +29,7 @@ import nl.eduvpn.app.entity.AddedServers;
 import nl.eduvpn.app.entity.CertExpiryTimes;
 import nl.eduvpn.app.entity.CurrentServer;
 import nl.eduvpn.app.entity.Instance;
+import nl.eduvpn.app.entity.Organization;
 import nl.eduvpn.app.entity.OrganizationList;
 import nl.eduvpn.app.entity.exception.CommonException;
 import nl.eduvpn.app.utils.Listener;
@@ -102,6 +103,10 @@ public class HistoryService {
 
     public @Nullable OrganizationList getOrganizationList() {
         return _memoryCachedOrganizationList;
+    }
+
+    public boolean hasSecureInternetServer() {
+        return _addedServers.getSecureInternetServer() != null;
     }
 
     public void setOrganizationList(@Nullable OrganizationList organizationList) {
