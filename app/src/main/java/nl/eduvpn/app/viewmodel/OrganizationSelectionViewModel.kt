@@ -78,7 +78,7 @@ class OrganizationSelectionViewModel @Inject constructor(
             // We want to be able to handle async failures, so use supervisorScope
             // https://kotlinlang.org/docs/reference/coroutines/exception-handling.html#supervision
             supervisorScope {
-                val organizationListDeferred = if (historyService.organizationList == null) {
+                val organizationListDeferred = if (!historyService.hasSecureInternetServer()) {
                     connectionState.postValue(ConnectionState.FetchingOrganizations)
                     async {
                         val organizationList = organizationService.fetchOrganizations()
@@ -86,7 +86,7 @@ class OrganizationSelectionViewModel @Inject constructor(
                         organizationList
                     }
                 } else {
-                    // We can't show any organization servers, user needs to reset to switch.
+                    // We can't show any organization servers (secure internet), user needs to reset to switch.
                     connectionState.postValue(ConnectionState.FetchingServerList)
                     CompletableDeferred(OrganizationList(-1L, emptyList()))
                 }
