@@ -140,9 +140,9 @@ class ConnectionStatusViewModel @Inject constructor(
 
     private fun planExpiryNotification() {
         val certExpiryTimes = this.certExpiryTimes ?: return
-        val endTime = certExpiryTimes.endTime ?: return
+        val endTime = certExpiryTimes.endTime?.times(1000) ?: return // Multiplying with 1000 to convert seconds to milliseconds
         val timeNow = System.currentTimeMillis() / 1000
-        val notificationTime = certExpiryTimes.notificationTimes.firstOrNull { it > timeNow }
+        val notificationTime = certExpiryTimes.notificationTimes.firstOrNull { it > timeNow }?.times(1000) // seconds to ms
         if (notificationTime != null && vpnService.getStatus() != VPNService.VPNStatus.DISCONNECTED) {
             val notificationWindowLength = minOf(endTime - System.currentTimeMillis(), 15 * 60 * 1000L)
             alarmManager.setWindow(
