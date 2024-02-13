@@ -4,6 +4,7 @@ import android.content.Context
 import android.net.Uri
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
+import com.wireguard.config.BadConfigException
 import com.wireguard.config.Config
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -110,7 +111,13 @@ class MainViewModel @Inject constructor(
                 VPNConfig.OpenVPN(it)
             } ?: throw IllegalArgumentException("Unable to parse profile")
         } else if (config.protocol == Protocol.WireGuard.nativeValue) {
-            VPNConfig.WireGuard(Config.parse(BufferedReader(StringReader(config.config))))
+            try {
+                VPNConfig.WireGuard(Config.parse(BufferedReader(StringReader(config.config))))
+            } catch (ex: BadConfigException) {
+                // Notify the user that the config is not valid
+                _mainParentAction.postValue(MainParentAction.ShowError(ex))
+                return
+            }
         } else {
             throw IllegalArgumentException("Unexpected protocol type: ${config.protocol}")
         }

@@ -72,7 +72,7 @@ object ErrorDialog {
         } else if (thr is CommonException) {
             thr.translatedMessage()
         } else {
-            thr.localizedMessage ?: thr.toString()
+            thr.message ?: thr.toString()
         }
         return show(context, titleId, message)
     }
