@@ -34,7 +34,7 @@ public class GoBackend {
     public native @Nullable String removeServer(int serverType, @NonNull String id);
     public native @Nullable String cookieReply(int cookie, @NotNull String data);
     public native @Nullable String selectProfile(int cookie, @NotNull String profileId);
-    public native @Nullable String selectCountry(@NotNull String countryCode);
+    public native @Nullable String selectCountry(@NotNull String organizationId, @NotNull String countryCode);
     public native @Nullable String switchProfile(@NotNull String profileId);
     public native DataErrorTuple getCurrentServer();
     public native @Nullable String cancelCookie(int cookie);

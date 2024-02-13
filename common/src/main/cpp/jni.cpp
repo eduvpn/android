@@ -85,9 +85,7 @@ int createStateCallback(int oldstate, int newstate, void *data) {
     return callGlobalCallback(newstate, data);
 }
 
-
-
-void getToken(const char* server, char* out, size_t len) {
+void getToken(const char* server, int server_type, char* out, size_t len) {
     if (!globalVM) {
         return;
     }
@@ -108,7 +106,7 @@ void getToken(const char* server, char* out, size_t len) {
         globalVM->DetachCurrentThread();
     }
 }
-void setToken(const char* server, const char* tokens) {
+void setToken(const char* server, int server_type, const char* tokens) {
     if (!globalVM) {
         return;
     }
@@ -258,11 +256,10 @@ Java_org_eduvpn_common_GoBackend_deregister(JNIEnv *env, jobject /* this */) {
     return NativeStringToJString(env, result);
 }
 extern "C" JNIEXPORT jstring JNICALL
-Java_org_eduvpn_common_GoBackend_selectCountry(JNIEnv *env, jobject /* this */, jstring countryCode) {
-    uintptr_t cookie = CookieNew();
+Java_org_eduvpn_common_GoBackend_selectCountry(JNIEnv *env, jobject /* this */, jstring organizationId, jstring countryCode) {
     const char *countryCode_str = env->GetStringUTFChars(countryCode, nullptr);
-    char *result = SetSecureLocation(cookie, (char *)countryCode_str);
-    CookieDelete(cookie);
+    const char *organizationId_str = env->GetStringUTFChars(organizationId, nullptr);
+    char *result = SetSecureLocation((char *)organizationId_str, (char *)countryCode_str);
     return NativeStringToJString(env, result);
 }
 
