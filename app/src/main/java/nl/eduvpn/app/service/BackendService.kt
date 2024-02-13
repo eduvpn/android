@@ -282,11 +282,11 @@ class BackendService(
         }
     }
 
-    fun selectCountry(cookie: Int?, countryCode: String) {
+    fun selectCountry(cookie: Int?, organizationId: String, countryCode: String) {
         val errorString = if (cookie != null) {
             goBackend.cookieReply(cookie, countryCode)
         } else {
-            goBackend.selectCountry(countryCode)
+            goBackend.selectCountry(organizationId, countryCode)
         }
         if (errorString != null) {
             throw CommonException(errorString)

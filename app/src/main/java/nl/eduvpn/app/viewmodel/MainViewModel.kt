@@ -176,9 +176,9 @@ class MainViewModel @Inject constructor(
         }
     }
 
-    fun onCountrySelected(cookie: Int?, countryCode: String) {
+    fun onCountrySelected(cookie: Int?, organizationId: String, countryCode: String) {
         viewModelScope.launch(Dispatchers.IO) {
-            backendService.selectCountry(cookie, countryCode)
+            backendService.selectCountry(cookie, organizationId, countryCode)
             historyService.load()
         }
     }
