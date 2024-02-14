@@ -330,22 +330,6 @@ Java_org_eduvpn_common_GoBackend_notifyDisconnected(JNIEnv *env, jobject /* this
     SetState(11);
 }
 
-// StartProxyguard starts the 'proxyguard' procedure in eduvpn-common.
-// This proxies WireGuard UDP connections over HTTP: https://codeberg.org/eduvpn/proxyguard.
-// These input variables can be gotten from the configuration that is retrieved using the `proxy` JSON key
-//
-//   - `c` is the cookie
-//   - `listen` is the ip:port of the local udp connection, this is what is set to the WireGuard endpoint
-//   - `tcpsp` is the TCP source port
-//   - `peer` is the ip:port of the remote server
-//   - `proxyFD` is a callback with the file descriptor as only argument. It can be used to set certain
-//     socket option, e.g. to exclude the proxy connection from going over the VPN
-//
-// If the proxy cannot be started it returns an error
-//
-//export StartProxyguard
-
-
 extern "C"
 JNIEXPORT jstring JNICALL
 Java_org_eduvpn_common_GoBackend_startProxyGuard(JNIEnv *env, jobject /* this */, jint sourcePort, jstring listen, jstring peer) {
