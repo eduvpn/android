@@ -115,6 +115,7 @@ class MainViewModel @Inject constructor(
                 VPNConfig.WireGuard(Config.parse(BufferedReader(StringReader(config.config))))
             } catch (ex: BadConfigException) {
                 // Notify the user that the config is not valid
+                Log.e(TAG, "Unable to parse WireGuard config", ex)
                 _mainParentAction.postValue(MainParentAction.ShowError(ex))
                 return
             }
@@ -122,7 +123,7 @@ class MainViewModel @Inject constructor(
             throw IllegalArgumentException("Unexpected protocol type: ${config.protocol}")
         }
         val service = vpnConnectionService.connectionToConfig(viewModelScope, activity, parsedConfig)
-        if (config.protocol == Protocol.WireGuard.nativeValue && !forceTCP) {
+        if (config.protocol == Protocol.WireGuard.nativeValue && !forceTCP && config.shouldFailover) {
             viewModelScope.launch(Dispatchers.IO) {
                 try {
                     // Waits a bit so that the network interface has been surely set up

@@ -20,7 +20,6 @@ data class ProfileWithoutIdMap(
             Profile(
                 profileId = it.key,
                 displayName = it.value.displayName,
-                vpnProtocolList = it.value.supportedProtocols
             )
         } ?: emptyList()
     }
@@ -32,7 +31,4 @@ data class ProfileWithoutIdMap(
 data class ProfileWithoutId(
     @SerialName("display_name")
     val displayName: TranslatableString,
-
-    @SerialName("supported_protocols")
-    val supportedProtocols: List<Int>,
 )

@@ -14,7 +14,4 @@ data class Profile (
 
     @SerialName("display_name")
     val displayName: TranslatableString,
-
-    @SerialName("vpn_proto_list")
-    val vpnProtocolList: List<Int>,
 ) : Parcelable
