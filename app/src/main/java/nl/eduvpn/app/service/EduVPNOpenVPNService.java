@@ -33,7 +33,6 @@ import androidx.lifecycle.FlowLiveDataConversions;
 import androidx.lifecycle.LiveData;
 
 import org.eduvpn.common.Protocol;
-import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.io.StringReader;
@@ -200,12 +199,12 @@ public class EduVPNOpenVPNService extends VPNService implements VpnStatus.StateL
      */
     public void connect(@NonNull Activity activity, @NonNull VpnProfile vpnProfile) {
         Log.i(TAG, "Initiating connection with profile:" + vpnProfile.getUUIDString());
-        boolean forceTcp = _preferencesService.getAppSettings().forceTcp();
-        Log.i(TAG, "Force TCP: " + forceTcp);
+        boolean preferTcp = _preferencesService.getAppSettings().preferTcp();
+        Log.i(TAG, "Prefet TCP: " + preferTcp);
         // If force TCP is enabled, disable the UDP connections
         for (Connection connection : vpnProfile.mConnections) {
             if (connection.mUseUdp) {
-                connection.mEnabled = !forceTcp;
+                connection.mEnabled = !preferTcp;
             }
         }
         // Make sure these changes are NOT saved, since we don't want the config changes to be permanent.

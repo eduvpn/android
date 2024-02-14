@@ -14,6 +14,7 @@ import nl.eduvpn.app.entity.CertExpiryTimes
 import nl.eduvpn.app.entity.CurrentServer
 import nl.eduvpn.app.entity.Instance
 import nl.eduvpn.app.entity.Profile
+import nl.eduvpn.app.entity.ProxySettings
 import nl.eduvpn.app.entity.SerializedVpnConfig
 import nl.eduvpn.app.entity.exception.CommonException
 import nl.eduvpn.app.service.SerializerService.UnknownFormatException
@@ -22,6 +23,7 @@ import org.eduvpn.common.GoBackend
 import org.eduvpn.common.GoBackend.Callback
 import org.eduvpn.common.ServerType
 import java.io.File
+import java.io.FileDescriptor
 import java.net.InetAddress
 import java.net.NetworkInterface
 import java.util.Collections
@@ -60,10 +62,11 @@ class BackendService(
         selectProfiles: (List<Profile>) -> Unit,
         selectCountry: (Int?) -> Unit,
         connectWithConfig: (SerializedVpnConfig, Boolean) -> Unit,
-        showError: (Throwable) -> Unit
+        showError: (Throwable) -> Unit,
+        protectSocket: (Int) -> Unit
     ): String? {
-        onConfigReady = { config, forceTcp ->
-            connectWithConfig(config, forceTcp)
+        onConfigReady = { config, preferTcp ->
+            connectWithConfig(config, preferTcp)
         }
         GoBackend.callbackFunction = object : Callback {
 
@@ -75,6 +78,10 @@ class BackendService(
             // The library wants to save a token in our internal storage
             override fun setToken(serverId: String, token: String?) {
                 preferencesService.setToken(serverId, token)
+            }
+
+            override fun onProxyFileDescriptor(fileDescriptor: Int) {
+                protectSocket(fileDescriptor)
             }
 
             // Called when the native state machine changes
@@ -237,11 +244,11 @@ class BackendService(
     }
 
     @kotlin.jvm.Throws(CommonException::class, UnknownFormatException::class)
-    suspend fun getConfig(instance: Instance, forceTCP: Boolean) = withContext(Dispatchers.IO) {
+    suspend fun getConfig(instance: Instance, preferTcp: Boolean) = withContext(Dispatchers.IO) {
         val dataErrorTuple = goBackend.getProfiles(
             instance.authorizationType.toNativeServerType().nativeValue,
             instance.baseURI,
-            forceTCP,
+            preferTcp,
             false
         )
 
@@ -249,7 +256,7 @@ class BackendService(
             throw CommonException(dataErrorTuple.error)
         }
         val config = serializerService.deserializeSerializedVpnConfig(dataErrorTuple.data)
-        onConfigReady?.invoke(config, forceTCP)
+        onConfigReady?.invoke(config, preferTcp)
     }
 
     @kotlin.jvm.Throws(CommonException::class)
@@ -376,6 +383,15 @@ class BackendService(
             if (result.doesRequireFailover) {
                 onFailOverNeeded()
             }
+        }
+    }
+
+
+    @Throws(CommonException::class)
+    suspend fun startProxyguard(proxy: ProxySettings) = withContext(Dispatchers.IO) {
+        val result = goBackend.startProxyGuard(proxy.sourcePort, proxy.listen, proxy.peer)
+        if (!result.isNullOrEmpty()) {
+            throw CommonException(result)
         }
     }
 }

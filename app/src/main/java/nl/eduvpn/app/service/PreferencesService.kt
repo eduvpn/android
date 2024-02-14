@@ -146,13 +146,6 @@ class PreferencesService(
                     }
                 }
             }
-
-            val editor = insecurePreferences.edit()
-            editor.putInt(KEY_STORAGE_VERSION, STORAGE_VERSION)
-            editor.commit()
-            if (Constants.DEBUG) {
-                Log.d(TAG, "Migrated over to storage version v4.")
-            }
         }
         if (version < 5) {
             securePreferences.edit()
@@ -164,6 +157,12 @@ class PreferencesService(
             if (Constants.DEBUG) {
                 Log.d(TAG, "Migrated over to storage version v5.")
             }
+        }
+        val editor = insecurePreferences.edit()
+        editor.putInt(KEY_STORAGE_VERSION, STORAGE_VERSION)
+        editor.commit()
+        if (Constants.DEBUG) {
+            Log.d(TAG, "Migrated over to storage version v4.")
         }
     }
 
@@ -235,7 +234,7 @@ class PreferencesService(
      */
     fun getAppSettings(): Settings {
         val defaultSettings =
-            Settings(Settings.USE_CUSTOM_TABS_DEFAULT_VALUE, Settings.FORCE_TCP_DEFAULT_VALUE)
+            Settings(Settings.USE_CUSTOM_TABS_DEFAULT_VALUE, Settings.PREFER_TCP_DEFAULT_VALUE)
         val serializedSettings = getSharedPreferences().getString(KEY_APP_SETTINGS, null)
         return if (serializedSettings == null) {
             // Default settings.

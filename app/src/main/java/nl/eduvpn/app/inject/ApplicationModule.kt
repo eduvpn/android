@@ -32,6 +32,7 @@ import nl.eduvpn.app.utils.Log
 import okhttp3.Cache
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
+import org.eduvpn.common.Protocol
 import java.io.IOException
 import java.net.ConnectException
 import java.net.SocketTimeoutException
@@ -147,8 +148,8 @@ class ApplicationModule(private val application: EduVPNApplication) {
         wireGuardServiceProvider: Provider<WireGuardService>
     ): Optional<VPNService> {
         return when (preferencesService.getCurrentProtocol()) {
-            org.eduvpn.common.Protocol.OpenVPN.nativeValue -> Optional.of(eduOpenVPNServiceProvider.get())
-            org.eduvpn.common.Protocol.WireGuard.nativeValue -> Optional.of(wireGuardServiceProvider.get())
+            Protocol.OpenVPN.nativeValue -> Optional.of(eduOpenVPNServiceProvider.get())
+            Protocol.WireGuard.nativeValue, Protocol.WireGuardWithProxyGuard.nativeValue -> Optional.of(wireGuardServiceProvider.get())
             else -> Optional.empty()
         }
     }
