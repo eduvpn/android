@@ -69,7 +69,6 @@
     <string name="callback_error">Error de devolución de llamada: %s</string>
     <string name="rejected_permission">El usuario rechaza el acceso a la aplicación.</string>
     <string name="settings_title">Configuraciones</string>
-    <string name="settings_force_tcp_title">Forzar TCP</string>
     <string name="settings_custom_tabs_opt_out_title">Usar Pestañas Personalizadas</string>
     <string name="settings_save">Guardar</string>
     <string name="loading_available_profiles">Cargando perfiles disponibles…</string>

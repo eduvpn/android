@@ -68,7 +68,6 @@
     <string name="callback_error">Callback-Fehler: %s</string>
     <string name="rejected_permission">Benutzer hat den Zugriff für die App abgelehnt.</string>
     <string name="settings_title">Einstellungen</string>
-    <string name="settings_force_tcp_title">TCP erzwingen</string>
     <string name="settings_custom_tabs_opt_out_title">Custom-Tabs verwenden</string>
     <string name="settings_save">Speichern</string>
     <string name="loading_available_profiles">Verfügbare Profile laden…</string>

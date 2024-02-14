@@ -11,6 +11,8 @@ public class GoBackend {
         boolean onNewState(int newState, @Nullable String data);
         @Nullable String getToken(@NonNull String serverId);
         void setToken(@NonNull String serverId, @Nullable String token);
+
+        void onProxyFileDescriptor(int fileDescriptor);
     }
 
     public static Callback callbackFunction = null;
@@ -46,4 +48,5 @@ public class GoBackend {
     public native void notifyConnected();
     public native void notifyDisconnecting();
     public native void notifyDisconnected();
+    public native @Nullable String startProxyGuard(int sourcePort, @NotNull String listen, @NotNull String peer);
 }

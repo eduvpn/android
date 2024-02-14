@@ -85,6 +85,23 @@ int createStateCallback(int oldstate, int newstate, void *data) {
     return callGlobalCallback(newstate, data);
 }
 
+// Implement a function that matches the proxyFD signature
+void proxyFD(int fd) {
+    if (!globalVM) {
+        return;
+    }
+    JNIEnv *env;
+    bool didAttach = GetJniEnv(globalVM, &env);
+    jfieldID callbackFieldId = env->GetStaticFieldID(globalBackendClass, "callbackFunction","Lorg/eduvpn/common/GoBackend$Callback;");
+    jobject callbackField = env->GetStaticObjectField(globalBackendClass, callbackFieldId);
+    jmethodID fdFunction = env->GetMethodID(globalCallbackClass, "onProxyFileDescriptor", "(I)V");
+    env->CallVoidMethod(callbackField, fdFunction, fd);
+    if (didAttach) {
+        globalVM->DetachCurrentThread();
+    }
+}
+
+
 void getToken(const char* server, int server_type, char* out, size_t len) {
     if (!globalVM) {
         return;
@@ -311,4 +328,31 @@ extern "C"
 JNIEXPORT void JNICALL
 Java_org_eduvpn_common_GoBackend_notifyDisconnected(JNIEnv *env, jobject /* this */) {
     SetState(11);
+}
+
+// StartProxyguard starts the 'proxyguard' procedure in eduvpn-common.
+// This proxies WireGuard UDP connections over HTTP: https://codeberg.org/eduvpn/proxyguard.
+// These input variables can be gotten from the configuration that is retrieved using the `proxy` JSON key
+//
+//   - `c` is the cookie
+//   - `listen` is the ip:port of the local udp connection, this is what is set to the WireGuard endpoint
+//   - `tcpsp` is the TCP source port
+//   - `peer` is the ip:port of the remote server
+//   - `proxyFD` is a callback with the file descriptor as only argument. It can be used to set certain
+//     socket option, e.g. to exclude the proxy connection from going over the VPN
+//
+// If the proxy cannot be started it returns an error
+//
+//export StartProxyguard
+
+
+extern "C"
+JNIEXPORT jstring JNICALL
+Java_org_eduvpn_common_GoBackend_startProxyGuard(JNIEnv *env, jobject /* this */, jint sourcePort, jstring listen, jstring peer) {
+    const char *listen_str = env->GetStringUTFChars(listen, nullptr);
+    const char *peer_str = env->GetStringUTFChars(peer, nullptr);
+    uintptr_t cookie = CookieNew();
+    char *result = StartProxyguard(cookie, (char *)listen_str, (int)sourcePort, (char *)peer_str, proxyFD);
+    CookieDelete(cookie);
+    return NativeStringToJString(env, result);
 }

@@ -122,7 +122,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                 }
 
                 is MainViewModel.MainParentAction.ConnectWithConfig -> {
-                    viewModel.parseConfigAndStartConnection(this, parentAction.config, parentAction.forceTCP)
+                    viewModel.parseConfigAndStartConnection(this, parentAction.config, parentAction.preferTcp)
                     openFragment(ConnectionStatusFragment(), false)
                 }
 

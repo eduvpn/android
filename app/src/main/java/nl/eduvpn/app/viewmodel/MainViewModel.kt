@@ -55,7 +55,7 @@ class MainViewModel @Inject constructor(
         data class OpenLink(val oAuthUrl: String) : MainParentAction()
         data class SelectCountry(val cookie: Int?) : MainParentAction()
         data class SelectProfiles(val profileList: List<Profile>): MainParentAction()
-        data class ConnectWithConfig(val config: SerializedVpnConfig, val forceTCP: Boolean) : MainParentAction()
+        data class ConnectWithConfig(val config: SerializedVpnConfig, val preferTcp: Boolean) : MainParentAction()
         data class ShowCountriesDialog(val instancesWithNames: List<Pair<Instance, String>>, val cookie: Int?): MainParentAction()
         data class ShowError(val throwable: Throwable) : MainParentAction()
     }
@@ -74,11 +74,14 @@ class MainViewModel @Inject constructor(
             selectProfiles = { profileList ->
                 _mainParentAction.postValue(MainParentAction.SelectProfiles(profileList))
             },
-            connectWithConfig = { config, forceTcp ->
-                _mainParentAction.postValue(MainParentAction.ConnectWithConfig(config, forceTcp))
+            connectWithConfig = { config, preferTcp ->
+                _mainParentAction.postValue(MainParentAction.ConnectWithConfig(config, preferTcp))
             },
             showError = { throwable ->
                 _mainParentAction.postValue(MainParentAction.ShowError(throwable))
+            },
+            protectSocket = { fd ->
+                vpnConnectionService.protectSocket(fd)
             }
         )
         historyService.load()
@@ -100,7 +103,7 @@ class MainViewModel @Inject constructor(
     fun parseConfigAndStartConnection(
         activity: MainActivity,
         config: SerializedVpnConfig,
-        forceTCP: Boolean
+        preferTcp: Boolean
     ) {
         preferencesService.setCurrentProtocol(config.protocol)
         val parsedConfig = if (config.protocol == Protocol.OpenVPN.nativeValue) {
@@ -110,7 +113,7 @@ class MainViewModel @Inject constructor(
             )?.let {
                 VPNConfig.OpenVPN(it)
             } ?: throw IllegalArgumentException("Unable to parse profile")
-        } else if (config.protocol == Protocol.WireGuard.nativeValue) {
+        } else if (config.protocol == Protocol.WireGuard.nativeValue || config.protocol == Protocol.WireGuardWithProxyGuard.nativeValue) {
             try {
                 VPNConfig.WireGuard(Config.parse(BufferedReader(StringReader(config.config))))
             } catch (ex: BadConfigException) {
@@ -123,7 +126,7 @@ class MainViewModel @Inject constructor(
             throw IllegalArgumentException("Unexpected protocol type: ${config.protocol}")
         }
         val service = vpnConnectionService.connectionToConfig(viewModelScope, activity, parsedConfig)
-        if (config.protocol == Protocol.WireGuard.nativeValue && !forceTCP && config.shouldFailover) {
+        if (config.protocol == Protocol.WireGuard.nativeValue && !preferTcp && config.shouldFailover) {
             viewModelScope.launch(Dispatchers.IO) {
                 try {
                     // Waits a bit so that the network interface has been surely set up
@@ -137,10 +140,22 @@ class MainViewModel @Inject constructor(
                                 // Wait a bit for the disconnection to finish
                                 delay(500L)
                                 // Fetch a new profile, now with TCP forced
-                                backendService.getConfig(currentInstance, forceTCP = true)
+                                backendService.getConfig(currentInstance, preferTcp = true)
                             }
                         }
                     }
+                } catch (ex: CommonException) {
+                    // These are just warnings, so we log them, but don't display to the user
+                    Log.w( TAG, "Unable to start failover detection", ex)
+                }
+            }
+        }
+        if (config.protocol == Protocol.WireGuardWithProxyGuard.nativeValue && config.proxy != null) {
+            viewModelScope.launch(Dispatchers.IO) {
+                try {
+                    // Waits a bit so that the network interface has been surely set up
+                    delay(1_000L)
+                    backendService.startProxyguard(config.proxy)
                 } catch (ex: CommonException) {
                     // These are just warnings, so we log them, but don't display to the user
                     Log.w( TAG, "Unable to start failover detection", ex)

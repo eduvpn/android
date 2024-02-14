@@ -99,7 +99,7 @@ abstract class BaseConnectionViewModel(
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 preferencesService.setCurrentInstance(instance)
-                backendService.getConfig(instance, preferencesService.getAppSettings().forceTcp())
+                backendService.getConfig(instance, preferencesService.getAppSettings().preferTcp())
             } catch (ex: Exception) {
                 val errorString = if (ex is CommonException) {
                     ex.translatedMessage()
@@ -123,7 +123,7 @@ abstract class BaseConnectionViewModel(
     }
 
     public suspend fun selectProfileToConnectTo(profile: Profile) : Result<Unit> {
-        backendService.selectProfile(profile, preferencesService.getAppSettings().forceTcp())
+        backendService.selectProfile(profile, preferencesService.getAppSettings().preferTcp())
         return Result.success(Unit)
     }
 

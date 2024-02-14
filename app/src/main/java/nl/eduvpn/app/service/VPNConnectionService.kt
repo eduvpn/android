@@ -119,6 +119,10 @@ class VPNConnectionService(
         notificationManager.cancel(notificationID)
     }
 
+    fun protectSocket(fd: Int) {
+        wireGuardService.protectSocket(fd)
+    }
+
     companion object {
         fun vpnStatusToStringID(vpnStatus: VPNService.VPNStatus): Int {
             return when (vpnStatus) {

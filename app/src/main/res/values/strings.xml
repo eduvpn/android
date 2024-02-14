@@ -72,7 +72,7 @@
     <string name="callback_error">Callback error: %s</string>
     <string name="rejected_permission">User rejected access for the app.</string>
     <string name="settings_title">Settings</string>
-    <string name="settings_force_tcp_title">Force TCP</string>
+    <string name="settings_prefer_tcp_title">Prefer TCP</string>
     <string name="settings_custom_tabs_opt_out_title">Use Custom Tabs</string>
     <string name="settings_save">Save</string>
     <string name="loading_available_profiles">Loading available profiles…</string>
