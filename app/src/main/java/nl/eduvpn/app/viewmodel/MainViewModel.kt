@@ -106,6 +106,18 @@ class MainViewModel @Inject constructor(
         preferTcp: Boolean
     ) {
         preferencesService.setCurrentProtocol(config.protocol)
+
+        if (config.protocol == Protocol.WireGuardWithProxyGuard.nativeValue && config.proxy != null) {
+            viewModelScope.launch(Dispatchers.IO) {
+                try {
+                    backendService.startProxyguard(config.proxy)
+                } catch (ex: CommonException) {
+                    // These are just warnings, so we log them, but don't display to the user
+                    Log.w( TAG, "Unable to start failover detection", ex)
+                }
+            }
+        }
+
         val parsedConfig = if (config.protocol == Protocol.OpenVPN.nativeValue) {
             eduVpnOpenVpnService.importConfig(
                 config.config,
@@ -144,18 +156,6 @@ class MainViewModel @Inject constructor(
                             }
                         }
                     }
-                } catch (ex: CommonException) {
-                    // These are just warnings, so we log them, but don't display to the user
-                    Log.w( TAG, "Unable to start failover detection", ex)
-                }
-            }
-        }
-        if (config.protocol == Protocol.WireGuardWithProxyGuard.nativeValue && config.proxy != null) {
-            viewModelScope.launch(Dispatchers.IO) {
-                try {
-                    // Waits a bit so that the network interface has been surely set up
-                    delay(1_000L)
-                    backendService.startProxyguard(config.proxy)
                 } catch (ex: CommonException) {
                     // These are just warnings, so we log them, but don't display to the user
                     Log.w( TAG, "Unable to start failover detection", ex)

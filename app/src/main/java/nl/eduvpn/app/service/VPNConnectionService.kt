@@ -8,6 +8,7 @@ import android.content.Intent
 import androidx.core.app.NotificationCompat
 import androidx.lifecycle.Observer
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import nl.eduvpn.app.Constants
 import nl.eduvpn.app.DisconnectVPNBroadcastReceiver
@@ -16,6 +17,7 @@ import nl.eduvpn.app.R
 import nl.eduvpn.app.entity.VPNConfig
 import nl.eduvpn.app.utils.FormattingUtils
 import nl.eduvpn.app.utils.pendingIntentImmutableFlag
+import org.eduvpn.common.Protocol
 
 class VPNConnectionService(
     private val preferencesService: PreferencesService,
@@ -44,6 +46,10 @@ class VPNConnectionService(
             }
             is VPNConfig.WireGuard -> {
                 scope.launch {
+                    if (preferencesService.getCurrentProtocol() == Protocol.WireGuardWithProxyGuard.nativeValue) {
+                        // Delay the start a bit to give it enough time to set up Proxyguard
+                        delay(2_000L)
+                    }
                     wireGuardService.connect(activity, vpnConfig.config)
                 }
                 wireGuardService
