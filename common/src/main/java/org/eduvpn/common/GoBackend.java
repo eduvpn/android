@@ -42,4 +42,8 @@ public class GoBackend {
     public native DataErrorTuple getCertExpiryTimes();
     public native void updateRxBytesRead(long rxBytesRead);
     public native FailoverResult startFailOver(@NotNull String gatewayIp, int mtu);
+    public native void notifyConnecting();
+    public native void notifyConnected();
+    public native void notifyDisconnecting();
+    public native void notifyDisconnected();
 }

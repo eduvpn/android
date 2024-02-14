@@ -9,5 +9,7 @@ data class SerializedVpnConfig(
     val config: String,
     val protocol: Int,
     @SerialName("default_gateway")
-    val defaultGateway: Boolean
+    val defaultGateway: Boolean,
+    @SerialName("should_failover")
+    val shouldFailover: Boolean = false
 )

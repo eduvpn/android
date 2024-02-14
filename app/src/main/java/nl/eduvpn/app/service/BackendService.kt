@@ -42,9 +42,9 @@ class BackendService(
     }
 
     enum class State(val nativeValue: Int) {
-        ASK_LOCATION(2),
-        OAUTH_STARTED(6),
-        ASK_PROFILE(9)
+        OAUTH_STARTED(3),
+        ASK_LOCATION(5),
+        ASK_PROFILE(6)
     }
 
     private val goBackend = GoBackend()
@@ -68,22 +68,13 @@ class BackendService(
         GoBackend.callbackFunction = object : Callback {
 
             // The library wants to get a token from our internal storage
-            override fun getToken(serverJson: String): String? {
-                // Find out the serverId
-                val parsedServer = serializerService.deserializeCurrentServer(serverJson)
-                parsedServer.getUniqueId()?.let { uniqueId ->
-                    return preferencesService.getToken(uniqueId)
-                }
-                return null
+            override fun getToken(serverId: String): String? {
+                return preferencesService.getToken(serverId)
             }
 
             // The library wants to save a token in our internal storage
-            override fun setToken(serverJson: String, token: String?) {
-                // Find out the serverId
-                val parsedServer = serializerService.deserializeCurrentServer(serverJson)
-                parsedServer.getUniqueId()?.let { uniqueId ->
-                    preferencesService.setToken(uniqueId, token)
-                }
+            override fun setToken(serverId: String, token: String?) {
+                preferencesService.setToken(serverId, token)
             }
 
             // Called when the native state machine changes
@@ -311,6 +302,22 @@ class BackendService(
             goBackend.cancelCookie(it)
             pendingOAuthCookie = null
         }
+    }
+
+    fun notifyConnecting() {
+        goBackend.notifyConnecting()
+    }
+
+    fun notifyConnected () {
+        goBackend.notifyConnected()
+    }
+
+    fun notifyDisconnecting() {
+        goBackend.notifyDisconnecting()
+    }
+
+    fun notifyDisconnected() {
+        goBackend.notifyDisconnected()
     }
 
     fun getLogFile() : File? {

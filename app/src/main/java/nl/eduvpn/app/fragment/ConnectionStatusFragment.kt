@@ -204,6 +204,7 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
         }
         viewModel.timer.observe(viewLifecycleOwner, updateCertExpiryObserver)
         val vpnStatusObserver = { vpnStatus: VPNStatus ->
+            viewModel.notifyVpnStatus(vpnStatus)
             binding.connectionStatus.setText(VPNConnectionService.vpnStatusToStringID(vpnStatus))
             when (vpnStatus) {
                 VPNStatus.CONNECTED -> {

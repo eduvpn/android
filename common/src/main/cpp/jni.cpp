@@ -186,6 +186,7 @@ extern "C" JNIEXPORT jstring JNICALL
 Java_org_eduvpn_common_GoBackend_addServer(JNIEnv *env, jobject /* this */, jint serverType, jstring id) {
     uintptr_t cookie = CookieNew();
     const char *id_str = env->GetStringUTFChars(id, nullptr);
+    SetState(1); // Change first to main state to make sure we are not in a previous state.
     char *error = AddServer(cookie, (int)serverType, (char *)id_str, 0);
     CookieDelete(cookie);
     // Do not delete the cookie, because it might be reused later in the flow
@@ -286,4 +287,28 @@ extern "C"
 JNIEXPORT void JNICALL
 Java_org_eduvpn_common_GoBackend_updateRxBytesRead(JNIEnv *env, jobject /* this */, jlong rxBytesRead) {
     globalRxBytesRead = rxBytesRead;
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_org_eduvpn_common_GoBackend_notifyConnecting(JNIEnv *env, jobject /* this */) {
+    SetState(8);
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_org_eduvpn_common_GoBackend_notifyConnected(JNIEnv *env, jobject /* this */) {
+    SetState(9);
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_org_eduvpn_common_GoBackend_notifyDisconnecting(JNIEnv *env, jobject /* this */) {
+    SetState(10);
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_org_eduvpn_common_GoBackend_notifyDisconnected(JNIEnv *env, jobject /* this */) {
+    SetState(11);
 }
