@@ -75,7 +75,7 @@ class ServerSelectionFragment : BaseFragment<FragmentServerSelectionBinding>() {
                     Snackbar.make(view, parentAction.message, Snackbar.LENGTH_LONG).show()
                 }
                 is BaseConnectionViewModel.ParentAction.DisplayError -> {
-                    ErrorDialog.show(requireContext(), parentAction.title, parentAction.message)
+                    ErrorDialog.show(requireActivity(), parentAction.title, parentAction.message)
                 }
                 else -> {
                     // Do nothing.
@@ -102,7 +102,7 @@ class ServerSelectionFragment : BaseFragment<FragmentServerSelectionBinding>() {
             return@setOnItemLongClickListener false
         }
         binding.warning.setOnClickListener {
-            ErrorDialog.show(it.context, R.string.warning_title, viewModel.warning.value!!)
+            ErrorDialog.show(requireActivity(), R.string.warning_title, viewModel.warning.value!!)
         }
         binding.addServerButton.setOnClickListener {
             openAddServerFragment(true)

@@ -148,18 +148,20 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
         viewModel.connectionParentAction.observe(viewLifecycleOwner) { parentAction ->
             when (parentAction) {
                 ConnectionStatusViewModel.ParentAction.SessionExpired -> {
-                    val context = requireContext()
+                    val activity = activity ?: return@observe
                     val dialog = ErrorDialog.show(
-                        context,
+                        activity,
                         R.string.error_certificate_expired_title,
                         R.string.error_certificate_expired_message
                     )
                     disconnect()
-                    dialog?.setOnDismissListener {
-                        returnToHome()
+                    dialog?.listener = object : ErrorDialog.ErrorDialogFragment.Listener {
+                        override fun onDismiss() {
+                            returnToHome()
+                        }
                     }
                     val notificationManager =
-                        context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+                        activity.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
                     notificationManager.cancel(Constants.CERT_EXPIRY_NOTIFICATION_ID)
                 }
             }
@@ -167,7 +169,7 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
         viewModel.parentAction.observe(viewLifecycleOwner) { parentAction ->
             when (parentAction) {
                 is BaseConnectionViewModel.ParentAction.DisplayError -> {
-                    ErrorDialog.show(requireContext(), parentAction.title, parentAction.message)
+                    ErrorDialog.show(requireActivity(), parentAction.title, parentAction.message)
                 }
                 is BaseConnectionViewModel.ParentAction.ShowContextCanceledToast -> {
                     Snackbar.make(view, parentAction.message, Snackbar.LENGTH_LONG).show()
@@ -239,7 +241,7 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
                     val message =
                         getString(R.string.error_while_connecting, vpnService.getErrorString())
                     ErrorDialog.show(
-                        requireContext(),
+                        requireActivity(),
                         R.string.error_dialog_title_unable_to_connect,
                         message
                     )
@@ -292,7 +294,7 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
                 withContext(Dispatchers.Main) {
                     setToggleCheckedWithoutAction(false)
                     viewModel.isInDisconnectMode.value = true
-                    ErrorDialog.show(requireContext(), thr)
+                    ErrorDialog.show(requireActivity(), thr)
                 }
             }.onSuccess {
                 // Relaunch this fragment. This is required, because in some cases, the backend
