@@ -85,9 +85,24 @@ int createStateCallback(int oldstate, int newstate, void *data) {
     return callGlobalCallback(newstate, data);
 }
 
+// Implement a function that matches the proxyFD signature
+void proxyFD(int fd) {
+    if (!globalVM) {
+        return;
+    }
+    JNIEnv *env;
+    bool didAttach = GetJniEnv(globalVM, &env);
+    jfieldID callbackFieldId = env->GetStaticFieldID(globalBackendClass, "callbackFunction","Lorg/eduvpn/common/GoBackend$Callback;");
+    jobject callbackField = env->GetStaticObjectField(globalBackendClass, callbackFieldId);
+    jmethodID fdFunction = env->GetMethodID(globalCallbackClass, "onProxyFileDescriptor", "(I)V");
+    env->CallVoidMethod(callbackField, fdFunction, fd);
+    if (didAttach) {
+        globalVM->DetachCurrentThread();
+    }
+}
 
 
-void getToken(const char* server, char* out, size_t len) {
+void getToken(const char* server, int server_type, char* out, size_t len) {
     if (!globalVM) {
         return;
     }
@@ -108,7 +123,7 @@ void getToken(const char* server, char* out, size_t len) {
         globalVM->DetachCurrentThread();
     }
 }
-void setToken(const char* server, const char* tokens) {
+void setToken(const char* server, int server_type, const char* tokens) {
     if (!globalVM) {
         return;
     }
@@ -188,6 +203,7 @@ extern "C" JNIEXPORT jstring JNICALL
 Java_org_eduvpn_common_GoBackend_addServer(JNIEnv *env, jobject /* this */, jint serverType, jstring id) {
     uintptr_t cookie = CookieNew();
     const char *id_str = env->GetStringUTFChars(id, nullptr);
+    SetState(1); // Change first to main state to make sure we are not in a previous state.
     char *error = AddServer(cookie, (int)serverType, (char *)id_str, 0);
     CookieDelete(cookie);
     // Do not delete the cookie, because it might be reused later in the flow
@@ -258,11 +274,10 @@ Java_org_eduvpn_common_GoBackend_deregister(JNIEnv *env, jobject /* this */) {
     return NativeStringToJString(env, result);
 }
 extern "C" JNIEXPORT jstring JNICALL
-Java_org_eduvpn_common_GoBackend_selectCountry(JNIEnv *env, jobject /* this */, jstring countryCode) {
-    uintptr_t cookie = CookieNew();
+Java_org_eduvpn_common_GoBackend_selectCountry(JNIEnv *env, jobject /* this */, jstring organizationId, jstring countryCode) {
     const char *countryCode_str = env->GetStringUTFChars(countryCode, nullptr);
-    char *result = SetSecureLocation(cookie, (char *)countryCode_str);
-    CookieDelete(cookie);
+    const char *organizationId_str = env->GetStringUTFChars(organizationId, nullptr);
+    char *result = SetSecureLocation((char *)organizationId_str, (char *)countryCode_str);
     return NativeStringToJString(env, result);
 }
 
@@ -289,4 +304,39 @@ extern "C"
 JNIEXPORT void JNICALL
 Java_org_eduvpn_common_GoBackend_updateRxBytesRead(JNIEnv *env, jobject /* this */, jlong rxBytesRead) {
     globalRxBytesRead = rxBytesRead;
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_org_eduvpn_common_GoBackend_notifyConnecting(JNIEnv *env, jobject /* this */) {
+    SetState(8);
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_org_eduvpn_common_GoBackend_notifyConnected(JNIEnv *env, jobject /* this */) {
+    SetState(9);
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_org_eduvpn_common_GoBackend_notifyDisconnecting(JNIEnv *env, jobject /* this */) {
+    SetState(10);
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_org_eduvpn_common_GoBackend_notifyDisconnected(JNIEnv *env, jobject /* this */) {
+    SetState(11);
+}
+
+extern "C"
+JNIEXPORT jstring JNICALL
+Java_org_eduvpn_common_GoBackend_startProxyGuard(JNIEnv *env, jobject /* this */, jint sourcePort, jstring listen, jstring peer) {
+    const char *listen_str = env->GetStringUTFChars(listen, nullptr);
+    const char *peer_str = env->GetStringUTFChars(peer, nullptr);
+    uintptr_t cookie = CookieNew();
+    char *result = StartProxyguard(cookie, (char *)listen_str, (int)sourcePort, (char *)peer_str, proxyFD);
+    CookieDelete(cookie);
+    return NativeStringToJString(env, result);
 }

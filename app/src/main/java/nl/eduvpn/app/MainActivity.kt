@@ -122,7 +122,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                 }
 
                 is MainViewModel.MainParentAction.ConnectWithConfig -> {
-                    viewModel.parseConfigAndStartConnection(this, parentAction.config, parentAction.forceTCP)
+                    viewModel.parseConfigAndStartConnection(this, parentAction.config, parentAction.preferTcp)
                     openFragment(ConnectionStatusFragment(), false)
                 }
 
@@ -169,7 +169,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             .setItems(instancesWithNames.map { it.second }.toTypedArray()) { _, which ->
                 val selectedInstance = instancesWithNames[which]
                 selectedInstance.first.countryCode?.let { countryCode ->
-                    viewModel.onCountrySelected(cookie, countryCode)
+                    viewModel.onCountrySelected(cookie, selectedInstance.first.baseURI, countryCode)
                 }
             }.show()
     }

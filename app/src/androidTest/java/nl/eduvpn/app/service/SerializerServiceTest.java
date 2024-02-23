@@ -62,12 +62,12 @@ public class SerializerServiceTest {
         Settings settings = new Settings(true, true);
         JSONObject jsonObject = _serializerService.serializeAppSettings(settings);
         Settings deserializedSettings = _serializerService.deserializeAppSettings(jsonObject);
-        assertEquals(settings.forceTcp(), deserializedSettings.forceTcp());
+        assertEquals(settings.preferTcp(), deserializedSettings.preferTcp());
         assertEquals(settings.useCustomTabs(), deserializedSettings.useCustomTabs());
         settings = new Settings(false, false);
         jsonObject = _serializerService.serializeAppSettings(settings);
         deserializedSettings = _serializerService.deserializeAppSettings(jsonObject);
-        assertEquals(settings.forceTcp(), deserializedSettings.forceTcp());
+        assertEquals(settings.preferTcp(), deserializedSettings.preferTcp());
         assertEquals(settings.useCustomTabs(), deserializedSettings.useCustomTabs());
     }
 
