@@ -101,6 +101,22 @@ void proxyFD(int fd) {
     }
 }
 
+void proxyReady() {
+    if (!globalVM) {
+        return;
+    }
+    JNIEnv *env;
+    __android_log_print(ANDROID_LOG_WARN, "Common-JNI", "ProxyGuard is READY!");
+    bool didAttach = GetJniEnv(globalVM, &env);
+    jfieldID callbackFieldId = env->GetStaticFieldID(globalBackendClass, "callbackFunction","Lorg/eduvpn/common/GoBackend$Callback;");
+    jobject callbackField = env->GetStaticObjectField(globalBackendClass, callbackFieldId);
+    jmethodID readyFunction = env->GetMethodID(globalCallbackClass, "onProxyGuardReady", "V");
+    env->CallVoidMethod(callbackField, readyFunction);
+    if (didAttach) {
+        globalVM->DetachCurrentThread();
+    }
+}
+
 
 void getToken(const char* server, int server_type, char* out, size_t len) {
     if (!globalVM) {
@@ -336,7 +352,7 @@ Java_org_eduvpn_common_GoBackend_startProxyGuard(JNIEnv *env, jobject /* this */
     const char *listen_str = env->GetStringUTFChars(listen, nullptr);
     const char *peer_str = env->GetStringUTFChars(peer, nullptr);
     uintptr_t cookie = CookieNew();
-    char *result = StartProxyguard(cookie, (char *)listen_str, (int)sourcePort, (char *)peer_str, proxyFD);
+    char *result = StartProxyguard(cookie, (char *)listen_str, (int)sourcePort, (char *)peer_str, proxyFD, proxyReady);
     CookieDelete(cookie);
     return NativeStringToJString(env, result);
 }

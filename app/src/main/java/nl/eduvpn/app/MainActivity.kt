@@ -109,29 +109,27 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                 is MainViewModel.MainParentAction.OpenLink -> {
                     openLink(parentAction.oAuthUrl)
                 }
-
                 is MainViewModel.MainParentAction.SelectCountry -> {
                     selectCountry(parentAction.cookie)
                 }
-
                 is MainViewModel.MainParentAction.SelectProfiles -> {
                     openFragment(
                         ProfileSelectionFragment.newInstance(parentAction.profileList),
                         false
                     )
                 }
-
                 is MainViewModel.MainParentAction.ConnectWithConfig -> {
                     viewModel.parseConfigAndStartConnection(this, parentAction.config, parentAction.preferTcp)
                     openFragment(ConnectionStatusFragment(), false)
                 }
-
                 is MainViewModel.MainParentAction.ShowCountriesDialog -> {
                     showCountriesDialog(parentAction.instancesWithNames, parentAction.cookie)
                 }
-
                 is MainViewModel.MainParentAction.ShowError -> {
                     show(this, parentAction.throwable)
+                }
+                is MainViewModel.MainParentAction.OnProxyGuardReady -> {
+                    viewModel.connectWithPendingConfig(this)
                 }
             }
         }

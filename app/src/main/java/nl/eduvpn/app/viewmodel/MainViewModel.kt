@@ -1,5 +1,6 @@
 package nl.eduvpn.app.viewmodel
 
+import android.app.Activity
 import android.content.Context
 import android.net.Uri
 import androidx.lifecycle.MutableLiveData
@@ -58,6 +59,7 @@ class MainViewModel @Inject constructor(
         data class ConnectWithConfig(val config: SerializedVpnConfig, val preferTcp: Boolean) : MainParentAction()
         data class ShowCountriesDialog(val instancesWithNames: List<Pair<Instance, String>>, val cookie: Int?): MainParentAction()
         data class ShowError(val throwable: Throwable) : MainParentAction()
+        data object OnProxyGuardReady: MainParentAction()
     }
 
     private val _mainParentAction = MutableLiveData<MainParentAction>()
@@ -82,6 +84,9 @@ class MainViewModel @Inject constructor(
             },
             protectSocket = { fd ->
                 vpnConnectionService.protectSocket(fd)
+            },
+            onProxyGuardReady = {
+                _mainParentAction.postValue(MainParentAction.OnProxyGuardReady)
             }
         )
         historyService.load()
@@ -196,6 +201,14 @@ class MainViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             backendService.selectCountry(cookie, organizationId, countryCode)
             historyService.load()
+        }
+    }
+
+    fun connectWithPendingConfig(activity: Activity) {
+        if (vpnConnectionService.connectWithPendingConfig(viewModelScope, activity)) {
+            Log.i(TAG, "Connection with pending config successful.")
+        } else {
+            Log.w(TAG, "Pending config not found!")
         }
     }
 

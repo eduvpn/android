@@ -189,7 +189,7 @@ class WireGuardService(private val context: Context, timer: Flow<Unit>): VPNServ
         val vpnServiceFuture = field.get(backend)
         // GhettoCompletableFuture class has a get() method to get the result
         val vpnServiceInstance = vpnServiceFuture.javaClass.getMethod("get", Long::class.java, TimeUnit::class.java)
-            .invoke(vpnServiceFuture, 10L, TimeUnit.SECONDS)
+            .invoke(vpnServiceFuture, 60L, TimeUnit.SECONDS)
         val protectMethod: Method = vpnServiceInstance.javaClass.getMethod("protect", Int::class.java)
         val result = protectMethod.invoke(vpnServiceInstance, fd) as Boolean
         Log.i(TAG, "Protected socket with success: $result")

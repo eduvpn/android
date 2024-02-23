@@ -63,7 +63,8 @@ class BackendService(
         selectCountry: (Int?) -> Unit,
         connectWithConfig: (SerializedVpnConfig, Boolean) -> Unit,
         showError: (Throwable) -> Unit,
-        protectSocket: (Int) -> Unit
+        protectSocket: (Int) -> Unit,
+        onProxyGuardReady: () -> Unit
     ): String? {
         onConfigReady = { config, preferTcp ->
             connectWithConfig(config, preferTcp)
@@ -82,6 +83,10 @@ class BackendService(
 
             override fun onProxyFileDescriptor(fileDescriptor: Int) {
                 protectSocket(fileDescriptor)
+            }
+
+            override fun onProxyGuardReady() {
+                onProxyGuardReady()
             }
 
             // Called when the native state machine changes
