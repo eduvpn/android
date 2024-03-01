@@ -201,4 +201,5 @@
     <string name="cert_expiry_notification_title">VPN certificate about to expire</string>
     <string name="cert_expiry_notification_text">The VPN certificate is about to expire</string>
     <string name="vpn_connection_channel_name">VPN connection status</string>
+    <string name="error_starting_up_proxyguard_failed">Starting up of ProxyGuard failed</string>
 </resources>

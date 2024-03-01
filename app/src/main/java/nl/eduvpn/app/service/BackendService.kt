@@ -115,7 +115,7 @@ class BackendService(
                         showError(CommonException(ERROR_EMPTY_RESPONSE))
                         return true
                     }
-                    val cookieAndData = serializerService.deserializeCookieAndStringData(data)
+                    val cookieAndData = serializerService.deserializeCookieAndStringArrayData(data)
                     selectCountry(cookieAndData.cookie)
                     true
                 } else {
@@ -285,11 +285,17 @@ class BackendService(
         }
     }
 
-    fun selectCountry(cookie: Int?, organizationId: String, countryCode: String) {
+    fun selectCountry(cookie: Int?, organizationId: String, countryCode: String?) {
         val errorString = if (cookie != null) {
-            goBackend.cookieReply(cookie, countryCode)
-        } else {
+            if (countryCode == null) {
+                goBackend.cancelCookie(cookie)
+            } else {
+                goBackend.cookieReply(cookie, countryCode)
+            }
+        } else if (countryCode != null) {
             goBackend.selectCountry(organizationId, countryCode)
+        } else {
+            null
         }
         if (errorString != null) {
             throw CommonException(errorString)

@@ -110,7 +110,7 @@ void proxyReady() {
     bool didAttach = GetJniEnv(globalVM, &env);
     jfieldID callbackFieldId = env->GetStaticFieldID(globalBackendClass, "callbackFunction","Lorg/eduvpn/common/GoBackend$Callback;");
     jobject callbackField = env->GetStaticObjectField(globalBackendClass, callbackFieldId);
-    jmethodID readyFunction = env->GetMethodID(globalCallbackClass, "onProxyGuardReady", "V");
+    jmethodID readyFunction = env->GetMethodID(globalCallbackClass, "onProxyGuardReady", "()V");
     env->CallVoidMethod(callbackField, readyFunction);
     if (didAttach) {
         globalVM->DetachCurrentThread();

@@ -35,6 +35,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import nl.eduvpn.app.base.BaseActivity
 import nl.eduvpn.app.databinding.ActivityMainBinding
+import nl.eduvpn.app.entity.AddedServer
 import nl.eduvpn.app.entity.Instance
 import nl.eduvpn.app.entity.exception.CommonException
 import nl.eduvpn.app.fragment.AddServerFragment
@@ -46,6 +47,7 @@ import nl.eduvpn.app.service.EduVPNOpenVPNService
 import nl.eduvpn.app.service.VPNService
 import nl.eduvpn.app.service.WireGuardService
 import nl.eduvpn.app.utils.ErrorDialog.show
+import nl.eduvpn.app.utils.countryCodeToCountryNameAndFlag
 import nl.eduvpn.app.viewmodel.MainViewModel
 import nl.eduvpn.app.viewmodel.ViewModelFactory
 import java.util.*
@@ -123,7 +125,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                     openFragment(ConnectionStatusFragment(), false)
                 }
                 is MainViewModel.MainParentAction.ShowCountriesDialog -> {
-                    showCountriesDialog(parentAction.instancesWithNames, parentAction.cookie)
+                    showCountriesDialog(parentAction.serverWithCountries, parentAction.cookie)
                 }
                 is MainViewModel.MainParentAction.ShowError -> {
                     show(this, parentAction.throwable)
@@ -160,15 +162,16 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     }
 
     private fun showCountriesDialog(
-        instancesWithNames: List<Pair<Instance, String>>,
+        instancesWithNames: List<Pair<AddedServer, String>>,
         cookie: Int?
     ) {
         AlertDialog.Builder(this)
-            .setItems(instancesWithNames.map { it.second }.toTypedArray()) { _, which ->
+            .setItems(instancesWithNames.map { it.second.countryCodeToCountryNameAndFlag() }.toTypedArray()) { _, which ->
                 val selectedInstance = instancesWithNames[which]
-                selectedInstance.first.countryCode?.let { countryCode ->
-                    viewModel.onCountrySelected(cookie, selectedInstance.first.baseURI, countryCode)
-                }
+                viewModel.onCountrySelected(cookie, selectedInstance.first.identifier, selectedInstance.second)
+            }.setOnCancelListener {
+                val selectedInstance = instancesWithNames[0]
+                viewModel.onCountrySelected(cookie, selectedInstance.first.identifier, null)
             }.show()
     }
 

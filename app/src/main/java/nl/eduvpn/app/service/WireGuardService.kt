@@ -19,12 +19,14 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import nl.eduvpn.app.R
 import nl.eduvpn.app.livedata.ByteCount
 import nl.eduvpn.app.livedata.IPs
 import nl.eduvpn.app.livedata.TunnelData
 import nl.eduvpn.app.utils.Log
 import nl.eduvpn.app.utils.WireGuardTunnel
 import org.eduvpn.common.Protocol
+import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
 import java.net.Inet4Address
 import java.util.concurrent.Executors
@@ -181,18 +183,23 @@ class WireGuardService(private val context: Context, timer: Flow<Unit>): VPNServ
     }
 
     fun protectSocket(fd: Int) {
-        // We need to use reflection here, because the required fields are not exposed sadly.
-        val field = GoBackend::class.java.getDeclaredField("vpnService")
-        // Make the field accessible since it's private
-        field.isAccessible = true
-        // Get the value of the vpnService field from the backend object
-        val vpnServiceFuture = field.get(backend)
-        // GhettoCompletableFuture class has a get() method to get the result
-        val vpnServiceInstance = vpnServiceFuture.javaClass.getMethod("get", Long::class.java, TimeUnit::class.java)
-            .invoke(vpnServiceFuture, 60L, TimeUnit.SECONDS)
-        val protectMethod: Method = vpnServiceInstance.javaClass.getMethod("protect", Int::class.java)
-        val result = protectMethod.invoke(vpnServiceInstance, fd) as Boolean
-        Log.i(TAG, "Protected socket with success: $result")
+        try {
+            // We need to use reflection here, because the required fields are not exposed sadly.
+            val field = GoBackend::class.java.getDeclaredField("vpnService")
+            // Make the field accessible since it's private
+            field.isAccessible = true
+            // Get the value of the vpnService field from the backend object
+            val vpnServiceFuture = field.get(backend)
+            // GhettoCompletableFuture class has a get() method to get the result
+            val vpnServiceInstance = vpnServiceFuture.javaClass.getMethod("get", Long::class.java, TimeUnit::class.java)
+                .invoke(vpnServiceFuture, 30L, TimeUnit.SECONDS)
+            val protectMethod: Method = vpnServiceInstance.javaClass.getMethod("protect", Int::class.java)
+            val result = protectMethod.invoke(vpnServiceInstance, fd) as Boolean
+            Log.i(TAG, "Protected socket with success: $result")
+        } catch (ex: InvocationTargetException) {
+            errorString = context.getString(R.string.error_starting_up_proxyguard_failed)
+            setConnectionStatus(VPNStatus.FAILED)
+        }
     }
 
     companion object {

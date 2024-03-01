@@ -79,8 +79,11 @@ abstract class BaseConnectionViewModel(
                 } else {
                     throwable.toString()
                 }
-                if ((throwable as? CommonException)?.isAuthCancellationException() == true) {
-                    _parentAction.postValue(ParentAction.ShowContextCanceledToast(throwable.translatedMessage()))
+                if ((throwable as? CommonException)?.isMiscError() == true) {
+                    // Ignore
+                    return@launch
+                } else if ((throwable as? CommonException)?.isMiscError() != true) {
+                    _parentAction.postValue(ParentAction.ShowContextCanceledToast(errorString))
                     return@launch
                 }
                 _parentAction.postValue(ParentAction.DisplayError(
@@ -106,8 +109,11 @@ abstract class BaseConnectionViewModel(
                 } else {
                     ex.toString()
                 }
-                if ((ex as? CommonException)?.isAuthCancellationException() == true) {
-                    _parentAction.postValue(ParentAction.ShowContextCanceledToast(ex.translatedMessage()))
+                if ((ex as? CommonException)?.isMiscError() == true) {
+                    // Ignore
+                    return@launch
+                } else if ((ex as? CommonException)?.isMiscError() != true) {
+                    _parentAction.postValue(ParentAction.ShowContextCanceledToast(errorString))
                     return@launch
                 }
 
