@@ -1,5 +1,6 @@
 package nl.eduvpn.app.viewmodel
 
+import android.app.Activity
 import android.content.Context
 import android.net.Uri
 import androidx.lifecycle.MutableLiveData
@@ -11,6 +12,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import nl.eduvpn.app.MainActivity
 import nl.eduvpn.app.R
+import nl.eduvpn.app.entity.AddedServer
 import nl.eduvpn.app.entity.AuthorizationType
 import nl.eduvpn.app.entity.Instance
 import nl.eduvpn.app.entity.Profile
@@ -24,18 +26,18 @@ import nl.eduvpn.app.service.OrganizationService
 import nl.eduvpn.app.service.PreferencesService
 import nl.eduvpn.app.service.VPNConnectionService
 import nl.eduvpn.app.utils.Log
-import nl.eduvpn.app.utils.getCountryText
+import nl.eduvpn.app.utils.countryCodeToCountryNameAndFlag
 import nl.eduvpn.app.utils.toSingleEvent
 import org.eduvpn.common.Protocol
 import java.io.BufferedReader
 import java.io.StringReader
+import java.lang.reflect.InvocationTargetException
 import javax.inject.Inject
 
 class MainViewModel @Inject constructor(
     context: Context,
     private val historyService: HistoryService,
     private val backendService: BackendService,
-    private val organizationService: OrganizationService,
     private val preferencesService: PreferencesService,
     private val eduVpnOpenVpnService: EduVPNOpenVPNService,
     private val vpnConnectionService: VPNConnectionService
@@ -56,8 +58,9 @@ class MainViewModel @Inject constructor(
         data class SelectCountry(val cookie: Int?) : MainParentAction()
         data class SelectProfiles(val profileList: List<Profile>): MainParentAction()
         data class ConnectWithConfig(val config: SerializedVpnConfig, val preferTcp: Boolean) : MainParentAction()
-        data class ShowCountriesDialog(val instancesWithNames: List<Pair<Instance, String>>, val cookie: Int?): MainParentAction()
+        data class ShowCountriesDialog(val serverWithCountries: List<Pair<AddedServer, String>>, val cookie: Int?): MainParentAction()
         data class ShowError(val throwable: Throwable) : MainParentAction()
+        data object OnProxyGuardReady: MainParentAction()
     }
 
     private val _mainParentAction = MutableLiveData<MainParentAction>()
@@ -81,7 +84,10 @@ class MainViewModel @Inject constructor(
                 _mainParentAction.postValue(MainParentAction.ShowError(throwable))
             },
             protectSocket = { fd ->
-                vpnConnectionService.protectSocket(fd)
+                vpnConnectionService.protectSocket(viewModelScope, fd)
+            },
+            onProxyGuardReady = {
+                _mainParentAction.postValue(MainParentAction.OnProxyGuardReady)
             }
         )
         historyService.load()
@@ -174,13 +180,12 @@ class MainViewModel @Inject constructor(
     fun getCountryList(cookie: Int? = null) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val allInstances = organizationService.fetchServerList().serverList
-                val countryList = allInstances.filter {
-                    it.authorizationType == AuthorizationType.Distributed && it.countryCode != null
-                }.map {
-                    Pair(it, it.getCountryText() ?: "Unknown country")
+                val secureInternetServer = historyService.addedServers?.secureInternetServer!!
+                val locations = secureInternetServer.locations
+                val countryList = locations.map {
+                    Pair(secureInternetServer, it)
                 }
-                _mainParentAction.postValue(MainParentAction.ShowCountriesDialog(instancesWithNames = countryList, cookie = cookie))
+                _mainParentAction.postValue(MainParentAction.ShowCountriesDialog(serverWithCountries = countryList, cookie = cookie))
             } catch (ex: Exception) {
                 _parentAction.postValue(
                     ParentAction.DisplayError(
@@ -192,10 +197,22 @@ class MainViewModel @Inject constructor(
         }
     }
 
-    fun onCountrySelected(cookie: Int?, organizationId: String, countryCode: String) {
+    fun onCountrySelected(cookie: Int?, organizationId: String, countryCode: String?) {
         viewModelScope.launch(Dispatchers.IO) {
-            backendService.selectCountry(cookie, organizationId, countryCode)
-            historyService.load()
+            try {
+                backendService.selectCountry(cookie, organizationId, countryCode)
+                historyService.load()
+            } catch (ex: Exception) {
+                _mainParentAction.postValue(MainParentAction.ShowError(ex))
+            }
+        }
+    }
+
+    fun connectWithPendingConfig(activity: Activity) {
+        if (vpnConnectionService.connectWithPendingConfig(viewModelScope, activity)) {
+            Log.i(TAG, "Connection with pending config successful.")
+        } else {
+            Log.w(TAG, "Pending config not found!")
         }
     }
 

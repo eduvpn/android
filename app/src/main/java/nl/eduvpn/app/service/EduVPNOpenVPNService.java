@@ -294,7 +294,7 @@ public class EduVPNOpenVPNService extends VPNService implements VpnStatus.StateL
         if (_errorResource != null) {
             return _context.getString(_errorResource);
         } else {
-            return null;
+            return VpnStatus.getLastCleanLogMessage(_context);
         }
     }
 

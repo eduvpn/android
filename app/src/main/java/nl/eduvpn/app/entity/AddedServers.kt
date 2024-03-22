@@ -61,5 +61,7 @@ data class AddedServer(
     @SerialName("country_code")
     val countryCode: String? = null,
     @SerialName("support_contacts")
-    val supportContacts: List<String> = emptyList()
+    val supportContacts: List<String> = emptyList(),
+    @SerialName("locations")
+    val locations: List<String> = emptyList()
 )

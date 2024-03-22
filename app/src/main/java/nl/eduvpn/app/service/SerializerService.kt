@@ -22,6 +22,7 @@ import kotlinx.serialization.json.Json
 import nl.eduvpn.app.entity.AddedServers
 import nl.eduvpn.app.entity.CertExpiryTimes
 import nl.eduvpn.app.entity.CookieAndProfileMapData
+import nl.eduvpn.app.entity.CookieAndStringArrayData
 import nl.eduvpn.app.entity.CookieAndStringData
 import nl.eduvpn.app.entity.CurrentServer
 import nl.eduvpn.app.entity.Instance
@@ -311,6 +312,15 @@ class SerializerService {
     fun deserializeCookieAndStringData(json: String?): CookieAndStringData {
         return try {
             jsonSerializer.decodeFromString(CookieAndStringData.serializer(), json!!)
+        } catch (ex: SerializationException) {
+            throw UnknownFormatException(ex)
+        }
+    }
+
+    @Throws(UnknownFormatException::class)
+    fun deserializeCookieAndStringArrayData(json: String?): CookieAndStringArrayData {
+        return try {
+            jsonSerializer.decodeFromString(CookieAndStringArrayData.serializer(), json!!)
         } catch (ex: SerializationException) {
             throw UnknownFormatException(ex)
         }

@@ -5,6 +5,7 @@ import nl.eduvpn.app.entity.TranslatableString
 
 @Serializable
 data class ExceptionMessage(
-    val message: TranslatableString? = null
+    val message: TranslatableString? = null,
+    val misc: Boolean? = false
 )
 

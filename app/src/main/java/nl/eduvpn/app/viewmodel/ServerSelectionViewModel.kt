@@ -34,11 +34,9 @@ import nl.eduvpn.app.service.EduVPNOpenVPNService
 import nl.eduvpn.app.service.HistoryService
 import nl.eduvpn.app.service.OrganizationService
 import nl.eduvpn.app.service.PreferencesService
-import nl.eduvpn.app.service.SerializerService
 import nl.eduvpn.app.service.VPNConnectionService
 import nl.eduvpn.app.utils.Listener
 import nl.eduvpn.app.utils.Log
-import nl.eduvpn.app.utils.getCountryText
 import nl.eduvpn.app.utils.runCatchingCoroutine
 import javax.inject.Inject
 

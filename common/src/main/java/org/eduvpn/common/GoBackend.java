@@ -11,8 +11,8 @@ public class GoBackend {
         boolean onNewState(int newState, @Nullable String data);
         @Nullable String getToken(@NonNull String serverId);
         void setToken(@NonNull String serverId, @Nullable String token);
-
         void onProxyFileDescriptor(int fileDescriptor);
+        void onProxyGuardReady();
     }
 
     public static Callback callbackFunction = null;

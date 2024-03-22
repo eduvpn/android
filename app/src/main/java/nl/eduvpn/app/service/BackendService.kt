@@ -63,7 +63,8 @@ class BackendService(
         selectCountry: (Int?) -> Unit,
         connectWithConfig: (SerializedVpnConfig, Boolean) -> Unit,
         showError: (Throwable) -> Unit,
-        protectSocket: (Int) -> Unit
+        protectSocket: (Int) -> Unit,
+        onProxyGuardReady: () -> Unit
     ): String? {
         onConfigReady = { config, preferTcp ->
             connectWithConfig(config, preferTcp)
@@ -82,6 +83,10 @@ class BackendService(
 
             override fun onProxyFileDescriptor(fileDescriptor: Int) {
                 protectSocket(fileDescriptor)
+            }
+
+            override fun onProxyGuardReady() {
+                onProxyGuardReady()
             }
 
             // Called when the native state machine changes
@@ -110,7 +115,7 @@ class BackendService(
                         showError(CommonException(ERROR_EMPTY_RESPONSE))
                         return true
                     }
-                    val cookieAndData = serializerService.deserializeCookieAndStringData(data)
+                    val cookieAndData = serializerService.deserializeCookieAndStringArrayData(data)
                     selectCountry(cookieAndData.cookie)
                     true
                 } else {
@@ -280,11 +285,17 @@ class BackendService(
         }
     }
 
-    fun selectCountry(cookie: Int?, organizationId: String, countryCode: String) {
+    fun selectCountry(cookie: Int?, organizationId: String, countryCode: String?) {
         val errorString = if (cookie != null) {
-            goBackend.cookieReply(cookie, countryCode)
-        } else {
+            if (countryCode == null) {
+                goBackend.cancelCookie(cookie)
+            } else {
+                goBackend.cookieReply(cookie, countryCode)
+            }
+        } else if (countryCode != null) {
             goBackend.selectCountry(organizationId, countryCode)
+        } else {
+            null
         }
         if (errorString != null) {
             throw CommonException(errorString)

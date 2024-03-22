@@ -65,7 +65,7 @@ class AddServerFragment : BaseFragment<FragmentAddServerBinding>() {
         viewModel.parentAction.observe(viewLifecycleOwner) { parentAction ->
             when (parentAction) {
                 is BaseConnectionViewModel.ParentAction.DisplayError -> {
-                    ErrorDialog.show(requireContext(), parentAction.title, parentAction.message)
+                    ErrorDialog.show(requireActivity(), parentAction.title, parentAction.message)
                 }
                 is BaseConnectionViewModel.ParentAction.ShowContextCanceledToast -> {
                     Snackbar.make(view, parentAction.message, Snackbar.LENGTH_LONG).show()

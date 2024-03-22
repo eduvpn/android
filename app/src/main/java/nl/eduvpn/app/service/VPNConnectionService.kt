@@ -8,6 +8,7 @@ import android.content.Intent
 import androidx.core.app.NotificationCompat
 import androidx.lifecycle.Observer
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import nl.eduvpn.app.Constants
@@ -16,8 +17,10 @@ import nl.eduvpn.app.MainActivity
 import nl.eduvpn.app.R
 import nl.eduvpn.app.entity.VPNConfig
 import nl.eduvpn.app.utils.FormattingUtils
+import nl.eduvpn.app.utils.Log
 import nl.eduvpn.app.utils.pendingIntentImmutableFlag
 import org.eduvpn.common.Protocol
+import java.lang.reflect.InvocationTargetException
 
 class VPNConnectionService(
     private val preferencesService: PreferencesService,
@@ -28,6 +31,19 @@ class VPNConnectionService(
     private val notificationID = Constants.VPN_CONNECTION_NOTIFICATION_ID
 
     private var statusObserver: Observer<VPNService.VPNStatus>? = null
+
+    private var pendingWireguardConfig: VPNConfig.WireGuard? = null
+
+    fun connectWithPendingConfig(
+        scope: CoroutineScope,
+        activity: Activity
+    ) : Boolean {
+        val config = pendingWireguardConfig?.config ?: return false
+        scope.launch {
+            wireGuardService.connect(activity, config)
+        }
+        return true
+    }
 
     fun disconnect(context: Context, vpnService: VPNService) {
         vpnService.disconnect()
@@ -45,12 +61,13 @@ class VPNConnectionService(
                 eduVPNOpenVPNService
             }
             is VPNConfig.WireGuard -> {
-                scope.launch {
-                    if (preferencesService.getCurrentProtocol() == Protocol.WireGuardWithProxyGuard.nativeValue) {
-                        // Delay the start a bit to give it enough time to set up Proxyguard
-                        delay(2_000L)
+                if (preferencesService.getCurrentProtocol() == Protocol.WireGuardWithProxyGuard.nativeValue) {
+                    Log.i(TAG, "Setting config to pending while ProxyGuard is connecting...")
+                    pendingWireguardConfig = vpnConfig
+                } else {
+                    scope.launch {
+                        wireGuardService.connect(activity, vpnConfig.config)
                     }
-                    wireGuardService.connect(activity, vpnConfig.config)
                 }
                 wireGuardService
             }
@@ -125,11 +142,14 @@ class VPNConnectionService(
         notificationManager.cancel(notificationID)
     }
 
-    fun protectSocket(fd: Int) {
-        wireGuardService.protectSocket(fd)
+    fun protectSocket(scope: CoroutineScope, fd: Int) {
+        scope.launch(Dispatchers.IO) {
+            wireGuardService.protectSocket(fd)
+        }
     }
 
     companion object {
+        private val TAG = VPNConnectionService::class.java.name
         fun vpnStatusToStringID(vpnStatus: VPNService.VPNStatus): Int {
             return when (vpnStatus) {
                 VPNService.VPNStatus.CONNECTED -> R.string.connection_info_state_connected

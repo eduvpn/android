@@ -23,8 +23,8 @@ data class CommonException(override val message: String?) : Exception(message) {
         return exceptionMessage?.message?.bestTranslation ?: message
     }
 
-    fun isAuthCancellationException() : Boolean {
-        return exceptionMessage?.message?.translations?.values?.any { it.contains("cause: context canceled") } == true
+    fun isMiscError(): Boolean {
+        return exceptionMessage?.misc == true
     }
 
     companion object {
