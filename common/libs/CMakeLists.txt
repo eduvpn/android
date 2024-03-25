@@ -14,7 +14,7 @@ set(GO_OS    "android")
 set(GO_ARCH  "${NDK_GO_ARCH_MAP_${ANDROID_ARCH_NAME}}")
 
 # The env var COMMON_VERSION comes from the build.gradle
-set(INTERMEDIARY_DIR "${CMAKE_CURRENT_SOURCE_DIR}/eduvpn-common/lib")
+set(INTERMEDIARY_DIR "${CMAKE_CURRENT_SOURCE_DIR}/eduvpn-common/lib/${GO_OS}/${GO_ARCH}")
 set(INTERMEDIARY_DEFAULT_HEADER "${INTERMEDIARY_DIR}/libeduvpn_common-${COMMON_VERSION}.h")
 set(INTERMEDIARY_HEADER "${INTERMEDIARY_DIR}/eduvpn_common.h")
 set(INTERMEDIARY_FILE "libeduvpn_common-${COMMON_VERSION}.so")
@@ -41,7 +41,7 @@ add_custom_command(
 		CGO_CPPFLAGS=${CLANG_FLAGS}\ --target=${ANDROID_LLVM_TRIPLE}
 		CGO_CFLAGS=${CLANG_FLAGS}\ ${CMAKE_C_FLAGS_NO_THUMB}\ -Wno-unused-command-line-argument
 		CGO_CXXFLAGS=${ClANG_FLAGS}\ ${CMAKE_CXX_FLAGS_NO_THUMB}
-		CGO_LDFLAGS=${CLANG_FLAGS}\ ${CMAKE_SHARED_LINKER_FLAGS}\ -Wl,-soname,${INTERMEDIARY_FILE}
+		CGO_LDFLAGS=${CLANG_FLAGS}\ ${CMAKE_SHARED_LINKER_FLAGS}
 	go build -o "${INTERMEDIARY_FILE_PATH}" -buildmode=c-shared ./exports
 )
 # Copy from intermediary to output file
