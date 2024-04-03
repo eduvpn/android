@@ -4,6 +4,7 @@
 - fix incorrect usage of seconds, should be ms 
   ([GH#411](https://github.com/eduvpn/android/issues/411))
 - fix not being able to add secure internet servers ([GH#412](https://github.com/eduvpn/android/issues/412))
+- Update eduvpn-common to commit b0cfacfd6ebc5f6d2bafd974047b9b21d45d1108
 
 ## 3.2.1 (2024-01-19)
 - update all build scripts for new release
