@@ -72,7 +72,7 @@
     <string name="callback_error">Callback error: %s</string>
     <string name="rejected_permission">User rejected access for the app.</string>
     <string name="settings_title">Settings</string>
-    <string name="settings_force_tcp_title">Force TCP</string>
+    <string name="settings_prefer_tcp_title">Prefer TCP</string>
     <string name="settings_custom_tabs_opt_out_title">Use Custom Tabs</string>
     <string name="settings_save">Save</string>
     <string name="loading_available_profiles">Loading available profiles…</string>
@@ -201,4 +201,5 @@
     <string name="cert_expiry_notification_title">VPN certificate about to expire</string>
     <string name="cert_expiry_notification_text">The VPN certificate is about to expire</string>
     <string name="vpn_connection_channel_name">VPN connection status</string>
+    <string name="error_starting_up_proxyguard_failed">Starting up of ProxyGuard failed</string>
 </resources>

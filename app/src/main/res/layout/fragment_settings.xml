@@ -65,17 +65,17 @@
                     android:layout_below="@id/resetAppDataContainer" />
 
                 <androidx.appcompat.widget.AppCompatCheckBox
-                    android:id="@+id/forceTcpSwitch"
+                    android:id="@+id/preferTcpSwitch"
                     style="@style/SettingsLabelTitle"
                     android:layout_below="@id/resetDataSeparator"
                     android:paddingLeft="8dp"
-                    android:text="@string/settings_force_tcp_title" />
+                    android:text="@string/settings_prefer_tcp_title" />
 
 
                 <View
                     android:id="@+id/tcpSeparator"
                     style="@style/SettingsSeparator"
-                    android:layout_below="@id/forceTcpSwitch" />
+                    android:layout_below="@id/preferTcpSwitch" />
 
 
                 <androidx.appcompat.widget.AppCompatCheckBox

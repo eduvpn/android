@@ -72,7 +72,6 @@
     <string name="callback_error">Error en el retorn: %s</string>
     <string name="rejected_permission">S\'ha refusat \'accés de l\'usuari per a l\'app.</string>
     <string name="settings_title">Preferències</string>
-    <string name="settings_force_tcp_title">Forçar TCP</string>
     <string name="settings_custom_tabs_opt_out_title">Emprar Pestanyes Personalitzades</string>
     <string name="settings_save">Desar</string>
     <string name="loading_available_profiles">Carregant perfils disponibles…</string>

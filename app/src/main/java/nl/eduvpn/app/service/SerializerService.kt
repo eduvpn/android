@@ -22,6 +22,7 @@ import kotlinx.serialization.json.Json
 import nl.eduvpn.app.entity.AddedServers
 import nl.eduvpn.app.entity.CertExpiryTimes
 import nl.eduvpn.app.entity.CookieAndProfileMapData
+import nl.eduvpn.app.entity.CookieAndStringArrayData
 import nl.eduvpn.app.entity.CookieAndStringData
 import nl.eduvpn.app.entity.CurrentServer
 import nl.eduvpn.app.entity.Instance
@@ -102,11 +103,11 @@ class SerializerService {
             if (jsonObject.has("use_custom_tabs")) {
                 useCustomTabs = jsonObject.getBoolean("use_custom_tabs")
             }
-            var forceTcp = Settings.FORCE_TCP_DEFAULT_VALUE
-            if (jsonObject.has("force_tcp")) {
-                forceTcp = jsonObject.getBoolean("force_tcp")
+            var preferTcp = Settings.PREFER_TCP_DEFAULT_VALUE
+            if (jsonObject.has("prefer_tcp")) {
+                preferTcp = jsonObject.getBoolean("prefer_tcp")
             }
-            Settings(useCustomTabs, forceTcp)
+            Settings(useCustomTabs, preferTcp)
         } catch (ex: JSONException) {
             throw UnknownFormatException(ex)
         }
@@ -124,7 +125,7 @@ class SerializerService {
         val result = JSONObject()
         return try {
             result.put("use_custom_tabs", settings.useCustomTabs())
-            result.put("force_tcp", settings.forceTcp())
+            result.put("prefer_tcp", settings.preferTcp())
             result
         } catch (ex: JSONException) {
             throw UnknownFormatException(ex)
@@ -311,6 +312,15 @@ class SerializerService {
     fun deserializeCookieAndStringData(json: String?): CookieAndStringData {
         return try {
             jsonSerializer.decodeFromString(CookieAndStringData.serializer(), json!!)
+        } catch (ex: SerializationException) {
+            throw UnknownFormatException(ex)
+        }
+    }
+
+    @Throws(UnknownFormatException::class)
+    fun deserializeCookieAndStringArrayData(json: String?): CookieAndStringArrayData {
+        return try {
+            jsonSerializer.decodeFromString(CookieAndStringArrayData.serializer(), json!!)
         } catch (ex: SerializationException) {
             throw UnknownFormatException(ex)
         }

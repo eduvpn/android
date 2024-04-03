@@ -36,6 +36,7 @@ import nl.eduvpn.app.databinding.FragmentServerSelectionBinding
 import nl.eduvpn.app.entity.Instance
 import nl.eduvpn.app.utils.ErrorDialog
 import nl.eduvpn.app.utils.ItemClickSupport
+import nl.eduvpn.app.utils.Log
 import nl.eduvpn.app.viewmodel.BaseConnectionViewModel
 import nl.eduvpn.app.viewmodel.ServerSelectionViewModel
 
@@ -75,7 +76,7 @@ class ServerSelectionFragment : BaseFragment<FragmentServerSelectionBinding>() {
                     Snackbar.make(view, parentAction.message, Snackbar.LENGTH_LONG).show()
                 }
                 is BaseConnectionViewModel.ParentAction.DisplayError -> {
-                    ErrorDialog.show(requireContext(), parentAction.title, parentAction.message)
+                    ErrorDialog.show(requireActivity(), parentAction.title, parentAction.message)
                 }
                 else -> {
                     // Do nothing.
@@ -84,6 +85,10 @@ class ServerSelectionFragment : BaseFragment<FragmentServerSelectionBinding>() {
         }
 
         ItemClickSupport.addTo(binding.serverList).setOnItemClickListener { _, position, _ ->
+            if (position < 0 || position >= adapter.itemCount) {
+                Log.w(TAG, "Could not select item with position: $position because it does not exist in the list!")
+                return@setOnItemClickListener
+            }
             val item = adapter.getItem(position)
             if (item is OrganizationAdapter.OrganizationAdapterItem.SecureInternet) {
                 viewModel.connectingTo.value = item.server
@@ -93,6 +98,10 @@ class ServerSelectionFragment : BaseFragment<FragmentServerSelectionBinding>() {
                 viewModel.getProfiles(item.server)
             }
         }.setOnItemLongClickListener { _, position, _ ->
+            if (position < 0 || position >= adapter.itemCount) {
+                Log.w(TAG, "Could not select item with position: $position because it does not exist in the list!")
+                return@setOnItemLongClickListener false
+            }
             val item = adapter.getItem(position)
             // If type is distributed access, then it is an organization server, which can be reset from Settings instead
             if (item is OrganizationAdapter.OrganizationAdapterItem.InstituteAccess) {
@@ -102,7 +111,7 @@ class ServerSelectionFragment : BaseFragment<FragmentServerSelectionBinding>() {
             return@setOnItemLongClickListener false
         }
         binding.warning.setOnClickListener {
-            ErrorDialog.show(it.context, R.string.warning_title, viewModel.warning.value!!)
+            ErrorDialog.show(requireActivity(), R.string.warning_title, viewModel.warning.value!!)
         }
         binding.addServerButton.setOnClickListener {
             openAddServerFragment(true)
@@ -152,6 +161,7 @@ class ServerSelectionFragment : BaseFragment<FragmentServerSelectionBinding>() {
     }
 
     companion object {
+        private val TAG = ServerSelectionFragment::class.java.name
         private const val KEY_RETURNING_FROM_AUTH = "returning_from_auth"
 
         fun newInstance(returningFromAuth: Boolean): ServerSelectionFragment {

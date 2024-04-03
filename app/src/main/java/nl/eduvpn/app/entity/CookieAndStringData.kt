@@ -7,3 +7,9 @@ data class CookieAndStringData(
     val data: String,
     val cookie: Int
 )
+
+@Serializable
+data class CookieAndStringArrayData(
+    val data: List<String>,
+    val cookie: Int
+)

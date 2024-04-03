@@ -217,4 +217,19 @@ class ConnectionStatusViewModel @Inject constructor(
         }
         return true
     }
+
+    fun notifyVpnStatus(vpnStatus: VPNService.VPNStatus) {
+        when (vpnStatus) {
+            VPNService.VPNStatus.CONNECTED -> {
+                backendService.notifyConnected()
+            }
+            VPNService.VPNStatus.CONNECTING, VPNService.VPNStatus.PAUSED -> {
+                backendService.notifyConnecting()
+            }
+            VPNService.VPNStatus.DISCONNECTED, VPNService.VPNStatus.FAILED -> {
+                backendService.notifyDisconnecting()
+                backendService.notifyDisconnected()
+            }
+        }
+    }
 }

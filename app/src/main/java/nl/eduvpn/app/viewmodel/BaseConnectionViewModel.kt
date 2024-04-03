@@ -79,8 +79,11 @@ abstract class BaseConnectionViewModel(
                 } else {
                     throwable.toString()
                 }
-                if ((throwable as? CommonException)?.isAuthCancellationException() == true) {
-                    _parentAction.postValue(ParentAction.ShowContextCanceledToast(throwable.translatedMessage()))
+                if ((throwable as? CommonException)?.isMiscError() == true) {
+                    // Ignore
+                    return@launch
+                } else if ((throwable as? CommonException)?.isMiscError() != true) {
+                    _parentAction.postValue(ParentAction.ShowContextCanceledToast(errorString))
                     return@launch
                 }
                 _parentAction.postValue(ParentAction.DisplayError(
@@ -99,15 +102,18 @@ abstract class BaseConnectionViewModel(
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 preferencesService.setCurrentInstance(instance)
-                backendService.getConfig(instance, preferencesService.getAppSettings().forceTcp())
+                backendService.getConfig(instance, preferencesService.getAppSettings().preferTcp())
             } catch (ex: Exception) {
                 val errorString = if (ex is CommonException) {
                     ex.translatedMessage()
                 } else {
                     ex.toString()
                 }
-                if ((ex as? CommonException)?.isAuthCancellationException() == true) {
-                    _parentAction.postValue(ParentAction.ShowContextCanceledToast(ex.translatedMessage()))
+                if ((ex as? CommonException)?.isMiscError() == true) {
+                    // Ignore
+                    return@launch
+                } else if ((ex as? CommonException)?.isMiscError() != true) {
+                    _parentAction.postValue(ParentAction.ShowContextCanceledToast(errorString))
                     return@launch
                 }
 
@@ -123,7 +129,7 @@ abstract class BaseConnectionViewModel(
     }
 
     public suspend fun selectProfileToConnectTo(profile: Profile) : Result<Unit> {
-        backendService.selectProfile(profile, preferencesService.getAppSettings().forceTcp())
+        backendService.selectProfile(profile, preferencesService.getAppSettings().preferTcp())
         return Result.success(Unit)
     }
 

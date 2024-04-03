@@ -24,22 +24,22 @@ package nl.eduvpn.app.entity;
 public class Settings {
 
     public static final boolean USE_CUSTOM_TABS_DEFAULT_VALUE = true;
-    public static final boolean FORCE_TCP_DEFAULT_VALUE = false;
+    public static final boolean PREFER_TCP_DEFAULT_VALUE = false;
 
     private boolean _useCustomTabs;
-    private boolean _forceTcp;
+    private boolean _preferTcp;
 
-    public Settings(boolean useCustomTabs, boolean forceTcp) {
+    public Settings(boolean useCustomTabs, boolean preferTcp) {
         _useCustomTabs = useCustomTabs;
-        _forceTcp = forceTcp;
+        _preferTcp = preferTcp;
     }
 
     public boolean useCustomTabs() {
         return _useCustomTabs;
     }
 
-    public boolean forceTcp() {
-        return _forceTcp;
+    public boolean preferTcp() {
+        return _preferTcp;
     }
 
 }

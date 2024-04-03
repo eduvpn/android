@@ -1,15 +1,18 @@
 package nl.eduvpn.app.viewmodel
 
+import android.app.Activity
 import android.content.Context
 import android.net.Uri
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
+import com.wireguard.config.BadConfigException
 import com.wireguard.config.Config
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import nl.eduvpn.app.MainActivity
 import nl.eduvpn.app.R
+import nl.eduvpn.app.entity.AddedServer
 import nl.eduvpn.app.entity.AuthorizationType
 import nl.eduvpn.app.entity.Instance
 import nl.eduvpn.app.entity.Profile
@@ -23,18 +26,18 @@ import nl.eduvpn.app.service.OrganizationService
 import nl.eduvpn.app.service.PreferencesService
 import nl.eduvpn.app.service.VPNConnectionService
 import nl.eduvpn.app.utils.Log
-import nl.eduvpn.app.utils.getCountryText
+import nl.eduvpn.app.utils.countryCodeToCountryNameAndFlag
 import nl.eduvpn.app.utils.toSingleEvent
 import org.eduvpn.common.Protocol
 import java.io.BufferedReader
 import java.io.StringReader
+import java.lang.reflect.InvocationTargetException
 import javax.inject.Inject
 
 class MainViewModel @Inject constructor(
     context: Context,
     private val historyService: HistoryService,
     private val backendService: BackendService,
-    private val organizationService: OrganizationService,
     private val preferencesService: PreferencesService,
     private val eduVpnOpenVpnService: EduVPNOpenVPNService,
     private val vpnConnectionService: VPNConnectionService
@@ -54,9 +57,10 @@ class MainViewModel @Inject constructor(
         data class OpenLink(val oAuthUrl: String) : MainParentAction()
         data class SelectCountry(val cookie: Int?) : MainParentAction()
         data class SelectProfiles(val profileList: List<Profile>): MainParentAction()
-        data class ConnectWithConfig(val config: SerializedVpnConfig, val forceTCP: Boolean) : MainParentAction()
-        data class ShowCountriesDialog(val instancesWithNames: List<Pair<Instance, String>>, val cookie: Int?): MainParentAction()
+        data class ConnectWithConfig(val config: SerializedVpnConfig, val preferTcp: Boolean) : MainParentAction()
+        data class ShowCountriesDialog(val serverWithCountries: List<Pair<AddedServer, String>>, val cookie: Int?): MainParentAction()
         data class ShowError(val throwable: Throwable) : MainParentAction()
+        data object OnProxyGuardReady: MainParentAction()
     }
 
     private val _mainParentAction = MutableLiveData<MainParentAction>()
@@ -73,11 +77,17 @@ class MainViewModel @Inject constructor(
             selectProfiles = { profileList ->
                 _mainParentAction.postValue(MainParentAction.SelectProfiles(profileList))
             },
-            connectWithConfig = { config, forceTcp ->
-                _mainParentAction.postValue(MainParentAction.ConnectWithConfig(config, forceTcp))
+            connectWithConfig = { config, preferTcp ->
+                _mainParentAction.postValue(MainParentAction.ConnectWithConfig(config, preferTcp))
             },
             showError = { throwable ->
                 _mainParentAction.postValue(MainParentAction.ShowError(throwable))
+            },
+            protectSocket = { fd ->
+                vpnConnectionService.protectSocket(viewModelScope, fd)
+            },
+            onProxyGuardReady = {
+                _mainParentAction.postValue(MainParentAction.OnProxyGuardReady)
             }
         )
         historyService.load()
@@ -99,9 +109,21 @@ class MainViewModel @Inject constructor(
     fun parseConfigAndStartConnection(
         activity: MainActivity,
         config: SerializedVpnConfig,
-        forceTCP: Boolean
+        preferTcp: Boolean
     ) {
         preferencesService.setCurrentProtocol(config.protocol)
+
+        if (config.protocol == Protocol.WireGuardWithProxyGuard.nativeValue && config.proxy != null) {
+            viewModelScope.launch(Dispatchers.IO) {
+                try {
+                    backendService.startProxyguard(config.proxy)
+                } catch (ex: CommonException) {
+                    // These are just warnings, so we log them, but don't display to the user
+                    Log.w( TAG, "Unable to start failover detection", ex)
+                }
+            }
+        }
+
         val parsedConfig = if (config.protocol == Protocol.OpenVPN.nativeValue) {
             eduVpnOpenVpnService.importConfig(
                 config.config,
@@ -109,13 +131,20 @@ class MainViewModel @Inject constructor(
             )?.let {
                 VPNConfig.OpenVPN(it)
             } ?: throw IllegalArgumentException("Unable to parse profile")
-        } else if (config.protocol == Protocol.WireGuard.nativeValue) {
-            VPNConfig.WireGuard(Config.parse(BufferedReader(StringReader(config.config))))
+        } else if (config.protocol == Protocol.WireGuard.nativeValue || config.protocol == Protocol.WireGuardWithProxyGuard.nativeValue) {
+            try {
+                VPNConfig.WireGuard(Config.parse(BufferedReader(StringReader(config.config))))
+            } catch (ex: BadConfigException) {
+                // Notify the user that the config is not valid
+                Log.e(TAG, "Unable to parse WireGuard config", ex)
+                _mainParentAction.postValue(MainParentAction.ShowError(ex))
+                return
+            }
         } else {
             throw IllegalArgumentException("Unexpected protocol type: ${config.protocol}")
         }
         val service = vpnConnectionService.connectionToConfig(viewModelScope, activity, parsedConfig)
-        if (config.protocol == Protocol.WireGuard.nativeValue && !forceTCP) {
+        if (config.protocol == Protocol.WireGuard.nativeValue && !preferTcp && config.shouldFailover) {
             viewModelScope.launch(Dispatchers.IO) {
                 try {
                     // Waits a bit so that the network interface has been surely set up
@@ -129,7 +158,7 @@ class MainViewModel @Inject constructor(
                                 // Wait a bit for the disconnection to finish
                                 delay(500L)
                                 // Fetch a new profile, now with TCP forced
-                                backendService.getConfig(currentInstance, forceTCP = true)
+                                backendService.getConfig(currentInstance, preferTcp = true)
                             }
                         }
                     }
@@ -151,13 +180,12 @@ class MainViewModel @Inject constructor(
     fun getCountryList(cookie: Int? = null) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val allInstances = organizationService.fetchServerList().serverList
-                val countryList = allInstances.filter {
-                    it.authorizationType == AuthorizationType.Distributed && it.countryCode != null
-                }.map {
-                    Pair(it, it.getCountryText() ?: "Unknown country")
+                val secureInternetServer = historyService.addedServers?.secureInternetServer!!
+                val locations = secureInternetServer.locations
+                val countryList = locations.map {
+                    Pair(secureInternetServer, it)
                 }
-                _mainParentAction.postValue(MainParentAction.ShowCountriesDialog(instancesWithNames = countryList, cookie = cookie))
+                _mainParentAction.postValue(MainParentAction.ShowCountriesDialog(serverWithCountries = countryList, cookie = cookie))
             } catch (ex: Exception) {
                 _parentAction.postValue(
                     ParentAction.DisplayError(
@@ -169,10 +197,22 @@ class MainViewModel @Inject constructor(
         }
     }
 
-    fun onCountrySelected(cookie: Int?, countryCode: String) {
+    fun onCountrySelected(cookie: Int?, organizationId: String, countryCode: String?) {
         viewModelScope.launch(Dispatchers.IO) {
-            backendService.selectCountry(cookie, countryCode)
-            historyService.load()
+            try {
+                backendService.selectCountry(cookie, organizationId, countryCode)
+                historyService.load()
+            } catch (ex: Exception) {
+                _mainParentAction.postValue(MainParentAction.ShowError(ex))
+            }
+        }
+    }
+
+    fun connectWithPendingConfig(activity: Activity) {
+        if (vpnConnectionService.connectWithPendingConfig(viewModelScope, activity)) {
+            Log.i(TAG, "Connection with pending config successful.")
+        } else {
+            Log.w(TAG, "Pending config not found!")
         }
     }
 
