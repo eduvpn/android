@@ -15,12 +15,13 @@ picasso = "2.71828"
 coroutines = "1.6.4"
 serialization-json = "1.6.0"
 core-library-desugaring = "2.0.3"
-junit = "4.12"
-androidx-test = "1.4.0"
-androidx-test-ext-junit = "1.1.3"
-androidx-test-orchestrator = "1.4.1"
-espresso = "3.4.0"
-uiautomator = "2.2.0"
+junit = "4.13.2"
+androidx-test-runner = "1.5.2"
+androidx-test-rules = "1.5.0"
+androidx-test-ext-junit = "1.1.5"
+androidx-test-orchestrator = "1.4.2"
+espresso = "3.5.1"
+uiautomator = "2.3.0"
 
 [libraries]
 wireguard = { group = "com.wireguard.android", name = "tunnel", version.ref = "wireguard" }
@@ -43,8 +44,8 @@ serialization = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization
 desugar-jdk-libs = { group = "com.android.tools", name = "desugar_jdk_libs", version.ref = "core-library-desugaring" }
 # Unit and UI testing
 junit = { group = "junit", name = "junit", version.ref = "junit" }
-androidx-test-runner = { group = "androidx.test", name = "runner", version.ref = "androidx-test" }
-androidx-test-rules = { group = "androidx.test", name = "rules", version.ref = "androidx-test" }
+androidx-test-runner = { group = "androidx.test", name = "runner", version.ref = "androidx-test-runner" }
+androidx-test-rules = { group = "androidx.test", name = "rules", version.ref = "androidx-test-rules" }
 androidx-test-ext-junit = { group = "androidx.test.ext", name = "junit", version.ref = "androidx-test-ext-junit" }
 androidx-test-orchestrator = { group = "androidx.test", name = "orchestrator", version.ref = "androidx-test-orchestrator" }
 espresso = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espresso" }

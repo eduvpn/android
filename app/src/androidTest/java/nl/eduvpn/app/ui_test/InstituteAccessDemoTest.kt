@@ -49,7 +49,7 @@ import org.junit.runner.RunWith
  */
 @RunWith(AndroidJUnit4::class)
 @LargeTest
-class InstituteAccessDemoTest {
+class InstituteAccessDemoTest : BrowserTest() {
 
     companion object {
         private val TAG = InstituteAccessDemoTest::class.java.name
@@ -85,33 +85,7 @@ class InstituteAccessDemoTest {
         // Switch over to UI Automator now, to control the browser
         val device = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
         val selector = UiSelector()
-        // Wait for the browser to open and load
-        Thread.sleep(2_000L)
-        try {
-            // Chrome asks at first launch to accept data usage
-            val acceptButton = device.findObject(UiSelector().className("android.widget.Button").text("Accept & continue"))
-            acceptButton.click()
-        } catch (ex: UiObjectNotFoundException) {
-            Log.w(TAG, "No Chrome accept window shown, continuing", ex)
-        }
-        try {
-            // Do not send all our web traffic to Google
-            val liteModeToggle = device.findObject(UiSelector().className("android.widget.Switch"))
-            if(liteModeToggle.isChecked) {
-                liteModeToggle.click()
-            }
-            val nextButton = device.findObject(UiSelector().className("android.widget.Button").text("Next"))
-            nextButton.click()
-        } catch (ex: UiObjectNotFoundException) {
-            Log.w(TAG, "No lite mode window shown, continuing", ex)
-        }
-        try {
-            // Now it wants us to Sign in...
-            val noThanksButton = device.findObject(UiSelector().text("No thanks"))
-            noThanksButton.click()
-        } catch (ex: UiObjectNotFoundException) {
-            Log.w(TAG, "No request for sign in, continuing", ex)
-        }
+        prepareBrowser()
         try {
             // Select eduID from the list
             // "Login with" is hidden in the UI
@@ -129,20 +103,16 @@ class InstituteAccessDemoTest {
                 selector.className("android.widget.EditText").instance(0)
             )
             userName.click()
-            userName.text = DEMO_USER
+            userName.setText(DEMO_USER)
             device.pressBack()
-            try {
-                Log.v(TAG, "Clicking 'type a password' link")
-                val typePasswordLink = device.findObject(selector.text("type a password."))
-                typePasswordLink.click()
-                Thread.sleep(500L)
-            } catch (ex: Exception) {
-                // Type a password preference is sometimes remembered.
-            }
+            Log.v(TAG, "Clicking 'Next' button")
+            val nextButton = device.findObject(selector.text("Next"))
+            nextButton.click()
+            Thread.sleep(1500L)
             Log.v(TAG, "Entering password.")
-            val password = device.findObject(selector.className("android.widget.EditText").instance(1))
+            val password = device.findObject(selector.className("android.widget.EditText").instance(0))
             password.click()
-            password.text = DEMO_PASSWORD
+            password.setText(DEMO_PASSWORD)
             device.pressBack()
             Log.v(TAG, "Logging in...")
             val loginButton = device.findObject(selector.text("Login"))
@@ -165,11 +135,13 @@ class InstituteAccessDemoTest {
         webView.scrollToEnd(2)
         Log.v(TAG, "Approving VPN app.")
         val approveButton = device.findObject(selector.text("Approve"))
-        approveButton.click()
         try {
+            approveButton.click()
             approveButton.click() // Sometimes it doesn't work :)
         } catch (ex: Exception) {
-            // Unhandled
+            // It might be in dutch
+            val toestaanButton = device.findObject(selector.text("Toestaan"))
+            toestaanButton.click()
         }
         BaseRobot().waitForView(withText("Demo")).check(matches(isDisplayed()))
     }

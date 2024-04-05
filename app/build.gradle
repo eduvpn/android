@@ -151,9 +151,6 @@ android {
     }
 }
 
-def daggerVersion = "2.48"
-def lifecycleVersion = "2.2.0"
-
 dependencies {
     // OpenVPN library
     implementation project(path: ':ics-openvpn-main')
@@ -188,10 +185,10 @@ dependencies {
     androidTestImplementation(eduvpnVersions.androidx.test.runner)
     androidTestImplementation(eduvpnVersions.androidx.test.rules)
     androidTestImplementation(eduvpnVersions.androidx.test.ext.junit)
-    androidTestImplementation(eduvpnVersions.androidx.test.orchestrator)
     androidTestImplementation(eduvpnVersions.espresso)
     androidTestImplementation(eduvpnVersions.uiautomator)
     coreLibraryDesugaring(eduvpnVersions.desugar.jdk.libs)
+    androidTestUtil(eduvpnVersions.androidx.test.orchestrator)
 }
 
 // This will fail the build if there is a Kotlin compiler warning.
