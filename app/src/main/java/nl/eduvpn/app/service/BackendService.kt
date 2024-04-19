@@ -225,14 +225,14 @@ class BackendService(
     }
 
     @kotlin.jvm.Throws(CommonException::class)
-    suspend fun handleRedirection(redirectUri: Uri?): Boolean {
+    fun handleRedirection(redirectUri: Uri?): Boolean {
         val cookie = pendingOAuthCookie
         val urlString = redirectUri?.toString()
         if (cookie == null || redirectUri == null || urlString.isNullOrEmpty()) {
             return false
         }
-        val error = goBackend.cookieReply(cookie, urlString)
         pendingOAuthCookie = null
+        val error = goBackend.cookieReply(cookie, urlString)
         if (!error.isNullOrEmpty()) {
             throw CommonException(error)
         }
