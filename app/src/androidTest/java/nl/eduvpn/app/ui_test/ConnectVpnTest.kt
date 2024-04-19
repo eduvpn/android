@@ -27,6 +27,7 @@ import androidx.test.espresso.matcher.ViewMatchers.*
 import androidx.test.ext.junit.rules.ActivityScenarioRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
+import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.platform.app.InstrumentationRegistry.getInstrumentation
 import androidx.test.uiautomator.*
 import nl.eduvpn.app.BaseRobot
@@ -46,7 +47,7 @@ import org.junit.runner.RunWith
  */
 @RunWith(AndroidJUnit4::class)
 @LargeTest
-class ConnectVpnTest {
+class ConnectVpnTest : BrowserTest() {
 
     companion object {
         private val TAG = ConnectVpnTest::class.java.name
@@ -82,48 +83,28 @@ class ConnectVpnTest {
                     allOf(withText(TEST_SERVER_URL), withClassName(containsString("TextView")))
             ).perform(click())
         }
-        // Switch over to UI Automator now, to control the browser
-        val device = UiDevice.getInstance(getInstrumentation())
-        // Wait for the browser to open and load
-        Thread.sleep(2_000L)
-        try {
-            // Chrome asks at first launch to accept data usage
-            val acceptButton = device.findObject(UiSelector().className("android.widget.Button").text("Accept & continue"))
-            acceptButton.click()
-        } catch (ex: UiObjectNotFoundException) {
-            Log.w(TAG, "No Chrome accept window shown, continuing", ex)
-        }
-        try {
-            // Do not send all our web traffic to Google
-            val liteModeToggle = device.findObject(UiSelector().className("android.widget.Switch"))
-            if(liteModeToggle.isChecked) {
-                liteModeToggle.click()
-            }
-            val nextButton = device.findObject(UiSelector().className("android.widget.Button").text("Next"))
-            nextButton.click()
-        } catch (ex: UiObjectNotFoundException) {
-            Log.w(TAG, "No lite mode window shown, continuing", ex)
-        }
-        try {
-            // Now it wants us to Sign in...
-            val noThanksButton = device.findObject(UiSelector().text("No thanks"))
-            noThanksButton.click()
-        } catch (ex: UiObjectNotFoundException) {
-            Log.w(TAG, "No request for sign in, continung", ex)
-        }
+        prepareBrowser()
+        val device = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
         try {
             // We can't find objects based on hints here, so we do it on layout order instead.
             Log.v(TAG, "Entering username.")
             val userName = device.findObject(UiSelector().className("android.widget.EditText").instance(0))
             userName.click()
-            userName.text = TEST_SERVER_USERNAME
-            Log.v(TAG, "Scrolling down to see password input")
-            val webView = UiScrollable(UiSelector().className("android.webkit.WebView").scrollable(true))
-            webView.scrollToEnd(1)
+            userName.setText(TEST_SERVER_USERNAME)
             Log.v(TAG, "Entering password.")
-            val password = device.findObject(UiSelector().className("android.widget.EditText").instance(1))
-            password.click()
-            password.text = TEST_SERVER_PASSWORD
+            var password: UiObject?
+            try {
+                password = device.findObject(UiSelector().className("android.widget.EditText").instance(1))
+                password.click()
+            } catch (ex: Exception) {
+                Log.v(TAG, "Scrolling down to see password input")
+                val webView = UiScrollable(UiSelector().className("android.webkit.WebView").scrollable(true))
+                webView.flingToEnd(1)
+                Log.v(TAG, "Entering password again.")
+                password = device.findObject(UiSelector().className("android.widget.EditText").instance(1))
+                password.click()
+            }
+            password?.setText(TEST_SERVER_PASSWORD)
             Log.v(TAG, "Hiding keyboard.")
             device.pressBack() // Closes the keyboard
             Log.v(TAG, "Signing in.")

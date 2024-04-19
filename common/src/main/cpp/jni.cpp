@@ -86,7 +86,8 @@ int createStateCallback(int oldstate, int newstate, void *data) {
 }
 
 // Implement a function that matches the proxyFD signature
-void proxyFD(int fd) {
+// the android app does not use peer_ips as it uses a socket protect for routing
+void proxyFD(int fd, const char* peer_ips) {
     if (!globalVM) {
         return;
     }

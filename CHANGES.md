@@ -1,5 +1,8 @@
 # Changelog
 
+## 3.2.3 (...)
+- Update eduvpn-common to commit 8f9a1ec5fb489af88c6e53f592bac3cccfb77f67
+
 ## 3.2.2 (2024-02-05)
 - fix incorrect usage of seconds, should be ms 
   ([GH#411](https://github.com/eduvpn/android/issues/411))
