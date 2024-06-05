@@ -88,7 +88,7 @@ class OrganizationSelectionViewModel @Inject constructor(
                 } else {
                     // We can't show any organization servers (secure internet), user needs to reset to switch.
                     connectionState.postValue(ConnectionState.FetchingServerList)
-                    CompletableDeferred(OrganizationList(-1L, emptyList()))
+                    CompletableDeferred(OrganizationList(emptyList()))
                 }
                 val cachedServerList = preferencesService.getServerList()
                 val serverListDeferred = if (cachedServerList != null) {
@@ -97,45 +97,15 @@ class OrganizationSelectionViewModel @Inject constructor(
                     async { organizationService.fetchServerList() }
                 }
 
-                val lastKnownOrganizationVersion =
-                    preferencesService.getLastKnownOrganizationListVersion()
-                val lastKnownServerListVersion = preferencesService.getLastKnownServerListVersion()
-
                 val organizationList =
                     runCatchingCoroutine { organizationListDeferred.await() }.getOrElse {
                         Log.w(TAG, "Organizations call has failed!", it)
-                        OrganizationList(-1L, emptyList())
+                        OrganizationList(emptyList())
                     }
 
                 val serverList = runCatchingCoroutine { serverListDeferred.await() }.getOrElse {
                     Log.w(TAG, "Server list call has failed!", it)
-                    ServerList(-1L, emptyList())
-                }
-                if (serverList.version > 0 && lastKnownServerListVersion != null && lastKnownServerListVersion > serverList.version) {
-                    organizations.value = emptyList()
-                    instituteAccessServers.value = emptyList()
-                    secureInternetServers.value = emptyList()
-                    connectionState.value = ConnectionState.Ready
-                    _parentAction.value = ParentAction.DisplayError(
-                        R.string.error_server_list_version_check_title,
-                        context.getString(R.string.error_server_list_version_check_message)
-                    )
-                } else if (organizationList.version > 0 && lastKnownOrganizationVersion != null && lastKnownOrganizationVersion > organizationList.version) {
-                    organizations.value = emptyList()
-                    instituteAccessServers.value = emptyList()
-                    secureInternetServers.value = emptyList()
-                    connectionState.value = ConnectionState.Ready
-                    _parentAction.value = ParentAction.DisplayError(
-                        R.string.error_organization_list_version_check_title,
-                        context.getString(R.string.error_organization_list_version_check_message)
-                    )
-                }
-
-                if (organizationList.version > 0) {
-                    preferencesService.setLastKnownOrganizationListVersion(organizationList.version)
-                }
-                if (serverList.version > 0) {
-                    preferencesService.setLastKnownServerListVersion(serverList.version)
+                    ServerList(emptyList())
                 }
 
                 val sortedOrganizations = organizationList.organizationList.sortedWith(
@@ -194,23 +164,21 @@ class OrganizationSelectionViewModel @Inject constructor(
                         )
                         return@map resultList
                     }
+
                     val instituteAccessServersFiltered = instituteAccessServers.filter {
                         matchesServer(searchText, it.server.displayName, it.server.keywords)
                     }
-                    val secureInternetServersFiltered = organizations.filter {
-                        matchesServer(searchText, it.displayName, it.keywordList)
-                    }.mapNotNull { organization ->
-                        val matchingServer = secureInternetServers
-                            .firstOrNull {
-                                it.baseURI == organization.secureInternetHome
-                            }
-                        if (matchingServer != null) {
-                            OrganizationAdapter.OrganizationAdapterItem.SecureInternet(
-                                matchingServer,
-                                organization
-                            )
-                        } else {
-                            null
+                    val secureInternetServersFiltered = if (historyService.hasSecureInternetServer()) {
+                        secureInternetServers.filter {
+                            matchesServer(searchText, it.displayName, it.keywords)
+                        }.map {
+                            OrganizationAdapter.OrganizationAdapterItem.SecureInternet(it)
+                        }
+                    } else {
+                        organizations.filter {
+                            matchesServer(searchText, it.displayName, it.keywordList)
+                        }.map {
+                            OrganizationAdapter.OrganizationAdapterItem.Organization(it)
                         }
                     }
                     if (instituteAccessServersFiltered.isNotEmpty()) {
@@ -236,14 +204,6 @@ class OrganizationSelectionViewModel @Inject constructor(
     val noItemsFound = connectionState.switchMap { state ->
         adapterItems.map { items ->
             items.isEmpty() && state == ConnectionState.Ready
-        }
-    }
-
-    fun selectOrganizationAndInstance(organization: Organization?, instance: Instance) {
-        if (organization == null) {
-            discoverApi(instance)
-        } else {
-            discoverApi(Instance(baseURI = organization.orgId, displayName = organization.displayName, authorizationType = AuthorizationType.Distributed))
         }
     }
 

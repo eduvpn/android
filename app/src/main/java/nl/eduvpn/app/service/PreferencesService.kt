@@ -59,15 +59,8 @@ class PreferencesService(
         private const val KEY_APP_SETTINGS = "app_settings"
         private const val KEY_PREFIX_SERVER_TOKEN = "server_token_"
 
-        const val KEY_ORGANIZATION = "organization"
         const val KEY_INSTANCE = "instance"
         const val KEY_VPN_PROTOCOL = "vpn_protocol"
-        const val KEY_PROFILE_LIST = "profile_list"
-        const val KEY_DISCOVERED_API = "discovered_api"
-
-        const val KEY_LAST_KNOWN_ORGANIZATION_LIST_VERSION = "last_known_organization_list_version"
-        const val KEY_LAST_KNOWN_SERVER_LIST_VERSION = "last_known_server_list_version"
-
         const val KEY_INSTANCE_LIST_PREFIX = "instance_list_"
 
         @Deprecated("")
@@ -267,67 +260,6 @@ class PreferencesService(
             getSharedPreferences().edit().putString(KEY_APP_SETTINGS, serializedSettings).apply()
         } catch (ex: SerializerService.UnknownFormatException) {
             Log.e(TAG, "Unable to serialize and save app settings!")
-        }
-    }
-
-    /**
-     * Sets the last known organization list version.
-     *
-     * @param version The last known organization list version. Use null if you want to remove previously set data.
-     */
-    fun setLastKnownOrganizationListVersion(version: Long?) {
-        if (version == null) {
-            getSharedPreferences().edit().remove(KEY_LAST_KNOWN_ORGANIZATION_LIST_VERSION)
-                .apply()
-        } else {
-            getSharedPreferences().edit()
-                .putLong(KEY_LAST_KNOWN_ORGANIZATION_LIST_VERSION, version).apply()
-        }
-    }
-
-    /**
-     * Returns the last known organization list version.
-     *
-     * @return The last known organization list version. Null if no previously set value has been found.
-     */
-    fun getLastKnownOrganizationListVersion(): Long? {
-        return if (getSharedPreferences().contains(KEY_LAST_KNOWN_ORGANIZATION_LIST_VERSION)) {
-            getSharedPreferences().getLong(
-                KEY_LAST_KNOWN_ORGANIZATION_LIST_VERSION,
-                Long.MIN_VALUE
-            )
-        } else {
-            null
-        }
-    }
-
-    /**
-     * Sets the last known server list version.
-     *
-     * @param version The last known server list version. Use null if you want to remove previously set data.
-     */
-    fun setLastKnownServerListVersion(version: Long?) {
-        if (version == null) {
-            getSharedPreferences().edit().remove(KEY_LAST_KNOWN_SERVER_LIST_VERSION).apply()
-        } else {
-            getSharedPreferences().edit().putLong(KEY_LAST_KNOWN_SERVER_LIST_VERSION, version)
-                .apply()
-        }
-    }
-
-    /**
-     * Returns the last known server list version.
-     *
-     * @return The last known server list version. Null if no previously set value has been found.
-     */
-    fun getLastKnownServerListVersion(): Long? {
-        if (getSharedPreferences().contains(KEY_LAST_KNOWN_SERVER_LIST_VERSION)) {
-            return getSharedPreferences().getLong(
-                KEY_LAST_KNOWN_SERVER_LIST_VERSION,
-                Long.MIN_VALUE
-            )
-        } else {
-            return null
         }
     }
 

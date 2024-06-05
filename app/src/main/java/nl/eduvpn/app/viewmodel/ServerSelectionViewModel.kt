@@ -141,7 +141,7 @@ class ServerSelectionViewModel @Inject constructor(
         }
         if (distributedInstance != null) {
             result += OrganizationAdapter.OrganizationAdapterItem.Header(R.drawable.ic_secure_internet, R.string.header_secure_internet, includeLocationButton = true)
-            result += OrganizationAdapter.OrganizationAdapterItem.SecureInternet(distributedInstance, null)
+            result += OrganizationAdapter.OrganizationAdapterItem.SecureInternet(distributedInstance)
         }
         if (customServers.isNotEmpty()) {
             result += OrganizationAdapter.OrganizationAdapterItem.Header(R.drawable.ic_server, R.string.header_other_servers)

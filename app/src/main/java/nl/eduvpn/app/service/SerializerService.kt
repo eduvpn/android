@@ -221,14 +221,13 @@ class SerializerService {
     fun deserializeOrganizationList(jsonObject: JSONObject): OrganizationList {
         return try {
             val result: MutableList<Organization> = ArrayList()
-            val version = jsonObject.getLong("v")
             val itemsList = jsonObject.getJSONArray("organization_list")
             for (i in 0 until itemsList.length()) {
                 val serializedItem = itemsList.getJSONObject(i)
                 val organization = deserializeOrganization(serializedItem)
                 result.add(organization)
             }
-            OrganizationList(version, result)
+            OrganizationList(result)
         } catch (ex: JSONException) {
             throw UnknownFormatException(ex)
         }
@@ -250,7 +249,6 @@ class SerializerService {
                 organizationsArray.put(serializeOrganization(organization))
             }
             result.put("organization_list", organizationsArray)
-            result.put("v", organizationList.version)
             result
         } catch (ex: JSONException) {
             throw UnknownFormatException(ex)

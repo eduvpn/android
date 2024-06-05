@@ -17,20 +17,14 @@
 
 package nl.eduvpn.app.fragment
 
-import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
 import android.view.View
-import androidx.appcompat.app.AppCompatActivity
-import androidx.browser.customtabs.CustomTabsIntent
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.DefaultItemAnimator
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
 import nl.eduvpn.app.EduVPNApplication
-import nl.eduvpn.app.MainActivity
 import nl.eduvpn.app.R
 import nl.eduvpn.app.adapter.OrganizationAdapter
 import nl.eduvpn.app.base.BaseFragment
@@ -77,9 +71,12 @@ class OrganizationSelectionFragment : BaseFragment<FragmentOrganizationSelection
             if (item is OrganizationAdapter.OrganizationAdapterItem.Header) {
                 return@setOnItemClickListener
             } else if (item is OrganizationAdapter.OrganizationAdapterItem.SecureInternet) {
-                viewModel.selectOrganizationAndInstance(item.organization, item.server)
+                viewModel.discoverApi(item.server)
             } else if (item is OrganizationAdapter.OrganizationAdapterItem.InstituteAccess) {
-                viewModel.selectOrganizationAndInstance(null, item.server)
+                viewModel.discoverApi(item.server)
+            } else if (item is OrganizationAdapter.OrganizationAdapterItem.Organization) {
+                val organization = item.organization
+                viewModel.discoverApi(Instance(baseURI = organization.orgId, displayName = organization.displayName, authorizationType = AuthorizationType.Distributed))
             } else if (item is OrganizationAdapter.OrganizationAdapterItem.AddServer) {
                 val customUrl =
                     if (item.url.startsWith("http://") || item.url.startsWith("https://")) {

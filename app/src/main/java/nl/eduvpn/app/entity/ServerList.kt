@@ -26,10 +26,6 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class ServerList(
-
-        @SerialName("v")
-        val version: Long,
-
         @SerialName("server_list")
         val serverList: List<Instance>
 )

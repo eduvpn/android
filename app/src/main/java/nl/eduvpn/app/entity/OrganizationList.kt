@@ -21,7 +21,4 @@ package nl.eduvpn.app.entity
 /**
  * A versioned list of organizations
  */
-data class OrganizationList(
-        val version: Long,
-        val organizationList: List<Organization>
-)
+data class OrganizationList(val organizationList: List<Organization>)

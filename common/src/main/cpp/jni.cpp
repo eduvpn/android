@@ -203,14 +203,16 @@ Java_org_eduvpn_common_GoBackend_register(JNIEnv *env, jobject /* this */, jstri
 extern "C" JNIEXPORT jobject JNICALL
 Java_org_eduvpn_common_GoBackend_discoverOrganizations(JNIEnv *env, jobject /* this */) {
     uintptr_t cookie = CookieNew();
-    DiscoOrganizations_return organizationsReturn = DiscoOrganizations(cookie);
+    const char *searchString = "";
+    DiscoOrganizations_return organizationsReturn = DiscoOrganizations(cookie, (char *)searchString);
     return CreateDataErrorTuple(env, organizationsReturn.r0, organizationsReturn.r1);
 }
 
 extern "C" JNIEXPORT jobject JNICALL
 Java_org_eduvpn_common_GoBackend_discoverServers(JNIEnv *env, jobject /* this */) {
     uintptr_t cookie = CookieNew();
-    DiscoServers_return serversReturn = DiscoServers(cookie);
+    const char *searchString = "";
+    DiscoServers_return serversReturn = DiscoServers(cookie, (char *)searchString);
     CookieDelete(cookie);
     return CreateDataErrorTuple(env, serversReturn.r0, serversReturn.r1);
 
