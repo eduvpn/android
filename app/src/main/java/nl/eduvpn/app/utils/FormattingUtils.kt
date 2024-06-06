@@ -124,7 +124,7 @@ object FormattingUtils {
         return if (instance.isCustom) {
             val uri = URI.create(instance.sanitizedBaseURI)
             uri.host
-        } else if (instance.countryCode != null) {
+        } else if (!instance.countryCode.isNullOrEmpty()) {
             Locale("en", instance.countryCode).getDisplayCountry(Constants.ENGLISH_LOCALE)
         } else {
             instance.displayName.bestTranslation

@@ -17,7 +17,6 @@
 
 package nl.eduvpn.app.service
 
-
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.SharedPreferences
@@ -34,7 +33,6 @@ import org.json.JSONException
 import org.json.JSONObject
 import java.io.File
 import java.io.IOException
-
 
 /**
  * This service is used to save temporary data
@@ -59,15 +57,8 @@ class PreferencesService(
         private const val KEY_APP_SETTINGS = "app_settings"
         private const val KEY_PREFIX_SERVER_TOKEN = "server_token_"
 
-        const val KEY_ORGANIZATION = "organization"
         const val KEY_INSTANCE = "instance"
         const val KEY_VPN_PROTOCOL = "vpn_protocol"
-        const val KEY_PROFILE_LIST = "profile_list"
-        const val KEY_DISCOVERED_API = "discovered_api"
-
-        const val KEY_LAST_KNOWN_ORGANIZATION_LIST_VERSION = "last_known_organization_list_version"
-        const val KEY_LAST_KNOWN_SERVER_LIST_VERSION = "last_known_server_list_version"
-
         const val KEY_INSTANCE_LIST_PREFIX = "instance_list_"
 
         @Deprecated("")
@@ -76,12 +67,6 @@ class PreferencesService(
         @Deprecated("")
         const val KEY_INSTANCE_LIST_INSTITUTE_ACCESS =
             KEY_INSTANCE_LIST_PREFIX + "institute_access"
-
-        const val KEY_SERVER_LIST_DATA = "server_list_data"
-        const val KEY_SERVER_LIST_TIMESTAMP = "server_list_timestamp"
-
-        const val KEY_SAVED_KEY_PAIRS = "saved_key_pairs"
-        const val KEY_PREFERRED_COUNTRY = "preferred_country"
 
         const val KEY_STORAGE_VERSION = "storage_version"
     }
@@ -267,116 +252,6 @@ class PreferencesService(
             getSharedPreferences().edit().putString(KEY_APP_SETTINGS, serializedSettings).apply()
         } catch (ex: SerializerService.UnknownFormatException) {
             Log.e(TAG, "Unable to serialize and save app settings!")
-        }
-    }
-
-    /**
-     * Sets the last known organization list version.
-     *
-     * @param version The last known organization list version. Use null if you want to remove previously set data.
-     */
-    fun setLastKnownOrganizationListVersion(version: Long?) {
-        if (version == null) {
-            getSharedPreferences().edit().remove(KEY_LAST_KNOWN_ORGANIZATION_LIST_VERSION)
-                .apply()
-        } else {
-            getSharedPreferences().edit()
-                .putLong(KEY_LAST_KNOWN_ORGANIZATION_LIST_VERSION, version).apply()
-        }
-    }
-
-    /**
-     * Returns the last known organization list version.
-     *
-     * @return The last known organization list version. Null if no previously set value has been found.
-     */
-    fun getLastKnownOrganizationListVersion(): Long? {
-        return if (getSharedPreferences().contains(KEY_LAST_KNOWN_ORGANIZATION_LIST_VERSION)) {
-            getSharedPreferences().getLong(
-                KEY_LAST_KNOWN_ORGANIZATION_LIST_VERSION,
-                Long.MIN_VALUE
-            )
-        } else {
-            null
-        }
-    }
-
-    /**
-     * Sets the last known server list version.
-     *
-     * @param version The last known server list version. Use null if you want to remove previously set data.
-     */
-    fun setLastKnownServerListVersion(version: Long?) {
-        if (version == null) {
-            getSharedPreferences().edit().remove(KEY_LAST_KNOWN_SERVER_LIST_VERSION).apply()
-        } else {
-            getSharedPreferences().edit().putLong(KEY_LAST_KNOWN_SERVER_LIST_VERSION, version)
-                .apply()
-        }
-    }
-
-    /**
-     * Returns the last known server list version.
-     *
-     * @return The last known server list version. Null if no previously set value has been found.
-     */
-    fun getLastKnownServerListVersion(): Long? {
-        if (getSharedPreferences().contains(KEY_LAST_KNOWN_SERVER_LIST_VERSION)) {
-            return getSharedPreferences().getLong(
-                KEY_LAST_KNOWN_SERVER_LIST_VERSION,
-                Long.MIN_VALUE
-            )
-        } else {
-            return null
-        }
-    }
-
-    /**
-     * Returns the server list if it is recent (see constants for exact TTL).
-     *
-     * @return The server list if it is recent, otherwise null.
-     */
-    fun getServerList(): ServerList? {
-        val timestamp = getSharedPreferences().getLong(KEY_SERVER_LIST_TIMESTAMP, 0L)
-        return if (System.currentTimeMillis() - timestamp < Constants.SERVER_LIST_VALID_FOR_MS) {
-            val serializedServerList =
-                getSharedPreferences().getString(KEY_SERVER_LIST_DATA, null)
-                    ?: return null
-            try {
-                _serializerService.deserializeServerList(serializedServerList)
-            } catch (ex: Exception) {
-                Log.w(TAG, "Unable to parse server list!", ex)
-                null
-            }
-        } else {
-            getSharedPreferences().edit()
-                .remove(KEY_SERVER_LIST_DATA)
-                .remove(KEY_SERVER_LIST_TIMESTAMP)
-                .apply()
-            null
-        }
-    }
-
-    /**
-     * Caches the server list. Only valid for a set amount, see constants for the exact TTL.
-     *
-     * @param serverList The server list to cache. Use null to remove previously set values.
-     */
-    fun setServerList(serverList: ServerList?) {
-        if (serverList == null) {
-            getSharedPreferences().edit().remove(KEY_SERVER_LIST_DATA)
-                .remove(KEY_SERVER_LIST_TIMESTAMP)
-                .apply()
-        } else {
-            try {
-                val serializedServerList = _serializerService.serializeServerList(serverList)
-                getSharedPreferences().edit()
-                    .putString(KEY_SERVER_LIST_DATA, serializedServerList)
-                    .putLong(KEY_SERVER_LIST_TIMESTAMP, System.currentTimeMillis())
-                    .apply()
-            } catch (ex: Exception) {
-                Log.w(TAG, "Unable to set server list!")
-            }
         }
     }
 

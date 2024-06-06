@@ -18,14 +18,18 @@
 
 package nl.eduvpn.app.viewmodel
 
+import android.app.Activity
 import android.app.AlarmManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.os.Handler
+import android.os.Looper
 import android.text.Spanned
 import androidx.core.text.HtmlCompat
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.asFlow
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -34,11 +38,11 @@ import nl.eduvpn.app.CertExpiredBroadcastReceiver
 import nl.eduvpn.app.R
 import nl.eduvpn.app.entity.CertExpiryTimes
 import nl.eduvpn.app.entity.Profile
+import nl.eduvpn.app.fragment.ConnectionStatusFragment
 import nl.eduvpn.app.service.*
 import nl.eduvpn.app.utils.Log
 import nl.eduvpn.app.utils.pendingIntentImmutableFlag
 import nl.eduvpn.app.utils.toSingleEvent
-import java.util.*
 import javax.inject.Inject
 import javax.inject.Named
 
@@ -76,7 +80,9 @@ class ConnectionStatusViewModel @Inject constructor(
     val serverProfiles = MutableLiveData<List<Profile>>()
     val byteCountFlow = vpnService.byteCountFlow
     val ipFLow = vpnService.ipFlow
+    val protocol = vpnService.getProtocol()
     val canRenew = MutableLiveData(false)
+    val vpnStatus = MutableLiveData(VPNService.VPNStatus.DISCONNECTED)
 
     private val _connectionParentAction = MutableLiveData<ParentAction>()
     val connectionParentAction = _connectionParentAction.toSingleEvent()
@@ -86,6 +92,8 @@ class ConnectionStatusViewModel @Inject constructor(
         .setAction(CertExpiredBroadcastReceiver.ACTION)
     private val pendingIntent =
         PendingIntent.getBroadcast(context, 0, intent, pendingIntentImmutableFlag)
+    private val gracefulDisconnectHandler = Handler(Looper.getMainLooper())
+
 
     init {
         val currentServer = historyService.currentServer
@@ -127,6 +135,36 @@ class ConnectionStatusViewModel @Inject constructor(
         }
         serverProfiles.value = currentServer.getProfiles()
         profileName.value = currentServer.currentProfile?.displayName?.bestTranslation
+        viewModelScope.launch {
+            vpnService.asFlow().collect { status ->
+                val previousStatus = vpnStatus.value ?: VPNService.VPNStatus.DISCONNECTED
+                vpnStatus.postValue(status)
+                when (status) {
+                    VPNService.VPNStatus.CONNECTED -> {
+                        isInDisconnectMode.value = false
+                        backendService.notifyConnected()
+                    }
+                    VPNService.VPNStatus.CONNECTING -> {
+                        isInDisconnectMode.value = false
+                        backendService.notifyConnecting()
+                    }
+                    VPNService.VPNStatus.PAUSED -> {
+                        isInDisconnectMode.value = false
+                    }
+                    VPNService.VPNStatus.DISCONNECTED, VPNService.VPNStatus.FAILED -> {
+                        gracefulDisconnectHandler.removeCallbacksAndMessages(null)
+                        isInDisconnectMode.value = true
+                        if (previousStatus != VPNService.VPNStatus.DISCONNECTED) {
+                            backendService.notifyDisconnecting()
+                            backendService.notifyDisconnected()
+                            viewModelScope.launch {
+                                backendService.cleanUp()
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
     override fun onResume() {
@@ -218,18 +256,34 @@ class ConnectionStatusViewModel @Inject constructor(
         return true
     }
 
-    fun notifyVpnStatus(vpnStatus: VPNService.VPNStatus) {
-        when (vpnStatus) {
-            VPNService.VPNStatus.CONNECTED -> {
-                backendService.notifyConnected()
-            }
-            VPNService.VPNStatus.CONNECTING, VPNService.VPNStatus.PAUSED -> {
-                backendService.notifyConnecting()
-            }
-            VPNService.VPNStatus.DISCONNECTED, VPNService.VPNStatus.FAILED -> {
-                backendService.notifyDisconnecting()
-                backendService.notifyDisconnected()
-            }
+    fun disconnect(activity: Activity?, retryCount: Int = 0) {
+        val isConnecting = vpnService.getStatus() == VPNService.VPNStatus.CONNECTING
+        disconnectWithCall(vpnService)
+        if (isConnecting) {
+            // In this case, if we call disconnect, the process can be killed.
+            // That means we won't get any notification from the disconnect event.
+            // So we add a timer which waits for the disconnect event. If not received, we assume the process was killed.
+            gracefulDisconnectHandler.postDelayed({
+                if (activity?.isFinishing != false) {
+                    Log.i(TAG, "Nothing to do, already finishing activity.")
+                    return@postDelayed
+                }
+                Log.i(TAG, "No disconnect event received from VPN within ${WAIT_FOR_DISCONNECT_UNTIL_MS} milliseconds. Assuming process died.")
+                if (retryCount < 3) {
+                    disconnect(activity, retryCount + 1)
+                } else {
+                    isInDisconnectMode.value = true
+                }
+            }, WAIT_FOR_DISCONNECT_UNTIL_MS.toLong())
         }
+    }
+
+    fun getVpnErrorString(): String? {
+        return vpnService.getErrorString()
+    }
+
+    companion object {
+        private const val WAIT_FOR_DISCONNECT_UNTIL_MS = 1_000
+        private val TAG = ConnectionStatusFragment::class.java.name
     }
 }

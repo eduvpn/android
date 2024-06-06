@@ -59,14 +59,8 @@ class ServerSelectionViewModel @Inject constructor(
 
     val connectingTo = MutableLiveData<Instance>()
 
-    // We avoid refreshing the organization too frequently.
-    private val serverListCache = MutableLiveData<Pair<Long, ServerList>>()
-
     init {
         historyService.addListener(this)
-        preferencesService.getServerList()?.let { serverList ->
-            serverListCache.value = Pair(System.currentTimeMillis(), serverList)
-        }
     }
 
     override fun onCleared() {
@@ -94,7 +88,7 @@ class ServerSelectionViewModel @Inject constructor(
         historyService.load()
         historyService.addListener(this)
         val needsServerList = historyService.addedServers?.secureInternetServer != null
-        if (needsServerList && (serverListCache.value == null || System.currentTimeMillis() - serverListCache.value!!.first > SERVER_LIST_CACHE_TTL)) {
+        if (needsServerList) {
             refreshServerList()
         } else {
             refreshInstances()
@@ -110,11 +104,9 @@ class ServerSelectionViewModel @Inject constructor(
         Log.v(TAG, "Fetching server list...")
         viewModelScope.launch(Dispatchers.IO) {
             runCatchingCoroutine {
-                organizationService.fetchServerList()
+                organizationService.fetchServerList("")
             }.onSuccess { serverList ->
                 Log.v(TAG, "Updated server list with latest entries.")
-                serverListCache.postValue(Pair(System.currentTimeMillis(), serverList))
-                preferencesService.setServerList(serverList)
                 refreshInstances()
             }.onFailure { throwable ->
                 Log.w(TAG, "Unable to fetch server list. Trying to show servers without it.", throwable)
@@ -141,7 +133,7 @@ class ServerSelectionViewModel @Inject constructor(
         }
         if (distributedInstance != null) {
             result += OrganizationAdapter.OrganizationAdapterItem.Header(R.drawable.ic_secure_internet, R.string.header_secure_internet, includeLocationButton = true)
-            result += OrganizationAdapter.OrganizationAdapterItem.SecureInternet(distributedInstance, null)
+            result += OrganizationAdapter.OrganizationAdapterItem.SecureInternet(distributedInstance)
         }
         if (customServers.isNotEmpty()) {
             result += OrganizationAdapter.OrganizationAdapterItem.Header(R.drawable.ic_server, R.string.header_other_servers)

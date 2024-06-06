@@ -46,9 +46,7 @@ public class HistoryService {
 
     private final BackendService _backendService;
 
-    private List<Listener> _listeners = new LinkedList<>();
-
-    private @Nullable OrganizationList _memoryCachedOrganizationList = null;
+    private final List<Listener> _listeners = new LinkedList<>();
 
     /**
      * Constructor.
@@ -101,16 +99,9 @@ public class HistoryService {
         }
     }
 
-    public @Nullable OrganizationList getOrganizationList() {
-        return _memoryCachedOrganizationList;
-    }
 
     public boolean hasSecureInternetServer() {
         return _addedServers.getSecureInternetServer() != null;
-    }
-
-    public void setOrganizationList(@Nullable OrganizationList organizationList) {
-        _memoryCachedOrganizationList = organizationList;
     }
 
     /**

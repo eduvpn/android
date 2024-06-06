@@ -73,20 +73,4 @@ class PreferencesServiceTest {
             retrievedInstance.authenticationUrlTemplate
         )
     }
-
-    @Test
-    fun testLastKnownOrganizationListVersionSave() {
-        val version = 121_323L
-        _preferencesService.setLastKnownOrganizationListVersion(version)
-        val retrievedVersion = _preferencesService.getLastKnownOrganizationListVersion()
-        Assert.assertEquals(version, retrievedVersion)
-    }
-
-    @Test
-    fun testLastKnownServerListVersionSave() {
-        val version = 8_982_398L
-        _preferencesService.setLastKnownServerListVersion(version)
-        val retrievedVersion = _preferencesService.getLastKnownServerListVersion()
-        Assert.assertEquals(version, retrievedVersion)
-    }
 }

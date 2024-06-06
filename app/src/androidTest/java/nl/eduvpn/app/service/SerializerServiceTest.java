@@ -85,28 +85,6 @@ public class SerializerServiceTest {
         assertEquals(instance.getSupportContact(), deserializedInstance.getSupportContact());
     }
 
-    @Test
-    public void testOrganizationListSerialization() throws SerializerService.UnknownFormatException {
-        Map<String, String> keywordsMap = new HashMap<>();
-        keywordsMap.put("en", "english keyword");
-        keywordsMap.put("de", "german keyword");
-        keywordsMap.put("nl", "dutch keyword");
-        Organization organization1 = new Organization("orgid-1", new TranslatableString("display name - 1"), new TranslatableString(keywordsMap), "https://server.info/url");
-        Organization organization2 = new Organization("orgid-2", new TranslatableString("display name - 2"), new TranslatableString("notthesamekeyword"), "https://server.info2/url");
-        Organization organization3 = new Organization("orgid-3", new TranslatableString("display name - 3"), new TranslatableString(), "http://server.info/url3");
-        List<Organization> organizations = Arrays.asList(organization1, organization2, organization3);
-        OrganizationList organizationList = new OrganizationList(12345L, organizations);
-        JSONObject serializedOrganizationList = _serializerService.serializeOrganizationList(organizationList);
-        OrganizationList deserializedOrganizationList = _serializerService.deserializeOrganizationList(serializedOrganizationList);
-        for (int i = 0; i < organizations.size(); ++i) {
-            assertEquals(organizations.get(i).getDisplayName(), deserializedOrganizationList.getOrganizationList().get(i).getDisplayName());
-            assertEquals(organizations.get(i).getKeywordList(), deserializedOrganizationList.getOrganizationList().get(i).getKeywordList());
-            assertEquals(organizations.get(i).getOrgId(), deserializedOrganizationList.getOrganizationList().get(i).getOrgId());
-            assertEquals(organizations.get(i).getSecureInternetHome(), deserializedOrganizationList.getOrganizationList().get(i).getSecureInternetHome());
-            assertEquals(organizationList.getVersion(), deserializedOrganizationList.getVersion());
-        }
-    }
-
     /**
      * Removes the milliseconds from a date. Required because the parser does not care about milliseconds.
      *

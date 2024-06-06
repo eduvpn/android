@@ -23,11 +23,7 @@ import org.eduvpn.common.GoBackend
 import org.eduvpn.common.GoBackend.Callback
 import org.eduvpn.common.ServerType
 import java.io.File
-import java.io.FileDescriptor
-import java.net.InetAddress
 import java.net.NetworkInterface
-import java.util.Collections
-import java.util.Locale
 
 
 class BackendService(
@@ -52,8 +48,6 @@ class BackendService(
     private val goBackend = GoBackend()
     private var pendingOAuthCookie: Int? = null
     private var pendingProfileSelectionCookie: Int? = null
-    var lastSelectedProfile: String? = null
-        private set
 
     private var onConfigReady: ((SerializedVpnConfig, Boolean) -> Unit)? = null
 
@@ -158,8 +152,8 @@ class BackendService(
     }
 
     @Throws(CommonException::class)
-    fun discoverOrganizations(): String {
-        val dataWithError = goBackend.discoverOrganizations()
+    fun discoverOrganizations(searchFilter: String): String {
+        val dataWithError = goBackend.discoverOrganizations(searchFilter)
         if (dataWithError.isError) {
             throw CommonException(dataWithError.error)
         }
@@ -170,8 +164,8 @@ class BackendService(
     }
 
     @Throws(CommonException::class)
-    fun discoverServers(): String {
-        val dataWithError = goBackend.discoverServers()
+    fun discoverServers(searchFilter: String): String {
+        val dataWithError = goBackend.discoverServers(searchFilter)
         if (dataWithError.isError) {
             throw CommonException(dataWithError.error)
         }
@@ -266,7 +260,6 @@ class BackendService(
 
     @kotlin.jvm.Throws(CommonException::class)
     suspend fun selectProfile(profile: Profile, preferTcp: Boolean) {
-        lastSelectedProfile = profile.profileId
         val cookie = pendingProfileSelectionCookie
         if (cookie != null) {
             val result = goBackend.selectProfile(cookie, profile.profileId)
@@ -336,6 +329,11 @@ class BackendService(
 
     fun notifyDisconnected() {
         goBackend.notifyDisconnected()
+    }
+
+    suspend fun cleanUp() = withContext(Dispatchers.IO) {
+        val result = goBackend.cleanUp()
+        Log.i(TAG, "Cleaned up common VPN connection with message: $result")
     }
 
     fun getLogFile() : File? {

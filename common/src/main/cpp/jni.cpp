@@ -201,16 +201,18 @@ Java_org_eduvpn_common_GoBackend_register(JNIEnv *env, jobject /* this */, jstri
 }
 
 extern "C" JNIEXPORT jobject JNICALL
-Java_org_eduvpn_common_GoBackend_discoverOrganizations(JNIEnv *env, jobject /* this */) {
+Java_org_eduvpn_common_GoBackend_discoverOrganizations(JNIEnv *env, jobject /* this */, jstring search) {
     uintptr_t cookie = CookieNew();
-    DiscoOrganizations_return organizationsReturn = DiscoOrganizations(cookie);
+    const char *searchString = env->GetStringUTFChars(search, nullptr);
+    DiscoOrganizations_return organizationsReturn = DiscoOrganizations(cookie, (char *)searchString);
     return CreateDataErrorTuple(env, organizationsReturn.r0, organizationsReturn.r1);
 }
 
 extern "C" JNIEXPORT jobject JNICALL
-Java_org_eduvpn_common_GoBackend_discoverServers(JNIEnv *env, jobject /* this */) {
+Java_org_eduvpn_common_GoBackend_discoverServers(JNIEnv *env, jobject /* this */, jstring search) {
     uintptr_t cookie = CookieNew();
-    DiscoServers_return serversReturn = DiscoServers(cookie);
+    const char *searchString = env->GetStringUTFChars(search, nullptr);
+    DiscoServers_return serversReturn = DiscoServers(cookie, (char *)searchString);
     CookieDelete(cookie);
     return CreateDataErrorTuple(env, serversReturn.r0, serversReturn.r1);
 
@@ -221,7 +223,7 @@ Java_org_eduvpn_common_GoBackend_addServer(JNIEnv *env, jobject /* this */, jint
     uintptr_t cookie = CookieNew();
     const char *id_str = env->GetStringUTFChars(id, nullptr);
     SetState(1); // Change first to main state to make sure we are not in a previous state.
-    char *error = AddServer(cookie, (int)serverType, (char *)id_str, 0);
+    char *error = AddServer(cookie, (int)serverType, (char *)id_str, nullptr);
     CookieDelete(cookie);
     // Do not delete the cookie, because it might be reused later in the flow
     if (error != nullptr) {
@@ -345,6 +347,15 @@ extern "C"
 JNIEXPORT void JNICALL
 Java_org_eduvpn_common_GoBackend_notifyDisconnected(JNIEnv *env, jobject /* this */) {
     SetState(11);
+}
+
+extern "C"
+JNIEXPORT jstring JNICALL
+Java_org_eduvpn_common_GoBackend_cleanUp(JNIEnv *env, jobject /* this */) {
+    uintptr_t cookie = CookieNew();
+    char *result = Cleanup(cookie);
+    CookieDelete(cookie);
+    return NativeStringToJString(env, result);
 }
 
 extern "C"
