@@ -223,7 +223,7 @@ Java_org_eduvpn_common_GoBackend_addServer(JNIEnv *env, jobject /* this */, jint
     uintptr_t cookie = CookieNew();
     const char *id_str = env->GetStringUTFChars(id, nullptr);
     SetState(1); // Change first to main state to make sure we are not in a previous state.
-    char *error = AddServer(cookie, (int)serverType, (char *)id_str, 0);
+    char *error = AddServer(cookie, (int)serverType, (char *)id_str, nullptr);
     CookieDelete(cookie);
     // Do not delete the cookie, because it might be reused later in the flow
     if (error != nullptr) {
