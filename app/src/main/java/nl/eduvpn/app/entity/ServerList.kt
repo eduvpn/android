@@ -27,5 +27,5 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class ServerList(
         @SerialName("server_list")
-        val serverList: List<Instance>
+        val serverList: List<Instance>? = null
 )

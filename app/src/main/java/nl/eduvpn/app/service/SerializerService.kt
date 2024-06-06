@@ -133,133 +133,26 @@ class SerializerService {
     }
 
     /**
-     * Serializes an organization into a JSON object.
-     *
-     * @param organization The organization to serialize
-     * @return The organization as a JSON object.
-     * @throws UnknownFormatException Thrown if there was an error while serializing.
-     */
-    @Throws(UnknownFormatException::class)
-    fun serializeOrganization(organization: Organization): JSONObject {
-        val result = JSONObject()
-        try {
-            result.put("org_id", organization.orgId)
-            if (organization.displayName.translations.isEmpty()) {
-                result.put("display_name", null)
-            } else {
-                val translations = JSONObject()
-                for ((key, value) in organization.displayName.translations) {
-                    translations.put(key, value)
-                }
-                result.put("display_name", translations)
-            }
-            if (organization.keywordList.translations.isEmpty()) {
-                result.put("keyword_list", null)
-            } else {
-                val translations = JSONObject()
-                for ((key, value) in organization.keywordList.translations) {
-                    translations.put(key, value)
-                }
-                result.put("keyword_list", translations)
-            }
-            result.put("secure_internet_home", organization.secureInternetHome)
-        } catch (ex: JSONException) {
-            throw UnknownFormatException(ex)
-        }
-        return result
-    }
-
-    /**
-     * Deserializes an organization from JSON.
-     *
-     * @param jsonObject The JSON object to deserialize.
-     * @return The organization instance.
-     * @throws UnknownFormatException Thrown if the JSON has an unknown format.
-     */
-    @Throws(UnknownFormatException::class)
-    fun deserializeOrganization(jsonObject: JSONObject): Organization {
-        return try {
-            val displayName: TranslatableString
-            displayName = if (jsonObject.isNull("display_name")) {
-                TranslatableString()
-            } else if (jsonObject["display_name"] is String) {
-                TranslatableString(jsonObject.getString("display_name"))
-            } else {
-                _parseAllTranslations(jsonObject.getJSONObject("display_name"))
-            }
-            val orgId = jsonObject.getString("org_id")
-            val translatableString: TranslatableString =
-                if (jsonObject.has("keyword_list") && !jsonObject.isNull("keyword_list")) {
-                    if (jsonObject["keyword_list"] is JSONObject) {
-                        _parseAllTranslations(jsonObject.getJSONObject("keyword_list"))
-                    } else if (jsonObject["keyword_list"] is String) {
-                        TranslatableString(jsonObject.getString("keyword_list"))
-                    } else {
-                        throw JSONException("keyword_list should be object or string")
-                    }
-                } else {
-                    TranslatableString()
-                }
-            var secureInternetHome: String? = null
-            if (jsonObject.has("secure_internet_home") && !jsonObject.isNull("secure_internet_home")) {
-                secureInternetHome = jsonObject.getString("secure_internet_home")
-            }
-            Organization(orgId, displayName, translatableString, secureInternetHome)
-        } catch (ex: JSONException) {
-            throw UnknownFormatException(ex)
-        }
-    }
-
-    /**
      * Deserializes a list of organizations.
-     *
-     * @param jsonObject The json to deserialize from.
-     * @return The list of organizations created from the JSON.
-     * @throws UnknownFormatException Thrown if there was an error while deserializing.
-     */
-    @Throws(UnknownFormatException::class)
-    fun deserializeOrganizationList(jsonObject: JSONObject): OrganizationList {
-        return try {
-            val result: MutableList<Organization> = ArrayList()
-            val itemsList = jsonObject.getJSONArray("organization_list")
-            for (i in 0 until itemsList.length()) {
-                val serializedItem = itemsList.getJSONObject(i)
-                val organization = deserializeOrganization(serializedItem)
-                result.add(organization)
-            }
-            OrganizationList(result)
-        } catch (ex: JSONException) {
-            throw UnknownFormatException(ex)
-        }
-    }
-
-    /**
-     * Serializes a list of organizations into a JSON format.
-     *
-     * @param organizationList The list of organizations to serialize.
-     * @return The messages as a JSON object.
-     * @throws UnknownFormatException Thrown if there was an error constructing the JSON.
-     */
-    @Throws(UnknownFormatException::class)
-    fun serializeOrganizationList(organizationList: OrganizationList): JSONObject {
-        return try {
-            val result = JSONObject()
-            val organizationsArray = JSONArray()
-            for (organization in organizationList.organizationList) {
-                organizationsArray.put(serializeOrganization(organization))
-            }
-            result.put("organization_list", organizationsArray)
-            result
-        } catch (ex: JSONException) {
-            throw UnknownFormatException(ex)
-        }
-    }
-
-    /**
-     * Deserializes a list of organization servers.
      *
      * @param json The json to deserialize from.
      * @return The list of organizations servers created from the JSON.
+     * @throws UnknownFormatException Thrown if there was an error while deserializing.
+     */
+    @Throws(UnknownFormatException::class)
+    fun deserializeOrganizationList(json: String?): OrganizationList {
+        return try {
+            jsonSerializer.decodeFromString(OrganizationList.serializer(), json!!)
+        } catch (ex: SerializationException) {
+            throw UnknownFormatException(ex)
+        }
+    }
+
+    /**
+     * Deserializes a list of secure internet / institute access servers.
+     *
+     * @param json The json to deserialize from.
+     * @return The list of servers created from the JSON.
      * @throws UnknownFormatException Thrown if there was an error while deserializing.
      */
     @Throws(UnknownFormatException::class)
@@ -269,41 +162,6 @@ class SerializerService {
         } catch (ex: SerializationException) {
             throw UnknownFormatException(ex)
         }
-    }
-
-    /**
-     * Serializes the server list to JSON format
-     *
-     * @param serverList The server list to serialize.
-     * @return The server list as a JSON object.
-     * @throws UnknownFormatException Thrown if there was an error while deserializing.
-     */
-    @Throws(UnknownFormatException::class)
-    fun serializeServerList(serverList: ServerList): String {
-        return try {
-            jsonSerializer.encodeToString(ServerList.serializer(), serverList)
-        } catch (ex: SerializationException) {
-            throw UnknownFormatException(ex)
-        }
-    }
-
-    /**
-     * Retrieves the translations from a JSON object.
-     *
-     * @param translationsObject The JSON object to retrieve the translations from.
-     * @return A TranslatableString instance.
-     * @throws JSONException Thrown if the input is in an unexpected format.
-     */
-    @Throws(JSONException::class)
-    private fun _parseAllTranslations(translationsObject: JSONObject): TranslatableString {
-        val keysIterator = translationsObject.keys()
-        val translationsMap: MutableMap<String, String> = HashMap()
-        while (keysIterator.hasNext()) {
-            val key = keysIterator.next()
-            val value = translationsObject.getString(key)
-            translationsMap[key] = value
-        }
-        return TranslatableString(translationsMap)
     }
 
     @Throws(UnknownFormatException::class)

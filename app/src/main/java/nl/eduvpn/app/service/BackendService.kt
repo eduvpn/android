@@ -158,8 +158,8 @@ class BackendService(
     }
 
     @Throws(CommonException::class)
-    fun discoverOrganizations(): String {
-        val dataWithError = goBackend.discoverOrganizations()
+    fun discoverOrganizations(searchFilter: String): String {
+        val dataWithError = goBackend.discoverOrganizations(searchFilter)
         if (dataWithError.isError) {
             throw CommonException(dataWithError.error)
         }
@@ -170,8 +170,8 @@ class BackendService(
     }
 
     @Throws(CommonException::class)
-    fun discoverServers(): String {
-        val dataWithError = goBackend.discoverServers()
+    fun discoverServers(searchFilter: String): String {
+        val dataWithError = goBackend.discoverServers(searchFilter)
         if (dataWithError.isError) {
             throw CommonException(dataWithError.error)
         }

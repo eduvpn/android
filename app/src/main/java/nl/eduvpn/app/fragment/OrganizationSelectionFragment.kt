@@ -20,10 +20,12 @@ package nl.eduvpn.app.fragment
 import android.os.Bundle
 import android.view.View
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.DefaultItemAnimator
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
+import kotlinx.coroutines.launch
 import nl.eduvpn.app.EduVPNApplication
 import nl.eduvpn.app.R
 import nl.eduvpn.app.adapter.OrganizationAdapter
@@ -117,8 +119,10 @@ class OrganizationSelectionFragment : BaseFragment<FragmentOrganizationSelection
             // Trigger initial status
             it.onChanged()
         }
-        viewModel.adapterItems.observe(viewLifecycleOwner) {
-            adapter.submitList(it)
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewModel.adapterItems.collect {
+                adapter.submitList(it)
+            }
         }
         viewModel.parentAction.observe(viewLifecycleOwner) { parentAction ->
             when (parentAction) {

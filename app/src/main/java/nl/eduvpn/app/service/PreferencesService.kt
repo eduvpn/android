@@ -70,9 +70,6 @@ class PreferencesService(
         const val KEY_INSTANCE_LIST_INSTITUTE_ACCESS =
             KEY_INSTANCE_LIST_PREFIX + "institute_access"
 
-        const val KEY_SERVER_LIST_DATA = "server_list_data"
-        const val KEY_SERVER_LIST_TIMESTAMP = "server_list_timestamp"
-
         const val KEY_SAVED_KEY_PAIRS = "saved_key_pairs"
         const val KEY_PREFERRED_COUNTRY = "preferred_country"
 
@@ -260,55 +257,6 @@ class PreferencesService(
             getSharedPreferences().edit().putString(KEY_APP_SETTINGS, serializedSettings).apply()
         } catch (ex: SerializerService.UnknownFormatException) {
             Log.e(TAG, "Unable to serialize and save app settings!")
-        }
-    }
-
-    /**
-     * Returns the server list if it is recent (see constants for exact TTL).
-     *
-     * @return The server list if it is recent, otherwise null.
-     */
-    fun getServerList(): ServerList? {
-        val timestamp = getSharedPreferences().getLong(KEY_SERVER_LIST_TIMESTAMP, 0L)
-        return if (System.currentTimeMillis() - timestamp < Constants.SERVER_LIST_VALID_FOR_MS) {
-            val serializedServerList =
-                getSharedPreferences().getString(KEY_SERVER_LIST_DATA, null)
-                    ?: return null
-            try {
-                _serializerService.deserializeServerList(serializedServerList)
-            } catch (ex: Exception) {
-                Log.w(TAG, "Unable to parse server list!", ex)
-                null
-            }
-        } else {
-            getSharedPreferences().edit()
-                .remove(KEY_SERVER_LIST_DATA)
-                .remove(KEY_SERVER_LIST_TIMESTAMP)
-                .apply()
-            null
-        }
-    }
-
-    /**
-     * Caches the server list. Only valid for a set amount, see constants for the exact TTL.
-     *
-     * @param serverList The server list to cache. Use null to remove previously set values.
-     */
-    fun setServerList(serverList: ServerList?) {
-        if (serverList == null) {
-            getSharedPreferences().edit().remove(KEY_SERVER_LIST_DATA)
-                .remove(KEY_SERVER_LIST_TIMESTAMP)
-                .apply()
-        } else {
-            try {
-                val serializedServerList = _serializerService.serializeServerList(serverList)
-                getSharedPreferences().edit()
-                    .putString(KEY_SERVER_LIST_DATA, serializedServerList)
-                    .putLong(KEY_SERVER_LIST_TIMESTAMP, System.currentTimeMillis())
-                    .apply()
-            } catch (ex: Exception) {
-                Log.w(TAG, "Unable to set server list!")
-            }
         }
     }
 

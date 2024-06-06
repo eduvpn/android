@@ -32,14 +32,13 @@ class OrganizationService(
 ) {
 
 
-    suspend fun fetchServerList() : ServerList = withContext(Dispatchers.IO) {
-        val serverListString = backendService.discoverServers()
+    suspend fun fetchServerList(searchFilter: String) : ServerList = withContext(Dispatchers.IO) {
+        val serverListString = backendService.discoverServers(searchFilter)
         serializerService.deserializeServerList(serverListString)
     }
 
-    suspend fun fetchOrganizations(): OrganizationList = withContext(Dispatchers.IO) {
-        val organizationListString = backendService.discoverOrganizations()
-        val organizationListJson = JSONObject(organizationListString)
-        serializerService.deserializeOrganizationList(organizationListJson)
+    suspend fun fetchOrganizations(searchFilter: String): OrganizationList = withContext(Dispatchers.IO) {
+        val organizationListString = backendService.discoverOrganizations(searchFilter)
+        serializerService.deserializeOrganizationList(organizationListString)
     }
 }

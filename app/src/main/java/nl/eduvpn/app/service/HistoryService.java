@@ -48,8 +48,6 @@ public class HistoryService {
 
     private List<Listener> _listeners = new LinkedList<>();
 
-    private @Nullable OrganizationList _memoryCachedOrganizationList = null;
-
     /**
      * Constructor.
      */
@@ -101,16 +99,9 @@ public class HistoryService {
         }
     }
 
-    public @Nullable OrganizationList getOrganizationList() {
-        return _memoryCachedOrganizationList;
-    }
 
     public boolean hasSecureInternetServer() {
         return _addedServers.getSecureInternetServer() != null;
-    }
-
-    public void setOrganizationList(@Nullable OrganizationList organizationList) {
-        _memoryCachedOrganizationList = organizationList;
     }
 
     /**

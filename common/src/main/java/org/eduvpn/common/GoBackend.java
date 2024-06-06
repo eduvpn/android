@@ -28,8 +28,8 @@ public class GoBackend {
             @Nullable String configDirectory,
             boolean debug
     );
-    public native DataErrorTuple discoverOrganizations();
-    public native DataErrorTuple discoverServers();
+    public native DataErrorTuple discoverOrganizations(@NonNull String search);
+    public native DataErrorTuple discoverServers(@NonNull String search);
     public native DataErrorTuple getAddedServers();
     public native DataErrorTuple getProfiles(int serverType, @NonNull String id, boolean preferTcp, boolean isStartUp);
     public native @Nullable String addServer(int serverType, @NonNull String id);

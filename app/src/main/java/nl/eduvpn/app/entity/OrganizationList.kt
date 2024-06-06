@@ -18,7 +18,14 @@
 
 package nl.eduvpn.app.entity
 
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+
 /**
  * A versioned list of organizations
  */
-data class OrganizationList(val organizationList: List<Organization>)
+@Serializable
+data class OrganizationList(
+    @SerialName("organization_list")
+    val organizationList: List<Organization>? = null
+)
