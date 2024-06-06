@@ -17,7 +17,6 @@
 package nl.eduvpn.app.service
 
 import kotlinx.serialization.SerializationException
-import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.Json
 import nl.eduvpn.app.entity.AddedServers
 import nl.eduvpn.app.entity.CertExpiryTimes
@@ -26,20 +25,12 @@ import nl.eduvpn.app.entity.CookieAndStringArrayData
 import nl.eduvpn.app.entity.CookieAndStringData
 import nl.eduvpn.app.entity.CurrentServer
 import nl.eduvpn.app.entity.Instance
-import nl.eduvpn.app.entity.Organization
 import nl.eduvpn.app.entity.OrganizationList
-import nl.eduvpn.app.entity.Profile
 import nl.eduvpn.app.entity.SerializedVpnConfig
 import nl.eduvpn.app.entity.ServerList
 import nl.eduvpn.app.entity.Settings
-import nl.eduvpn.app.entity.TranslatableString
-import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
-import java.text.DateFormat
-import java.text.SimpleDateFormat
-import java.util.Locale
-import java.util.TimeZone
 
 /**
  * This service is responsible for (de)serializing objects used in the app.
@@ -47,15 +38,6 @@ import java.util.TimeZone
  */
 class SerializerService {
     class UnknownFormatException internal constructor(throwable: Throwable?) : Exception(throwable)
-
-    @Throws(UnknownFormatException::class)
-    fun deserializeProfileList(json: String?): List<Profile> {
-        return try {
-            jsonSerializer.decodeFromString(ListSerializer(Profile.serializer()), json!!)
-        } catch (ex: SerializationException) {
-            throw UnknownFormatException(ex)
-        }
-    }
 
     /**
      * Serializes an instance to a JSON format.
@@ -228,10 +210,6 @@ class SerializerService {
     }
 
     companion object {
-        private val API_DATE_FORMAT: DateFormat =
-            SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US).apply {
-                timeZone = TimeZone.getTimeZone("UTC")
-            }
         private val jsonSerializer: Json = Json {
             ignoreUnknownKeys = true
             coerceInputValues = true

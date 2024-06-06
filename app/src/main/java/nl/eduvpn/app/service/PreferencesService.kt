@@ -17,7 +17,6 @@
 
 package nl.eduvpn.app.service
 
-
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.SharedPreferences
@@ -34,7 +33,6 @@ import org.json.JSONException
 import org.json.JSONObject
 import java.io.File
 import java.io.IOException
-
 
 /**
  * This service is used to save temporary data
@@ -69,9 +67,6 @@ class PreferencesService(
         @Deprecated("")
         const val KEY_INSTANCE_LIST_INSTITUTE_ACCESS =
             KEY_INSTANCE_LIST_PREFIX + "institute_access"
-
-        const val KEY_SAVED_KEY_PAIRS = "saved_key_pairs"
-        const val KEY_PREFERRED_COUNTRY = "preferred_country"
 
         const val KEY_STORAGE_VERSION = "storage_version"
     }

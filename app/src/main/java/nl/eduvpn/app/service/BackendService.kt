@@ -23,11 +23,7 @@ import org.eduvpn.common.GoBackend
 import org.eduvpn.common.GoBackend.Callback
 import org.eduvpn.common.ServerType
 import java.io.File
-import java.io.FileDescriptor
-import java.net.InetAddress
 import java.net.NetworkInterface
-import java.util.Collections
-import java.util.Locale
 
 
 class BackendService(
@@ -52,8 +48,6 @@ class BackendService(
     private val goBackend = GoBackend()
     private var pendingOAuthCookie: Int? = null
     private var pendingProfileSelectionCookie: Int? = null
-    var lastSelectedProfile: String? = null
-        private set
 
     private var onConfigReady: ((SerializedVpnConfig, Boolean) -> Unit)? = null
 
@@ -266,7 +260,6 @@ class BackendService(
 
     @kotlin.jvm.Throws(CommonException::class)
     suspend fun selectProfile(profile: Profile, preferTcp: Boolean) {
-        lastSelectedProfile = profile.profileId
         val cookie = pendingProfileSelectionCookie
         if (cookie != null) {
             val result = goBackend.selectProfile(cookie, profile.profileId)

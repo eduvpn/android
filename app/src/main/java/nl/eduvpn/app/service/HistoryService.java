@@ -46,7 +46,7 @@ public class HistoryService {
 
     private final BackendService _backendService;
 
-    private List<Listener> _listeners = new LinkedList<>();
+    private final List<Listener> _listeners = new LinkedList<>();
 
     /**
      * Constructor.
