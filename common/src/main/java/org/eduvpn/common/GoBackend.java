@@ -48,5 +48,6 @@ public class GoBackend {
     public native void notifyConnected();
     public native void notifyDisconnecting();
     public native void notifyDisconnected();
+    public native @Nullable String cleanUp();
     public native @Nullable String startProxyGuard(int sourcePort, @NotNull String listen, @NotNull String peer);
 }

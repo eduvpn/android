@@ -338,6 +338,11 @@ class BackendService(
         goBackend.notifyDisconnected()
     }
 
+    suspend fun cleanUp() = withContext(Dispatchers.IO) {
+        val result = goBackend.cleanUp()
+        Log.i(TAG, "Cleaned up common VPN connection with message: $result")
+    }
+
     fun getLogFile() : File? {
         val configDirectory = File(context.cacheDir, DIRECTORY_BACKEND_CONFIG_FILES)
         val configFile = File(configDirectory, "log")

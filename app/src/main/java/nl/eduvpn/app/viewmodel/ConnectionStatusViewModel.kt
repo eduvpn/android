@@ -229,6 +229,9 @@ class ConnectionStatusViewModel @Inject constructor(
             VPNService.VPNStatus.DISCONNECTED, VPNService.VPNStatus.FAILED -> {
                 backendService.notifyDisconnecting()
                 backendService.notifyDisconnected()
+                viewModelScope.launch {
+                    backendService.cleanUp()
+                }
             }
         }
     }

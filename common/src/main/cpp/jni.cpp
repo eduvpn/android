@@ -351,6 +351,15 @@ Java_org_eduvpn_common_GoBackend_notifyDisconnected(JNIEnv *env, jobject /* this
 
 extern "C"
 JNIEXPORT jstring JNICALL
+Java_org_eduvpn_common_GoBackend_cleanUp(JNIEnv *env, jobject /* this */) {
+    uintptr_t cookie = CookieNew();
+    char *result = Cleanup(cookie);
+    CookieDelete(cookie);
+    return NativeStringToJString(env, result);
+}
+
+extern "C"
+JNIEXPORT jstring JNICALL
 Java_org_eduvpn_common_GoBackend_startProxyGuard(JNIEnv *env, jobject /* this */, jint sourcePort, jstring listen, jstring peer) {
     const char *listen_str = env->GetStringUTFChars(listen, nullptr);
     const char *peer_str = env->GetStringUTFChars(peer, nullptr);
