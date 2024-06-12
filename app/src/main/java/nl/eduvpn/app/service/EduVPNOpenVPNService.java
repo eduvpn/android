@@ -257,6 +257,7 @@ public class EduVPNOpenVPNService extends VPNService implements VpnStatus.StateL
         switch (connectionStatus) {
             case LEVEL_CONNECTING_NO_SERVER_REPLY_YET:
             case LEVEL_CONNECTING_SERVER_REPLIED:
+            case LEVEL_NONETWORK:
             case LEVEL_START:
                 return VPNStatus.CONNECTING;
             case LEVEL_CONNECTED:
@@ -265,7 +266,6 @@ public class EduVPNOpenVPNService extends VPNService implements VpnStatus.StateL
                 return VPNStatus.PAUSED;
             case LEVEL_AUTH_FAILED:
                 return VPNStatus.FAILED;
-            case LEVEL_NONETWORK:
             case LEVEL_NOTCONNECTED:
             case LEVEL_WAITING_FOR_USER_INPUT:
             case UNKNOWN_LEVEL:

@@ -9,7 +9,6 @@ import androidx.core.app.NotificationCompat
 import androidx.lifecycle.Observer
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import nl.eduvpn.app.Constants
 import nl.eduvpn.app.DisconnectVPNBroadcastReceiver
@@ -20,7 +19,6 @@ import nl.eduvpn.app.utils.FormattingUtils
 import nl.eduvpn.app.utils.Log
 import nl.eduvpn.app.utils.pendingIntentImmutableFlag
 import org.eduvpn.common.Protocol
-import java.lang.reflect.InvocationTargetException
 
 class VPNConnectionService(
     private val preferencesService: PreferencesService,

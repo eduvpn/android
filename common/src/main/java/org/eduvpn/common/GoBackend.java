@@ -28,8 +28,8 @@ public class GoBackend {
             @Nullable String configDirectory,
             boolean debug
     );
-    public native DataErrorTuple discoverOrganizations();
-    public native DataErrorTuple discoverServers();
+    public native DataErrorTuple discoverOrganizations(@NonNull String search);
+    public native DataErrorTuple discoverServers(@NonNull String search);
     public native DataErrorTuple getAddedServers();
     public native DataErrorTuple getProfiles(int serverType, @NonNull String id, boolean preferTcp, boolean isStartUp);
     public native @Nullable String addServer(int serverType, @NonNull String id);
@@ -48,5 +48,6 @@ public class GoBackend {
     public native void notifyConnected();
     public native void notifyDisconnecting();
     public native void notifyDisconnected();
+    public native @Nullable String cleanUp();
     public native @Nullable String startProxyGuard(int sourcePort, @NotNull String listen, @NotNull String peer);
 }

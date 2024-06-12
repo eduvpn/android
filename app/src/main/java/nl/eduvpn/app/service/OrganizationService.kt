@@ -20,7 +20,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import nl.eduvpn.app.entity.OrganizationList
 import nl.eduvpn.app.entity.ServerList
-import org.json.JSONObject
 
 /**
  * Service which provides the configurations for organization related data model.
@@ -32,14 +31,13 @@ class OrganizationService(
 ) {
 
 
-    suspend fun fetchServerList() : ServerList = withContext(Dispatchers.IO) {
-        val serverListString = backendService.discoverServers()
+    suspend fun fetchServerList(searchFilter: String) : ServerList = withContext(Dispatchers.IO) {
+        val serverListString = backendService.discoverServers(searchFilter)
         serializerService.deserializeServerList(serverListString)
     }
 
-    suspend fun fetchOrganizations(): OrganizationList = withContext(Dispatchers.IO) {
-        val organizationListString = backendService.discoverOrganizations()
-        val organizationListJson = JSONObject(organizationListString)
-        serializerService.deserializeOrganizationList(organizationListJson)
+    suspend fun fetchOrganizations(searchFilter: String): OrganizationList = withContext(Dispatchers.IO) {
+        val organizationListString = backendService.discoverOrganizations(searchFilter)
+        serializerService.deserializeOrganizationList(organizationListString)
     }
 }

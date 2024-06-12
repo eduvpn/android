@@ -47,7 +47,8 @@ class OrganizationAdapter(private val onChangeLocationClickListener: (() -> Unit
     sealed class OrganizationAdapterItem {
         data class Header(@DrawableRes val icon: Int, @StringRes val headerName: Int, val includeLocationButton: Boolean = false) : OrganizationAdapterItem()
         data class InstituteAccess(val server: Instance) : OrganizationAdapterItem()
-        data class SecureInternet(val server: Instance, val organization: Organization?) : OrganizationAdapterItem()
+        data class SecureInternet(val server: Instance) : OrganizationAdapterItem()
+        data class Organization(val organization: nl.eduvpn.app.entity.Organization) : OrganizationAdapterItem()
         data class AddServer(val url: String) : OrganizationAdapterItem()
     }
 
@@ -68,11 +69,9 @@ class OrganizationAdapter(private val onChangeLocationClickListener: (() -> Unit
             if (item is OrganizationAdapterItem.InstituteAccess) {
                 holder.bind(item.server)
             } else if (item is OrganizationAdapterItem.SecureInternet) {
-                if (item.organization != null) {
-                    holder.bind(item.organization)
-                } else {
-                    holder.bind(item.server)
-                }
+                holder.bind(item.server)
+            } else if (item is OrganizationAdapterItem.Organization) {
+                holder.bind(item.organization)
             } else if (item is OrganizationAdapterItem.AddServer) {
                 holder.bind(item.url)
             } else {

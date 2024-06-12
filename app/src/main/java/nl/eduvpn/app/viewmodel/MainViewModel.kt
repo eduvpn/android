@@ -10,6 +10,7 @@ import com.wireguard.config.Config
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import nl.eduvpn.app.MainActivity
 import nl.eduvpn.app.R
 import nl.eduvpn.app.entity.AddedServer
@@ -201,7 +202,9 @@ class MainViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 backendService.selectCountry(cookie, organizationId, countryCode)
-                historyService.load()
+                withContext(Dispatchers.Main) {
+                    historyService.load()
+                }
             } catch (ex: Exception) {
                 _mainParentAction.postValue(MainParentAction.ShowError(ex))
             }
