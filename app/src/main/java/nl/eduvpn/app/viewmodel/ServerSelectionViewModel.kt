@@ -75,7 +75,7 @@ class ServerSelectionViewModel @Inject constructor(
         viewModelScope.launch {
             var retryCount = 0
             while (hasNoMoreServers() && retryCount < 5) {
-                delay(5_00L)
+                delay(500L)
                 Log.i(TAG, "No servers found, retrying once more just in case. [$retryCount]")
                 refresh()
                 retryCount++
