@@ -6,3 +6,13 @@
 -dontwarn org.conscrypt.*
 -dontwarn org.openjsse.javax.net.ssl.*
 -dontwarn org.openjsse.net.ssl.*
+
+-keepclassmembers class com.wireguard.android.backend.GoBackend {
+    <fields>;
+}
+-keepclassmembers class com.wireguard.android.backend.GoBackend$GhettoCompletableFuture {
+    <methods>;
+}
+-keepclassmembers class android.net.VpnService {
+    <methods>;
+}
