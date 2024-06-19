@@ -1,0 +1,5 @@
+- Update common Go library
+- Implement support for ProxyGuard (WireGuard over TCP)
+- Fix "Country Switcher"
+- Improve error dialogs
+- Do not crash on invalid WireGuard configuration files

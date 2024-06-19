@@ -1,7 +1,11 @@
 # Changelog
 
-## 3.2.3 (...)
-- Update eduvpn-common to commit 8f9a1ec5fb489af88c6e53f592bac3cccfb77f67
+## 3.3.0 (...)
+- Update common Go library
+- Implement support for ProxyGuard (WireGuard over TCP)
+- Fix "Country Switcher"
+- Improve error dialogs
+- Do not crash on invalid WireGuard configuration files
 
 ## 3.2.2 (2024-02-05)
 - fix incorrect usage of seconds, should be ms 
