@@ -107,7 +107,7 @@ void proxyReady() {
         return;
     }
     JNIEnv *env;
-    __android_log_print(ANDROID_LOG_WARN, "Common-JNI", "ProxyGuard is READY!");
+    __android_log_print(ANDROID_LOG_WARN, "Common-JNI", "ProxyGuard is ready!");
     bool didAttach = GetJniEnv(globalVM, &env);
     jfieldID callbackFieldId = env->GetStaticFieldID(globalBackendClass, "callbackFunction","Lorg/eduvpn/common/GoBackend$Callback;");
     jobject callbackField = env->GetStaticObjectField(globalBackendClass, callbackFieldId);
@@ -222,7 +222,10 @@ extern "C" JNIEXPORT jstring JNICALL
 Java_org_eduvpn_common_GoBackend_addServer(JNIEnv *env, jobject /* this */, jint serverType, jstring id) {
     uintptr_t cookie = CookieNew();
     const char *id_str = env->GetStringUTFChars(id, nullptr);
-    SetState(1); // Change first to main state to make sure we are not in a previous state.
+    if (InState(11).r0 != 0) {
+        // If we just disconnected, we need to manually set the state back to main
+        SetState(1);
+    }
     char *error = AddServer(cookie, (int)serverType, (char *)id_str, nullptr);
     CookieDelete(cookie);
     // Do not delete the cookie, because it might be reused later in the flow
