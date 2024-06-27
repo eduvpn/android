@@ -1,5 +1,8 @@
 # Changelog
 
+## UNRELEASED (XXXX-XX-XX)
+- Update eduvpn-common to release 2.0.2
+
 ## 3.2.2 (2024-02-05)
 - fix incorrect usage of seconds, should be ms 
   ([GH#411](https://github.com/eduvpn/android/issues/411))
