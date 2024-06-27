@@ -398,7 +398,7 @@ class BackendService(
 
     @Throws(CommonException::class)
     suspend fun startProxyguard(proxy: ProxySettings) = withContext(Dispatchers.IO) {
-        val result = goBackend.startProxyGuard(proxy.sourcePort, proxy.listen, proxy.peer)
+        val result = goBackend.startProxyGuard(0, proxy.listen, proxy.peer)
         if (!result.isNullOrEmpty()) {
             throw CommonException(result)
         }
