@@ -44,8 +44,8 @@ class ServerSelectionViewModel @Inject constructor(
     context: Context,
     backendService: BackendService,
     private val historyService: HistoryService,
-    private val preferencesService: PreferencesService,
     private val organizationService: OrganizationService,
+    preferencesService: PreferencesService,
     vpnConnectionService: VPNConnectionService,
 ) : BaseConnectionViewModel(
     context,
@@ -155,6 +155,5 @@ class ServerSelectionViewModel @Inject constructor(
 
     companion object {
         private val TAG = ServerSelectionViewModel::class.java.name
-        private const val SERVER_LIST_CACHE_TTL = 15 * 60 * 1_000L // 15 minutes
     }
 }

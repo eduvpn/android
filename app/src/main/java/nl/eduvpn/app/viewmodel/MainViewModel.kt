@@ -120,7 +120,7 @@ class MainViewModel @Inject constructor(
                     backendService.startProxyguard(config.proxy)
                 } catch (ex: CommonException) {
                     // These are just warnings, so we log them, but don't display to the user
-                    Log.w( TAG, "Unable to start failover detection", ex)
+                    Log.w( TAG, "Unable to start Proxyguard detection", ex)
                 }
             }
         }
