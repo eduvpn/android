@@ -127,7 +127,7 @@ class WireGuardService(private val context: Context, timer: Flow<Unit>): VPNServ
                     withContext(Dispatchers.Main) {
                         pendingConfig = config
                         authorizeVPN(activity)
-                        setConnectionStatus(VPNStatus.DISCONNECTED)
+                        setConnectionStatus(VPNStatus.CONNECTING)
                     }
                 } else {
                     fail(ex.toString())
