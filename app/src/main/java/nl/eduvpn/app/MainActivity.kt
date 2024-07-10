@@ -327,7 +327,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             }
         } else if (requestCode == 0) {
             // Probably VPN permission granted. Can't really check for it
-            wireGuardService.tryResumeConnecting(this)
+            wireGuardService.tryResumeConnecting(this, viewModel.proxyGuardEnabled)
         }
         super.onActivityResult(requestCode, resultCode, data)
     }
