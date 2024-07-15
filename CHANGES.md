@@ -1,7 +1,7 @@
 # Changelog
 
 ## 3.3.0 (...)
-- Update common Go library
+- Update eduvpn-common to release 2.0.2
 - Implement support for ProxyGuard (WireGuard over TCP)
 - Fix "Country Switcher"
 - Improve error dialogs

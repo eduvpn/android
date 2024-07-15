@@ -67,6 +67,8 @@ class MainViewModel @Inject constructor(
     private val _mainParentAction = MutableLiveData<MainParentAction>()
     val mainParentAction = _mainParentAction.toSingleEvent()
 
+    val proxyGuardEnabled: Boolean get() = preferencesService.getCurrentProtocol() == Protocol.WireGuardWithProxyGuard.nativeValue
+
     init {
         backendService.register(
             startOAuth = { oAuthUrl ->
