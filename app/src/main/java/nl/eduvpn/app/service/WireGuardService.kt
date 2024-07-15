@@ -8,6 +8,7 @@ import com.wireguard.android.backend.GoBackend
 import com.wireguard.android.backend.Tunnel
 import com.wireguard.config.Config
 import com.wireguard.config.Interface
+import com.wireguard.config.Peer
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -116,16 +117,37 @@ class WireGuardService(private val context: Context, timer: Flow<Unit>): VPNServ
      * @param activity   The current activity, required for providing a context.
      * @param config  The config to use for connecting.
      */
-    suspend fun connect(activity: Activity, config: Config) {
+    suspend fun connect(activity: Activity, config: Config, proxyGuardEnabled: Boolean) {
+        var updatedConfig = config
+        if (proxyGuardEnabled) {
+            // Workaround for Proxyguard disconnecting with a TCP timeout when the app is in the background for a longer time
+            // Here we set peer.persistentKeepAlive to 25, which seems to solve the issue
+            updatedConfig = Config.Builder()
+                .setInterface(config.`interface`)
+                .addPeers(
+                    config.peers.map {
+                        val builder = Peer.Builder()
+                            .setPublicKey(it.publicKey)
+                            .setPersistentKeepalive(25)
+                        it.endpoint.getOrNull()?.let { endpoint ->
+                            builder.setEndpoint(endpoint)
+                        }
+                        it.preSharedKey.getOrNull()?.let { preSharedKey ->
+                            builder.setPreSharedKey(preSharedKey)
+                        }
+                        builder.build()
+                    }
+                ).build()
+        }
         withContext(backendDispatcher) {
             setConnectionStatus(VPNStatus.CONNECTING)
             _ipFlow.emit(getIPs(config.`interface`))
             try {
-                backend.setState(tunnel, Tunnel.State.UP, config)
+                backend.setState(tunnel, Tunnel.State.UP, updatedConfig)
             } catch (ex: BackendException) {
                 if (ex.reason == BackendException.Reason.VPN_NOT_AUTHORIZED) {
                     withContext(Dispatchers.Main) {
-                        pendingConfig = config
+                        pendingConfig = updatedConfig
                         authorizeVPN(activity)
                         setConnectionStatus(VPNStatus.CONNECTING)
                     }
@@ -171,10 +193,10 @@ class WireGuardService(private val context: Context, timer: Flow<Unit>): VPNServ
         return Protocol.WireGuard
     }
 
-    fun tryResumeConnecting(activity: Activity) {
+    fun tryResumeConnecting(activity: Activity, proxyGuardEnabled: Boolean) {
         GlobalScope.launch(backendDispatcher) {
             pendingConfig?.let {
-                connect(activity, it)
+                connect(activity, it, proxyGuardEnabled)
             }
             pendingConfig = null
         }

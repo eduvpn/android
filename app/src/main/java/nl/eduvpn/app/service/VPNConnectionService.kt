@@ -38,7 +38,7 @@ class VPNConnectionService(
     ) : Boolean {
         val config = pendingWireguardConfig?.config ?: return false
         scope.launch {
-            wireGuardService.connect(activity, config)
+            wireGuardService.connect(activity, config, proxyGuardEnabled = true)
         }
         return true
     }
@@ -64,7 +64,7 @@ class VPNConnectionService(
                     pendingWireguardConfig = vpnConfig
                 } else {
                     scope.launch {
-                        wireGuardService.connect(activity, vpnConfig.config)
+                        wireGuardService.connect(activity, vpnConfig.config, proxyGuardEnabled = false)
                     }
                 }
                 wireGuardService
