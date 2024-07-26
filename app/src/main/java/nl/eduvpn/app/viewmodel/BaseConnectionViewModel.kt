@@ -99,7 +99,7 @@ abstract class BaseConnectionViewModel(
     }
 
     fun getProfiles(instance: Instance) {
-        connectionState.value = ConnectionState.FetchingProfiles
+        connectionState.postValue(ConnectionState.FetchingProfiles)
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 preferencesService.setCurrentInstance(instance)
