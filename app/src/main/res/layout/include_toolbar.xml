@@ -58,6 +58,7 @@
                 android:src="@drawable/ic_settings"
                 app:tint="@color/iconColor"
                 app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintBottom_toTopOf="@id/helpButton"
                 app:layout_constraintTop_toTopOf="parent" />
 
             <ImageView
@@ -69,6 +70,7 @@
                 android:padding="8dp"
                 android:src="@drawable/ic_help"
                 app:tint="@color/iconColor"
+                app:layout_constraintTop_toBottomOf="@id/settingsButton"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintRight_toRightOf="parent" />
 

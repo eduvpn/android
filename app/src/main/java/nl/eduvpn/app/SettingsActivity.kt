@@ -23,6 +23,7 @@ import android.os.Bundle
 import android.view.MenuItem
 import android.view.View
 import androidx.core.content.ContextCompat
+import androidx.core.view.isVisible
 import nl.eduvpn.app.base.BaseActivity
 import nl.eduvpn.app.databinding.ActivitySettingsBinding
 import nl.eduvpn.app.fragment.SettingsFragment
@@ -41,8 +42,7 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
             .commit()
         setSupportActionBar(binding.toolbar.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        binding.toolbar.settingsButton.imageTintList =
-            ColorStateList.valueOf(ContextCompat.getColor(this, R.color.buttonBackgroundColor))
+        binding.toolbar.settingsButton.isVisible = false
         binding.toolbar.helpButton.setOnClickListener { _: View ->
             startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(BuildConfig.HELP_URI)))
         }
