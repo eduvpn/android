@@ -26,6 +26,7 @@
         android:background="@color/backgroundColor"
         android:elevation="0dp"
         android:minHeight="@dimen/actionbar_size"
+        android:fitsSystemWindows="false"
         app:contentInsetLeft="?attr/actionBarSize"
         app:contentInsetStart="?attr/actionBarSize"
         app:contentInsetStartWithNavigation="0dp"
@@ -33,7 +34,7 @@
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="@dimen/actionbar_size"
             android:paddingRight="16dp">
 
             <ImageView
