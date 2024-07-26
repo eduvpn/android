@@ -1,7 +1,9 @@
 package nl.eduvpn.app
 
 import android.os.Bundle
+import android.view.MenuItem
 import androidx.activity.viewModels
+import androidx.core.view.isVisible
 import nl.eduvpn.app.base.BaseActivity
 import nl.eduvpn.app.databinding.ActivityApiLogsBinding
 import nl.eduvpn.app.viewmodel.ApiLogsViewModel
@@ -19,6 +21,19 @@ class ApiLogsActivity : BaseActivity<ActivityApiLogsBinding>() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         EduVPNApplication.get(this).component().inject(this)
+        setSupportActionBar(binding.toolbar.toolbar)
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        binding.toolbar.settingsButton.isVisible = false
+
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return if (item.itemId == android.R.id.home) {
+            onBackPressedDispatcher.onBackPressed()
+            true
+        } else {
+            super.onOptionsItemSelected(item)
+        }
     }
 
     override fun onResume() {

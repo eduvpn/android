@@ -26,6 +26,7 @@
         android:background="@color/backgroundColor"
         android:elevation="0dp"
         android:minHeight="@dimen/actionbar_size"
+        android:fitsSystemWindows="false"
         app:contentInsetLeft="?attr/actionBarSize"
         app:contentInsetStart="?attr/actionBarSize"
         app:contentInsetStartWithNavigation="0dp"
@@ -33,7 +34,7 @@
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="@dimen/actionbar_size"
             android:paddingRight="16dp">
 
             <ImageView
@@ -58,6 +59,7 @@
                 android:src="@drawable/ic_settings"
                 app:tint="@color/iconColor"
                 app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintBottom_toTopOf="@id/helpButton"
                 app:layout_constraintTop_toTopOf="parent" />
 
             <ImageView
@@ -69,6 +71,7 @@
                 android:padding="8dp"
                 android:src="@drawable/ic_help"
                 app:tint="@color/iconColor"
+                app:layout_constraintTop_toBottomOf="@id/settingsButton"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintRight_toRightOf="parent" />
 
