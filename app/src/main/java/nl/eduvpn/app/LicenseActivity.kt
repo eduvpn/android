@@ -21,6 +21,7 @@ package nl.eduvpn.app
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.view.MenuItem
 import androidx.core.view.isVisible
 import nl.eduvpn.app.base.BaseActivity
 import nl.eduvpn.app.databinding.ActivityLicensesBinding
@@ -31,6 +32,8 @@ class LicenseActivity : BaseActivity<ActivityLicensesBinding>() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        setSupportActionBar(binding.toolbar.toolbar)
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
         binding.webView.loadUrl("file:///android_asset/licenses.html");
         binding.toolbar.settingsButton.isVisible = false
         binding.toolbar.helpButton.setOnClickListener {
@@ -38,4 +41,12 @@ class LicenseActivity : BaseActivity<ActivityLicensesBinding>() {
         }
     }
 
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return if (item.itemId == android.R.id.home) {
+            onBackPressedDispatcher.onBackPressed()
+            true
+        } else {
+            super.onOptionsItemSelected(item)
+        }
+    }
 }
