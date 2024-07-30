@@ -127,6 +127,7 @@ class WireGuardService(private val context: Context, timer: Flow<Unit>): VPNServ
                 .addPeers(
                     config.peers.map {
                         val builder = Peer.Builder()
+                            .addAllowedIps(it.allowedIps)
                             .setPublicKey(it.publicKey)
                             .setPersistentKeepalive(25)
                         it.endpoint.getOrNull()?.let { endpoint ->
