@@ -1,11 +1,12 @@
 # Changelog
 
-## 3.3.0 (...)
+## 3.3.0 (2024-08-12)
 - Update eduvpn-common to release 2.0.2
 - Implement support for ProxyGuard (WireGuard over TCP)
 - Fix "Country Switcher"
 - Improve error dialogs
 - Do not crash on invalid WireGuard configuration files
+- Update ics-openvpn (v0.7.5.1)
 
 ## 3.2.2 (2024-02-05)
 - fix incorrect usage of seconds, should be ms 
