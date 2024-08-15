@@ -15,21 +15,21 @@ PROJECT_DIR=${HOME}/Projects
 APP_DIR=${PROJECT_DIR}/eduvpn-android-${V}
 
 # eduVPN
-GRADLE_TASKS=app:assembleBasicRelease app:bundleBasicRelease
+GRADLE_TASKS="app:assembleBasicRelease app:bundleBasicRelease"
 UNSIGNED_APK=${APP_DIR}/app/build/outputs/apk/basic/release/app-basic-release-unsigned.apk
 UNSIGNED_AAB=${APP_DIR}/app/build/outputs/bundle/basicRelease/app-basic-release.aab
 SIGNED_APK=${PROJECT_DIR}/eduVPN-${V}.apk
 SIGNED_AAB=${PROJECT_DIR}/eduVPN-${V}.aab
 
 # govVPN
-#GRADLE_TASKS=app:assembleGovRelease app:bundleGovRelease
+#GRADLE_TASKS="app:assembleGovRelease app:bundleGovRelease"
 #UNSIGNED_APK=${APP_DIR}/app/build/outputs/apk/gov/release/app-gov-release-unsigned.apk
 #UNSIGNED_AAB=${APP_DIR}/app/build/outputs/bundle/govRelease/app-gov-release.aab
 #SIGNED_APK=${PROJECT_DIR}/govVPN-${V}.apk
 #SIGNED_AAB=${PROJECT_DIR}/govVPN-${V}.aab
 
 # Let's Connect!
-#GRADLE_TASKS=app:assembleHomeRelease app:bundleHomeRelease
+#GRADLE_TASKS="app:assembleHomeRelease app:bundleHomeRelease"
 #UNSIGNED_APK=${APP_DIR}/app/build/outputs/apk/home/release/app-home-release-unsigned.apk
 #UNSIGNED_AAB=${APP_DIR}/app/build/outputs/bundle/homeRelease/app-home-release.aab
 #SIGNED_APK=${PROJECT_DIR}/LetsConnect-${V}.apk
