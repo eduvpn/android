@@ -4,11 +4,9 @@ This is the eduVPN / Let's Connect! for Android application.
 
 You can clone this repository by executing the following command (provided you have git installed):
     
-    git clone --recurse-submodules https://github.com/eduvpn/android.git
-
-Or if your git version is below 2.13:
-
-    git clone --recursive https://github.com/eduvpn/android.git
+```bash
+$ git clone --recurse-submodules https://codeberg.org/eduVPN/android
+```
 
 # Download the app
 

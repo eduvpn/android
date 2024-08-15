@@ -1,13 +1,17 @@
 # Changelog
 
-## UNRELEASED (XXXX-XX-XX)
+## 3.3.0 (2024-08-12)
 - Update eduvpn-common to release 2.0.2
+- Implement support for ProxyGuard (WireGuard over TCP)
+- Fix "Country Switcher"
+- Improve error dialogs
+- Do not crash on invalid WireGuard configuration files
+- Update ics-openvpn (v0.7.5.1)
 
 ## 3.2.2 (2024-02-05)
 - fix incorrect usage of seconds, should be ms 
   ([GH#411](https://github.com/eduvpn/android/issues/411))
 - fix not being able to add secure internet servers ([GH#412](https://github.com/eduvpn/android/issues/412))
-- Update eduvpn-common to commit 8f9a1ec5fb489af88c6e53f592bac3cccfb77f67
 
 ## 3.2.1 (2024-01-19)
 - update all build scripts for new release

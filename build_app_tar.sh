@@ -6,27 +6,34 @@
 
 SDK_DIR=${HOME}/android-sdk
 KEY_STORE=${HOME}/android.jks
+KEY_ALIAS=eduVPN
 
-V=3.2.2
+V=3.3.0
 DOWNLOAD_URL=https://codeberg.org/eduVPN/android/releases/download/${V}/eduvpn-android-${V}.tar.xz
 
 PROJECT_DIR=${HOME}/Projects
 APP_DIR=${PROJECT_DIR}/eduvpn-android-${V}
 
 # eduVPN
-GRADLE_TASK=app:assembleBasicRelease
-UNSIGNED_APK=${APP_DIR}/app/build/outputs/apk/basic/release/app-basic-release-unsigned.apk 
+GRADLE_TASKS="app:assembleBasicRelease app:bundleBasicRelease"
+UNSIGNED_APK=${APP_DIR}/app/build/outputs/apk/basic/release/app-basic-release-unsigned.apk
+UNSIGNED_AAB=${APP_DIR}/app/build/outputs/bundle/basicRelease/app-basic-release.aab
 SIGNED_APK=${PROJECT_DIR}/eduVPN-${V}.apk
+SIGNED_AAB=${PROJECT_DIR}/eduVPN-${V}.aab
 
 # govVPN
-#GRADLE_TASK=app:assembleGovRelease
-#UNSIGNED_APK=${APP_DIR}/app/build/outputs/apk/gov/release/app-gov-release-unsigned.apk 
+#GRADLE_TASKS="app:assembleGovRelease app:bundleGovRelease"
+#UNSIGNED_APK=${APP_DIR}/app/build/outputs/apk/gov/release/app-gov-release-unsigned.apk
+#UNSIGNED_AAB=${APP_DIR}/app/build/outputs/bundle/govRelease/app-gov-release.aab
 #SIGNED_APK=${PROJECT_DIR}/govVPN-${V}.apk
+#SIGNED_AAB=${PROJECT_DIR}/govVPN-${V}.aab
 
 # Let's Connect!
-#GRADLE_TASK=app:assembleHomeRelease
-#UNSIGNED_APK=${APP_DIR}/app/build/outputs/apk/home/release/app-home-release-unsigned.apk 
+#GRADLE_TASKS="app:assembleHomeRelease app:bundleHomeRelease"
+#UNSIGNED_APK=${APP_DIR}/app/build/outputs/apk/home/release/app-home-release-unsigned.apk
+#UNSIGNED_AAB=${APP_DIR}/app/build/outputs/bundle/homeRelease/app-home-release.aab
 #SIGNED_APK=${PROJECT_DIR}/LetsConnect-${V}.apk
+#SIGNED_AAB=${PROJECT_DIR}/LetsConnect-${V}.aab
 
 ###############################################################################
 # CLONE
@@ -47,7 +54,9 @@ SIGNED_APK=${PROJECT_DIR}/eduVPN-${V}.apk
 (
     export ANDROID_HOME=${SDK_DIR}
     cd "${APP_DIR}" || exit
-    ./gradlew ${GRADLE_TASK} --warning-mode all --stacktrace || exit
+    for GRADLE_TASK in ${GRADLE_TASKS}; do
+        ./gradlew "${GRADLE_TASK}" --warning-mode all --stacktrace || exit
+    done
 )
 
 ###############################################################################
@@ -57,6 +66,12 @@ SIGNED_APK=${PROJECT_DIR}/eduVPN-${V}.apk
 (
     # pick the newest build tools in case multiple versions are available
     BUILD_TOOLS_VERSION=$(ls ${SDK_DIR}/build-tools/ | sort -r | head -1)
+    
+    # sign the APK
     ${SDK_DIR}/build-tools/${BUILD_TOOLS_VERSION}/apksigner sign --ks "${KEY_STORE}" "${UNSIGNED_APK}" || exit
     cp "${UNSIGNED_APK}" "${SIGNED_APK}" || exit
+    
+    # sign the AAB
+    jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA-256 -keystore "${KEY_STORE}" "${UNSIGNED_AAB}" "${KEY_ALIAS}" || exit
+    cp "${UNSIGNED_AAB}" "${SIGNED_AAB}" || exit
 )
