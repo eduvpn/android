@@ -34,9 +34,6 @@ import java.util.TimeZone;
 
 import nl.eduvpn.app.entity.AuthorizationType;
 import nl.eduvpn.app.entity.Instance;
-import nl.eduvpn.app.entity.Organization;
-import nl.eduvpn.app.entity.OrganizationList;
-import nl.eduvpn.app.entity.Settings;
 import nl.eduvpn.app.entity.TranslatableString;
 
 /**
