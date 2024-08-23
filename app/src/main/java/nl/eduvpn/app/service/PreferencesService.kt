@@ -89,14 +89,13 @@ class PreferencesService(
             EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
             EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
         )
-        migrateIfNeeded(insecurePreferences, securePreferences, applicationContext)
+        migrateIfNeeded(insecurePreferences, applicationContext)
     }
 
     @SuppressLint("ApplySharedPref")
     @VisibleForTesting
     fun migrateIfNeeded(
         insecurePreferences: SharedPreferences,
-        securePreferences: SharedPreferences,
         applicationContext: Context,
     ) {
         val version = insecurePreferences.getInt(KEY_STORAGE_VERSION, 1)
@@ -130,17 +129,6 @@ class PreferencesService(
                     } catch (e: IOException) {
                     }
                 }
-            }
-        }
-        if (version < 5) {
-            securePreferences.edit()
-                .putInt(KEY_STORAGE_VERSION, 5)
-                .putString(KEY_APP_SETTINGS, insecurePreferences.getString(KEY_APP_SETTINGS, null))
-                .apply()
-            // Remove everything else
-            insecurePreferences.edit().clear().commit()
-            if (Constants.DEBUG) {
-                Log.d(TAG, "Migrated over to storage version v5.")
             }
         }
         val editor = insecurePreferences.edit()
@@ -209,49 +197,6 @@ class PreferencesService(
         } catch (ex: SerializerService.UnknownFormatException) {
             Log.e(TAG, "Unable to deserialize instance!", ex)
             null
-        }
-    }
-
-    /**
-     * Returns the saved app settings, or the default settings if none found.
-     *
-     * @return True if the user does not want to use Custom Tabs. Otherwise false.
-     */
-    fun getAppSettings(): Settings {
-        val defaultSettings =
-            Settings(Settings.USE_CUSTOM_TABS_DEFAULT_VALUE, Settings.PREFER_TCP_DEFAULT_VALUE)
-        val serializedSettings = getSharedPreferences().getString(KEY_APP_SETTINGS, null)
-        return if (serializedSettings == null) {
-            // Default settings.
-            storeAppSettings(defaultSettings)
-            defaultSettings
-        } else {
-            try {
-                _serializerService.deserializeAppSettings(JSONObject(serializedSettings))
-            } catch (ex: Exception) {
-                when (ex) {
-                    is SerializerService.UnknownFormatException, is JSONException -> {
-                        Log.e(TAG, "Unable to deserialize app settings!", ex)
-                        storeAppSettings(defaultSettings)
-                        defaultSettings
-                    }
-                    else -> throw ex
-                }
-            }
-        }
-    }
-
-    /**
-     * Saves the app settings.
-     *
-     * @param settings The settings of the app to save.
-     */
-    fun storeAppSettings(settings: Settings) {
-        try {
-            val serializedSettings = _serializerService.serializeAppSettings(settings).toString()
-            getSharedPreferences().edit().putString(KEY_APP_SETTINGS, serializedSettings).apply()
-        } catch (ex: SerializerService.UnknownFormatException) {
-            Log.e(TAG, "Unable to serialize and save app settings!")
         }
     }
 

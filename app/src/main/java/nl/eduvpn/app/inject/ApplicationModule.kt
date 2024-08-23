@@ -126,10 +126,9 @@ class ApplicationModule(private val application: EduVPNApplication) {
     @Singleton
     fun provideEduOpenVPNService(
         context: Context,
-        preferencesService: PreferencesService?,
         ipLiveData: IPLiveData,
     ): EduVPNOpenVPNService {
-        return EduVPNOpenVPNService(context, preferencesService, ipLiveData)
+        return EduVPNOpenVPNService(context, ipLiveData)
     }
 
     @Provides
@@ -148,8 +147,8 @@ class ApplicationModule(private val application: EduVPNApplication) {
         wireGuardServiceProvider: Provider<WireGuardService>
     ): Optional<VPNService> {
         return when (preferencesService.getCurrentProtocol()) {
-            Protocol.OpenVPN.nativeValue -> Optional.of(eduOpenVPNServiceProvider.get())
-            Protocol.WireGuard.nativeValue, Protocol.WireGuardWithProxyGuard.nativeValue -> Optional.of(wireGuardServiceProvider.get())
+            Protocol.OpenVPN.nativeValue, Protocol.OpenVPNWithTCP.nativeValue -> Optional.of(eduOpenVPNServiceProvider.get())
+            Protocol.WireGuard.nativeValue, Protocol.WireGuardWithTCP.nativeValue -> Optional.of(wireGuardServiceProvider.get())
             else -> Optional.empty()
         }
     }

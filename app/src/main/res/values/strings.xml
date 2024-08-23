@@ -25,6 +25,8 @@
     <string name="notifications_switcher_default_title">Notifications</string>
     <string name="connection_switcher_title">Connection Info</string>
     <string name="view_log_button">View Log</string>
+    <string name="connection_status_connectivity_problems">Connectivity problems? Try switching to TCP</string>
+    <string name="connection_status_reconnect_with_tcp">Reconnect with TCP</string>
 
     <string name="connection_info_duration">DURATION</string>
     <string name="connection_info_downloaded">DOWNLOADED</string>
@@ -34,6 +36,9 @@
     <string name="connection_info_protocol">PROTOCOL</string>
     <string name="connection_info_protocol_name_wireguard">WireGuard</string>
     <string name="connection_info_protocol_name_openvpn">OpenVPN</string>
+    <string name="connection_info_protocol_name_wireguard_with_tcp">WireGuard (TCP)</string>
+    <string name="connection_info_protocol_name_openvpn_with_tcp">OpenVPN (TCP)</string>
+
 
     <string name="connection_info_state_connecting">Connecting</string>
     <string name="connection_info_state_connected">Connected</string>

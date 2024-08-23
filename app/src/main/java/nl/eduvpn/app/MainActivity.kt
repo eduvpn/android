@@ -36,7 +36,6 @@ import kotlinx.coroutines.withContext
 import nl.eduvpn.app.base.BaseActivity
 import nl.eduvpn.app.databinding.ActivityMainBinding
 import nl.eduvpn.app.entity.AddedServer
-import nl.eduvpn.app.entity.Instance
 import nl.eduvpn.app.entity.exception.CommonException
 import nl.eduvpn.app.fragment.AddServerFragment
 import nl.eduvpn.app.fragment.ConnectionStatusFragment
@@ -190,13 +189,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             show(this, ex)
             return
         }
-        if (viewModel.useCustomTabs()) {
-            val intent = CustomTabsIntent.Builder().build()
-            intent.launchUrl(this@MainActivity, oAuthUri)
-        } else {
-            val intent = Intent(Intent.ACTION_VIEW, oAuthUri)
-            startActivity(intent)
-        }
+        val intent = CustomTabsIntent.Builder().build()
+        intent.launchUrl(this@MainActivity, oAuthUri)
     }
 
     override fun onResume() {

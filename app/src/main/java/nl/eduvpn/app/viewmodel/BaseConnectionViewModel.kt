@@ -70,7 +70,7 @@ abstract class BaseConnectionViewModel(
                 preferencesService.setCurrentInstance(instance)
                 backendService.addServer(instance)
             }.onSuccess {
-                getProfiles(instance)
+                getProfiles(instance, preferTcp = false)
             }.onFailure { throwable ->
                 Log.e(TAG, "Error while fetching discovered API.", throwable)
                 connectionState.postValue(ConnectionState.Ready)
@@ -98,13 +98,14 @@ abstract class BaseConnectionViewModel(
         }
     }
 
-    fun getProfiles(instance: Instance) {
+    fun getProfiles(instance: Instance, preferTcp: Boolean) {
         connectionState.postValue(ConnectionState.FetchingProfiles)
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 preferencesService.setCurrentInstance(instance)
-                backendService.getConfig(instance, preferencesService.getAppSettings().preferTcp())
+                backendService.getConfig(instance, preferTcp = preferTcp)
             } catch (ex: Exception) {
+                connectionState.postValue(ConnectionState.Ready)
                 val errorString = if (ex is CommonException) {
                     ex.translatedMessage()
                 } else {
@@ -129,8 +130,8 @@ abstract class BaseConnectionViewModel(
         }
     }
 
-    public suspend fun selectProfileToConnectTo(profile: Profile) : Result<Unit> {
-        backendService.selectProfile(profile, preferencesService.getAppSettings().preferTcp())
+    suspend fun selectProfileToConnectTo(profile: Profile, preferTcp: Boolean) : Result<Unit> {
+        backendService.selectProfile(profile, preferTcp = preferTcp)
         return Result.success(Unit)
     }
 
@@ -149,22 +150,6 @@ abstract class BaseConnectionViewModel(
             message
         )
         return Result.failure(thr ?: RuntimeException(message))
-    }
-
-
-    private fun getExpiryFromHeaders(headers: Map<String, List<String>>): Date? {
-        return headers["Expires"]
-            ?.let { hl: List<String> -> hl.firstOrNull() }
-            ?.let { expiredValue ->
-                try {
-                    SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.US).parse(
-                        expiredValue
-                    )
-                } catch (ex: ParseException) {
-                    Log.e(TAG, "Unable to parse expired header", ex)
-                    null
-                }
-            }
     }
 
     fun disconnectWithCall(vpnService: VPNService) {
