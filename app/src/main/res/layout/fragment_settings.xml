@@ -64,23 +64,11 @@
                     style="@style/SettingsSeparator"
                     android:layout_below="@id/resetAppDataContainer" />
 
-                <androidx.appcompat.widget.AppCompatCheckBox
-                    android:id="@+id/useCustomTabsSwitch"
-                    style="@style/SettingsLabelTitle"
-                    android:layout_below="@+id/resetDataSeparator"
-                    android:paddingLeft="8dp"
-                    android:text="@string/settings_custom_tabs_opt_out_title" />
-
-                <View
-                    android:id="@+id/customTabsSeparator"
-                    style="@style/SettingsSeparator"
-                    android:layout_below="@id/useCustomTabsSwitch" />
-
                 <FrameLayout
                     android:id="@+id/view_openvpn_logs_container"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_below="@id/customTabsSeparator"
+                    android:layout_below="@id/resetDataSeparator"
                     android:background="?attr/selectableItemBackground">
 
                     <TextView

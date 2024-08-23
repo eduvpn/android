@@ -185,7 +185,6 @@ class MainViewModel @Inject constructor(
         return result
     }
 
-    fun useCustomTabs() = preferencesService.getAppSettings().useCustomTabs
     fun getCountryList(cookie: Int? = null) {
         viewModelScope.launch(Dispatchers.IO) {
             try {

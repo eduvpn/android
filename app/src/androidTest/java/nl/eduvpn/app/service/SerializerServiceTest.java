@@ -55,18 +55,6 @@ public class SerializerServiceTest {
     }
 
     @Test
-    public void testAppSettingsSerialization() throws SerializerService.UnknownFormatException {
-        Settings settings = new Settings(true);
-        JSONObject jsonObject = _serializerService.serializeAppSettings(settings);
-        Settings deserializedSettings = _serializerService.deserializeAppSettings(jsonObject);
-        assertEquals(settings.getUseCustomTabs(), deserializedSettings.getUseCustomTabs());
-        settings = new Settings(false);
-        jsonObject = _serializerService.serializeAppSettings(settings);
-        deserializedSettings = _serializerService.deserializeAppSettings(jsonObject);
-        assertEquals(settings.getUseCustomTabs(), deserializedSettings.getUseCustomTabs());
-    }
-
-    @Test
     public void testInstanceSerialization() throws SerializerService.UnknownFormatException {
         Instance instance = new Instance("baseUri", new TranslatableString("displayName"), new TranslatableString("konijn"), "logoUri", AuthorizationType.Distributed, "HU", true, null, Arrays.asList("mailto:user@test.example.com", "tel:+0011223344659898"));
         String serializedInstance = _serializerService.serializeInstance(instance);
