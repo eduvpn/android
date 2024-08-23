@@ -85,11 +85,7 @@ class SerializerService {
             if (jsonObject.has("use_custom_tabs")) {
                 useCustomTabs = jsonObject.getBoolean("use_custom_tabs")
             }
-            var preferTcp = Settings.PREFER_TCP_DEFAULT_VALUE
-            if (jsonObject.has("prefer_tcp")) {
-                preferTcp = jsonObject.getBoolean("prefer_tcp")
-            }
-            Settings(useCustomTabs, preferTcp)
+            Settings(useCustomTabs)
         } catch (ex: JSONException) {
             throw UnknownFormatException(ex)
         }
@@ -106,8 +102,7 @@ class SerializerService {
     fun serializeAppSettings(settings: Settings): JSONObject {
         val result = JSONObject()
         return try {
-            result.put("use_custom_tabs", settings.useCustomTabs())
-            result.put("prefer_tcp", settings.preferTcp())
+            result.put("use_custom_tabs", settings.useCustomTabs)
             result
         } catch (ex: JSONException) {
             throw UnknownFormatException(ex)

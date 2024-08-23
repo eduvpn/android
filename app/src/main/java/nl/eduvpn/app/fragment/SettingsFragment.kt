@@ -49,10 +49,8 @@ class SettingsFragment : BaseFragment<FragmentSettingsBinding>() {
         super.onViewCreated(view, savedInstanceState)
         EduVPNApplication.get(view.context).component().inject(this)
         val originalSettings = viewModel.appSettings
-        binding.useCustomTabsSwitch.isChecked = originalSettings.useCustomTabs()
-        binding.preferTcpSwitch.isChecked = originalSettings.preferTcp()
+        binding.useCustomTabsSwitch.isChecked = originalSettings.useCustomTabs
         binding.useCustomTabsSwitch.setOnClickListener { saveSettings() }
-        binding.preferTcpSwitch.setOnClickListener { saveSettings() }
         binding.licensesButton.setOnClickListener {
             startActivity(
                 Intent(
@@ -111,7 +109,6 @@ class SettingsFragment : BaseFragment<FragmentSettingsBinding>() {
 
     private fun saveSettings() {
         val useCustomTabs = binding.useCustomTabsSwitch.isChecked
-        val preferTcp = binding.preferTcpSwitch.isChecked
-        viewModel.storeAppSettings(Settings(useCustomTabs, preferTcp))
+        viewModel.storeAppSettings(Settings(useCustomTabs))
     }
 }

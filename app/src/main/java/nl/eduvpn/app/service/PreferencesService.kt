@@ -218,8 +218,7 @@ class PreferencesService(
      * @return True if the user does not want to use Custom Tabs. Otherwise false.
      */
     fun getAppSettings(): Settings {
-        val defaultSettings =
-            Settings(Settings.USE_CUSTOM_TABS_DEFAULT_VALUE, Settings.PREFER_TCP_DEFAULT_VALUE)
+        val defaultSettings = Settings(Settings.USE_CUSTOM_TABS_DEFAULT_VALUE)
         val serializedSettings = getSharedPreferences().getString(KEY_APP_SETTINGS, null)
         return if (serializedSettings == null) {
             // Default settings.

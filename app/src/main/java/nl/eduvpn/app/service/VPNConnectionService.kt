@@ -51,15 +51,16 @@ class VPNConnectionService(
     fun connectionToConfig(
         scope: CoroutineScope,
         activity: Activity,
-        vpnConfig: VPNConfig
+        vpnConfig: VPNConfig,
+        preferTcp: Boolean
     ): VPNService {
         val vpnService = when (vpnConfig) {
             is VPNConfig.OpenVPN -> {
-                eduVPNOpenVPNService.connect(activity, vpnConfig.profile)
+                eduVPNOpenVPNService.connect(activity, vpnConfig.profile, preferTcp)
                 eduVPNOpenVPNService
             }
             is VPNConfig.WireGuard -> {
-                if (preferencesService.getCurrentProtocol() == Protocol.WireGuardWithProxyGuard.nativeValue) {
+                if (preferencesService.getCurrentProtocol() == Protocol.WireGuardWithTCP.nativeValue) {
                     Log.i(TAG, "Setting config to pending while ProxyGuard is connecting...")
                     pendingWireguardConfig = vpnConfig
                 } else {

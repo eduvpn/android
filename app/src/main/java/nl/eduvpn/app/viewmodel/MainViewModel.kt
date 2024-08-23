@@ -68,7 +68,7 @@ class MainViewModel @Inject constructor(
     private val _mainParentAction = MutableLiveData<MainParentAction>()
     val mainParentAction = _mainParentAction.toSingleEvent()
 
-    val proxyGuardEnabled: Boolean get() = preferencesService.getCurrentProtocol() == Protocol.WireGuardWithProxyGuard.nativeValue
+    val proxyGuardEnabled: Boolean get() = preferencesService.getCurrentProtocol() == Protocol.WireGuardWithTCP.nativeValue
 
     init {
         backendService.register(
@@ -115,9 +115,14 @@ class MainViewModel @Inject constructor(
         config: SerializedVpnConfig,
         preferTcp: Boolean
     ) {
-        preferencesService.setCurrentProtocol(config.protocol)
-
-        if (config.protocol == Protocol.WireGuardWithProxyGuard.nativeValue && config.proxy != null) {
+        var protocol = config.protocol
+        if (preferTcp && protocol == Protocol.OpenVPN.nativeValue) {
+            protocol = Protocol.OpenVPNWithTCP.nativeValue
+        } else if (preferTcp && protocol == Protocol.WireGuard.nativeValue) {
+            protocol = Protocol.WireGuardWithTCP.nativeValue
+        }
+        preferencesService.setCurrentProtocol(protocol)
+        if (protocol == Protocol.WireGuardWithTCP.nativeValue && config.proxy != null) {
             viewModelScope.launch(Dispatchers.IO) {
                 try {
                     backendService.startProxyguard(config.proxy)
@@ -128,14 +133,14 @@ class MainViewModel @Inject constructor(
             }
         }
 
-        val parsedConfig = if (config.protocol == Protocol.OpenVPN.nativeValue) {
+        val parsedConfig = if (protocol == Protocol.OpenVPN.nativeValue || protocol == Protocol.OpenVPNWithTCP.nativeValue) {
             eduVpnOpenVpnService.importConfig(
                 config.config,
                 null,
             )?.let {
                 VPNConfig.OpenVPN(it)
             } ?: throw IllegalArgumentException("Unable to parse profile")
-        } else if (config.protocol == Protocol.WireGuard.nativeValue || config.protocol == Protocol.WireGuardWithProxyGuard.nativeValue) {
+        } else if (protocol == Protocol.WireGuard.nativeValue || protocol == Protocol.WireGuardWithTCP.nativeValue) {
             try {
                 VPNConfig.WireGuard(Config.parse(BufferedReader(StringReader(config.config))))
             } catch (ex: BadConfigException) {
@@ -145,10 +150,10 @@ class MainViewModel @Inject constructor(
                 return
             }
         } else {
-            throw IllegalArgumentException("Unexpected protocol type: ${config.protocol}")
+            throw IllegalArgumentException("Unexpected protocol type: ${protocol}")
         }
-        val service = vpnConnectionService.connectionToConfig(viewModelScope, activity, parsedConfig)
-        if (config.protocol == Protocol.WireGuard.nativeValue && !preferTcp && config.shouldFailover) {
+        val service = vpnConnectionService.connectionToConfig(viewModelScope, activity, parsedConfig, preferTcp)
+        if (protocol == Protocol.WireGuard.nativeValue && !preferTcp && config.shouldFailover) {
             viewModelScope.launch(Dispatchers.IO) {
                 try {
                     // Waits a bit so that the network interface has been surely set up
@@ -180,7 +185,7 @@ class MainViewModel @Inject constructor(
         return result
     }
 
-    fun useCustomTabs() = preferencesService.getAppSettings().useCustomTabs()
+    fun useCustomTabs() = preferencesService.getAppSettings().useCustomTabs
     fun getCountryList(cookie: Int? = null) {
         viewModelScope.launch(Dispatchers.IO) {
             try {

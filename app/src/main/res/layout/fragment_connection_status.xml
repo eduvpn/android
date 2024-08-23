@@ -34,6 +34,10 @@
             type="String"
             />
 
+        <variable
+            name="isTcp"
+            type="boolean" />
+
         <import type="android.view.View" />
     </data>
 
@@ -195,6 +199,28 @@
 
             </FrameLayout>
 
+            <TextView
+                android:id="@+id/connectivity_problems_label"
+                android:layout_width="wrap_content"
+                android:layout_marginLeft="32dp"
+                android:layout_marginRight="32dp"
+                android:fontFamily="@font/open_sans_regular"
+                android:gravity="center"
+                android:layout_marginTop="16dp"
+                android:textColor="@color/textColor"
+                android:textSize="14sp"
+                android:visibility="@{isTcp ? View.GONE : View.VISIBLE}"
+                android:text="@string/connection_status_connectivity_problems"
+                android:layout_height="wrap_content"/>
+
+            <Button
+                style="@style/SmallButton"
+                android:id="@+id/reconnect_tcp_button"
+                android:layout_width="wrap_content"
+                android:layout_marginTop="8dp"
+                android:visibility="@{isTcp ? View.GONE : View.VISIBLE}"
+                android:text="@string/connection_status_reconnect_with_tcp"
+                android:layout_height="wrap_content"/>
         </LinearLayout>
 
         <LinearLayout

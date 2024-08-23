@@ -14,32 +14,14 @@
  *     You should have received a copy of the GNU General Public License
  *     along with eduVPN.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-package nl.eduvpn.app.entity;
+package nl.eduvpn.app.entity
 
 /**
  * Contains the application settings.
  * Created by Daniel Zolnai on 2016-10-22.
  */
-public class Settings {
-
-    public static final boolean USE_CUSTOM_TABS_DEFAULT_VALUE = true;
-    public static final boolean PREFER_TCP_DEFAULT_VALUE = false;
-
-    private boolean _useCustomTabs;
-    private boolean _preferTcp;
-
-    public Settings(boolean useCustomTabs, boolean preferTcp) {
-        _useCustomTabs = useCustomTabs;
-        _preferTcp = preferTcp;
+class Settings(val useCustomTabs: Boolean) {
+    companion object {
+        const val USE_CUSTOM_TABS_DEFAULT_VALUE: Boolean = true
     }
-
-    public boolean useCustomTabs() {
-        return _useCustomTabs;
-    }
-
-    public boolean preferTcp() {
-        return _preferTcp;
-    }
-
 }

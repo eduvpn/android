@@ -30,9 +30,6 @@ import org.junit.runner.RunWith;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.TimeZone;
 
 import nl.eduvpn.app.entity.AuthorizationType;
@@ -59,16 +56,14 @@ public class SerializerServiceTest {
 
     @Test
     public void testAppSettingsSerialization() throws SerializerService.UnknownFormatException {
-        Settings settings = new Settings(true, true);
+        Settings settings = new Settings(true);
         JSONObject jsonObject = _serializerService.serializeAppSettings(settings);
         Settings deserializedSettings = _serializerService.deserializeAppSettings(jsonObject);
-        assertEquals(settings.preferTcp(), deserializedSettings.preferTcp());
-        assertEquals(settings.useCustomTabs(), deserializedSettings.useCustomTabs());
-        settings = new Settings(false, false);
+        assertEquals(settings.getUseCustomTabs(), deserializedSettings.getUseCustomTabs());
+        settings = new Settings(false);
         jsonObject = _serializerService.serializeAppSettings(settings);
         deserializedSettings = _serializerService.deserializeAppSettings(jsonObject);
-        assertEquals(settings.preferTcp(), deserializedSettings.preferTcp());
-        assertEquals(settings.useCustomTabs(), deserializedSettings.useCustomTabs());
+        assertEquals(settings.getUseCustomTabs(), deserializedSettings.getUseCustomTabs());
     }
 
     @Test
