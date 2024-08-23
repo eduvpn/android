@@ -78,8 +78,12 @@ fun <T> LiveData<T>.toSingleEvent(): LiveData<T> {
     return result
 }
 
+fun String.countryName(): String {
+    return Locale("en", this).getDisplayCountry(Constants.ENGLISH_LOCALE)
+}
+
 fun String.countryCodeToCountryNameAndFlag(): String {
-    val countryName = Locale("en", this).getDisplayCountry(Constants.ENGLISH_LOCALE)
+    val countryName = this.countryName()
     val firstLetter: Int = Character.codePointAt(this, 0) - 0x41 + 0x1F1E6
     val secondLetter: Int = Character.codePointAt(this, 1) - 0x41 + 0x1F1E6
     val countryEmoji = String(Character.toChars(firstLetter)) + String(Character.toChars(secondLetter))

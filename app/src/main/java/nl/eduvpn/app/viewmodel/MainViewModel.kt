@@ -28,6 +28,7 @@ import nl.eduvpn.app.service.PreferencesService
 import nl.eduvpn.app.service.VPNConnectionService
 import nl.eduvpn.app.utils.Log
 import nl.eduvpn.app.utils.countryCodeToCountryNameAndFlag
+import nl.eduvpn.app.utils.countryName
 import nl.eduvpn.app.utils.toSingleEvent
 import org.eduvpn.common.Protocol
 import java.io.BufferedReader
@@ -187,6 +188,8 @@ class MainViewModel @Inject constructor(
                 val locations = secureInternetServer.locations
                 val countryList = locations.map {
                     Pair(secureInternetServer, it)
+                }.sortedBy {
+                    it.second.countryName()
                 }
                 _mainParentAction.postValue(MainParentAction.ShowCountriesDialog(serverWithCountries = countryList, cookie = cookie))
             } catch (ex: Exception) {
