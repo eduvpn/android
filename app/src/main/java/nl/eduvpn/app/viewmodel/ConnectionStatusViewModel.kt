@@ -135,6 +135,7 @@ class ConnectionStatusViewModel @Inject constructor(
         }
         serverProfiles.value = currentServer.getProfiles()
         profileName.value = currentServer.currentProfile?.displayName?.bestTranslation
+        serverName.value = currentServer.getDisplayName()?.bestTranslation
         viewModelScope.launch {
             vpnService.asFlow().collect { status ->
                 val previousStatus = vpnStatus.value ?: VPNService.VPNStatus.DISCONNECTED
