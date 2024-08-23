@@ -105,6 +105,7 @@ abstract class BaseConnectionViewModel(
                 preferencesService.setCurrentInstance(instance)
                 backendService.getConfig(instance, preferencesService.getAppSettings().preferTcp())
             } catch (ex: Exception) {
+                connectionState.postValue(ConnectionState.Ready)
                 val errorString = if (ex is CommonException) {
                     ex.translatedMessage()
                 } else {
