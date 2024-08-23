@@ -46,6 +46,7 @@ import nl.eduvpn.app.utils.ErrorDialog
 import nl.eduvpn.app.utils.FormattingUtils
 import nl.eduvpn.app.viewmodel.BaseConnectionViewModel
 import nl.eduvpn.app.viewmodel.ConnectionStatusViewModel
+import org.eduvpn.common.Protocol
 
 /**
  * The fragment which displays the status of the current connection.
@@ -85,7 +86,7 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
                 bc?.bytesOut
             )
         }.asLiveData()
-        binding.protocol = viewModel.protocol
+        binding.protocolName = getProtocolName(viewModel.protocol)
         binding.ips = viewModel.ipFLow.asLiveData()
         binding.connectionSwitch.setOnCheckedChangeListener { _, isChecked ->
             if (isAutomaticCheckChange) {
@@ -232,6 +233,15 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
                     setToggleCheckedWithoutAction(false)
                 }
             }
+        }
+    }
+
+    private fun getProtocolName(protocol: Protocol): String? {
+        return when(protocol) {
+            Protocol.OpenVPN -> getString(R.string.connection_info_protocol_name_openvpn)
+            Protocol.WireGuard -> getString(R.string.connection_info_protocol_name_wireguard)
+            Protocol.WireGuardWithProxyGuard -> getString(R.string.connection_info_protocol_name_wireguard_with_proxyguard)
+            Protocol.Unknown -> null
         }
     }
 

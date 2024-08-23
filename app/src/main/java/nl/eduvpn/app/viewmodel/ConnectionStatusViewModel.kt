@@ -43,6 +43,7 @@ import nl.eduvpn.app.service.*
 import nl.eduvpn.app.utils.Log
 import nl.eduvpn.app.utils.pendingIntentImmutableFlag
 import nl.eduvpn.app.utils.toSingleEvent
+import org.eduvpn.common.Protocol
 import javax.inject.Inject
 import javax.inject.Named
 
@@ -80,7 +81,11 @@ class ConnectionStatusViewModel @Inject constructor(
     val serverProfiles = MutableLiveData<List<Profile>>()
     val byteCountFlow = vpnService.byteCountFlow
     val ipFLow = vpnService.ipFlow
-    val protocol = vpnService.getProtocol()
+    val protocol: Protocol = if (preferencesService.getCurrentProtocol() == Protocol.WireGuardWithProxyGuard.nativeValue)  {
+        Protocol.WireGuardWithProxyGuard
+    } else {
+        vpnService.getProtocol()
+    }
     val canRenew = MutableLiveData(false)
     val vpnStatus = MutableLiveData(VPNService.VPNStatus.DISCONNECTED)
 

@@ -34,6 +34,7 @@
     <string name="connection_info_protocol">PROTOCOL</string>
     <string name="connection_info_protocol_name_wireguard">WireGuard</string>
     <string name="connection_info_protocol_name_openvpn">OpenVPN</string>
+    <string name="connection_info_protocol_name_wireguard_with_proxyguard">WireGuard (TCP)</string>
 
     <string name="connection_info_state_connecting">Connecting</string>
     <string name="connection_info_state_connected">Connected</string>
