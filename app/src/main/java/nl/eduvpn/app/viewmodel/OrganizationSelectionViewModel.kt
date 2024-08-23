@@ -31,6 +31,8 @@ import nl.eduvpn.app.R
 import nl.eduvpn.app.adapter.OrganizationAdapter
 import nl.eduvpn.app.entity.AuthorizationType
 import nl.eduvpn.app.entity.Instance
+import nl.eduvpn.app.entity.OrganizationList
+import nl.eduvpn.app.entity.ServerList
 import nl.eduvpn.app.service.BackendService
 import nl.eduvpn.app.service.HistoryService
 import nl.eduvpn.app.service.OrganizationService
@@ -57,13 +59,14 @@ class OrganizationSelectionViewModel @Inject constructor(
 
     val searchText = MutableStateFlow("")
 
-    private val serverList: Flow<List<Instance>> = searchText.map { filter ->
-        return@map organizationService.fetchServerList(filter).serverList ?: emptyList()
+    private val serverList: Flow<Result<ServerList>> = searchText.map { filter ->
+        return@map organizationService.fetchServerList(filter)
     }
 
     private val secureInternetServers = serverList.map { serverList ->
         if (historyService.hasSecureInternetServer()) {
-            val result: MutableList<OrganizationAdapter.OrganizationAdapterItem> = serverList.filter { it.authorizationType == AuthorizationType.Distributed }
+            val servers = serverList.getOrNull()?.serverList ?: return@map emptyList()
+            val result: MutableList<OrganizationAdapter.OrganizationAdapterItem> = servers.filter { it.authorizationType == AuthorizationType.Distributed }
                 .map {
                     OrganizationAdapter.OrganizationAdapterItem.SecureInternet(it)
                 }.toMutableList()
@@ -82,7 +85,8 @@ class OrganizationSelectionViewModel @Inject constructor(
     }
 
     private val instituteAccessServers = serverList.map { serverList ->
-        val result: MutableList<OrganizationAdapter.OrganizationAdapterItem> = serverList.filter { it.authorizationType == AuthorizationType.Local }
+        val servers = serverList.getOrNull()?.serverList ?: return@map emptyList()
+        val result: MutableList<OrganizationAdapter.OrganizationAdapterItem> = servers.filter { it.authorizationType == AuthorizationType.Local }
             .map {
                 OrganizationAdapter.OrganizationAdapterItem.InstituteAccess(it)
             }.toMutableList()
@@ -97,25 +101,29 @@ class OrganizationSelectionViewModel @Inject constructor(
         result
     }
 
-    private val organizations: Flow<List<OrganizationAdapter.OrganizationAdapterItem>> = searchText.map { filter ->
+    private val organizationList: Flow<Result<OrganizationList>> = searchText.map { filter ->
         if (historyService.hasSecureInternetServer()) {
-            emptyList()
+            return@map Result.success(OrganizationList(emptyList()))
         } else {
-            val result: MutableList<OrganizationAdapter.OrganizationAdapterItem> = organizationService.fetchOrganizations(filter)
-                .organizationList
-                ?.map {
-                    OrganizationAdapter.OrganizationAdapterItem.Organization(it)
-                }?.toMutableList() ?: mutableListOf()
-            if (result.isNotEmpty()) {
-                result.add(
-                    0, OrganizationAdapter.OrganizationAdapterItem.Header(
-                        R.drawable.ic_secure_internet,
-                        R.string.header_secure_internet
-                    )
-                )
+            try {
+                return@map Result.success(organizationService.fetchOrganizations(filter))
+            } catch (ex: Exception) {
+                return@map Result.failure(ex)
             }
-            result
         }
+    }
+
+    private val organizations: Flow<List<OrganizationAdapter.OrganizationAdapterItem>> = organizationList.map { list ->
+        if (list.isFailure) {
+            return@map emptyList()
+        }
+        val result: MutableList<OrganizationAdapter.OrganizationAdapterItem> = list.getOrNull()?.organizationList?.map {
+            OrganizationAdapter.OrganizationAdapterItem.Organization(it)
+        }?.toMutableList() ?: mutableListOf()
+        if (result.isNotEmpty()) {
+            result.add(0, OrganizationAdapter.OrganizationAdapterItem.Header(R.drawable.ic_secure_internet, R.string.header_secure_internet))
+        }
+        return@map result
     }
 
     private val addServerItem = searchText.map { filter ->
@@ -142,9 +150,14 @@ class OrganizationSelectionViewModel @Inject constructor(
         addServerItem + instituteAccessServers + organizations + secureInternetServers
     }
 
-    val noItemsFound =  connectionState.switchMap { state ->
+    val noItemsFound = connectionState.switchMap { state ->
         adapterItems.asLiveData().map { items ->
             items.isEmpty() && state == ConnectionState.Ready
         }
+    }
+
+    // We do not want to show a double error in case of a connection problem, so we show the first one only
+    val error = combine(serverList, organizationList) { servers, organization ->
+        servers.exceptionOrNull() ?: organization.exceptionOrNull()
     }
 }
