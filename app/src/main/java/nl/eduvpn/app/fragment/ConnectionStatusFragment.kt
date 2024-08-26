@@ -22,6 +22,7 @@ import android.os.Bundle
 import android.view.View
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AlertDialog
+import androidx.core.view.postDelayed
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import androidx.lifecycle.asLiveData
@@ -46,6 +47,7 @@ import nl.eduvpn.app.utils.ErrorDialog
 import nl.eduvpn.app.utils.FormattingUtils
 import nl.eduvpn.app.viewmodel.BaseConnectionViewModel
 import nl.eduvpn.app.viewmodel.ConnectionStatusViewModel
+import org.eduvpn.common.Protocol
 
 /**
  * The fragment which displays the status of the current connection.
@@ -64,6 +66,7 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
         super.onViewCreated(view, savedInstanceState)
         EduVPNApplication.get(view.context).component().inject(this)
         binding.viewModel = viewModel
+        binding.isTcp = viewModel.isCurrentProtocolUsingTcp()
         binding.secondsConnected = viewModel.connectionTimeLiveData.map { secondsConnected ->
             val context = this@ConnectionStatusFragment.context ?: return@map null
             FormattingUtils.formatDurationSeconds(
@@ -85,7 +88,7 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
                 bc?.bytesOut
             )
         }.asLiveData()
-        binding.protocol = viewModel.protocol
+        binding.protocolName = getProtocolName(viewModel.protocol)
         binding.ips = viewModel.ipFLow.asLiveData()
         binding.connectionSwitch.setOnCheckedChangeListener { _, isChecked ->
             if (isAutomaticCheckChange) {
@@ -95,7 +98,7 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
                 viewModel.disconnect(activity)
             } else {
                 // Get the config again, and connect again
-                viewModel.reconnectWithCurrentProfile()
+                viewModel.reconnectWithCurrentProfile(viewModel.isCurrentProtocolUsingTcp())
             }
         }
         binding.connectionInfoDropdown.setOnClickListener {
@@ -133,6 +136,16 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
         binding.renewSession.setOnClickListener {
             viewModel.disconnect(activity)
             viewModel.renewSession()
+        }
+        binding.reconnectTcpButton.setOnClickListener { button ->
+            activity?.let {
+                viewModel.disconnect(it)
+            }
+            button.postDelayed(100) {
+                viewModel.enableTcp()
+                binding.isTcp = true
+                viewModel.reconnectWithCurrentProfile(preferTcp = true)
+            }
         }
         viewModel.connectionParentAction.observe(viewLifecycleOwner) { parentAction ->
             when (parentAction) {
@@ -235,6 +248,16 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
         }
     }
 
+    private fun getProtocolName(protocol: Protocol): String? {
+        return when(protocol) {
+            Protocol.OpenVPN -> getString(R.string.connection_info_protocol_name_openvpn)
+            Protocol.WireGuard -> getString(R.string.connection_info_protocol_name_wireguard)
+            Protocol.WireGuardWithTCP -> getString(R.string.connection_info_protocol_name_wireguard_with_tcp)
+            Protocol.OpenVPNWithTCP -> getString(R.string.connection_info_protocol_name_openvpn_with_tcp)
+            Protocol.Unknown -> null
+        }
+    }
+
     private fun setToggleCheckedWithoutAction(isChecked: Boolean) {
         isAutomaticCheckChange = true
         binding.connectionSwitch.isChecked = isChecked
@@ -261,7 +284,7 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
     }
 
     fun reconnectToInstance() {
-        viewModel.reconnectWithCurrentProfile()
+        viewModel.reconnectWithCurrentProfile(viewModel.isCurrentProtocolUsingTcp())
     }
 
     private fun connectToProfile(profile: Profile) {
@@ -269,7 +292,7 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
         viewModel.isInDisconnectMode.value = false
         setToggleCheckedWithoutAction(true)
         viewModel.viewModelScope.launch(Dispatchers.IO) {
-            viewModel.selectProfileToConnectTo(profile).onFailure { thr ->
+            viewModel.selectProfileToConnectTo(profile, preferTcp = false).onFailure { thr ->
                 withContext(Dispatchers.Main) {
                     setToggleCheckedWithoutAction(false)
                     viewModel.isInDisconnectMode.value = true

@@ -30,10 +30,14 @@ class OrganizationService(
     private val backendService: BackendService
 ) {
 
-
-    suspend fun fetchServerList(searchFilter: String) : ServerList = withContext(Dispatchers.IO) {
-        val serverListString = backendService.discoverServers(searchFilter)
-        serializerService.deserializeServerList(serverListString)
+    suspend fun fetchServerList(searchFilter: String) : Result<ServerList> = withContext(Dispatchers.IO) {
+        try {
+            val serverListString = backendService.discoverServers(searchFilter)
+            val result = serializerService.deserializeServerList(serverListString)
+            return@withContext Result.success(result)
+        } catch (throwable: Throwable) {
+            return@withContext Result.failure(throwable)
+        }
     }
 
     suspend fun fetchOrganizations(searchFilter: String): OrganizationList = withContext(Dispatchers.IO) {

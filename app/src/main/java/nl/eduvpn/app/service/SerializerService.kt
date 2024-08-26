@@ -28,7 +28,6 @@ import nl.eduvpn.app.entity.Instance
 import nl.eduvpn.app.entity.OrganizationList
 import nl.eduvpn.app.entity.SerializedVpnConfig
 import nl.eduvpn.app.entity.ServerList
-import nl.eduvpn.app.entity.Settings
 import org.json.JSONException
 import org.json.JSONObject
 
@@ -67,49 +66,6 @@ class SerializerService {
         return try {
             jsonSerializer.decodeFromString(Instance.serializer(), json!!)
         } catch (ex: SerializationException) {
-            throw UnknownFormatException(ex)
-        }
-    }
-
-    /**
-     * Deserializes the app settings from JSON to POJO.
-     *
-     * @param jsonObject The json containing the settings.
-     * @return The settings as an object.
-     * @throws UnknownFormatException Thrown if there was a problem while parsing the JSON.
-     */
-    @Throws(UnknownFormatException::class)
-    fun deserializeAppSettings(jsonObject: JSONObject): Settings {
-        return try {
-            var useCustomTabs = Settings.USE_CUSTOM_TABS_DEFAULT_VALUE
-            if (jsonObject.has("use_custom_tabs")) {
-                useCustomTabs = jsonObject.getBoolean("use_custom_tabs")
-            }
-            var preferTcp = Settings.PREFER_TCP_DEFAULT_VALUE
-            if (jsonObject.has("prefer_tcp")) {
-                preferTcp = jsonObject.getBoolean("prefer_tcp")
-            }
-            Settings(useCustomTabs, preferTcp)
-        } catch (ex: JSONException) {
-            throw UnknownFormatException(ex)
-        }
-    }
-
-    /**
-     * Serializes the app settings to JSON.
-     *
-     * @param settings The settings to serialize.
-     * @return The app settings in a JSON format.
-     * @throws UnknownFormatException Thrown if there was an error while deserializing.
-     */
-    @Throws(UnknownFormatException::class)
-    fun serializeAppSettings(settings: Settings): JSONObject {
-        val result = JSONObject()
-        return try {
-            result.put("use_custom_tabs", settings.useCustomTabs())
-            result.put("prefer_tcp", settings.preferTcp())
-            result
-        } catch (ex: JSONException) {
             throw UnknownFormatException(ex)
         }
     }

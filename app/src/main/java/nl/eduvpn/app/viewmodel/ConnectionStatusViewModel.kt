@@ -43,6 +43,7 @@ import nl.eduvpn.app.service.*
 import nl.eduvpn.app.utils.Log
 import nl.eduvpn.app.utils.pendingIntentImmutableFlag
 import nl.eduvpn.app.utils.toSingleEvent
+import org.eduvpn.common.Protocol
 import javax.inject.Inject
 import javax.inject.Named
 
@@ -80,7 +81,7 @@ class ConnectionStatusViewModel @Inject constructor(
     val serverProfiles = MutableLiveData<List<Profile>>()
     val byteCountFlow = vpnService.byteCountFlow
     val ipFLow = vpnService.ipFlow
-    val protocol = vpnService.getProtocol()
+    val protocol: Protocol get() = Protocol.entries.firstOrNull {  it.nativeValue == preferencesService.getCurrentProtocol() } ?: Protocol.Unknown
     val canRenew = MutableLiveData(false)
     val vpnStatus = MutableLiveData(VPNService.VPNStatus.DISCONNECTED)
 
@@ -135,6 +136,7 @@ class ConnectionStatusViewModel @Inject constructor(
         }
         serverProfiles.value = currentServer.getProfiles()
         profileName.value = currentServer.currentProfile?.displayName?.bestTranslation
+        serverName.value = currentServer.getDisplayName()?.bestTranslation
         viewModelScope.launch {
             vpnService.asFlow().collect { status ->
                 val previousStatus = vpnStatus.value ?: VPNService.VPNStatus.DISCONNECTED
@@ -200,14 +202,26 @@ class ConnectionStatusViewModel @Inject constructor(
         discoverApi(preferencesService.getCurrentInstance()!!)
     }
 
-    fun reconnectWithCurrentProfile() {
+    fun isCurrentProtocolUsingTcp(): Boolean {
+        return protocol == Protocol.OpenVPNWithTCP || protocol == Protocol.WireGuardWithTCP
+    }
+
+    fun enableTcp() {
+        if (protocol == Protocol.OpenVPN) {
+            preferencesService.setCurrentProtocol(Protocol.OpenVPNWithTCP.nativeValue)
+        } else if (protocol == Protocol.WireGuard) {
+            preferencesService.setCurrentProtocol(Protocol.WireGuardWithTCP.nativeValue)
+        }
+    }
+
+    fun reconnectWithCurrentProfile(preferTcp: Boolean) {
         viewModelScope.launch(Dispatchers.IO) {
             val currentServer = backendService.getCurrentServer()?.asInstance()
             if (currentServer == null) {
                 _parentAction.postValue(BaseConnectionViewModel.ParentAction.DisplayError(R.string.error_fetching_profile, context.getString(R.string.error_no_profiles_from_server)))
                 return@launch
             }
-            getProfiles(currentServer)
+            getProfiles(currentServer, preferTcp = preferTcp)
         }
     }
 

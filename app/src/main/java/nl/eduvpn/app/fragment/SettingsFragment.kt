@@ -32,7 +32,6 @@ import nl.eduvpn.app.R
 import nl.eduvpn.app.SettingsActivity
 import nl.eduvpn.app.base.BaseFragment
 import nl.eduvpn.app.databinding.FragmentSettingsBinding
-import nl.eduvpn.app.entity.Settings
 import nl.eduvpn.app.viewmodel.SettingsViewModel
 
 /**
@@ -48,11 +47,6 @@ class SettingsFragment : BaseFragment<FragmentSettingsBinding>() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         EduVPNApplication.get(view.context).component().inject(this)
-        val originalSettings = viewModel.appSettings
-        binding.useCustomTabsSwitch.isChecked = originalSettings.useCustomTabs()
-        binding.preferTcpSwitch.isChecked = originalSettings.preferTcp()
-        binding.useCustomTabsSwitch.setOnClickListener { saveSettings() }
-        binding.preferTcpSwitch.setOnClickListener { saveSettings() }
         binding.licensesButton.setOnClickListener {
             startActivity(
                 Intent(
@@ -107,11 +101,5 @@ class SettingsFragment : BaseFragment<FragmentSettingsBinding>() {
                 .create()
             warningDialog.show()
         }
-    }
-
-    private fun saveSettings() {
-        val useCustomTabs = binding.useCustomTabsSwitch.isChecked
-        val preferTcp = binding.preferTcpSwitch.isChecked
-        viewModel.storeAppSettings(Settings(useCustomTabs, preferTcp))
     }
 }

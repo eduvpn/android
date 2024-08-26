@@ -30,16 +30,10 @@ import org.junit.runner.RunWith;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.TimeZone;
 
 import nl.eduvpn.app.entity.AuthorizationType;
 import nl.eduvpn.app.entity.Instance;
-import nl.eduvpn.app.entity.Organization;
-import nl.eduvpn.app.entity.OrganizationList;
-import nl.eduvpn.app.entity.Settings;
 import nl.eduvpn.app.entity.TranslatableString;
 
 /**
@@ -55,20 +49,6 @@ public class SerializerServiceTest {
     @Before
     public void before() {
         _serializerService = new SerializerService();
-    }
-
-    @Test
-    public void testAppSettingsSerialization() throws SerializerService.UnknownFormatException {
-        Settings settings = new Settings(true, true);
-        JSONObject jsonObject = _serializerService.serializeAppSettings(settings);
-        Settings deserializedSettings = _serializerService.deserializeAppSettings(jsonObject);
-        assertEquals(settings.preferTcp(), deserializedSettings.preferTcp());
-        assertEquals(settings.useCustomTabs(), deserializedSettings.useCustomTabs());
-        settings = new Settings(false, false);
-        jsonObject = _serializerService.serializeAppSettings(settings);
-        deserializedSettings = _serializerService.deserializeAppSettings(jsonObject);
-        assertEquals(settings.preferTcp(), deserializedSettings.preferTcp());
-        assertEquals(settings.useCustomTabs(), deserializedSettings.useCustomTabs());
     }
 
     @Test

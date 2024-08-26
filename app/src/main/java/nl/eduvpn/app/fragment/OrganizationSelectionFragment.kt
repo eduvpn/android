@@ -21,10 +21,13 @@ import android.os.Bundle
 import android.view.View
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.viewModelScope
 import androidx.recyclerview.widget.DefaultItemAnimator
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.observeOn
 import kotlinx.coroutines.launch
 import nl.eduvpn.app.EduVPNApplication
 import nl.eduvpn.app.R
@@ -134,6 +137,13 @@ class OrganizationSelectionFragment : BaseFragment<FragmentOrganizationSelection
                 }
                 else -> {
                     // Do nothing.
+                }
+            }
+        }
+        viewModel.viewModelScope.launch {
+            viewModel.error.collectLatest { exception ->
+                if (exception != null) {
+                    ErrorDialog.show(requireActivity(), exception)
                 }
             }
         }

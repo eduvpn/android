@@ -68,7 +68,6 @@ public class EduVPNOpenVPNService extends VPNService implements VpnStatus.StateL
     private static final String TAG = EduVPNOpenVPNService.class.getName();
 
     private final Context _context;
-    private final PreferencesService _preferencesService;
 
     // Stores the current VPN status.
     private ConnectionStatus _connectionStatus = ConnectionStatus.LEVEL_NOTCONNECTED;
@@ -101,9 +100,8 @@ public class EduVPNOpenVPNService extends VPNService implements VpnStatus.StateL
      *
      * @param context The application or activity context.
      */
-    public EduVPNOpenVPNService(Context context, PreferencesService preferencesService, IPLiveData ipLiveData) {
+    public EduVPNOpenVPNService(Context context, IPLiveData ipLiveData) {
         _context = context;
-        _preferencesService = preferencesService;
         _ipLiveData = ipLiveData;
         _byteCountLiveData = UnlessDisconnectedLiveData.INSTANCE.create(new ByteCountLiveData(), this);
     }
@@ -197,10 +195,9 @@ public class EduVPNOpenVPNService extends VPNService implements VpnStatus.StateL
      * @param activity   The current activity, required for providing a context.
      * @param vpnProfile The profile to connect to.
      */
-    public void connect(@NonNull Activity activity, @NonNull VpnProfile vpnProfile) {
+    public void connect(@NonNull Activity activity, @NonNull VpnProfile vpnProfile, Boolean preferTcp) {
         Log.i(TAG, "Initiating connection with profile:" + vpnProfile.getUUIDString());
-        boolean preferTcp = _preferencesService.getAppSettings().preferTcp();
-        Log.i(TAG, "Prefet TCP: " + preferTcp);
+        Log.i(TAG, "Prefer TCP: " + preferTcp);
         // If force TCP is enabled, disable the UDP connections
         for (Connection connection : vpnProfile.mConnections) {
             if (connection.mUseUdp) {

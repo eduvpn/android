@@ -91,10 +91,10 @@ class ServerSelectionFragment : BaseFragment<FragmentServerSelectionBinding>() {
             val item = adapter.getItem(position)
             if (item is OrganizationAdapter.OrganizationAdapterItem.SecureInternet) {
                 viewModel.connectingTo.value = item.server
-                viewModel.getProfiles(item.server)
+                viewModel.getProfiles(item.server, preferTcp = false)
             } else if (item is OrganizationAdapter.OrganizationAdapterItem.InstituteAccess) {
                 viewModel.connectingTo.value = item.server
-                viewModel.getProfiles(item.server)
+                viewModel.getProfiles(item.server, preferTcp = false)
             }
         }.setOnItemLongClickListener { _, position, _ ->
             if (position < 0 || position >= adapter.itemCount) {
