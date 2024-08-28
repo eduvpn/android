@@ -9,7 +9,7 @@ KEY_STORE=${HOME}/android.jks
 KEY_ALIAS=eduVPN
 
 GIT_REPO=https://codeberg.org/eduVPN/android
-#GIT_TAG=3.3.0
+#GIT_TAG=3.3.1
 GIT_TAG=master
 
 PROJECT_DIR=${HOME}/Projects
