@@ -1,0 +1,7 @@
+- Custom tabs will be always on, remove the option 
+- Move prefer TCP from a setting to a button
+- Sort country selector by country name
+- Display WireGuard (TCP) if connected with ProxyGuard
+- Fix connection state dialog staying on screen
+- Fix missing server name
+- Error handling for no connection case

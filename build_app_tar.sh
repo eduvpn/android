@@ -8,7 +8,7 @@ SDK_DIR=${HOME}/android-sdk
 KEY_STORE=${HOME}/android.jks
 KEY_ALIAS=eduVPN
 
-V=3.3.0
+V=3.3.1
 DOWNLOAD_URL=https://codeberg.org/eduVPN/android/releases/download/${V}/eduvpn-android-${V}.tar.xz
 
 PROJECT_DIR=${HOME}/Projects

@@ -1,5 +1,16 @@
 # Changelog
 
+## 3.3.1 (2024-08-28)
+- Custom tabs will be always on, remove the option 
+  ([#372](https://github.com/eduvpn/android/issues/372), 
+  [#144](https://github.com/eduvpn/android/issues/144))
+- Move prefer TCP from a setting to a button
+- Sort country selector by country name ([#381](https://github.com/eduvpn/android/issues/381))
+- Display WireGuard (TCP) if connected with ProxyGuard
+- Fix connection state dialog staying on screen
+- Fix missing server name
+- Error handling for no connection case
+
 ## 3.3.0 (2024-08-12)
 - Update eduvpn-common to release 2.0.2
 - Implement support for ProxyGuard (WireGuard over TCP)
