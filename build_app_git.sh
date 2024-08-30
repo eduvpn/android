@@ -6,7 +6,6 @@
 
 SDK_DIR=${HOME}/android-sdk
 KEY_STORE=${HOME}/android.jks
-KEY_ALIAS=eduVPN
 
 GIT_REPO=https://codeberg.org/eduVPN/android
 #GIT_TAG=3.3.1
@@ -16,6 +15,7 @@ PROJECT_DIR=${HOME}/Projects
 APP_DIR=${PROJECT_DIR}/eduvpn-android-$(date +%Y%m%d%H%M%S)
 
 # eduVPN
+KEY_ALIAS=eduVPN
 GRADLE_TASKS="app:assembleBasicRelease app:bundleBasicRelease"
 UNSIGNED_APK=${APP_DIR}/app/build/outputs/apk/basic/release/app-basic-release-unsigned.apk
 UNSIGNED_AAB=${APP_DIR}/app/build/outputs/bundle/basicRelease/app-basic-release.aab
@@ -23,6 +23,7 @@ SIGNED_APK=${PROJECT_DIR}/eduVPN-${GIT_TAG}.apk
 SIGNED_AAB=${PROJECT_DIR}/eduVPN-${GIT_TAG}.aab
 
 # govVPN
+#KEY_ALIAS=govVPN
 #GRADLE_TASKS="app:assembleGovRelease app:bundleGovRelease"
 #UNSIGNED_APK=${APP_DIR}/app/build/outputs/apk/gov/release/app-gov-release-unsigned.apk
 #UNSIGNED_AAB=${APP_DIR}/app/build/outputs/bundle/govRelease/app-gov-release.aab
@@ -30,6 +31,7 @@ SIGNED_AAB=${PROJECT_DIR}/eduVPN-${GIT_TAG}.aab
 #SIGNED_AAB=${PROJECT_DIR}/govVPN-${GIT_TAG}.aab
 
 # Let's Connect!
+#KEY_ALIAS=LC
 #GRADLE_TASKS="app:assembleHomeRelease app:bundleHomeRelease"
 #UNSIGNED_APK=${APP_DIR}/app/build/outputs/apk/home/release/app-home-release-unsigned.apk
 #UNSIGNED_AAB=${APP_DIR}/app/build/outputs/bundle/homeRelease/app-home-release.aab
