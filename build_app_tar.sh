@@ -22,7 +22,7 @@ SIGNED_APK=${PROJECT_DIR}/eduVPN-${V}.apk
 SIGNED_AAB=${PROJECT_DIR}/eduVPN-${V}.aab
 
 # govVPN
-KEY_ALIAS=govVPN
+#KEY_ALIAS=govVPN
 #GRADLE_TASKS="app:assembleGovRelease app:bundleGovRelease"
 #UNSIGNED_APK=${APP_DIR}/app/build/outputs/apk/gov/release/app-gov-release-unsigned.apk
 #UNSIGNED_AAB=${APP_DIR}/app/build/outputs/bundle/govRelease/app-gov-release.aab
