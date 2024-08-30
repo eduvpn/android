@@ -1,5 +1,8 @@
 # Changelog
 
+## 3.3.2 (2024-08-30)
+- bump release for Google Play Store
+
 ## 3.3.1 (2024-08-28)
 - Custom tabs will be always on, remove the option 
   ([#372](https://github.com/eduvpn/android/issues/372), 
