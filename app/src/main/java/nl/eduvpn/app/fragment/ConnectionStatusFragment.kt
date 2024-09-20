@@ -23,6 +23,7 @@ import android.view.View
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AlertDialog
 import androidx.core.view.postDelayed
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import androidx.lifecycle.asLiveData
@@ -47,6 +48,7 @@ import nl.eduvpn.app.utils.ErrorDialog
 import nl.eduvpn.app.utils.FormattingUtils
 import nl.eduvpn.app.viewmodel.BaseConnectionViewModel
 import nl.eduvpn.app.viewmodel.ConnectionStatusViewModel
+import nl.eduvpn.app.viewmodel.MainViewModel
 import org.eduvpn.common.Protocol
 
 /**
@@ -62,11 +64,14 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
 
     private val viewModel by viewModels<ConnectionStatusViewModel> { viewModelFactory }
 
+    private val mainViewModel by activityViewModels<MainViewModel> { viewModelFactory }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         EduVPNApplication.get(view.context).component().inject(this)
         binding.viewModel = viewModel
         binding.isTcp = viewModel.isCurrentProtocolUsingTcp()
+        binding.failoverNeeded = mainViewModel.failoverResult.value ?: false
         binding.secondsConnected = viewModel.connectionTimeLiveData.map { secondsConnected ->
             val context = this@ConnectionStatusFragment.context ?: return@map null
             FormattingUtils.formatDurationSeconds(
@@ -205,6 +210,9 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
             if (!viewModel.updateCertExpiry()) {
                 updateCertExpiryObserver?.let { obs -> viewModel.timer.removeObserver(obs) }
             }
+        }
+        mainViewModel.failoverResult.observe(viewLifecycleOwner) {
+            binding.failoverNeeded = it
         }
         viewModel.timer.observe(viewLifecycleOwner, updateCertExpiryObserver)
         viewModel.vpnStatus.observe(viewLifecycleOwner) { status ->

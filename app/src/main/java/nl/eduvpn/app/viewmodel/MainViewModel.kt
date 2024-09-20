@@ -69,6 +69,9 @@ class MainViewModel @Inject constructor(
     val mainParentAction = _mainParentAction.toSingleEvent()
 
     val proxyGuardEnabled: Boolean get() = preferencesService.getCurrentProtocol() == Protocol.WireGuardWithTCP.nativeValue
+    private val _failoverResult = MutableLiveData(false)
+    val failoverResult = _failoverResult.toSingleEvent()
+
 
     init {
         backendService.register(
@@ -159,21 +162,7 @@ class MainViewModel @Inject constructor(
                     // Waits a bit so that the network interface has been surely set up
                     delay(1_000L)
                     backendService.startFailOver(service) {
-                        // Failover needed, request a new profile with TCP enforced.
-                        preferencesService.getCurrentInstance()?.let { currentInstance ->
-                            viewModelScope.launch {
-                                // Disconnect first, otherwise we don't have any internet :)
-                                service.disconnect()
-                                // Wait a bit for the disconnection to finish
-                                delay(500L)
-                                // Fetch a new profile, now with TCP forced
-                                try {
-                                    backendService.getConfig(currentInstance, preferTcp = true)
-                                } catch (ex: Exception) {
-                                    Log.w(TAG, "Could not fetch new config!", ex)
-                                }
-                            }
-                        }
+                        _failoverResult.postValue(true)
                     }
                 } catch (ex: CommonException) {
                     // These are just warnings, so we log them, but don't display to the user
