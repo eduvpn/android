@@ -167,7 +167,11 @@ class MainViewModel @Inject constructor(
                                 // Wait a bit for the disconnection to finish
                                 delay(500L)
                                 // Fetch a new profile, now with TCP forced
-                                backendService.getConfig(currentInstance, preferTcp = true)
+                                try {
+                                    backendService.getConfig(currentInstance, preferTcp = true)
+                                } catch (ex: Exception) {
+                                    Log.w(TAG, "Could not fetch new config!", ex)
+                                }
                             }
                         }
                     }

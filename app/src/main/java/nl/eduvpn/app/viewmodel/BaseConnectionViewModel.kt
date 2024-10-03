@@ -130,6 +130,7 @@ abstract class BaseConnectionViewModel(
         }
     }
 
+    @Throws(Exception::class)
     suspend fun selectProfileToConnectTo(profile: Profile, preferTcp: Boolean) : Result<Unit> {
         backendService.selectProfile(profile, preferTcp = preferTcp)
         return Result.success(Unit)
