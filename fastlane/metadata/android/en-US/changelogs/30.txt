@@ -1,0 +1,2 @@
+- embed WireGuard for Android
+- fix crash when reconnecting
