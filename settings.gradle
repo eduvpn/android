@@ -27,6 +27,9 @@ dependencyResolutionManagement {
         eduvpnVersions {
             from(files('gradle/libs.versions.toml'))
         }
+        wireguardVersions {
+            from(files('wireguard/gradle/libs.versions.toml'))
+        }
     }
 }
 
@@ -34,3 +37,5 @@ include ':app'
 include ':ics-openvpn-main'
 project(':ics-openvpn-main').projectDir = new File(rootDir, '/ics-openvpn/main')
 include ':common'
+include ':wireguard'
+project(':wireguard').projectDir = new File(rootDir, '/wireguard/tunnel')
