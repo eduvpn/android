@@ -68,7 +68,8 @@ $ sudo dnf -y install \
     ncurses-compat-libs \
     ninja-build \
     cmake \
-    pv
+    pv \
+    gcc-c++
 ```
 
 ## Key Store
