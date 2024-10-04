@@ -38,6 +38,10 @@
             name="isTcp"
             type="boolean" />
 
+        <variable
+            name="failoverNeeded"
+            type="boolean" />
+
         <import type="android.view.View" />
     </data>
 
@@ -209,7 +213,7 @@
                 android:layout_marginTop="16dp"
                 android:textColor="@color/textColor"
                 android:textSize="14sp"
-                android:visibility="@{isTcp ? View.GONE : View.VISIBLE}"
+                android:visibility="@{isTcp || !failoverNeeded ? View.GONE : View.VISIBLE}"
                 android:text="@string/connection_status_connectivity_problems"
                 android:layout_height="wrap_content"/>
 
@@ -218,7 +222,7 @@
                 android:id="@+id/reconnect_tcp_button"
                 android:layout_width="wrap_content"
                 android:layout_marginTop="8dp"
-                android:visibility="@{isTcp ? View.GONE : View.VISIBLE}"
+                android:visibility="@{isTcp || !failoverNeeded ? View.GONE : View.VISIBLE}"
                 android:text="@string/connection_status_reconnect_with_tcp"
                 android:layout_height="wrap_content"/>
         </LinearLayout>
