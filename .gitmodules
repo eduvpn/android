@@ -6,4 +6,4 @@
 	url = https://github.com/eduvpn/eduvpn-common
 [submodule "wireguard"]
 	path = wireguard
-	url = https://codeberg.org/fkooman/wireguard-android
+	url = https://codeberg.org/eduVPN/wireguard-android
