@@ -15,8 +15,8 @@ android {
         applicationId "nl.eduvpn.app"
         minSdkVersion 21
         targetSdkVersion 34
-        versionCode 29
-        versionName "3.3.2"
+        versionCode 30
+        versionName "3.3.3"
         ndkVersion "26.1.10909125"
 
         vectorDrawables.useSupportLibrary = true
@@ -166,7 +166,7 @@ dependencies {
     // eduVPN common library written in Go, stores all data and does the communication with the servers
     implementation project(path: ':common')
     // WireGuard VPN library
-    implementation(eduvpnVersions.wireguard)
+    implementation project(path: ':wireguard')
 
     // Please try to stay in sync with the versions used in the ics-openvpn module
     implementation(eduvpnVersions.android.appcompat)

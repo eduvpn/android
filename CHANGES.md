@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.3.3 (2024-10-04)
+- embed WireGuard for Android
+- fix crash when reconnecting
+
 ## 3.3.2 (2024-08-30)
 - bump release for Google Play Store
 
