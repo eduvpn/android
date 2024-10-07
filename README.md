@@ -10,12 +10,19 @@ $ git clone --recurse-submodules https://codeberg.org/eduVPN/android
 
 # Download the app
 
+## Stores
+
 [<img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png"
      alt="Get it on F-Droid"
      height="80">](https://f-droid.org/packages/nl.eduvpn.app/)
 [<img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png"
      alt="Get it on Google Play"
      height="80">](https://play.google.com/store/apps/details?id=nl.eduvpn.app)
+
+## APKs
+
+* [APKs for eduVPN](https://app.eduvpn.org/#android)
+* [APKs for Let's Connect!](https://app.letsconnect-vpn.org/#android)
 
 # Running with Android Studio
 
@@ -47,10 +54,10 @@ Anything lower was not tested, but 1GB of memory definitely does not work.
 The builder will spew a lot of backtraces/warnings, but does seem to complete 
 eventually.
 
-We last tested this on 2023-10-20 with Fedora 38.
+We last tested this on 2024-10-07 with Fedora 40.
 
 We removed the Debian instructions as building on Debian no longer works on 
-Debian 11 (as of 2023-03-06) and I have no desire to investigate fixing this.
+Debian 11 (as of 2023-03-06).
 
 ## Dependencies
 
@@ -76,15 +83,17 @@ $ sudo dnf -y install \
 
 Generate a key store for signing the Android application:
 
-    $ keytool \
-        -genkey \
-        -keystore ${HOME}/android.jks \
-        -keyalg RSA \
-        -keysize 4096 \
-        -sigalg SHA256withRSA \
-        -dname "CN=eduVPN for Android" \
-        -validity 10000 \
-        -alias eduVPN
+```bash
+$ keytool \
+    -genkey \
+    -keystore ${HOME}/android.jks \
+    -keyalg RSA \
+    -keysize 4096 \
+    -sigalg SHA256withRSA \
+    -dname "CN=eduVPN for Android" \
+    -validity 10000 \
+    -alias eduVPN
+```
 
 Additional documentation 
 [here](https://developer.android.com/studio/publish/app-signing#signing-manually).
