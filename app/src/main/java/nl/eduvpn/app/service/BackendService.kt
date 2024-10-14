@@ -176,7 +176,7 @@ class BackendService(
     }
 
     @kotlin.jvm.Throws(CommonException::class)
-    suspend fun addServer(instance: Instance) {
+    fun addServer(instance: Instance) {
         val errorString = goBackend.addServer(
             instance.authorizationType.toNativeServerType().nativeValue,
             instance.baseURI
@@ -234,12 +234,12 @@ class BackendService(
     }
 
     @kotlin.jvm.Throws(CommonException::class, UnknownFormatException::class)
-    fun getAddedServers(): AddedServers {
+    suspend fun getAddedServers(): AddedServers = withContext(Dispatchers.IO) {
         val dataErrorTuple = goBackend.addedServers
         if (dataErrorTuple.isError) {
             throw CommonException(dataErrorTuple.error)
         }
-        return serializerService.deserializeAddedServers(dataErrorTuple.data)
+        serializerService.deserializeAddedServers(dataErrorTuple.data)
     }
 
     @kotlin.jvm.Throws(CommonException::class, UnknownFormatException::class)

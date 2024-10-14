@@ -92,7 +92,7 @@ class ProfileSelectionFragment : BaseFragment<FragmentProfileSelectionBinding>()
     }
 
     private fun selectProfileToConnectTo(profile: Profile) {
-        viewModel.viewModelScope.launch {
+        viewModel.viewModelScope.launch(Dispatchers.IO) {
             viewModel.selectProfileToConnectTo(profile, preferTcp = false).onFailure { thr ->
                 withContext(Dispatchers.Main) {
                     ErrorDialog.show(requireActivity(), thr)

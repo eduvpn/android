@@ -97,12 +97,26 @@ class MainViewModel @Inject constructor(
                 _mainParentAction.postValue(MainParentAction.OnProxyGuardReady)
             }
         )
-        historyService.load()
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                historyService.load()
+            } catch (ex: Exception) {
+                Log.w(TAG, "Could not load history from the common backend on initialization!", ex)
+                _mainParentAction.postValue(MainParentAction.ShowError(ex))
+            }
+        }
     }
 
     override fun onResume() {
-        historyService.load()
-        backendService.cancelPendingRedirect()
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                historyService.load()
+                backendService.cancelPendingRedirect()
+            } catch (ex: Exception) {
+                Log.w(TAG, "Could not load history from the common backend on resume!", ex)
+                _mainParentAction.postValue(MainParentAction.ShowError(ex))
+            }
+        }
         super.onResume()
     }
 
@@ -153,7 +167,7 @@ class MainViewModel @Inject constructor(
                 return
             }
         } else {
-            throw IllegalArgumentException("Unexpected protocol type: ${protocol}")
+            throw IllegalArgumentException("Unexpected protocol type: $protocol")
         }
         val service = vpnConnectionService.connectionToConfig(viewModelScope, activity, parsedConfig, preferTcp)
         if (protocol == Protocol.WireGuard.nativeValue && !preferTcp && config.shouldFailover) {
@@ -205,7 +219,11 @@ class MainViewModel @Inject constructor(
             try {
                 backendService.selectCountry(cookie, organizationId, countryCode)
                 withContext(Dispatchers.Main) {
-                    historyService.load()
+                    try {
+                        historyService.load()
+                    } catch (ex: Exception) {
+                        _mainParentAction.postValue(MainParentAction.ShowError(ex))
+                    }
                 }
             } catch (ex: Exception) {
                 _mainParentAction.postValue(MainParentAction.ShowError(ex))

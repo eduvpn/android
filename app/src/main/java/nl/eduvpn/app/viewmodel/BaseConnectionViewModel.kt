@@ -158,7 +158,9 @@ abstract class BaseConnectionViewModel(
     }
 
     fun deleteAllDataForInstance(instance: Instance) {
-        historyService.removeAllDataForInstance(instance)
+        viewModelScope.launch(Dispatchers.IO) {
+            historyService.removeAllDataForInstance(instance)
+        }
     }
 
     fun getProfileInstance(): Instance {

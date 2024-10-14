@@ -197,10 +197,6 @@
     <string name="connection_warning_disconnect_first_title">VPN connected</string>
     <string name="connection_warning_disconnect_first_message">To switch between profiles, you need to disconnect first using the toggle.</string>
     <string name="connection_warning_disconnect_first_ok_button">OK</string>
-    <string name="error_organization_list_version_check_message">Organization list version is outdated.</string>
-    <string name="error_organization_list_version_check_title">Problem downloading organization list</string>
-    <string name="error_server_list_version_check_message">Server list version is outdated.</string>
-    <string name="error_server_list_version_check_title">Problem downloading server list</string>
     <string name="connection_info_renew_session">Renew Session</string>
     <string name="cert_expiry_channel_name">VPN certificate expired warning</string>
     <string name="cert_expiry_notification_title">VPN certificate about to expire</string>

@@ -184,8 +184,4 @@
     <string name="connection_warning_disconnect_first_title">VPN conectada</string>
     <string name="connection_warning_disconnect_first_message">Para cambiar entre perfiles, primero debe desconectarse usando el interruptor.</string>
     <string name="connection_warning_disconnect_first_ok_button">OK</string>
-    <string name="error_organization_list_version_check_message">La versión de la lista de organizaciones está desactualizada.</string>
-    <string name="error_organization_list_version_check_title">Problema al descargar la lista de organizaciones</string>
-    <string name="error_server_list_version_check_message">La versión de la lista de servidores está desactualizada.</string>
-    <string name="error_server_list_version_check_title">Problema al descargar la lista de servidores</string>
 </resources>
