@@ -112,7 +112,7 @@ class ApplicationModule(private val application: EduVPNApplication) {
     fun provideConnectionTimeLiveData(
         vpnService: VPNService,
         @Named("timer") timer: LiveData<Unit>
-    ): LiveData<Long?> {
+    ): LiveData<Long> {
         return ConnectionTimeLiveData.create(vpnService, timer)
     }
 

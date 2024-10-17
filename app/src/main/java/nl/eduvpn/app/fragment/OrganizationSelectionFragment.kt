@@ -130,7 +130,9 @@ class OrganizationSelectionFragment : BaseFragment<FragmentOrganizationSelection
         viewModel.parentAction.observe(viewLifecycleOwner) { parentAction ->
             when (parentAction) {
                 is BaseConnectionViewModel.ParentAction.DisplayError -> {
-                    ErrorDialog.show(requireActivity(), parentAction.title, parentAction.message)
+                    activity?.let { activity ->
+                        ErrorDialog.show(activity, parentAction.title, parentAction.message)
+                    }
                 }
                 is BaseConnectionViewModel.ParentAction.ShowContextCanceledToast -> {
                     Snackbar.make(view, parentAction.message, Snackbar.LENGTH_LONG).show()
@@ -143,7 +145,9 @@ class OrganizationSelectionFragment : BaseFragment<FragmentOrganizationSelection
         viewModel.viewModelScope.launch {
             viewModel.error.collectLatest { exception ->
                 if (exception != null) {
-                    ErrorDialog.show(requireActivity(), exception)
+                    activity?.let { activity ->
+                        ErrorDialog.show(activity, exception)
+                    }
                 }
             }
         }

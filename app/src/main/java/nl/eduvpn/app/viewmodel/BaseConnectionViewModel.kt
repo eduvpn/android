@@ -33,8 +33,6 @@ import nl.eduvpn.app.livedata.toSingleEvent
 import nl.eduvpn.app.service.*
 import nl.eduvpn.app.utils.Log
 import nl.eduvpn.app.utils.runCatchingCoroutine
-import java.text.ParseException
-import java.text.SimpleDateFormat
 import java.util.*
 
 /**
@@ -142,23 +140,14 @@ abstract class BaseConnectionViewModel(
         }
     }
 
-    private fun <T> showError(thr: Throwable?, resourceId: Int): Result<T> {
-        val message = context.getString(resourceId, thr)
-        Log.e(TAG, message, thr)
-        connectionState.value = ConnectionState.Ready
-        _parentAction.value = ParentAction.DisplayError(
-            R.string.error_dialog_title,
-            message
-        )
-        return Result.failure(thr ?: RuntimeException(message))
-    }
-
     fun disconnectWithCall(vpnService: VPNService) {
         vpnConnectionService.disconnect(context, vpnService)
     }
 
     fun deleteAllDataForInstance(instance: Instance) {
-        historyService.removeAllDataForInstance(instance)
+        viewModelScope.launch(Dispatchers.IO) {
+            historyService.removeAllDataForInstance(instance)
+        }
     }
 
     fun getProfileInstance(): Instance {

@@ -23,6 +23,7 @@ import android.view.View
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AlertDialog
 import androidx.core.view.postDelayed
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import androidx.lifecycle.asLiveData
@@ -45,9 +46,12 @@ import nl.eduvpn.app.service.VPNConnectionService
 import nl.eduvpn.app.service.VPNService.VPNStatus
 import nl.eduvpn.app.utils.ErrorDialog
 import nl.eduvpn.app.utils.FormattingUtils
+import nl.eduvpn.app.utils.Log
 import nl.eduvpn.app.viewmodel.BaseConnectionViewModel
 import nl.eduvpn.app.viewmodel.ConnectionStatusViewModel
+import nl.eduvpn.app.viewmodel.MainViewModel
 import org.eduvpn.common.Protocol
+import java.util.logging.Logger
 
 /**
  * The fragment which displays the status of the current connection.
@@ -62,17 +66,21 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
 
     private val viewModel by viewModels<ConnectionStatusViewModel> { viewModelFactory }
 
+    private val mainViewModel by activityViewModels<MainViewModel> { viewModelFactory }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         EduVPNApplication.get(view.context).component().inject(this)
         binding.viewModel = viewModel
         binding.isTcp = viewModel.isCurrentProtocolUsingTcp()
+        binding.failoverNeeded = mainViewModel.failoverResult.value ?: false
         binding.secondsConnected = viewModel.connectionTimeLiveData.map { secondsConnected ->
             val context = this@ConnectionStatusFragment.context ?: return@map null
-            FormattingUtils.formatDurationSeconds(
-                context,
-                secondsConnected
-            )
+            if (secondsConnected < 0) {
+                FormattingUtils.formatDurationSeconds(context, null)
+            } else {
+                FormattingUtils.formatDurationSeconds(context, secondsConnected)
+            }
         }
         binding.bytesDownloaded = viewModel.byteCountFlow.map { bc ->
             val context = this@ConnectionStatusFragment.context ?: return@map null
@@ -206,6 +214,9 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
                 updateCertExpiryObserver?.let { obs -> viewModel.timer.removeObserver(obs) }
             }
         }
+        mainViewModel.failoverResult.observe(viewLifecycleOwner) {
+            binding.failoverNeeded = it
+        }
         viewModel.timer.observe(viewLifecycleOwner, updateCertExpiryObserver)
         viewModel.vpnStatus.observe(viewLifecycleOwner) { status ->
             binding.connectionStatus.setText(VPNConnectionService.vpnStatusToStringID(status))
@@ -292,18 +303,29 @@ class ConnectionStatusFragment : BaseFragment<FragmentConnectionStatusBinding>()
         viewModel.isInDisconnectMode.value = false
         setToggleCheckedWithoutAction(true)
         viewModel.viewModelScope.launch(Dispatchers.IO) {
-            viewModel.selectProfileToConnectTo(profile, preferTcp = false).onFailure { thr ->
-                withContext(Dispatchers.Main) {
-                    setToggleCheckedWithoutAction(false)
-                    viewModel.isInDisconnectMode.value = true
-                    ErrorDialog.show(requireActivity(), thr)
+            try {
+                viewModel.selectProfileToConnectTo(profile, preferTcp = false).onFailure { thr ->
+                    withContext(Dispatchers.Main) {
+                        setToggleCheckedWithoutAction(false)
+                        viewModel.isInDisconnectMode.value = true
+                        ErrorDialog.show(requireActivity(), thr)
+                    }
+                }.onSuccess {
+                    // Relaunch this fragment. This is required, because in some cases, the backend
+                    // implementation (WireGuard vs OpenVPN) might be different, and we would be connected
+                    // to the incorrect one.
+                    (activity as? MainActivity)?.openFragment(ConnectionStatusFragment(), openOnTop = false)
                 }
-            }.onSuccess {
-                // Relaunch this fragment. This is required, because in some cases, the backend
-                // implementation (WireGuard vs OpenVPN) might be different, and we would be connected
-                // to the incorrect one.
-                (activity as? MainActivity)?.openFragment(ConnectionStatusFragment(), openOnTop = false)
+            } catch (ex: Exception) {
+                Log.w(TAG, "Could not select profile to connect to!", ex)
+                activity?.let {
+                    ErrorDialog.show(it, ex)
+                }
             }
         }
+    }
+
+    companion object {
+        private val TAG = ConnectionStatusFragment::class.java.name
     }
 }

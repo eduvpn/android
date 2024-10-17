@@ -55,7 +55,7 @@ class ConnectionStatusViewModel @Inject constructor(
     @Named("timer")
     val timer: LiveData<Unit>,
     @Named("connectionTimeLiveData")
-    val connectionTimeLiveData: LiveData<Long?>,
+    val connectionTimeLiveData: LiveData<Long>,
     private val backendService: BackendService,
     vpnConnectionService: VPNConnectionService,
 ) : BaseConnectionViewModel(
@@ -99,7 +99,7 @@ class ConnectionStatusViewModel @Inject constructor(
     init {
         val currentServer = historyService.currentServer
         certExpiryTimes = historyService.certExpiryTimes
-        val connectionInstance = currentServer.asInstance()
+        val connectionInstance = currentServer?.asInstance()
         if (connectionInstance != null && connectionInstance.supportContact.isNotEmpty()) {
                 val supportContacts = StringBuilder()
                 for (contact in connectionInstance.supportContact) {
@@ -134,9 +134,9 @@ class ConnectionStatusViewModel @Inject constructor(
                 canRenew.postValue(true)
             }
         }
-        serverProfiles.value = currentServer.getProfiles()
-        profileName.value = currentServer.currentProfile?.displayName?.bestTranslation
-        serverName.value = currentServer.getDisplayName()?.bestTranslation
+        serverProfiles.value = currentServer?.getProfiles()
+        profileName.value = currentServer?.currentProfile?.displayName?.bestTranslation
+        serverName.value = currentServer?.getDisplayName()?.bestTranslation
         viewModelScope.launch {
             vpnService.asFlow().collect { status ->
                 val previousStatus = vpnStatus.value ?: VPNService.VPNStatus.DISCONNECTED
