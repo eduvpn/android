@@ -142,25 +142,10 @@
             </intent-filter>
         </activity>
 
-        <activity-alias
-            android:name="${applicationId}.activities.LogWindow"
-            android:targetActivity="de.blinkt.openvpn.activities.LogWindow" />
-
-        <activity
-            android:name="de.blinkt.openvpn.activities.LogWindow"
-            android:allowTaskReparenting="true"
-            android:label="@string/openvpn_log"
+        <activity android:name=".OpenVpnLogsActivity"
             android:launchMode="singleTask"
-            android:parentActivityName=".MainActivity"
-            android:theme="@style/StyledVpn"
-            tools:ignore="UnusedAttribute">
-
-            <!-- Parent activity meta-data to support 4.0 and lower -->
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value=".MainActivity" />
-
-        </activity>
+            android:exported="false"
+            android:theme="@style/AppTheme.NoActionBar" />
 
         <activity android:name=".ApiLogsActivity"
             android:launchMode="singleTask"

@@ -28,6 +28,7 @@ import nl.eduvpn.app.ApiLogsActivity
 import nl.eduvpn.app.BuildConfig
 import nl.eduvpn.app.EduVPNApplication
 import nl.eduvpn.app.LicenseActivity
+import nl.eduvpn.app.OpenVpnLogsActivity
 import nl.eduvpn.app.R
 import nl.eduvpn.app.SettingsActivity
 import nl.eduvpn.app.base.BaseFragment
@@ -57,7 +58,7 @@ class SettingsFragment : BaseFragment<FragmentSettingsBinding>() {
         }
         binding.resetDataButton.setOnClickListener { onResetDataClicked() }
         binding.viewOpenvpnLogsButton.setOnClickListener {
-            val intent = Intent(activity, LogWindow::class.java)
+            val intent = Intent(activity, OpenVpnLogsActivity::class.java)
             startActivity(intent)
         }
         binding.viewApiLogsButton.setOnClickListener {
