@@ -97,13 +97,11 @@ class MainViewModel @Inject constructor(
                 _mainParentAction.postValue(MainParentAction.OnProxyGuardReady)
             }
         )
-        viewModelScope.launch(Dispatchers.IO) {
-            try {
-                historyService.load()
-            } catch (ex: Exception) {
-                Log.w(TAG, "Could not load history from the common backend on initialization!", ex)
-                _mainParentAction.postValue(MainParentAction.ShowError(ex))
-            }
+        try {
+            historyService.load()
+        } catch (ex: Exception) {
+            Log.w(TAG, "Could not load history from the common backend on initialization!", ex)
+            _mainParentAction.postValue(MainParentAction.ShowError(ex))
         }
     }
 

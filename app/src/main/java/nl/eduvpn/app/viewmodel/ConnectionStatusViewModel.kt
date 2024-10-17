@@ -55,7 +55,7 @@ class ConnectionStatusViewModel @Inject constructor(
     @Named("timer")
     val timer: LiveData<Unit>,
     @Named("connectionTimeLiveData")
-    val connectionTimeLiveData: LiveData<Long?>,
+    val connectionTimeLiveData: LiveData<Long>,
     private val backendService: BackendService,
     vpnConnectionService: VPNConnectionService,
 ) : BaseConnectionViewModel(

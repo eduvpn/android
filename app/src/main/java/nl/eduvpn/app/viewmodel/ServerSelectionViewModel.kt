@@ -85,11 +85,13 @@ class ServerSelectionViewModel @Inject constructor(
 
     private fun refresh() {
         viewModelScope.launch(Dispatchers.IO) {
+            println("XXX Starting refresh")
             try {
                 historyService.removeListener(this@ServerSelectionViewModel)
                 historyService.load()
                 historyService.addListener(this@ServerSelectionViewModel)
 
+                println("XXX Added server in SSM ${historyService.addedServers?.customServers}")
                 val needsServerList = historyService.addedServers?.secureInternetServer != null
                 if (needsServerList) {
                     refreshServerList()
@@ -97,6 +99,7 @@ class ServerSelectionViewModel @Inject constructor(
                     refreshInstances()
                 }
             } catch (ex: Exception) {
+                Log.w(TAG, "XXX Could not refresh server selection list", ex)
                 _parentAction.postValue(ParentAction.DisplayError(R.string.error_dialog_title, ex.message ?: ex.toString()))
             }
         }

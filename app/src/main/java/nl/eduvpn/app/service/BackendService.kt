@@ -233,13 +233,12 @@ class BackendService(
         return true
     }
 
-    @kotlin.jvm.Throws(CommonException::class, UnknownFormatException::class)
-    suspend fun getAddedServers(): AddedServers = withContext(Dispatchers.IO) {
+    fun getAddedServers(): AddedServers {
         val dataErrorTuple = goBackend.addedServers
         if (dataErrorTuple.isError) {
             throw CommonException(dataErrorTuple.error)
         }
-        serializerService.deserializeAddedServers(dataErrorTuple.data)
+        return serializerService.deserializeAddedServers(dataErrorTuple.data)
     }
 
     @kotlin.jvm.Throws(CommonException::class, UnknownFormatException::class)

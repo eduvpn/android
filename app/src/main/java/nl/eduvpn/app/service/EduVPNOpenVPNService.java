@@ -232,7 +232,17 @@ public class EduVPNOpenVPNService extends VPNService implements VpnStatus.StateL
      */
     public void disconnect() {
         try {
-            _openVPNService.stopVPN(false);
+            if (_openVPNService == null) {
+                ConnectionStatus previousStatus = _connectionStatus;
+                _connectionStatus = ConnectionStatus.LEVEL_NOTCONNECTED;
+                if (previousStatus != _connectionStatus) {
+                    _updatesHandler.post(() -> {
+                        setValue(connectionStatusToVPNStatus(_connectionStatus));
+                    });
+                }
+            } else {
+                _openVPNService.stopVPN(false);
+            }
         } catch (RemoteException ex) {
             Log.e(TAG, "Exception when trying to stop connection. Connection might not be closed!", ex);
         }

@@ -42,7 +42,7 @@ class HistoryService(private val backendService: BackendService) {
      * Loads the state of the service.
      */
     @kotlin.jvm.Throws(Exception::class)
-    suspend fun load() {
+    fun load() {
         try {
             addedServers = backendService.getAddedServers()
             notifyListeners()
@@ -90,7 +90,7 @@ class HistoryService(private val backendService: BackendService) {
      * @param instance The instance to remove the data for.
      */
     @Throws(CommonException::class)
-    suspend fun removeAllDataForInstance(instance: Instance) {
+    fun removeAllDataForInstance(instance: Instance) {
         backendService.removeServer(instance)
         load()
         notifyListeners()
