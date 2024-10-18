@@ -29,10 +29,10 @@ object ConnectionTimeLiveData {
     fun create(
         vpnStatusLiveData: LiveData<VPNService.VPNStatus>,
         timer: LiveData<Unit>
-    ): LiveData<Long?> {
+    ): LiveData<Long> {
         var connectionTime = 0L
 
-        val connectionTimeLiveData = MediatorLiveData<Long?>()
+        val connectionTimeLiveData = MediatorLiveData<Long>()
 
         val update = {
             connectionTimeLiveData.value = (System.currentTimeMillis() - connectionTime) / 1000L
@@ -52,7 +52,7 @@ object ConnectionTimeLiveData {
                 }
             } else if (vpnStatus == VPNService.VPNStatus.DISCONNECTED) {
                 connectionTimeLiveData.removeSource(timer)
-                connectionTimeLiveData.value = null
+                connectionTimeLiveData.value = -1
             }
         }
 

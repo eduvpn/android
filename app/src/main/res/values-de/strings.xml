@@ -185,10 +185,6 @@
     <string name="connection_warning_disconnect_first_title">VPN verbunden</string>
     <string name="connection_warning_disconnect_first_message">Zum wechseln von Profilen bitte erst die Verbindung mit dem Schalter trennen.</string>
     <string name="connection_warning_disconnect_first_ok_button">OK</string>
-    <string name="error_organization_list_version_check_message">Organisationsliste veraltet.</string>
-    <string name="error_organization_list_version_check_title">Problem beim Herunterladen der Organisationsliste</string>
-    <string name="error_server_list_version_check_message">Serverliste veraltet.</string>
-    <string name="error_server_list_version_check_title">Problem beim Herunterladen der Serverliste</string>
     <string name="connection_info_renew_session">Session erneuern</string>
     <string name="cert_expiry_channel_name">VPN-Zertifikat Ablaufwarnung</string>
     <string name="cert_expiry_notification_title">VPN-Zertifikat wird bald ablaufen</string>

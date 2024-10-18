@@ -191,10 +191,6 @@
     <string name="connection_warning_disconnect_first_title">VPN connectada</string>
     <string name="connection_warning_disconnect_first_message">Per a canviar entre perfils cal que desconnecteu primer emprant el botó de commutació.</string>
     <string name="connection_warning_disconnect_first_ok_button">OK</string>
-    <string name="error_organization_list_version_check_message">La versió de la llista d\'organitzacions és obsoleta.</string>
-    <string name="error_organization_list_version_check_title">Problema en descarregar la llista d\'organitzacions</string>
-    <string name="error_server_list_version_check_message">La versió de la llista de servidors és obsoleta.</string>
-    <string name="error_server_list_version_check_title">Problema en descarregar la llista de servidors</string>
     <string name="connection_info_renew_session">Renovar Sessió</string>
     <string name="cert_expiry_channel_name">Advertiment de caducitat del certificat VPN</string>
     <string name="cert_expiry_notification_title">Certificat VPN a punt de caducar</string>

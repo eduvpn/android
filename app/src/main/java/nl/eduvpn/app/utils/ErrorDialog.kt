@@ -99,7 +99,9 @@ object ErrorDialog {
             putString(ErrorDialogFragment.ARGS_KEY_TITLE, title)
             putString(ErrorDialogFragment.ARGS_KEY_MESSAGE, message)
         }
-        dialog.show(activity.supportFragmentManager, null)
+        if (!activity.isFinishing && !activity.supportFragmentManager.isStateSaved) {
+            dialog.show(activity.supportFragmentManager, null)
+        }
         return dialog
     }
 

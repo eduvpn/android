@@ -84,14 +84,24 @@ class ServerSelectionViewModel @Inject constructor(
     }
 
     private fun refresh() {
-        historyService.removeListener(this)
-        historyService.load()
-        historyService.addListener(this)
-        val needsServerList = historyService.addedServers?.secureInternetServer != null
-        if (needsServerList) {
-            refreshServerList()
-        } else {
-            refreshInstances()
+        viewModelScope.launch(Dispatchers.IO) {
+            println("XXX Starting refresh")
+            try {
+                historyService.removeListener(this@ServerSelectionViewModel)
+                historyService.load()
+                historyService.addListener(this@ServerSelectionViewModel)
+
+                println("XXX Added server in SSM ${historyService.addedServers?.customServers}")
+                val needsServerList = historyService.addedServers?.secureInternetServer != null
+                if (needsServerList) {
+                    refreshServerList()
+                } else {
+                    refreshInstances()
+                }
+            } catch (ex: Exception) {
+                Log.w(TAG, "XXX Could not refresh server selection list", ex)
+                _parentAction.postValue(ParentAction.DisplayError(R.string.error_dialog_title, ex.message ?: ex.toString()))
+            }
         }
     }
 
@@ -100,7 +110,7 @@ class ServerSelectionViewModel @Inject constructor(
      * Refreshes the current organization, and then the instances afterwards
      */
     private fun refreshServerList() {
-        connectionState.value = ConnectionState.FetchingServerList
+        connectionState.postValue(ConnectionState.FetchingServerList)
         Log.v(TAG, "Fetching server list...")
         viewModelScope.launch(Dispatchers.IO) {
             runCatchingCoroutine {

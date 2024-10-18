@@ -176,7 +176,7 @@ class BackendService(
     }
 
     @kotlin.jvm.Throws(CommonException::class)
-    suspend fun addServer(instance: Instance) {
+    fun addServer(instance: Instance) {
         val errorString = goBackend.addServer(
             instance.authorizationType.toNativeServerType().nativeValue,
             instance.baseURI
@@ -233,7 +233,6 @@ class BackendService(
         return true
     }
 
-    @kotlin.jvm.Throws(CommonException::class, UnknownFormatException::class)
     fun getAddedServers(): AddedServers {
         val dataErrorTuple = goBackend.addedServers
         if (dataErrorTuple.isError) {

@@ -22,6 +22,7 @@ import nl.eduvpn.app.CertExpiredBroadcastReceiver
 import nl.eduvpn.app.DisconnectVPNBroadcastReceiver
 import nl.eduvpn.app.EduVPNApplication
 import nl.eduvpn.app.MainActivity
+import nl.eduvpn.app.OpenVpnLogsActivity
 import nl.eduvpn.app.fragment.*
 import javax.inject.Singleton
 
@@ -43,6 +44,7 @@ interface EduVPNComponent {
     fun inject(organizationSelectionFragment: OrganizationSelectionFragment)
     fun inject(mainActivity: MainActivity)
     fun inject(apiLogsActivity: ApiLogsActivity)
+    fun inject(apiLogsActivity: OpenVpnLogsActivity)
     fun inject(connectionStatusFragment: ConnectionStatusFragment)
     fun inject(homeFragment: ProfileSelectionFragment)
     fun inject(settingsFragment: SettingsFragment)

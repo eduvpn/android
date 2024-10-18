@@ -22,24 +22,13 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:fitsSystemWindows="true"
-        tools:context=".ApiLogsActivity">
+        tools:context=".OpenVpnLogsActivity">
 
-        <ScrollView
-            android:id="@+id/scrollview"
+        <FrameLayout
+            android:id="@+id/fragment_container"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginTop="@dimen/actionbar_size"
-            android:background="@color/backgroundColor">
-
-            <TextView
-                android:id="@+id/log_contents"
-                android:layout_width="match_parent"
-                android:fontFamily="monospace"
-                android:textStyle="bold"
-                tools:text="@tools:sample/lorem/random"
-                android:layout_height="wrap_content"/>
-
-        </ScrollView>
+            android:layout_below="@id/toolbar"
+            android:layout_height="match_parent"/>
 
         <include
             android:id="@+id/toolbar"
