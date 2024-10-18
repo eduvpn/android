@@ -8,7 +8,7 @@ SDK_DIR=${HOME}/android-sdk
 KEY_STORE=${HOME}/android.jks
 
 GIT_REPO=https://codeberg.org/eduVPN/android
-#GIT_TAG=3.3.3
+#GIT_TAG=3.3.4
 GIT_TAG=master
 
 PROJECT_DIR=${HOME}/Projects

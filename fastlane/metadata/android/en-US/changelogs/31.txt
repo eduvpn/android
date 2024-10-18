@@ -1,0 +1,4 @@
+- update WireGuard, OpenVPN and "common" sub-modules
+- Move backend methods to background threads
+- More crash fixes
+- small README updates

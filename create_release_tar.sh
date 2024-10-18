@@ -1,7 +1,7 @@
 #!/bin/sh
 
 GIT_REPO=https://codeberg.org/eduVPN/android
-GIT_TAG=3.3.3
+GIT_TAG=3.3.4
 #GIT_TAG=master
 
 ###############################################################################
