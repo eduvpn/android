@@ -1,10 +1,10 @@
 # Changelog
 
 ## 3.3.4 (...)
-* update WireGuard, OpenVPN and "common" sub-modules
-* Move backend methods to background threads
-* More crash fixes
-* small README updates
+- update WireGuard, OpenVPN and "common" sub-modules
+- Move backend methods to background threads
+- More crash fixes
+- small README updates
 
 ## 3.3.3 (2024-10-04)
 - embed WireGuard for Android
