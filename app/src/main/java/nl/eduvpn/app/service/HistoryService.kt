@@ -24,8 +24,7 @@ import nl.eduvpn.app.entity.exception.CommonException
 import nl.eduvpn.app.service.SerializerService.UnknownFormatException
 import nl.eduvpn.app.utils.Listener
 import nl.eduvpn.app.utils.Log
-import java.util.LinkedList
-import java.util.function.Consumer
+import java.util.concurrent.CopyOnWriteArrayList
 
 /**
  * Service which stores previously used access token and profile names.
@@ -36,33 +35,31 @@ class HistoryService(private val backendService: BackendService) {
     var addedServers: AddedServers? = null
         private set
 
-    private val _listeners: MutableList<Listener> = LinkedList()
+    private val listeners = CopyOnWriteArrayList<Listener>()
 
     /**
      * Loads the state of the service.
      */
     @kotlin.jvm.Throws(Exception::class)
     fun load() {
-        try {
-            addedServers = backendService.getAddedServers()
-            notifyListeners()
-        } catch (e: Exception) {
-            throw RuntimeException(e)
-        }
+        addedServers = backendService.getAddedServers()
+        notifyListeners()
     }
 
     fun addListener(listener: Listener) {
-        if (!_listeners.contains(listener)) {
-            _listeners.add(listener)
+        if (!listeners.contains(listener)) {
+            listeners.add(listener)
         }
     }
 
     fun removeListener(listener: Listener) {
-        _listeners.remove(listener)
+        listeners.remove(listener)
     }
 
     private fun notifyListeners() {
-        _listeners.forEach(Consumer { l: Listener -> l.update(this, null) })
+        listeners.forEach {
+            it.update(this, null)
+        }
     }
 
 
