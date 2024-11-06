@@ -25,6 +25,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import nl.eduvpn.app.R
 import nl.eduvpn.app.entity.*
 import nl.eduvpn.app.entity.Profile
@@ -144,9 +145,12 @@ abstract class BaseConnectionViewModel(
         vpnConnectionService.disconnect(context, vpnService)
     }
 
-    fun deleteAllDataForInstance(instance: Instance) {
+    fun deleteAllDataForInstance(instance: Instance, callback: () -> Unit) {
         viewModelScope.launch(Dispatchers.IO) {
             historyService.removeAllDataForInstance(instance)
+            withContext(Dispatchers.Main) {
+                callback()
+            }
         }
     }
 

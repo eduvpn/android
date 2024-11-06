@@ -71,12 +71,15 @@ class ServerSelectionFragment : BaseFragment<FragmentServerSelectionBinding>() {
                         ), true
                     )
                 }
+
                 is BaseConnectionViewModel.ParentAction.ShowContextCanceledToast -> {
                     Snackbar.make(view, parentAction.message, Snackbar.LENGTH_LONG).show()
                 }
+
                 is BaseConnectionViewModel.ParentAction.DisplayError -> {
                     ErrorDialog.show(requireActivity(), parentAction.title, parentAction.message)
                 }
+
                 else -> {
                     // Do nothing.
                 }
@@ -137,9 +140,10 @@ class ServerSelectionFragment : BaseFragment<FragmentServerSelectionBinding>() {
                 )
             )
             .setPositiveButton(R.string.button_remove) { dialog, _ ->
-                viewModel.deleteAllDataForInstance(instance)
-                if (viewModel.hasNoMoreServers()) {
-                    openAddServerFragment(false)
+                viewModel.deleteAllDataForInstance(instance) {
+                    if (viewModel.hasNoMoreServers()) {
+                        openAddServerFragment(false)
+                    }
                 }
                 dialog.dismiss()
             }
